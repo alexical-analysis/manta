@@ -191,8 +191,8 @@ Guards and nested patterns:
 Examples:
 
 type Maybei32 enum {
-    .Some(i32)
-    .None
+    Some(i32)
+    None
 }
 
 fn describe(m Maybei32) string {
@@ -264,8 +264,8 @@ Combining with `defer`:
 Examples:
 
 type ErrStr enum {
-    .Ok(str) // proper sum type variant with a value
-    .IOError
+    Ok(str) // proper sum type variant with a value
+    IOError
 }
 
 fn read_or_default(path *u8) ErrStr {
@@ -308,10 +308,10 @@ try_expr := 'try' expression ('catch' '(' identifier ')' block)?
 Full example showing defer + new/free + try/catch + Option:
 
 type MaybeErri32 enum {
-    .Ok(i32)
-    .None
-    .IOError
-    .InvalidInt
+    Ok(i32)
+    None
+    IOError
+    InvalidInt
 }
 
 fn process(path *u8) MaybeErri32 {
