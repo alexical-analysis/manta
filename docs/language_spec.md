@@ -178,15 +178,10 @@ Patterns supported initially:
 Semantics:
 
 - Match arms are tested in order. The first matching arm is taken.
-- The match expression must be exhaustive. If not all variants/literals are handled, the compiler requires a wildcard arm (`else`) or will emit an error.
+- The match expression must be exhaustive. If not all variants/literals are handled, the compiler requires a wildcard arm (`_`) or will emit an error.
 - Patterns can bind inner values which are only in scope within the arm block/expression.
 - No implicit fallthrough between arms.
 - Match can be used both as a statement (for control flow) and as an expression that yields a value.
-
-Guards and nested patterns:
-
-- Pattern guards (`if` conditions) are a planned future addition for more expressive matching; not required in the first version.
-- Nested patterns (matching tuples or nested enums) are supported in a limited form (e.g. `.Pair(.Some(x), .None)`), but complex nesting will be incrementally expanded.
 
 Examples:
 
@@ -206,15 +201,15 @@ fn describe(m Maybei32) string {
 match res {
     .Ok(val) { process(val) }
     .IOError { log("io error") }
-    else { log("other error") }
+    _ { log("other error") }
 }
 
 Grammar snippet (pseudo-EBNF):
 
 match_expr := 'match' expression '{' match_arm+ '}'
 match_arm := pattern block
-pattern := variant_pattern | literal | identifier | 'else'
-variant_pattern := '.' identifier ( '(' pattern_list? ')' )?
+pattern := variant_pattern | literal | identifier | '_'
+variant_pattern := '.' identifier ( '(' identifier ')' )?
 
 Integration with `try`/destructuring:
 
@@ -227,7 +222,7 @@ Design goal: small and ergonomic error propagation similar to Zig's `try` but wi
 Concepts:
 - Like the Optional types above, Result types are explicitly defined for now
 - `try` can be used used to unwrap these errors just like with other sum types
-- By convention Manta uses `Err` as the previx for Result types.
+- By convention Manta uses `Err` as the prefix for Result types.
 - `catch` can be used to handle or convert errors.
 
 Standard Syntax:
@@ -380,7 +375,3 @@ Integration with `defer` and `new`/`free`:
 - Convert this draft into concrete grammar rules for the lexer and parser.
 - Design token kinds and AST node types for each construct.
 - Implement simple interpreter or codegen paths for testing semantics.
-
----
-
-Document created by GitHub Copilot draft generation.

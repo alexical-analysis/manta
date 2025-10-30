@@ -1,0 +1,22 @@
+// examples/option_match.manta
+
+type Maybei32 enum {
+    Some(i32)
+    None
+}
+
+fn maybe_div(a, b i32) Maybei32 {
+    if b == 0 {
+        return .None
+    }
+    return .Some(a / b)
+}
+
+fn main() {
+    let r := maybe_div(10, 2)
+    match r {
+        .Some(v) => { print("result: ", v) }
+        .None => { print("no result") }
+    }
+    return
+}

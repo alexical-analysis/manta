@@ -50,7 +50,7 @@ primary_expr  := literal
 call_expr     := identifier '(' argument_list? ')'
 argument_list := expression (',' expression)*
 
-pattern       := '.' identifier ( '(' pattern_list? ')' )? | literal | identifier | 'else'
+pattern       := identifier? '.' identifier ( '(' pattern_list? ')' )? | literal | identifier | '_'
 pattern_list  := pattern (',' pattern)*
 
 literal       := INTEGER | FLOAT | STRING | 'nil' | 'true' | 'false'
