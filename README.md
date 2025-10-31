@@ -70,4 +70,47 @@ These documents were used to author the example programs in `examples/` and shou
 - Design a simple IR and a minimal codegen or interpreter for fast iteration.
 - Add a `manta` CLI that can `build`, `run`, and `test` example programs.
 
-If you'd like, I can help scaffold the lexer/parser modules and a basic CLI next.
+## Command-line interface
+
+The main way to interact with Manta is uing the Manta CLI.
+The CLI executable is named `manta` and supports the following subcommands and flags:
+
+### Build
+`manta build` Compiles the project and produce build artifacts.
+The following flags are supported:
+
+- `-o, --out-dir <OUT_DIR>` : optional output directory for build artifacts
+
+### Check
+`manta check` Runs checks on the project and report results without producing build artifacts.
+
+### Run
+`manta run` Builds and executes the program immediately.
+
+### Fmt
+`manta fmt` Formats source files using the official manta formatter.
+The following falgs are supported:
+
+- `-w, --write` : write changes to files in-place (otherwise prints diffs)
+- positional `FILES...` : files or directories to format
+
+Global flags:
+
+- `-v` / `--verbose` : increase verbosity (stackable; `-vv` for more verbose output)
+- `-p, --path <PATH>` : path to the project or file to operate on (defaults to current directory)
+
+Examples (using the built binary in `target/release`):
+
+```bash
+# Build the current project (stub)
+./target/release/manta build -o out/ 
+
+# Check project in strict mode
+./target/release/manta check
+
+# Run the project, passing program arguments
+./target/release/manta run
+
+# Format manta source files in-place
+./target/release/manta fmt -w src/
+```
