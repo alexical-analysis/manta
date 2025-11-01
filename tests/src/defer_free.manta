@@ -1,0 +1,17 @@
+// examples/defer_free.manta
+
+type ErrWrite enum {
+    Ok
+    IOError
+}
+
+fn write_and_cleanup(path string) ErrWrite {
+    .Ok(f) := try open(path) catch { return .IOError }
+    defer { close(f) }
+
+    buf := new([]u8, 256)
+    defer { free(buf) }
+
+    .Ok(n) := try write(f, buf, 256) catch { return .IOError }
+    return .Ok
+}

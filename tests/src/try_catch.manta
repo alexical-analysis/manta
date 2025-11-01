@@ -1,0 +1,24 @@
+// examples/try_catch.manta
+
+type ErrStr enum {
+    Ok(str)
+    IOError
+}
+
+fn read_file(path string) ErrStr {
+    .Ok(f) := try open(path) catch { return .IOError }
+    defer { close(f) }
+
+    .Ok(s) := try read_to_string(f) catch { return .IOError }
+    return .Ok(s)
+}
+
+// entry point for the program
+fn main() {
+    .Ok(content) := try read_file("/tmp/x.txt") catch (e) {
+        print("read failed: ", e)
+        return
+    }
+    print(content)
+    return
+}
