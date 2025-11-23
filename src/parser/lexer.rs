@@ -520,475 +520,464 @@ fn is_ident_continue(ch: char) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
+    use pretty_assertions::assert_eq;
+    use std::fs::{self, DirEntry};
     use std::path::Path;
-
-    struct InputCase {
-        name: &'static str,
-        input: &'static str,
-        expected_tokens: Vec<Token>,
-    }
 
     #[test]
     fn lex_file_tests() {
         let test_dir = Path::new("tests/src");
         let lex_dir = Path::new("tests/lexer");
 
-        if !test_dir.exists() || !lex_dir.exists() {
-            eprintln!(
-                "Warning: test directories not found. Skipping lex_file_tests. \
-                   Expected: {} and {}",
-                test_dir.display(),
-                lex_dir.display()
+        if !test_dir.exists() {
+            panic!(
+                "Test directory does not exist. Please create a '{:?}' with test .manta files.",
+                test_dir
             );
+        }
+
+        let entries = fs::read_dir(test_dir).expect("Failed to read tests/src directory");
+
+        // Read all .manta files from tests/src and check them against expected lexer output in tests/lexer
+        for entry in entries {
+            assert_file_eq(entry, test_dir, lex_dir);
+        }
+    }
+
+    fn assert_file_eq(entry: Result<DirEntry, std::io::Error>, test_dir: &Path, lex_dir: &Path) {
+        let entry =
+            entry.expect(format!("Failed to read entry in '{:?}' directory", test_dir).as_str());
+
+        let path = entry.path();
+        let ext = path.extension().expect("Failed to get file extension");
+        if ext != "manta" {
+            // Skip over non-manta files
             return;
         }
 
-        // Read all .manta files from tests/src
-        if let Ok(entries) = fs::read_dir(test_dir) {
-            for entry_result in entries {
-                if let Ok(entry) = entry_result {
-                    let path = entry.path();
-                    if path.extension().map_or(false, |ext| ext == "manta") {
-                        let file_name = path
-                            .file_stem()
-                            .and_then(|s| s.to_str())
-                            .unwrap_or("unknown");
+        let file_name = path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("unknown");
 
-                        // Read the source file
-                        let source = fs::read_to_string(&path)
-                            .expect(&format!("Failed to read {}", path.display()));
+        let source =
+            fs::read_to_string(&path).expect(&format!("Failed to read {}", path.display()));
 
-                        // Lex the source
-                        let lexer = Lexer::new(&source);
-                        let tokens: Result<Vec<Token>, LexError> = lexer.into_iter().collect();
+        let lexer = Lexer::new(&source);
+        let tokens: Result<Vec<Token>, LexError> = lexer.into_iter().collect();
 
-                        let tokens = match tokens {
-                            Ok(t) => t,
-                            Err(e) => {
-                                panic!("Lexer error for {}: {}", file_name, e);
-                            }
-                        };
-
-                        // Serialize tokens to JSON
-                        let json_output = serde_json::to_string_pretty(&tokens)
-                            .expect("Failed to serialize tokens to JSON");
-
-                        // Path to expected output file
-                        let lex_file = lex_dir.join(format!("{}.json", file_name));
-
-                        // If the file exists, compare; otherwise, write it
-                        if lex_file.exists() {
-                            let expected_json = fs::read_to_string(&lex_file)
-                                .expect(&format!("Failed to read {}", lex_file.display()));
-
-                            assert_eq!(
-                                json_output, expected_json,
-                                "Lexer output mismatch for {}",
-                                file_name
-                            );
-                        } else {
-                            // Create the lex directory if it doesn't exist
-                            fs::create_dir_all(lex_dir)
-                                .expect("Failed to create lexer test directory");
-
-                            // Write the output for the first run
-                            fs::write(&lex_file, &json_output).expect(&format!(
-                                "Failed to write lexer output to {}",
-                                lex_file.display()
-                            ));
-
-                            eprintln!("Generated expected output file: {}", lex_file.display());
-                        }
-                    }
-                }
+        let tokens = match tokens {
+            Ok(t) => t,
+            Err(e) => {
+                panic!("Lexer error for {}: {}", file_name, e);
             }
+        };
+
+        let json_output =
+            serde_json::to_string_pretty(&tokens).expect("Failed to serialize tokens to JSON");
+
+        let lex_file = lex_dir.join(format!("{}.json", file_name));
+
+        if lex_file.exists() {
+            let expected_json = fs::read_to_string(&lex_file)
+                .expect(&format!("Failed to read {}", lex_file.display()));
+
+            assert_eq!(
+                json_output, expected_json,
+                "Lexer output mismatch for {}",
+                file_name
+            );
+        } else {
+            // Create the lex directory if it doesn't exist
+            fs::create_dir_all(lex_dir).expect("Failed to create lexer test directory");
+
+            // Write the output if the file does not exist
+            fs::write(&lex_file, &json_output)
+                .expect(&format!("Failed to write lexer output to {:?}", lex_file));
+
+            // If we generated the output file, fail the test to prompt the user to verify it's correctness
+            panic!(
+                "Generated new lexer output file: {:?}. Please verify its correctness.",
+                lex_file
+            );
         }
     }
-    #[test]
-    fn lex_inputs() {
-        let cases = vec![
-            InputCase {
-                name: "simple let statement",
-                input: "let x = 42",
-                expected_tokens: vec![
-                    Token::new(
-                        TokenKind::LetKeyword,
-                        Some("let".to_string()),
-                        Span::new(0, 3),
-                    ),
-                    Token::new(TokenKind::Ident, Some("x".to_string()), Span::new(4, 5)),
-                    Token::new(TokenKind::Equal, Some("=".to_string()), Span::new(6, 7)),
-                    Token::new(TokenKind::Int, Some("42".to_string()), Span::new(8, 10)),
-                    Token::new(TokenKind::Eof, None, Span::new(10, 10)),
-                ],
-            },
-            InputCase {
-                name: "string and escape",
-                input: "\"hello\\n\"",
-                expected_tokens: vec![
-                    Token::new(TokenKind::Str, Some("hello\n".to_string()), Span::new(0, 9)),
-                    Token::new(TokenKind::Eof, None, Span::new(9, 9)),
-                ],
-            },
-            InputCase {
-                name: "comments and whitespace",
-                input: "  // top comment\nlet/*block*/ x = 1 // end\n",
-                expected_tokens: vec![
-                    Token::new(
-                        TokenKind::LetKeyword,
-                        Some("let".to_string()),
-                        Span::new(17, 20),
-                    ),
-                    Token::new(TokenKind::Ident, Some("x".to_string()), Span::new(30, 31)),
-                    Token::new(TokenKind::Equal, Some("=".to_string()), Span::new(32, 33)),
-                    Token::new(TokenKind::Int, Some("1".to_string()), Span::new(34, 35)),
-                    Token::new(TokenKind::Eof, None, Span::new(43, 43)),
-                ],
-            },
-            InputCase {
-                name: "numbers and floats",
-                input: "3.14 1e10 2.5e-3 1_000",
-                expected_tokens: vec![
-                    Token::new(TokenKind::Float, Some("3.14".to_string()), Span::new(0, 4)),
-                    Token::new(TokenKind::Float, Some("1e10".to_string()), Span::new(5, 9)),
-                    Token::new(
-                        TokenKind::Float,
-                        Some("2.5e-3".to_string()),
-                        Span::new(10, 16),
-                    ),
-                    Token::new(TokenKind::Int, Some("1_000".to_string()), Span::new(17, 22)),
-                    Token::new(TokenKind::Eof, None, Span::new(22, 22)),
-                ],
-            },
-            InputCase {
-                name: "multi char operators",
-                input: "a == b && c != d <= e >= f := += **",
-                expected_tokens: vec![
-                    Token::new(TokenKind::Ident, Some("a".to_string()), Span::new(0, 1)),
-                    Token::new(
-                        TokenKind::EqualEqual,
-                        Some("==".to_string()),
-                        Span::new(2, 4),
-                    ),
-                    Token::new(TokenKind::Ident, Some("b".to_string()), Span::new(5, 6)),
-                    Token::new(TokenKind::AndAnd, Some("&&".to_string()), Span::new(7, 9)),
-                    Token::new(TokenKind::Ident, Some("c".to_string()), Span::new(10, 11)),
-                    Token::new(
-                        TokenKind::NotEqual,
-                        Some("!=".to_string()),
-                        Span::new(12, 14),
-                    ),
-                    Token::new(TokenKind::Ident, Some("d".to_string()), Span::new(15, 16)),
-                    Token::new(
-                        TokenKind::LessOrEqual,
-                        Some("<=".to_string()),
-                        Span::new(17, 19),
-                    ),
-                    Token::new(TokenKind::Ident, Some("e".to_string()), Span::new(20, 21)),
-                    Token::new(
-                        TokenKind::GreaterOrEqual,
-                        Some(">=".to_string()),
-                        Span::new(22, 24),
-                    ),
-                    Token::new(TokenKind::Ident, Some("f".to_string()), Span::new(25, 26)),
-                    Token::new(
-                        TokenKind::ColonEqual,
-                        Some(":=".to_string()),
-                        Span::new(27, 29),
-                    ),
-                    Token::new(
-                        TokenKind::PlusEqual,
-                        Some("+=".to_string()),
-                        Span::new(30, 32),
-                    ),
-                    Token::new(
-                        TokenKind::StarStar,
-                        Some("**".to_string()),
-                        Span::new(33, 35),
-                    ),
-                    Token::new(TokenKind::Eof, None, Span::new(35, 35)),
-                ],
-            },
-            InputCase {
-                name: "variant and assignment",
-                input: ".Ok x = 1",
-                expected_tokens: vec![
-                    Token::new(TokenKind::Dot, Some(".".to_string()), Span::new(0, 1)),
-                    Token::new(TokenKind::Ident, Some("Ok".to_string()), Span::new(1, 3)),
-                    Token::new(TokenKind::Ident, Some("x".to_string()), Span::new(4, 5)),
-                    Token::new(TokenKind::Equal, Some("=".to_string()), Span::new(6, 7)),
-                    Token::new(TokenKind::Int, Some("1".to_string()), Span::new(8, 9)),
-                    Token::new(TokenKind::Eof, None, Span::new(9, 9)),
-                ],
-            },
-            InputCase {
-                name: "type enum tokens",
-                input: "type ErrWrite enum { Ok IOError }",
-                expected_tokens: vec![
-                    Token::new(
-                        TokenKind::TypeKeyword,
-                        Some("type".to_string()),
-                        Span::new(0, 4),
-                    ),
-                    Token::new(
-                        TokenKind::Ident,
-                        Some("ErrWrite".to_string()),
-                        Span::new(5, 13),
-                    ),
-                    Token::new(
-                        TokenKind::EnumKeyword,
-                        Some("enum".to_string()),
-                        Span::new(14, 18),
-                    ),
-                    Token::new(
-                        TokenKind::OpenBrace,
-                        Some("{".to_string()),
-                        Span::new(19, 20),
-                    ),
-                    Token::new(TokenKind::Ident, Some("Ok".to_string()), Span::new(21, 23)),
-                    Token::new(
-                        TokenKind::Ident,
-                        Some("IOError".to_string()),
-                        Span::new(24, 31),
-                    ),
-                    Token::new(
-                        TokenKind::CloseBrace,
-                        Some("}".to_string()),
-                        Span::new(32, 33),
-                    ),
-                    Token::new(TokenKind::Eof, None, Span::new(33, 33)),
-                ],
-            },
-            InputCase {
-                name: "fn signature tokens",
-                input: "fn write_and_cleanup(path str) ErrWrite { }",
-                expected_tokens: vec![
-                    Token::new(
-                        TokenKind::FnKeyword,
-                        Some("fn".to_string()),
-                        Span::new(0, 2),
-                    ),
-                    Token::new(
-                        TokenKind::Ident,
-                        Some("write_and_cleanup".to_string()),
-                        Span::new(3, 20),
-                    ),
-                    Token::new(
-                        TokenKind::OpenParen,
-                        Some("(".to_string()),
-                        Span::new(20, 21),
-                    ),
-                    Token::new(
-                        TokenKind::Ident,
-                        Some("path".to_string()),
-                        Span::new(21, 25),
-                    ),
-                    Token::new(TokenKind::Ident, Some("str".to_string()), Span::new(26, 29)),
-                    Token::new(
-                        TokenKind::CloseParen,
-                        Some(")".to_string()),
-                        Span::new(29, 30),
-                    ),
-                    Token::new(
-                        TokenKind::Ident,
-                        Some("ErrWrite".to_string()),
-                        Span::new(31, 39),
-                    ),
-                    Token::new(
-                        TokenKind::OpenBrace,
-                        Some("{".to_string()),
-                        Span::new(40, 41),
-                    ),
-                    Token::new(
-                        TokenKind::CloseBrace,
-                        Some("}".to_string()),
-                        Span::new(42, 43),
-                    ),
-                    Token::new(TokenKind::Eof, None, Span::new(43, 43)),
-                ],
-            },
-            InputCase {
-                name: "try catch line tokens",
-                input: ".Ok(f) := try open(path) catch { return .IOError }",
-                expected_tokens: vec![
-                    Token::new(TokenKind::Dot, Some(".".to_string()), Span::new(0, 1)),
-                    Token::new(TokenKind::Ident, Some("Ok".to_string()), Span::new(1, 3)),
-                    Token::new(TokenKind::OpenParen, Some("(".to_string()), Span::new(3, 4)),
-                    Token::new(TokenKind::Ident, Some("f".to_string()), Span::new(4, 5)),
-                    Token::new(
-                        TokenKind::CloseParen,
-                        Some(")".to_string()),
-                        Span::new(5, 6),
-                    ),
-                    Token::new(
-                        TokenKind::ColonEqual,
-                        Some(":=".to_string()),
-                        Span::new(7, 9),
-                    ),
-                    Token::new(
-                        TokenKind::TryKeyword,
-                        Some("try".to_string()),
-                        Span::new(10, 13),
-                    ),
-                    Token::new(
-                        TokenKind::Ident,
-                        Some("open".to_string()),
-                        Span::new(14, 18),
-                    ),
-                    Token::new(
-                        TokenKind::OpenParen,
-                        Some("(".to_string()),
-                        Span::new(18, 19),
-                    ),
-                    Token::new(
-                        TokenKind::Ident,
-                        Some("path".to_string()),
-                        Span::new(19, 23),
-                    ),
-                    Token::new(
-                        TokenKind::CloseParen,
-                        Some(")".to_string()),
-                        Span::new(23, 24),
-                    ),
-                    Token::new(
-                        TokenKind::CatchKeyword,
-                        Some("catch".to_string()),
-                        Span::new(25, 30),
-                    ),
-                    Token::new(
-                        TokenKind::OpenBrace,
-                        Some("{".to_string()),
-                        Span::new(31, 32),
-                    ),
-                    Token::new(
-                        TokenKind::ReturnKeyword,
-                        Some("return".to_string()),
-                        Span::new(33, 39),
-                    ),
-                    Token::new(TokenKind::Dot, Some(".".to_string()), Span::new(40, 41)),
-                    Token::new(
-                        TokenKind::Ident,
-                        Some("IOError".to_string()),
-                        Span::new(41, 48),
-                    ),
-                    Token::new(
-                        TokenKind::CloseBrace,
-                        Some("}".to_string()),
-                        Span::new(49, 50),
-                    ),
-                    Token::new(TokenKind::Eof, None, Span::new(50, 50)),
-                ],
-            },
-            InputCase {
-                name: "pointer and nil tokens",
-                input: "p := maybe_alloc(false)
+
+    macro_rules! test_lex_inputs {
+        ( $( $case:ident { input: $input:expr, want: $want:expr,  } ),*, ) => {
+            $(
+                #[test]
+                fn $case() {
+                    let toks: Vec<_> = Lexer::new($input)
+                        .into_iter()
+                        .map(|r| r.unwrap())
+                        .collect();
+                    assert_eq!(toks, $want);
+                }
+            )*
+        };
+    }
+
+    test_lex_inputs! {
+        lex_input_simple_let{
+            input: "let x = 42",
+            want: vec![
+                Token::new(
+                    TokenKind::LetKeyword,
+                    Some("let".to_string()),
+                    Span::new(0, 3),
+                ),
+                Token::new(TokenKind::Ident, Some("x".to_string()), Span::new(4, 5)),
+                Token::new(TokenKind::Equal, Some("=".to_string()), Span::new(6, 7)),
+                Token::new(TokenKind::Int, Some("42".to_string()), Span::new(8, 10)),
+                Token::new(TokenKind::Eof, None, Span::new(10, 10)),
+            ],
+        },
+        lex_input_string_and_escape {
+            input: "\"hello\\n\"",
+            want: vec![
+                Token::new(TokenKind::Str, Some("hello\n".to_string()), Span::new(0, 9)),
+                Token::new(TokenKind::Eof, None, Span::new(9, 9)),
+            ],
+        },
+        lex_input_comments_and_whitespace {
+            input: "  // top comment\nlet/*block*/ x = 1 // end\n",
+            want: vec![
+                Token::new(
+                    TokenKind::LetKeyword,
+                    Some("let".to_string()),
+                    Span::new(17, 20),
+                ),
+                Token::new(TokenKind::Ident, Some("x".to_string()), Span::new(30, 31)),
+                Token::new(TokenKind::Equal, Some("=".to_string()), Span::new(32, 33)),
+                Token::new(TokenKind::Int, Some("1".to_string()), Span::new(34, 35)),
+                Token::new(TokenKind::Eof, None, Span::new(43, 43)),
+            ],
+        },
+        lex_input_ints_and_floats {
+            input: "3.14 1e10 2.5e-3 1_000",
+            want: vec![
+                Token::new(TokenKind::Float, Some("3.14".to_string()), Span::new(0, 4)),
+                Token::new(TokenKind::Float, Some("1e10".to_string()), Span::new(5, 9)),
+                Token::new(
+                    TokenKind::Float,
+                    Some("2.5e-3".to_string()),
+                    Span::new(10, 16),
+                ),
+                Token::new(TokenKind::Int, Some("1_000".to_string()), Span::new(17, 22)),
+                Token::new(TokenKind::Eof, None, Span::new(22, 22)),
+            ],
+        },
+        lex_input_multi_char_operations {
+            input: "a == b && c != d <= e >= f := += **",
+            want: vec![
+                Token::new(TokenKind::Ident, Some("a".to_string()), Span::new(0, 1)),
+                Token::new(
+                    TokenKind::EqualEqual,
+                    Some("==".to_string()),
+                    Span::new(2, 4),
+                ),
+                Token::new(TokenKind::Ident, Some("b".to_string()), Span::new(5, 6)),
+                Token::new(TokenKind::AndAnd, Some("&&".to_string()), Span::new(7, 9)),
+                Token::new(TokenKind::Ident, Some("c".to_string()), Span::new(10, 11)),
+                Token::new(
+                    TokenKind::NotEqual,
+                    Some("!=".to_string()),
+                    Span::new(12, 14),
+                ),
+                Token::new(TokenKind::Ident, Some("d".to_string()), Span::new(15, 16)),
+                Token::new(
+                    TokenKind::LessOrEqual,
+                    Some("<=".to_string()),
+                    Span::new(17, 19),
+                ),
+                Token::new(TokenKind::Ident, Some("e".to_string()), Span::new(20, 21)),
+                Token::new(
+                    TokenKind::GreaterOrEqual,
+                    Some(">=".to_string()),
+                    Span::new(22, 24),
+                ),
+                Token::new(TokenKind::Ident, Some("f".to_string()), Span::new(25, 26)),
+                Token::new(
+                    TokenKind::ColonEqual,
+                    Some(":=".to_string()),
+                    Span::new(27, 29),
+                ),
+                Token::new(
+                    TokenKind::PlusEqual,
+                    Some("+=".to_string()),
+                    Span::new(30, 32),
+                ),
+                Token::new(
+                    TokenKind::StarStar,
+                    Some("**".to_string()),
+                    Span::new(33, 35),
+                ),
+                Token::new(TokenKind::Eof, None, Span::new(35, 35)),
+            ],
+
+        },
+        lex_input_variants_and_assignemnt {
+            input: ".Ok x = 1",
+            want: vec![
+                Token::new(TokenKind::Dot, Some(".".to_string()), Span::new(0, 1)),
+                Token::new(TokenKind::Ident, Some("Ok".to_string()), Span::new(1, 3)),
+                Token::new(TokenKind::Ident, Some("x".to_string()), Span::new(4, 5)),
+                Token::new(TokenKind::Equal, Some("=".to_string()), Span::new(6, 7)),
+                Token::new(TokenKind::Int, Some("1".to_string()), Span::new(8, 9)),
+                Token::new(TokenKind::Eof, None, Span::new(9, 9)),
+            ],
+        },
+        lex_input_type_enum_tokens {
+            input: "type ErrWrite enum { Ok IOError }",
+            want: vec![
+                Token::new(
+                    TokenKind::TypeKeyword,
+                    Some("type".to_string()),
+                    Span::new(0, 4),
+                ),
+                Token::new(
+                    TokenKind::Ident,
+                    Some("ErrWrite".to_string()),
+                    Span::new(5, 13),
+                ),
+                Token::new(
+                    TokenKind::EnumKeyword,
+                    Some("enum".to_string()),
+                    Span::new(14, 18),
+                ),
+                Token::new(
+                    TokenKind::OpenBrace,
+                    Some("{".to_string()),
+                    Span::new(19, 20),
+                ),
+                Token::new(TokenKind::Ident, Some("Ok".to_string()), Span::new(21, 23)),
+                Token::new(
+                    TokenKind::Ident,
+                    Some("IOError".to_string()),
+                    Span::new(24, 31),
+                ),
+                Token::new(
+                    TokenKind::CloseBrace,
+                    Some("}".to_string()),
+                    Span::new(32, 33),
+                ),
+                Token::new(TokenKind::Eof, None, Span::new(33, 33)),
+            ],
+        },
+        lex_input_fn_decl {
+            input: "fn write_and_cleanup(path str) ErrWrite { }",
+            want: vec![
+                Token::new(
+                    TokenKind::FnKeyword,
+                    Some("fn".to_string()),
+                    Span::new(0, 2),
+                ),
+                Token::new(
+                    TokenKind::Ident,
+                    Some("write_and_cleanup".to_string()),
+                    Span::new(3, 20),
+                ),
+                Token::new(
+                    TokenKind::OpenParen,
+                    Some("(".to_string()),
+                    Span::new(20, 21),
+                ),
+                Token::new(
+                    TokenKind::Ident,
+                    Some("path".to_string()),
+                    Span::new(21, 25),
+                ),
+                Token::new(TokenKind::Ident, Some("str".to_string()), Span::new(26, 29)),
+                Token::new(
+                    TokenKind::CloseParen,
+                    Some(")".to_string()),
+                    Span::new(29, 30),
+                ),
+                Token::new(
+                    TokenKind::Ident,
+                    Some("ErrWrite".to_string()),
+                    Span::new(31, 39),
+                ),
+                Token::new(
+                    TokenKind::OpenBrace,
+                    Some("{".to_string()),
+                    Span::new(40, 41),
+                ),
+                Token::new(
+                    TokenKind::CloseBrace,
+                    Some("}".to_string()),
+                    Span::new(42, 43),
+                ),
+                Token::new(TokenKind::Eof, None, Span::new(43, 43)),
+            ],
+        },
+        lex_input_try_catch {
+            input: ".Ok(f) := try open(path) catch { return .IOError }",
+            want: vec![
+                Token::new(TokenKind::Dot, Some(".".to_string()), Span::new(0, 1)),
+                Token::new(TokenKind::Ident, Some("Ok".to_string()), Span::new(1, 3)),
+                Token::new(TokenKind::OpenParen, Some("(".to_string()), Span::new(3, 4)),
+                Token::new(TokenKind::Ident, Some("f".to_string()), Span::new(4, 5)),
+                Token::new(
+                    TokenKind::CloseParen,
+                    Some(")".to_string()),
+                    Span::new(5, 6),
+                ),
+                Token::new(
+                    TokenKind::ColonEqual,
+                    Some(":=".to_string()),
+                    Span::new(7, 9),
+                ),
+                Token::new(
+                    TokenKind::TryKeyword,
+                    Some("try".to_string()),
+                    Span::new(10, 13),
+                ),
+                Token::new(
+                    TokenKind::Ident,
+                    Some("open".to_string()),
+                    Span::new(14, 18),
+                ),
+                Token::new(
+                    TokenKind::OpenParen,
+                    Some("(".to_string()),
+                    Span::new(18, 19),
+                ),
+                Token::new(
+                    TokenKind::Ident,
+                    Some("path".to_string()),
+                    Span::new(19, 23),
+                ),
+                Token::new(
+                    TokenKind::CloseParen,
+                    Some(")".to_string()),
+                    Span::new(23, 24),
+                ),
+                Token::new(
+                    TokenKind::CatchKeyword,
+                    Some("catch".to_string()),
+                    Span::new(25, 30),
+                ),
+                Token::new(
+                    TokenKind::OpenBrace,
+                    Some("{".to_string()),
+                    Span::new(31, 32),
+                ),
+                Token::new(
+                    TokenKind::ReturnKeyword,
+                    Some("return".to_string()),
+                    Span::new(33, 39),
+                ),
+                Token::new(TokenKind::Dot, Some(".".to_string()), Span::new(40, 41)),
+                Token::new(
+                    TokenKind::Ident,
+                    Some("IOError".to_string()),
+                    Span::new(41, 48),
+                ),
+                Token::new(
+                    TokenKind::CloseBrace,
+                    Some("}".to_string()),
+                    Span::new(49, 50),
+                ),
+                Token::new(TokenKind::Eof, None, Span::new(50, 50)),
+            ],
+        },
+        lex_input_pointer_and_nil {
+            input: "p := maybe_alloc(false)
 if p != nil {
     print(*p)
     free(p)
 }",
-                expected_tokens: vec![
-                    Token::new(TokenKind::Ident, Some("p".to_string()), Span::new(0, 1)),
-                    Token::new(
-                        TokenKind::ColonEqual,
-                        Some(":=".to_string()),
-                        Span::new(2, 4),
-                    ),
-                    Token::new(
-                        TokenKind::Ident,
-                        Some("maybe_alloc".to_string()),
-                        Span::new(5, 16),
-                    ),
-                    Token::new(
-                        TokenKind::OpenParen,
-                        Some("(".to_string()),
-                        Span::new(16, 17),
-                    ),
-                    Token::new(
-                        TokenKind::FalseLiteral,
-                        Some("false".to_string()),
-                        Span::new(17, 22),
-                    ),
-                    Token::new(
-                        TokenKind::CloseParen,
-                        Some(")".to_string()),
-                        Span::new(22, 23),
-                    ),
-                    Token::new(
-                        TokenKind::IfKeyword,
-                        Some("if".to_string()),
-                        Span::new(24, 26),
-                    ),
-                    Token::new(TokenKind::Ident, Some("p".to_string()), Span::new(27, 28)),
-                    Token::new(
-                        TokenKind::NotEqual,
-                        Some("!=".to_string()),
-                        Span::new(29, 31),
-                    ),
-                    Token::new(
-                        TokenKind::NilLiteral,
-                        Some("nil".to_string()),
-                        Span::new(32, 35),
-                    ),
-                    Token::new(
-                        TokenKind::OpenBrace,
-                        Some("{".to_string()),
-                        Span::new(36, 37),
-                    ),
-                    Token::new(
-                        TokenKind::Ident,
-                        Some("print".to_string()),
-                        Span::new(42, 47),
-                    ),
-                    Token::new(
-                        TokenKind::OpenParen,
-                        Some("(".to_string()),
-                        Span::new(47, 48),
-                    ),
-                    Token::new(TokenKind::Star, Some("*".to_string()), Span::new(48, 49)),
-                    Token::new(TokenKind::Ident, Some("p".to_string()), Span::new(49, 50)),
-                    Token::new(
-                        TokenKind::CloseParen,
-                        Some(")".to_string()),
-                        Span::new(50, 51),
-                    ),
-                    Token::new(
-                        TokenKind::Ident,
-                        Some("free".to_string()),
-                        Span::new(56, 60),
-                    ),
-                    Token::new(
-                        TokenKind::OpenParen,
-                        Some("(".to_string()),
-                        Span::new(60, 61),
-                    ),
-                    Token::new(TokenKind::Ident, Some("p".to_string()), Span::new(61, 62)),
-                    Token::new(
-                        TokenKind::CloseParen,
-                        Some(")".to_string()),
-                        Span::new(62, 63),
-                    ),
-                    Token::new(
-                        TokenKind::CloseBrace,
-                        Some("}".to_string()),
-                        Span::new(64, 65),
-                    ),
-                    Token::new(TokenKind::Eof, None, Span::new(65, 65)),
-                ],
-            },
-        ];
-
-        for case in cases {
-            let toks: Vec<_> = Lexer::new(case.input)
-                .into_iter()
-                .map(|r| r.unwrap())
-                .collect();
-            assert_eq!(
-                toks, case.expected_tokens,
-                "{}\n\tFailed lexing input: {}",
-                case.name, case.input
-            );
-        }
+            want: vec![
+                Token::new(TokenKind::Ident, Some("p".to_string()), Span::new(0, 1)),
+                Token::new(
+                    TokenKind::ColonEqual,
+                    Some(":=".to_string()),
+                    Span::new(2, 4),
+                ),
+                Token::new(
+                    TokenKind::Ident,
+                    Some("maybe_alloc".to_string()),
+                    Span::new(5, 16),
+                ),
+                Token::new(
+                    TokenKind::OpenParen,
+                    Some("(".to_string()),
+                    Span::new(16, 17),
+                ),
+                Token::new(
+                    TokenKind::FalseLiteral,
+                    Some("false".to_string()),
+                    Span::new(17, 22),
+                ),
+                Token::new(
+                    TokenKind::CloseParen,
+                    Some(")".to_string()),
+                    Span::new(22, 23),
+                ),
+                Token::new(
+                    TokenKind::IfKeyword,
+                    Some("if".to_string()),
+                    Span::new(24, 26),
+                ),
+                Token::new(TokenKind::Ident, Some("p".to_string()), Span::new(27, 28)),
+                Token::new(
+                    TokenKind::NotEqual,
+                    Some("!=".to_string()),
+                    Span::new(29, 31),
+                ),
+                Token::new(
+                    TokenKind::NilLiteral,
+                    Some("nil".to_string()),
+                    Span::new(32, 35),
+                ),
+                Token::new(
+                    TokenKind::OpenBrace,
+                    Some("{".to_string()),
+                    Span::new(36, 37),
+                ),
+                Token::new(
+                    TokenKind::Ident,
+                    Some("print".to_string()),
+                    Span::new(42, 47),
+                ),
+                Token::new(
+                    TokenKind::OpenParen,
+                    Some("(".to_string()),
+                    Span::new(47, 48),
+                ),
+                Token::new(TokenKind::Star, Some("*".to_string()), Span::new(48, 49)),
+                Token::new(TokenKind::Ident, Some("p".to_string()), Span::new(49, 50)),
+                Token::new(
+                    TokenKind::CloseParen,
+                    Some(")".to_string()),
+                    Span::new(50, 51),
+                ),
+                Token::new(
+                    TokenKind::Ident,
+                    Some("free".to_string()),
+                    Span::new(56, 60),
+                ),
+                Token::new(
+                    TokenKind::OpenParen,
+                    Some("(".to_string()),
+                    Span::new(60, 61),
+                ),
+                Token::new(TokenKind::Ident, Some("p".to_string()), Span::new(61, 62)),
+                Token::new(
+                    TokenKind::CloseParen,
+                    Some(")".to_string()),
+                    Span::new(62, 63),
+                ),
+                Token::new(
+                    TokenKind::CloseBrace,
+                    Some("}".to_string()),
+                    Span::new(64, 65),
+                ),
+                Token::new(TokenKind::Eof, None, Span::new(65, 65)),
+            ],
+        },
     }
 
     #[test]
