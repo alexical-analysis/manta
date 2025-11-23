@@ -2,11 +2,12 @@ pub mod lexer;
 pub mod parselets;
 pub mod types;
 
-use crate::ast::Expr;
+use crate::ast::{Expr, UnaryOp};
 use crate::parser::lexer::{Lexer, Token, TokenKind};
 use parselets::{
     BoolLiteralParselet, FloatLiteralParselet, IdentifierParselet, InfixParselet,
     IntLiteralParselet, NilLiteralParselet, Precedence, PrefixParselet, StringLiteralParselet,
+    UnaryOperatorParselet,
 };
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -109,10 +110,8 @@ impl Parser {
         &mut self,
         min_precedence: Precedence,
     ) -> Result<Expr, ParseError> {
-        // Consume the next token
         let token = self.consume()?;
 
-        // Look up the prefix parselet for this token
         let prefix_opt = self.prefix_parselets.get(&token.kind);
         if prefix_opt.is_none() {
             return Err(ParseError::UnexpectedToken(format!(
@@ -122,12 +121,15 @@ impl Parser {
         };
         let prefix = prefix_opt.unwrap().clone();
 
-        // Parse the prefix expression
         let mut left = prefix.parse(self, token)?;
 
-        // Loop: while the next token's precedence is higher than min_precedence
+        // Loop while the next token's precedence is higher than min_precedence
         loop {
             let next_token = self.lookahead(0)?.clone();
+            if next_token.kind == TokenKind::Eof {
+                break;
+            }
+
             let next_precedence = self.get_precedence(&next_token.kind)?;
 
             if next_precedence < min_precedence {
@@ -171,12 +173,19 @@ impl Parser {
         self.register_prefix(TokenKind::FalseLiteral, Rc::new(BoolLiteralParselet));
         self.register_prefix(TokenKind::NilLiteral, Rc::new(NilLiteralParselet));
         self.register_prefix(TokenKind::Ident, Rc::new(IdentifierParselet));
+        self.register_prefix(
+            TokenKind::Minus,
+            Rc::new(UnaryOperatorParselet {
+                operator: UnaryOp::Negate,
+            }),
+        );
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ast::{Expr, UnaryOp};
 
     #[test]
     fn lookahead_and_consume_basic() {
@@ -231,5 +240,154 @@ mod tests {
 
         let token = parser.lookahead(0).unwrap();
         assert_eq!(token.kind, TokenKind::Int);
+    }
+
+    #[test]
+    fn parse_expression_int_literal() {
+        let input = "42";
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        parser.register_parselets();
+
+        let expr = parser.parse_expression().unwrap();
+        match expr {
+            Expr::IntLiteral(val) => assert_eq!(val, 42),
+            _ => panic!("Expected IntLiteral, got {:?}", expr),
+        }
+    }
+
+    #[test]
+    fn parse_expression_float_literal() {
+        let input = "3.14";
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        parser.register_parselets();
+
+        let expr = parser.parse_expression().unwrap();
+        match expr {
+            Expr::FloatLiteral(val) => assert_eq!(val, 3.14),
+            _ => panic!("Expected FloatLiteral, got {:?}", expr),
+        }
+    }
+
+    #[test]
+    fn parse_expression_string_literal() {
+        let input = r#""hello world""#;
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        parser.register_parselets();
+
+        let expr = parser.parse_expression().unwrap();
+        match expr {
+            Expr::StringLiteral(val) => assert_eq!(val, "hello world"),
+            _ => panic!("Expected StringLiteral, got {:?}", expr),
+        }
+    }
+
+    #[test]
+    fn parse_expression_bool_true() {
+        let input = "true";
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        parser.register_parselets();
+
+        let expr = parser.parse_expression().unwrap();
+        match expr {
+            Expr::BoolLiteral(val) => assert_eq!(val, true),
+            _ => panic!("Expected BoolLiteral(true), got {:?}", expr),
+        }
+    }
+
+    #[test]
+    fn parse_expression_bool_false() {
+        let input = "false";
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        parser.register_parselets();
+
+        let expr = parser.parse_expression().unwrap();
+        match expr {
+            Expr::BoolLiteral(val) => assert_eq!(val, false),
+            _ => panic!("Expected BoolLiteral(false), got {:?}", expr),
+        }
+    }
+
+    #[test]
+    fn parse_expression_nil_literal() {
+        let input = "nil";
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        parser.register_parselets();
+
+        let expr = parser.parse_expression().unwrap();
+        match expr {
+            Expr::NilLiteral => (),
+            _ => panic!("Expected NilLiteral, got {:?}", expr),
+        }
+    }
+
+    #[test]
+    fn parse_expression_identifier() {
+        let input = "myVariable";
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        parser.register_parselets();
+
+        let expr = parser.parse_expression().unwrap();
+        match expr {
+            Expr::Identifier(name) => assert_eq!(name, "myVariable"),
+            _ => panic!("Expected Identifier, got {:?}", expr),
+        }
+    }
+
+    #[test]
+    fn parse_expression_identifier_single_char() {
+        let input = "x";
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        parser.register_parselets();
+
+        let expr = parser.parse_expression().unwrap();
+        match expr {
+            Expr::Identifier(name) => assert_eq!(name, "x"),
+            _ => panic!("Expected Identifier, got {:?}", expr),
+        }
+    }
+
+    #[test]
+    fn parse_expression_negative_int() {
+        let input = "-42";
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        parser.register_parselets();
+
+        let expr = parser.parse_expression().unwrap();
+        match expr {
+            Expr::UnaryExpr(unary) => {
+                assert_eq!(unary.operator, UnaryOp::Negate);
+                match *unary.operand {
+                    Expr::IntLiteral(val) => assert_eq!(val, 42),
+                    _ => panic!("Expected IntLiteral in UnaryExpr"),
+                }
+            }
+            _ => panic!("Expected UnaryExpr, got {:?}", expr),
+        }
+    }
+
+    #[test]
+    fn parse_expression_no_prefix_parselet() {
+        let input = "+";
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        parser.register_parselets();
+
+        let result = parser.parse_expression();
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            ParseError::UnexpectedToken(msg) => {
+                assert!(msg.contains("No prefix parselet"));
+            }
+            _ => panic!("Expected UnexpectedToken error"),
+        }
     }
 }

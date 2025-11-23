@@ -81,6 +81,7 @@ pub struct ImportDecl {
 }
 
 /// Type specification
+#[derive(Debug)]
 pub enum TypeSpec {
     Int32,
     Int16,
@@ -104,11 +105,13 @@ pub enum TypeSpec {
 }
 
 /// A block of statements
+#[derive(Debug)]
 pub struct Block {
     pub statements: Vec<Stmt>,
 }
 
 /// Statements in a block
+#[derive(Debug)]
 pub enum Stmt {
     Let(LetStmt),
     Assign(AssignStmt),
@@ -118,39 +121,47 @@ pub enum Stmt {
     Match(MatchStmt),
 }
 
+#[derive(Debug)]
 pub struct LetStmt {
     pub name: String,
     pub type_annotation: Option<TypeSpec>,
     pub initializer: Option<Expr>,
 }
 
+#[derive(Debug)]
 pub struct AssignStmt {
     pub name: String,
     pub value: Expr,
 }
 
+#[derive(Debug)]
 pub struct ExprStmt {
     pub expr: Expr,
 }
 
+#[derive(Debug)]
 pub struct ReturnStmt {
     pub value: Option<Expr>,
 }
 
+#[derive(Debug)]
 pub struct DeferStmt {
     pub block: Block,
 }
 
+#[derive(Debug)]
 pub struct MatchStmt {
     pub target: Expr,
     pub arms: Vec<MatchArm>,
 }
 
+#[derive(Debug)]
 pub struct MatchArm {
     pub pattern: Pattern,
     pub body: Block,
 }
 
+#[derive(Debug)]
 pub enum Pattern {
     EnumVariant {
         name: String,
@@ -166,6 +177,7 @@ pub enum Pattern {
 }
 
 /// Expressions
+#[derive(Debug)]
 pub enum Expr {
     // Literals
     IntLiteral(i64),
@@ -217,12 +229,14 @@ pub enum Expr {
     },
 }
 
+#[derive(Debug)]
 pub struct BinaryExpr {
     pub left: Box<Expr>,
     pub operator: BinaryOp,
     pub right: Box<Expr>,
 }
 
+#[derive(Debug)]
 pub enum BinaryOp {
     Add,
     Subtract,
@@ -239,11 +253,13 @@ pub enum BinaryOp {
     Or,
 }
 
+#[derive(Debug)]
 pub struct UnaryExpr {
     pub operator: UnaryOp,
     pub operand: Box<Expr>,
 }
 
+#[derive(PartialEq, Debug, Clone, Copy)]
 pub enum UnaryOp {
     Not,
     Negate,
@@ -251,28 +267,33 @@ pub enum UnaryOp {
     AddressOf,
 }
 
+#[derive(Debug)]
 pub struct FunctionCall {
     pub name: String,
     pub args: Vec<Expr>,
 }
 
+#[derive(Debug)]
 pub struct Assignment {
     // target is any l-value expression (identifier, deref, index, field access)
     pub target: Box<Expr>,
     pub value: Box<Expr>,
 }
 
+#[derive(Debug)]
 pub struct TryExpr {
     pub expr: Box<Expr>,
     pub catch: Option<CatchHandler>,
 }
 
+#[derive(Debug)]
 pub struct CatchHandler {
     pub error_binding: Option<String>,
     pub body: Block,
 }
 
 /// Valid allocation expressions include new(T), new([N]T), new([]T, len) etc.
+#[derive(Debug)]
 pub struct NewExpr {
     pub type_spec: TypeSpec,
     pub len: Option<Box<Expr>>,

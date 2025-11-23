@@ -8,6 +8,7 @@ pub mod identifier;
 pub mod int_literal;
 pub mod nil_literal;
 pub mod string_literal;
+pub mod unary_operator_parselet;
 
 pub use bool_literal::BoolLiteralParselet;
 pub use float_literal::FloatLiteralParselet;
@@ -15,6 +16,7 @@ pub use identifier::IdentifierParselet;
 pub use int_literal::IntLiteralParselet;
 pub use nil_literal::NilLiteralParselet;
 pub use string_literal::StringLiteralParselet;
+pub use unary_operator_parselet::UnaryOperatorParselet;
 
 // Operator precedence levels.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
