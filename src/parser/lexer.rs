@@ -55,7 +55,6 @@ pub enum TokenKind {
     ColonEqual,
     PlusEqual,
     MinusEqual,
-    StarStar,
     Equal,
     EqualEqual,
     NotEqual,
@@ -70,6 +69,7 @@ pub enum TokenKind {
     Dot,
     Star,
     Plus,
+    Bang,
     Minus,
     Slash,
     SlashSlash,
@@ -425,7 +425,6 @@ impl Lexer {
                 ":=" => Some(TokenKind::ColonEqual),
                 "+=" => Some(TokenKind::PlusEqual),
                 "-=" => Some(TokenKind::MinusEqual),
-                "**" => Some(TokenKind::StarStar),
                 _ => None,
             };
 
@@ -452,6 +451,7 @@ impl Lexer {
             '&' => TokenKind::And,
             '*' => TokenKind::Star,
             '+' => TokenKind::Plus,
+            '!' => TokenKind::Bang,
             '-' => TokenKind::Minus,
             '/' => TokenKind::Slash,
             '%' => TokenKind::Percent,
@@ -669,7 +669,7 @@ mod tests {
             ],
         },
         lex_input_multi_char_operations {
-            input: "a == b && c != d <= e >= f := += **",
+            input: "a == b && c != d <= e >= f := += *",
             want: vec![
                 Token::new(TokenKind::Ident, Some("a".to_string()), Span::new(0, 1)),
                 Token::new(
@@ -709,11 +709,11 @@ mod tests {
                     Span::new(30, 32),
                 ),
                 Token::new(
-                    TokenKind::StarStar,
-                    Some("**".to_string()),
-                    Span::new(33, 35),
+                    TokenKind::Star,
+                    Some("*".to_string()),
+                    Span::new(33, 34),
                 ),
-                Token::new(TokenKind::Eof, None, Span::new(35, 35)),
+                Token::new(TokenKind::Eof, None, Span::new(34, 34)),
             ],
 
         },

@@ -80,7 +80,7 @@ This document outlines a comprehensive, phased approach to implementing the Mant
 
 ## Implementation Phases
 
-### Phase 1: Core Infrastructure & Setup
+### Phase 1: Core Infrastructure & Setup [DONE]
 **Goal**: Establish basic parser structure and Pratt parser framework
 
 #### Tasks
@@ -136,7 +136,7 @@ This document outlines a comprehensive, phased approach to implementing the Mant
 
 ---
 
-### Phase 2: Simple Literals & Identifiers
+### Phase 2: Simple Literals & Identifiers [DONE]
 **Goal**: Parse basic expressions (literals and identifiers)
 
 #### Features to Add
@@ -175,7 +175,7 @@ This document outlines a comprehensive, phased approach to implementing the Mant
 
 ---
 
-### Phase 3: Parenthesized Expressions & Grouping
+### Phase 3: Parenthesized Expressions & Grouping [DONE]
 **Duration**: ~1 day
 **Goal**: Handle expression grouping and nested expressions
 
@@ -192,7 +192,7 @@ This document outlines a comprehensive, phased approach to implementing the Mant
 
 ---
 
-### Phase 4: Unary Operators
+### Phase 4: Unary Operators [DONE]
 **Goal**: Parse unary prefix operators
 
 #### Features to Add
@@ -212,15 +212,7 @@ This document outlines a comprehensive, phased approach to implementing the Mant
 #### Testing Strategy
 
 - Unit tests for operator parsing
-- Integration test: `tests/parser/unary_operators.manta`
-  ```manta
-  fn test_unary() {
-      let x i32 = -5
-      let y bool = !true
-      let z *i32 = &x
-      let w i32 = *z
-  }
-  ```
+- Unit tests using hard coded code snippets
 
 ---
 

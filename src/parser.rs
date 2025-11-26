@@ -78,6 +78,24 @@ impl Parser {
                 operator: UnaryOp::Positive,
             }),
         );
+        parser.register_prefix(
+            TokenKind::Bang,
+            Rc::new(UnaryOperatorParselet {
+                operator: UnaryOp::Not,
+            }),
+        );
+        parser.register_prefix(
+            TokenKind::Star,
+            Rc::new(UnaryOperatorParselet {
+                operator: UnaryOp::Dereference,
+            }),
+        );
+        parser.register_prefix(
+            TokenKind::And,
+            Rc::new(UnaryOperatorParselet {
+                operator: UnaryOp::AddressOf,
+            }),
+        );
         parser.register_prefix(TokenKind::OpenParen, Rc::new(GroupParselet {}));
 
         parser
@@ -344,6 +362,101 @@ mod tests {
                         match *negative_unary.operand {
                             Expr::IntLiteral(val) => assert_eq!(val, 42),
                             _ => panic!("Expected IntLiteral in inner UnaryExpr"),
+                        }
+                    }
+                    _ => panic!("Expected UnaryExpr in outer UnaryExpr"),
+                }
+            },
+        },
+        parse_expression_not_bool {
+            input: "!true",
+            want_var: Expr::UnaryExpr(unary),
+            want_value: {
+                assert_eq!(unary.operator, UnaryOp::Not);
+                match *unary.operand {
+                    Expr::BoolLiteral(val) => assert_eq!(val, true),
+                    _ => panic!("Expected BoolLiteral in UnaryExpr"),
+                }
+            },
+        },
+        parse_expression_dereference {
+            input: "*ptr",
+            want_var: Expr::UnaryExpr(unary),
+            want_value: {
+                assert_eq!(unary.operator, UnaryOp::Dereference);
+                match *unary.operand {
+                    Expr::Identifier(name) => assert_eq!(name, "ptr"),
+                    _ => panic!("Expected Identifier in UnaryExpr"),
+                }
+            },
+        },
+        parse_expression_address_of {
+            input: "&var",
+            want_var: Expr::UnaryExpr(unary),
+            want_value: {
+                assert_eq!(unary.operator, UnaryOp::AddressOf);
+                match *unary.operand {
+                    Expr::Identifier(name) => assert_eq!(name, "var"),
+                    _ => panic!("Expected Identifier in UnaryExpr"),
+                }
+            },
+        },
+        parse_expression_double_dereference {
+            input: "**ptr",
+            want_var: Expr::UnaryExpr(outer_unary),
+            want_value: {
+                assert_eq!(outer_unary.operator, UnaryOp::Dereference);
+                match *outer_unary.operand {
+                    Expr::UnaryExpr(inner_unary) => {
+                        assert_eq!(inner_unary.operator, UnaryOp::Dereference);
+                        match *inner_unary.operand {
+                            Expr::Identifier(name) => assert_eq!(name, "ptr"),
+                            _ => panic!("Expected Identifier in inner UnaryExpr"),
+                        }
+                    }
+                    _ => panic!("Expected UnaryExpr in outer UnaryExpr"),
+                }
+            },
+        },
+        parse_expression_negative_not {
+            input: "-!x",
+            want_var: Expr::UnaryExpr(negate_unary),
+            want_value: {
+                assert_eq!(negate_unary.operator, UnaryOp::Negate);
+                match *negate_unary.operand {
+                    Expr::UnaryExpr(not_unary) => {
+                        assert_eq!(not_unary.operator, UnaryOp::Not);
+                        match *not_unary.operand {
+                            Expr::Identifier(val) => assert_eq!(val, "x"),
+                            _ => panic!("Expected Identifier in inner UnaryExpr"),
+                        }
+                    }
+                    _ => panic!("Expected UnaryExpr in outer UnaryExpr"),
+                }
+            },
+        },
+        parse_expression_grouped_negative {
+            input: "(-x)",
+            want_var: Expr::UnaryExpr(negate_unary),
+            want_value: {
+                assert_eq!(negate_unary.operator, UnaryOp::Negate);
+                match *negate_unary.operand {
+                    Expr::Identifier(val) => assert_eq!(val, "x"),
+                    _ => panic!("Expected Identifier in UnaryExpr"),
+                }
+            },
+        },
+        parse_expression_negative_grouped_not {
+            input: "-(!y)",
+            want_var: Expr::UnaryExpr(negate_unary),
+            want_value: {
+                assert_eq!(negate_unary.operator, UnaryOp::Negate);
+                match *negate_unary.operand {
+                    Expr::UnaryExpr(not_unary) => {
+                        assert_eq!(not_unary.operator, UnaryOp::Not);
+                        match *not_unary.operand {
+                            Expr::Identifier(val) => assert_eq!(val, "y"),
+                            _ => panic!("Expected Identifier in inner UnaryExpr"),
                         }
                     }
                     _ => panic!("Expected UnaryExpr in outer UnaryExpr"),
