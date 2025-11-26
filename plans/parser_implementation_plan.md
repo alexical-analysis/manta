@@ -58,7 +58,7 @@ This document outlines a comprehensive, phased approach to implementing the Mant
    - Handles token consumption and lookahead
    - Coordinates between parselets
 
-2. **Pratt Expression Parser** (`src/parser/expression.rs`)
+2. **Pratt Expression Parser** (`src/parser.rs` - method on Parser type)
    - Implements precedence climbing algorithm
    - Manages prefix and infix parselets
    - Handles precedence levels
@@ -68,11 +68,11 @@ This document outlines a comprehensive, phased approach to implementing the Mant
    - Infix parselets: Handle binary operators, function calls, field access
    - Each parselet is responsible for parsing one token type
 
-4. **Statement Parser** (`src/parser/statements.rs`)
+4. **Statement Parser** (`src/parser.rs` - method on Parser type)
    - Parses top-level declarations
    - Parses statement types (let, assign, return, defer, match, etc.)
 
-5. **Type Parser** (`src/parser/types.rs`)
+5. **Type Parser** (`src/parser.rs` - method on Parser type)
    - Parses type specifications
    - Handles type specifiers (basic, pointer, array, slice, named)
 
@@ -88,9 +88,7 @@ This document outlines a comprehensive, phased approach to implementing the Mant
 1. **Set up parser module structure**
    - [x] Already have `src/parser.rs` stub
    - Create `src/parser/` subdirectory structure:
-     - `src/parser/expression.rs` - Pratt parser core
      - `src/parser/parselets.rs` - Parselet traits and registry
-     - `src/parser/statements.rs` - Statement parsing
      - `src/parser/types.rs` - Type parsing
      - `src/parser/parselets/` - Parselet implementations (one file per parselet)
 
@@ -166,17 +164,7 @@ This document outlines a comprehensive, phased approach to implementing the Mant
 #### Testing Strategy
 
 - Unit tests for each parselet
-- Integration test file: `tests/parser/simple_literals.manta`
-  ```manta
-  fn test_literals() {
-      let x i32 = 42
-      let y f64 = 3.14
-      let s str = "hello"
-      let b bool = true
-      let n = nil
-  }
-  ```
-- Expected AST output in JSON: `tests/parser/simple_literals.json`
+- Unit tests using hard coded code snippets for the Parser
 
 #### Acceptance Criteria
 
@@ -200,14 +188,7 @@ This document outlines a comprehensive, phased approach to implementing the Mant
 #### Testing Strategy
 
 - Unit tests for nested parentheses
-- Integration test: `tests/parser/grouped_expressions.manta`
-  ```manta
-  fn test_grouping() {
-      let x i32 = (1)
-      let y i32 = ((2))
-      let z i32 = (3 + 4)
-  }
-  ```
+- Unit tests using hard coded code snippets
 
 ---
 

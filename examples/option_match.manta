@@ -13,7 +13,7 @@ fn maybe_div(a, b i32) Maybei32 {
 }
 
 fn main() {
-    let r := maybe_div(10, 2)
+    let r = maybe_div(10, 2)
     match r {
         .Some(v) => { print("result: ", v) }
         .None => { print("no result") }

@@ -1,0 +1,11 @@
+// examples/div_error.manta
+
+fn div(a, b i32) enum { Ok(i32); DivByZero } {
+    if b == 0 {
+        // technically the enum is anonymous but the complier
+        // can still infere it's type here
+        return .DivByZero
+    }
+
+    return .Ok(a / b)
+}

@@ -1,0 +1,30 @@
+// examples/copy_file.manta
+
+// allow users to define anonymous return enums
+fn read_file(file str) enum { Ok([]byte); PermError; NotFound } {
+    // TODO
+}
+
+fn write_file(file str, data []byte) enum { Ok; PermError; MissingDir } { 
+    // TODO
+}
+
+type CopyFile enum {
+    Ok
+    MissingSrc
+    MissingDst
+
+    // This uses a zig style comptime to extract the anonymous return type of the function
+    ReadError(comp return_type(read_file))
+    WriteError(comp return_type(write_file))
+}
+
+fn copy_file(src, dst str) CopyFile {
+    if src == "" { return .MissingSrc }
+    if dst == "" { return .MissingDst }
+
+    .Ok(buf) := read_file(src) else(e) { .ReadError(e) }
+    .Ok := write_file(src, buf) else(e) { .WriteError(e) }
+
+    return .OK
+}
