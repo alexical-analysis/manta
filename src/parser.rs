@@ -127,6 +127,13 @@ impl Parser {
                 precedence: Precedence::Multiplication,
             }),
         );
+        parser.register_infix(
+            TokenKind::Percent,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::Modulo,
+                precedence: Precedence::Multiplication,
+            }),
+        );
 
         parser
     }
@@ -549,6 +556,21 @@ mod tests {
                 match *bin.right {
                     Expr::IntLiteral(4) => {}
                     _ => panic!("Expected right to be IntLiteral(4)"),
+                }
+            },
+        },
+        parse_expression_modulo {
+            input: "10 % 3",
+            want_var: Expr::BinaryExpr(bin),
+            want_value: {
+                assert_eq!(bin.operator, BinaryOp::Modulo);
+                match *bin.left {
+                    Expr::IntLiteral(10) => {}
+                    _ => panic!("Expected left to be IntLiteral(10)"),
+                }
+                match *bin.right {
+                    Expr::IntLiteral(3) => {}
+                    _ => panic!("Expected right to be IntLiteral(3)"),
                 }
             },
         },
