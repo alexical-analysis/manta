@@ -5,9 +5,10 @@ pub mod types;
 use crate::ast::{BinaryOp, Expr, UnaryOp};
 use crate::parser::lexer::{Lexer, Token, TokenKind};
 use parselets::{
-    BinaryOperatorParselet, BoolLiteralParselet, CallParselet, FloatLiteralParselet, GroupParselet,
-    IdentifierParselet, InfixParselet, IntLiteralParselet, NilLiteralParselet, Precedence,
-    PrefixParselet, StringLiteralParselet, UnaryOperatorParselet,
+    BinaryOperatorParselet, BoolLiteralParselet, CallParselet, FieldAccessParselet,
+    FloatLiteralParselet, GroupParselet, IdentifierParselet, IndexParselet, InfixParselet,
+    IntLiteralParselet, NilLiteralParselet, Precedence, PrefixParselet, StringLiteralParselet,
+    UnaryOperatorParselet,
 };
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -211,6 +212,8 @@ impl Parser {
             }),
         );
         parser.register_infix(TokenKind::OpenParen, Rc::new(CallParselet {}));
+        parser.register_infix(TokenKind::OpenSquare, Rc::new(IndexParselet {}));
+        parser.register_infix(TokenKind::Dot, Rc::new(FieldAccessParselet {}));
 
         parser
     }
@@ -238,7 +241,7 @@ impl Parser {
     pub fn match_token(&mut self, kind: TokenKind) -> Result<bool, ParseError> {
         let tk = self.lookahead(0)?;
         if tk.kind == kind {
-            let _ = self.consume()?;
+            self.consume()?;
             Ok(true)
         } else {
             Ok(false)
@@ -283,10 +286,7 @@ impl Parser {
         // Loop while the next token's precedence is higher than or equal to min_precedence
         loop {
             let next_token = self.lookahead(0)?.clone();
-            if next_token.kind == TokenKind::Eof
-                || next_token.kind == TokenKind::CloseParen
-                || next_token.kind == TokenKind::Comma
-            {
+            if self.expression_done(&next_token.kind) {
                 break;
             }
 
@@ -310,6 +310,14 @@ impl Parser {
         }
 
         Ok(left)
+    }
+
+    /// Check if the expression is done based on the next token kind
+    fn expression_done(&self, kind: &TokenKind) -> bool {
+        matches!(
+            kind,
+            TokenKind::Eof | TokenKind::CloseParen | TokenKind::CloseSquare | TokenKind::Comma
+        )
     }
 
     /// Get the precedence of a token kind
@@ -437,13 +445,13 @@ mod tests {
         },
         parse_expression_identifier {
             input: "myVariable",
-            want_var: Expr::Identifier(name),
-            want_value: assert_eq!(name, "myVariable"),
+            want_var: Expr::Identifier(ident),
+            want_value: assert_eq!(ident.name, "myVariable"),
         },
         parse_expression_identifier_single_char {
             input: "x",
-            want_var: Expr::Identifier(name),
-            want_value: assert_eq!(name, "x"),
+            want_var: Expr::Identifier(ident),
+            want_value: assert_eq!(ident.name, "x"),
         },
         parse_expression_negative_int {
             input: "-42",
@@ -501,7 +509,7 @@ mod tests {
             want_value: {
                 assert_eq!(unary.operator, UnaryOp::Dereference);
                 match *unary.operand {
-                    Expr::Identifier(name) => assert_eq!(name, "ptr"),
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "ptr"),
                     _ => panic!("Expected Identifier in UnaryExpr"),
                 }
             },
@@ -512,7 +520,7 @@ mod tests {
             want_value: {
                 assert_eq!(unary.operator, UnaryOp::AddressOf);
                 match *unary.operand {
-                    Expr::Identifier(name) => assert_eq!(name, "var"),
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "var"),
                     _ => panic!("Expected Identifier in UnaryExpr"),
                 }
             },
@@ -526,7 +534,7 @@ mod tests {
                     Expr::UnaryExpr(inner_unary) => {
                         assert_eq!(inner_unary.operator, UnaryOp::Dereference);
                         match *inner_unary.operand {
-                            Expr::Identifier(name) => assert_eq!(name, "ptr"),
+                            Expr::Identifier(ident) => assert_eq!(ident.name, "ptr"),
                             _ => panic!("Expected Identifier in inner UnaryExpr"),
                         }
                     }
@@ -543,7 +551,7 @@ mod tests {
                     Expr::UnaryExpr(not_unary) => {
                         assert_eq!(not_unary.operator, UnaryOp::Not);
                         match *not_unary.operand {
-                            Expr::Identifier(val) => assert_eq!(val, "x"),
+                            Expr::Identifier(ident) => assert_eq!(ident.name, "x"),
                             _ => panic!("Expected Identifier in inner UnaryExpr"),
                         }
                     }
@@ -557,7 +565,7 @@ mod tests {
             want_value: {
                 assert_eq!(negate_unary.operator, UnaryOp::Negate);
                 match *negate_unary.operand {
-                    Expr::Identifier(val) => assert_eq!(val, "x"),
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "x"),
                     _ => panic!("Expected Identifier in UnaryExpr"),
                 }
             },
@@ -571,7 +579,7 @@ mod tests {
                     Expr::UnaryExpr(not_unary) => {
                         assert_eq!(not_unary.operator, UnaryOp::Not);
                         match *not_unary.operand {
-                            Expr::Identifier(val) => assert_eq!(val, "y"),
+                            Expr::Identifier(ident) => assert_eq!(ident.name, "y"),
                             _ => panic!("Expected Identifier in inner UnaryExpr"),
                         }
                     }
@@ -720,12 +728,12 @@ mod tests {
                 assert_eq!(bin.operator, BinaryOp::Equal);
 
                 match *bin.left {
-                    Expr::Identifier(name) => assert_eq!(name, "a"),
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "a"),
                     _ => panic!("Expected left to be Identifier(a)"),
                 }
 
                 match *bin.right {
-                    Expr::Identifier(name) => assert_eq!(name, "b"),
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "b"),
                     _ => panic!("Expected right to be Identifier(b)"),
                 }
             },
@@ -737,12 +745,12 @@ mod tests {
                 assert_eq!(bin.operator, BinaryOp::NotEqual);
 
                 match *bin.left {
-                    Expr::Identifier(name) => assert_eq!(name, "x"),
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "x"),
                     _ => panic!("Expected left to be Identifier(x)"),
                 }
 
                 match *bin.right {
-                    Expr::Identifier(name) => assert_eq!(name, "y"),
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "y"),
                     _ => panic!("Expected right to be Identifier(y)"),
                 }
             },
@@ -759,7 +767,7 @@ mod tests {
                 }
 
                 match *bin.right {
-                    Expr::Identifier(name) => assert_eq!(name, "b"),
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "b"),
                     _ => panic!("Expected right to be Identifier(b)"),
                 }
             },
@@ -771,12 +779,12 @@ mod tests {
                 assert_eq!(bin.operator, BinaryOp::GreaterThan);
 
                 match *bin.left {
-                    Expr::Identifier(name) => assert_eq!(name, "x"),
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "x"),
                     _ => panic!("Expected left to be Identifier(x)"),
                 }
 
                 match *bin.right {
-                    Expr::Identifier(name) => assert_eq!(name, "y"),
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "y"),
                     _ => panic!("Expected right to be Identifier(y)"),
                 }
             },
@@ -788,12 +796,12 @@ mod tests {
                 assert_eq!(bin.operator, BinaryOp::LessThanOrEqual);
 
                 match *bin.left {
-                    Expr::Identifier(name) => assert_eq!(name, "a"),
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "a"),
                     _ => panic!("Expected left to be Identifier(a)"),
                 }
 
                 match *bin.right {
-                    Expr::Identifier(name) => assert_eq!(name, "b"),
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "b"),
                     _ => panic!("Expected right to be Identifier(b)"),
                 }
             },
@@ -805,7 +813,7 @@ mod tests {
                 assert_eq!(bin.operator, BinaryOp::GreaterThanOrEqual);
 
                 match *bin.left {
-                    Expr::Identifier(name) => assert_eq!(name, "x"),
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "x"),
                     _ => panic!("Expected left to be Identifier(x)"),
                 }
 
@@ -831,7 +839,7 @@ mod tests {
                         }
 
                         match *left_bin.right {
-                            Expr::Identifier(name) => assert_eq!(name, "b"),
+                            Expr::Identifier(ident) => assert_eq!(ident.name, "b"),
                             _ => panic!("Expected Identifier(b)"),
                         }
                     }
@@ -848,7 +856,7 @@ mod tests {
                         }
 
                         match *right_bin.right {
-                            Expr::Identifier(name) => assert_eq!(name, "d"),
+                            Expr::Identifier(ident) => assert_eq!(ident.name, "d"),
                             _ => panic!("Expected Identifier(d)"),
                         }
                     }
@@ -877,7 +885,7 @@ mod tests {
                         }
 
                         match *right_bin.right {
-                            Expr::Identifier(name) => assert_eq!(name, "b"),
+                            Expr::Identifier(ident) => assert_eq!(ident.name, "b"),
                             _ => panic!("Expected Identifier(b)"),
                         }
                     }
@@ -890,7 +898,7 @@ mod tests {
             want_var: Expr::Call(call),
             want_value: {
                 match *call.func {
-                    Expr::Identifier(name) => assert_eq!(name, "print"),
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "print"),
                     _ => panic!("Expected func to be Identifier(print)"),
                 }
                 assert_eq!(call.args.len(), 0);
@@ -901,7 +909,7 @@ mod tests {
             want_var: Expr::Call(call),
             want_value: {
                 match *call.func {
-                    Expr::Identifier(name) => assert_eq!(name, "sum"),
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "sum"),
                     _ => panic!("Expected func to be Identifier(sum)"),
                 }
                 assert_eq!(call.args.len(), 3);
@@ -910,13 +918,177 @@ mod tests {
                     _ => panic!("Expected first arg to be IntLiteral(1)"),
                 }
                 match &call.args[1] {
-                    Expr::Identifier(name) => assert_eq!(name, "b"),
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "b"),
                     _ => panic!("Expected second arg to be Identifier(b)"),
                 }
                 match &call.args[2] {
                     Expr::IntLiteral(3) => {}
                     _ => panic!("Expected third arg to be IntLiteral(3)"),
                 }
+            },
+        },
+        parse_expression_index_access {
+            input: "arr[5]",
+            want_var: Expr::Index(index),
+            want_value: {
+                match *index.target {
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "arr"),
+                    _ => panic!("Expected target to be Identifier(arr)"),
+                }
+                match *index.index {
+                    Expr::IntLiteral(5) => (),
+                    _ => panic!("Expected index to be IntLiteral(5)"),
+                }
+            },
+        },
+        parse_expression_index_access_complex {
+            input: "matrix[i + 1]",
+            want_var: Expr::Index(index),
+            want_value: {
+                match *index.target {
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "matrix"),
+                    _ => panic!("Expected target to be Identifier(matrix)"),
+                }
+                match *index.index {
+                    Expr::BinaryExpr(bin) => {
+                        assert_eq!(bin.operator, BinaryOp::Add);
+                        match *bin.left {
+                            Expr::Identifier(ident) => assert_eq!(ident.name, "i"),
+                            _ => panic!("Expected left to be Identifier(i)"),
+                        }
+                        match *bin.right {
+                            Expr::IntLiteral(1) => (),
+                            _ => panic!("Expected right to be IntLiteral(1)"),
+                        }
+                    }
+                    _ => panic!("Expected index to be BinaryExpr"),
+                }
+            },
+        },
+        parse_expression_index_access_nested {
+            input: "data[rows[i]]",
+            want_var: Expr::Index(index),
+            want_value: {
+                match *index.target {
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "data"),
+                    _ => panic!("Expected target to be Identifier(data)"),
+                }
+                match *index.index {
+                    Expr::Index(nested_index) => {
+                        match *nested_index.target {
+                            Expr::Identifier(ident) => assert_eq!(ident.name, "rows"),
+                            _ => panic!("Expected nested target to be Identifier(rows)"),
+                        }
+                        match *nested_index.index {
+                            Expr::Identifier(ident) => assert_eq!(ident.name, "i"),
+                            _ => panic!("Expected nested index to be Identifier(i)"),
+                        }
+                    }
+                    _ => panic!("Expected index to be IndexExpr"),
+                }
+            },
+        },
+        parse_expression_index_access_3d {
+            input: "tensor[x][y][z]",
+            want_var: Expr::Index(index),
+            want_value: {
+                match *index.target {
+                    Expr::Index(second_index) => {
+                        match *second_index.target {
+                            Expr::Index(first_index) => {
+                                match *first_index.target {
+                                    Expr::Identifier(ident) => assert_eq!(ident.name, "tensor"),
+                                    _ => panic!("Expected first target to be Identifier(tensor)"),
+                                }
+                                match *first_index.index {
+                                    Expr::Identifier(ident) => assert_eq!(ident.name, "x"),
+                                    _ => panic!("Expected first index to be Identifier(x)"),
+                                }
+                            }
+                            _ => panic!("Expected second target to be IndexExpr"),
+                        }
+                        match *second_index.index {
+                            Expr::Identifier(ident) => assert_eq!(ident.name, "y"),
+                            _ => panic!("Expected second index to be Identifier(y)"),
+                        }
+                    }
+                    _ => panic!("Expected target to be IndexExpr"),
+                }
+                match *index.index {
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "z"),
+                    _ => panic!("Expected index to be Identifier(z)"),
+                }
+            },
+        },
+        parse_expression_field_access {
+            input: "person.name",
+            want_var: Expr::FieldAccess(field_access),
+            want_value: {
+                match *field_access.target {
+                    Expr::Identifier(ident) => assert_eq!(ident.name, "person"),
+                    _ => panic!("Expected target to be Identifier(person)"),
+                }
+                assert_eq!(field_access.field.name, "name");
+            },
+        },
+        parse_expression_field_access_nested {
+            input: "company.ceo.name",
+            want_var: Expr::FieldAccess(field_access),
+            want_value: {
+                match *field_access.target {
+                    Expr::FieldAccess(nested_field_access) => {
+                        match *nested_field_access.target {
+                            Expr::Identifier(ident) => assert_eq!(ident.name, "company"),
+                            _ => panic!("Expected nested target to be Identifier(company)"),
+                        }
+                        assert_eq!(nested_field_access.field.name, "ceo");
+                    }
+                    _ => panic!("Expected target to be FieldAccessExpr"),
+                }
+                assert_eq!(field_access.field.name, "name");
+            },
+        },
+        parse_expression_field_access_index {
+            input: "users[0].email",
+            want_var: Expr::FieldAccess(field_access),
+            want_value: {
+                match *field_access.target {
+                    Expr::Index(index) => {
+                        match *index.target {
+                            Expr::Identifier(ident) => assert_eq!(ident.name, "users"),
+                            _ => panic!("Expected index target to be Identifier(users)"),
+                        }
+                        match *index.index {
+                            Expr::IntLiteral(0) => (),
+                            _ => panic!("Expected index to be IntLiteral(0)"),
+                        }
+                    }
+                    _ => panic!("Expected target to be IndexExpr"),
+                }
+                assert_eq!(field_access.field.name, "email");
+            },
+        },
+        parse_expression_field_access_call {
+            input: "config.getDatabase().host",
+            want_var: Expr::FieldAccess(field_access),
+            want_value: {
+                match *field_access.target {
+                    Expr::Call(call) => {
+                        match *call.func {
+                            Expr::FieldAccess(nested_field_access) => {
+                                match *nested_field_access.target {
+                                    Expr::Identifier(ident) => assert_eq!(ident.name, "config"),
+                                    _ => panic!("Expected nested target to be Identifier(config)"),
+                                }
+                                assert_eq!(nested_field_access.field.name, "getDatabase");
+                            }
+                            _ => panic!("Expected func to be FieldAccessExpr"),
+                        }
+                        assert_eq!(call.args.len(), 0);
+                    }
+                    _ => panic!("Expected target to be CallExpr"),
+                }
+                assert_eq!(field_access.field.name, "host");
             },
         },
     );

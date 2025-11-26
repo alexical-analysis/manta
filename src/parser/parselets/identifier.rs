@@ -1,4 +1,4 @@
-use crate::ast::Expr;
+use crate::ast::{Expr, IdentifierExpr};
 use crate::parser::lexer::Token;
 use crate::parser::parselets::PrefixParselet;
 use crate::parser::{ParseError, Parser};
@@ -10,11 +10,11 @@ pub struct IdentifierParselet;
 
 impl PrefixParselet for IdentifierParselet {
     fn parse(&self, _parser: &mut Parser, token: Token) -> Result<Expr, ParseError> {
-        let lexeme = token
+        let name = token
             .lexeme
             .ok_or_else(|| ParseError::Custom("Identifier missing lexeme".to_string()))?;
 
-        Ok(Expr::Identifier(lexeme))
+        Ok(Expr::Identifier(IdentifierExpr { name }))
     }
 }
 
@@ -23,46 +23,24 @@ mod tests {
     use super::*;
     use crate::parser::lexer::{Lexer, Span, TokenKind};
 
-    struct TestCase {
-        token: Token,
-        expected: &'static str,
-    }
-    #[test]
-    fn test_parse_identifiers() {
-        let tests = vec![
-            TestCase {
-                token: Token::new(TokenKind::Ident, Some("foo".to_string()), Span::new(0, 3)),
-                expected: "foo",
-            },
-            TestCase {
-                token: Token::new(
-                    TokenKind::Ident,
-                    Some("my_var".to_string()),
-                    Span::new(0, 6),
-                ),
-                expected: "my_var",
-            },
-            TestCase {
-                token: Token::new(
-                    TokenKind::Ident,
-                    Some("var123".to_string()),
-                    Span::new(0, 6),
-                ),
-                expected: "var123",
-            },
-        ];
-
-        for test in tests {
-            let mut parser = Parser::new(Lexer::new(""));
-            let result = IdentifierParselet.parse(&mut parser, test.token);
-            assert!(result.is_ok());
-
-            match result.unwrap() {
-                Expr::Identifier(name) => assert_eq!(name, test.expected),
-                _ => panic!("Expected Identifier"),
-            }
-        }
-    }
+    crate::test_parselet!(
+        IdentifierParselet,
+        test_parse_simple_identifier {
+            input: "foo",
+            want: Expr::Identifier(ident),
+            want_value: assert_eq!(ident.name, "foo"),
+        },
+        test_parse_variable_name {
+            input: "my_variable",
+            want: Expr::Identifier(ident),
+            want_value: assert_eq!(ident.name, "my_variable"),
+        },
+        test_parse_identifier_with_numbers {
+            input: "var123",
+            want: Expr::Identifier(ident),
+            want_value: assert_eq!(ident.name, "var123"),
+        },
+    );
 
     #[test]
     fn test_missing_lexeme() {

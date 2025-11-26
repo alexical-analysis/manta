@@ -310,7 +310,7 @@ This document outlines a comprehensive, phased approach to implementing the Mant
 
 ---
 
-### Phase 8: Index & Field Access
+### Phase 8: Index & Field Access [DONE]
 **Goal**: Parse indexing and field access operations
 
 #### Features to Add
@@ -319,28 +319,20 @@ This document outlines a comprehensive, phased approach to implementing the Mant
    - Syntax: `expression [ expression ]`
    - Parselet: `IndexParselet` (infix)
    - AST node: `Expr::Index { target, index }`
-   - Precedence: 10 (same as call)
+   - Precedence: `Precedence::Call`
 
 2. **Field Access Expression**
    - Syntax: `expression . identifier`
    - Parselet: `FieldAccessParselet` (infix)
    - AST node: `Expr::FieldAccess { target, field }`
-   - Precedence: 10 (same as call)
+   - Precedence: `Precedence::Call`
 
 #### Testing Strategy
 
-- Unit tests for parsing
-- Integration test: `tests/parser/index_field.manta`
-  ```manta
-  fn test_access() {
-      let arr [10]i32 = ...
-      let x i32 = arr[0]
-      let y i32 = arr[1 + 2]
-      
-      let obj = ...
-      let z i32 = obj.field
-  }
-  ```
+- Unit tests for parsing index & access expression
+- Unit tests for parsing 3d indexing
+- Unit tests for parsing multiple calls
+- Unit tests for parsing access combined with index
 
 ---
 

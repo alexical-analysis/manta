@@ -187,12 +187,8 @@ pub enum Expr {
     NilLiteral,
 
     // Identifiers and references
-    Identifier(String),
-    EnumConstructor {
-        type_name: Option<String>,
-        variant: String,
-        payload: Option<Box<Expr>>,
-    },
+    Identifier(IdentifierExpr),
+    EnumConstructor(EnumConstructor),
 
     // Operations
     BinaryExpr(BinaryExpr),
@@ -205,28 +201,33 @@ pub enum Expr {
     Assignment(Assignment),
 
     // Indexing and field access
-    Index {
-        target: Box<Expr>,
-        index: Box<Expr>,
-    },
+    Index(IndexAccess),
 
-    FieldAccess {
-        target: Box<Expr>,
-        field: String,
-    },
+    // Accessing a field for a struct or enum
+    FieldAccess(FieldAccess),
 
     // Memory operations
     New(NewExpr),
-    Free(Box<Expr>),
+    Free(FreeExpr),
 
     // Try/Catch extraction
     Try(TryExpr),
 
-    // Casts
-    Cast {
-        expr: Box<Expr>,
-        target_type: TypeSpec,
-    },
+    // Type casting expressions
+    Cast(CastExpr),
+}
+
+#[derive(Debug)]
+pub struct IdentifierExpr {
+    pub name: String,
+}
+
+#[derive(Debug)]
+pub struct EnumConstructor {
+    // TODO: should these be IdentifierExpr?
+    type_name: Option<String>,
+    variant: String,
+    payload: Option<Box<Expr>>,
 }
 
 #[derive(Debug)]
@@ -278,6 +279,18 @@ pub struct FunctionCall {
 }
 
 #[derive(Debug)]
+pub struct IndexAccess {
+    pub target: Box<Expr>,
+    pub index: Box<Expr>,
+}
+
+#[derive(Debug)]
+pub struct FieldAccess {
+    pub target: Box<Expr>,
+    pub field: Box<IdentifierExpr>,
+}
+
+#[derive(Debug)]
 pub struct Assignment {
     // target is any l-value expression (identifier, deref, index, field access)
     pub target: Box<Expr>,
@@ -288,6 +301,12 @@ pub struct Assignment {
 pub struct TryExpr {
     pub expr: Box<Expr>,
     pub catch: Option<CatchHandler>,
+}
+
+#[derive(Debug)]
+pub struct CastExpr {
+    expr: Box<Expr>,
+    target_type: TypeSpec,
 }
 
 #[derive(Debug)]
@@ -302,4 +321,9 @@ pub struct NewExpr {
     pub type_spec: TypeSpec,
     pub len: Option<Box<Expr>>,
     pub cap: Option<Box<Expr>>,
+}
+
+#[derive(Debug)]
+pub struct FreeExpr {
+    pub expr: Box<Expr>,
 }
