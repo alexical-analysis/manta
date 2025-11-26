@@ -8,7 +8,7 @@ It serves as a reference for understanding the relationships between the concret
 The Manta AST represents:
 - **Top-level declarations**: Functions, types (structs/enums), imports, and constants
 - **Statements**: Variable declarations, expressions, returns, defers, if, if/else, and match statements
-- **Expressions**: Literals, identifiers, binary operations, function calls, assignments, try/catch blocks 
+ - **Expressions**: Literals, identifiers, binary operations, function calls, try/catch blocks 
 - **Types**: Basic types, pointers, arrays, slices, and user-defined types
 
 ---
@@ -195,14 +195,14 @@ LetStmt {
 
 ---
 
-### 2.2 Let Statement (`assign_stmt`)
+### 2.2 Assignment Statement (`assign_stmt`)
 
 **Grammar Reference**:
 ```ebnf
 assign_stmt := identifier '=' expression
 ```
 
-**Purpose**: update the value of an existing variable.
+**Purpose**: Assignment statements update the value of an existing variable. Assignments are statements and do not evaluate to a value.
 
 **Examples** (from `language_spec.md`):
 ```manta
@@ -226,7 +226,7 @@ AssignStmt {
 expr_stmt := expression
 ```
 
-**Purpose**: Execute an expression for side effects (assignment, function call, etc.).
+**Purpose**: Execute an expression for side effects (function call, etc.). Assignments are statements and do not return values; see the Assignment Statement section under Statements.
 
 **Examples**:
 ```manta
@@ -472,33 +472,9 @@ enum UnaryOp {
 
 ---
 
-### 3.5 Assignment Expression
+### 3.5 Assignment (moved to Statements)
 
-**Grammar Reference**:
-```ebnf
-assignment_expr := try_expr (('=' | ':=') try_expr)?
-```
-
-**Purpose**: Assign a value to a variable.
-
-**Variants**:
-- `=`: standard assignment
-- `:=` suggests short initialization syntax
-
-**AST Structure**:
-```
-Expr::Assignment {
-    target: Box<Expr>, // usually an Identifier or dereference
-    value: Box<Expr>
-}
-```
-
-**Examples**:
-```manta
-x = 5
-*p = 10
-arr[0] = 42
-```
+Assignment is a statement-level construct and does not belong in the expression grammar. See **2.2 Assignment Statement** for the grammar, examples and the `AssignStmt` AST node. The expression parser will not produce `Expr::Assignment` nodes; assignment is handled by the statement parser and produces `Stmt::Assign` / `AssignStmt` nodes.
 
 ---
 
@@ -795,7 +771,6 @@ Expression
 ├── Identifier
 ├── BinaryOp (left op right)
 ├── UnaryOp (op operand)
-├── Assignment (target = value)
 ├── Try (try expr catch handler)
 ├── Call (function(args))
 ├── EnumVariant (.Variant(payload))

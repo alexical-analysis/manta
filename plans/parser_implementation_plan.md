@@ -116,16 +116,15 @@ This document outlines a comprehensive, phased approach to implementing the Mant
 4. **Create Precedence Levels** (`src/parser/precedence.rs`)
    - Based on Manta language operators
    - Reference levels from bantam-rust:
-     - ASSIGNMENT (1)
-     - LOGICAL_OR (2)
-     - LOGICAL_AND (3)
-     - EQUALITY (4)
-     - COMPARISON (5)
-     - ADDITIVE (6)
-     - MULTIPLICATIVE (7)
-     - EXPONENTIATION (8)
-     - PREFIX/POSTFIX (9)
-     - CALL/INDEX/FIELD (10)
+   - LOGICAL_OR (1)
+   - LOGICAL_AND (2)
+   - EQUALITY (3)
+   - COMPARISON (4)
+   - ADDITIVE (5)
+   - MULTIPLICATIVE (6)
+   - EXPONENTIATION (7)
+   - PREFIX/POSTFIX (8)
+   - CALL/INDEX/FIELD (9)
 
 #### Testing Strategy
 
@@ -336,40 +335,15 @@ This document outlines a comprehensive, phased approach to implementing the Mant
 
 ---
 
-### Phase 9: Assignment Expression
-**Goal**: Parse assignment operations
+### Phase 9: Assignment (moved to statements) [DONE]
+**Goal**: Note — assignment is a statement, not an expression
 
-#### Features to Add
+Assignment does not return a value and therefore should be treated as a statement-level construct rather than an expression parsed by the Pratt expression engine. The detailed parsing and AST node for assignment live in **Phase 13: Statements - Assignment & If/Else** (see that section for syntax and AST node `Stmt::Assign`).
 
-1. **Assignment Expression**
-   - Syntax: `lvalue = expression`
-   - Parselet: `AssignmentParselet` (infix)
-   - AST node: `Expr::Assignment(Assignment)`
-   - Precedence: 1 (lowest)
-   - Right-associative: `a = b = c` → `a = (b = c)`
-
-#### Key Points
-
-- Assignment is **right-associative** and **lowest precedence**
-- `lvalue` can be:
-  - Identifier
-  - Dereference: `*ptr`
-  - Index: `arr[i]`
-  - Field access: `obj.field`
-
-#### Testing Strategy
-
-- Unit tests for lvalue validation
-- Integration test: `tests/parser/assignment.manta`
-  ```manta
-  fn test_assign() {
-      let x i32 = 0
-      x = 5
-      x = 5 + 3
-      arr[0] = 10
-      obj.field = 42
-  }
-  ```
+Key implications for the parser design:
+- Do not register an `AssignmentParselet` as an infix expression parselet.
+- The expression parser should not produce an `Expr::Assignment` node; assignments are parsed by the statement parser when a statement context is expected.
+- Tests and integration fixtures for assignment belong with statement parsing tests (`tests/parser/statements.manta` / `tests/parser/if_else.manta`).
 
 ---
 
@@ -391,15 +365,6 @@ This document outlines a comprehensive, phased approach to implementing the Mant
 #### Testing Strategy
 
 - Unit tests for memory operations
-- Integration test: `tests/parser/memory.manta`
-  ```manta
-  fn test_memory() {
-      let p *i32 = new(i32)
-      let arr [10]i32 = new([10]i32)
-      let slice []i32 = new([]i32, 10)
-      free(p)
-  }
-  ```
 
 ---
 
@@ -573,18 +538,6 @@ This document outlines a comprehensive, phased approach to implementing the Mant
 #### Testing Strategy
 
 - Unit tests for type parsing
-- Integration test: `tests/parser/types.manta`
-  ```manta
-  fn test_types(
-      a i32,
-      b *i32,
-      c [10]i32,
-      d []i32,
-      e Maybei32
-  ) *i32 {
-      return a
-  }
-  ```
 
 ---
 
