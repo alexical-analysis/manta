@@ -23,31 +23,18 @@ impl PrefixParselet for BoolLiteralParselet {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::parser::lexer::{Lexer, Span, TokenKind};
 
-    #[test]
-    fn test_parse_true() {
-        let token = Token::new(TokenKind::TrueLiteral, None, Span::new(0, 4));
-        let mut parser = Parser::new(Lexer::new(""));
-        let result = BoolLiteralParselet.parse(&mut parser, token);
-        assert!(result.is_ok());
-
-        match result.unwrap() {
-            Expr::BoolLiteral(true) => (),
-            _ => panic!("Expected BoolLiteral(true)"),
-        }
-    }
-
-    #[test]
-    fn test_parse_false() {
-        let token = Token::new(TokenKind::FalseLiteral, None, Span::new(0, 5));
-        let mut parser = Parser::new(Lexer::new(""));
-        let result = BoolLiteralParselet.parse(&mut parser, token);
-        assert!(result.is_ok());
-
-        match result.unwrap() {
-            Expr::BoolLiteral(false) => (),
-            _ => panic!("Expected BoolLiteral(false)"),
-        }
-    }
+    crate::test_parselet!(
+        BoolLiteralParselet,
+        test_parse_true {
+            input: "true",
+            want: Expr::BoolLiteral(true),
+            want_value: (),
+        },
+        test_parse_false {
+            input: "false",
+            want: Expr::BoolLiteral(false),
+            want_value: (),
+        },
+    );
 }

@@ -23,43 +23,24 @@ mod tests {
     use super::*;
     use crate::parser::lexer::{Lexer, Span, TokenKind};
 
-    struct TestCase {
-        token: Token,
-        expected: &'static str,
-    }
-
-    #[test]
-    fn test_parse_simple_string() {
-        let tests = vec![
-            TestCase {
-                token: Token::new(TokenKind::Str, Some("hello".to_string()), Span::new(0, 7)),
-                expected: "hello",
-            },
-            TestCase {
-                token: Token::new(TokenKind::Str, Some("".to_string()), Span::new(0, 2)),
-                expected: "",
-            },
-            TestCase {
-                token: Token::new(
-                    TokenKind::Str,
-                    Some("hello world".to_string()),
-                    Span::new(0, 13),
-                ),
-                expected: "hello world",
-            },
-        ];
-
-        for test in tests {
-            let mut parser = Parser::new(Lexer::new(""));
-            let result = StringLiteralParselet.parse(&mut parser, test.token);
-            assert!(result.is_ok());
-
-            match result.unwrap() {
-                Expr::StringLiteral(s) => assert_eq!(s, test.expected),
-                _ => panic!("Expected StringLiteral"),
-            }
-        }
-    }
+    crate::test_parselet!(
+        StringLiteralParselet,
+        test_parse_hello {
+            input: "\"hello\"",
+            want: Expr::StringLiteral(s),
+            want_value: assert_eq!(s, "hello"),
+        },
+        test_parser_empty {
+            input: "\"\"",
+            want: Expr::StringLiteral(s),
+            want_value: assert_eq!(s, ""),
+        },
+        test_parse_hello_world {
+            input: "\"hello world\"",
+            want: Expr::StringLiteral(s),
+            want_value: assert_eq!(s, "hello world"),
+        },
+    );
 
     #[test]
     fn test_missing_lexeme() {

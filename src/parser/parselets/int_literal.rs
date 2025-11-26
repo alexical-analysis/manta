@@ -27,43 +27,24 @@ mod tests {
     use super::*;
     use crate::parser::lexer::{Lexer, Span, TokenKind};
 
-    struct TestCase {
-        token: Token,
-        expected: i64,
-    }
-
-    #[test]
-    fn test_parse_positive_integer() {
-        let tests = vec![
-            TestCase {
-                token: Token::new(TokenKind::Int, Some("42".to_string()), Span::new(0, 2)),
-                expected: 42,
-            },
-            TestCase {
-                token: Token::new(TokenKind::Int, Some("0".to_string()), Span::new(0, 1)),
-                expected: 0,
-            },
-            TestCase {
-                token: Token::new(
-                    TokenKind::Int,
-                    Some("9223372036854775807".to_string()),
-                    Span::new(0, 19),
-                ),
-                expected: 9223372036854775807,
-            },
-        ];
-
-        for test in tests {
-            let mut parser = Parser::new(Lexer::new(""));
-            let result = IntLiteralParselet.parse(&mut parser, test.token);
-            assert!(result.is_ok());
-
-            match result.unwrap() {
-                Expr::IntLiteral(i) => assert!(i == test.expected),
-                _ => panic!("Expected IntLiteral(42)"),
-            }
-        }
-    }
+    crate::test_parselet!(
+        IntLiteralParselet,
+        test_parse_42 {
+            input: "42",
+            want: Expr::IntLiteral(42),
+            want_value: (),
+        },
+        test_parse_0 {
+            input: "0",
+            want: Expr::IntLiteral(0),
+            want_value: (),
+        },
+        test_parse_max {
+            input: "9223372036854775807",
+            want: Expr::IntLiteral(9223372036854775807),
+            want_value: (),
+        },
+    );
 
     #[test]
     fn test_parse_invalid_integer() {

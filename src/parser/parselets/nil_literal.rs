@@ -17,17 +17,13 @@ impl PrefixParselet for NilLiteralParselet {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::parser::lexer::{Span, TokenKind};
 
-    #[test]
-    fn test_parse_nil() {
-        let token = Token::new(TokenKind::NilLiteral, None, Span::new(0, 3));
-        let mut parser = Parser::new(crate::parser::lexer::Lexer::new(""));
-        let result = NilLiteralParselet.parse(&mut parser, token);
-        assert!(result.is_ok());
-        match result.unwrap() {
-            Expr::NilLiteral => (),
-            _ => panic!("Expected NilLiteral"),
-        }
-    }
+    crate::test_parselet!(
+        NilLiteralParselet,
+        test_parse_nil {
+            input: "nil",
+            want: Expr::NilLiteral,
+            want_value: (),
+        },
+    );
 }

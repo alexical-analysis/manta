@@ -5,7 +5,7 @@ pub mod types;
 use crate::ast::{Expr, UnaryOp};
 use crate::parser::lexer::{Lexer, Token, TokenKind};
 use parselets::{
-    BoolLiteralParselet, FloatLiteralParselet, IdentifierParselet, InfixParselet,
+    BoolLiteralParselet, FloatLiteralParselet, GroupParselet, IdentifierParselet, InfixParselet,
     IntLiteralParselet, NilLiteralParselet, Precedence, PrefixParselet, StringLiteralParselet,
     UnaryOperatorParselet,
 };
@@ -17,6 +17,7 @@ use std::rc::Rc;
 pub enum ParseError {
     UnexpectedToken(String),
     UnexpectedEof(String),
+    MissingExpression(String),
     Custom(String),
 }
 
@@ -77,6 +78,7 @@ impl Parser {
                 operator: UnaryOp::Positive,
             }),
         );
+        parser.register_prefix(TokenKind::OpenParen, Rc::new(GroupParselet {}));
 
         parser
     }
@@ -134,6 +136,7 @@ impl Parser {
         min_precedence: Precedence,
     ) -> Result<Expr, ParseError> {
         let token = self.consume()?;
+        println!("Parsing expression with token: {:?}", token);
 
         let prefix_opt = self.prefix_parselets.get(&token.kind);
         if prefix_opt.is_none() {
@@ -149,7 +152,7 @@ impl Parser {
         // Loop while the next token's precedence is higher than min_precedence
         loop {
             let next_token = self.lookahead(0)?.clone();
-            if next_token.kind == TokenKind::Eof {
+            if next_token.kind == TokenKind::Eof || next_token.kind == TokenKind::CloseParen {
                 break;
             }
 
