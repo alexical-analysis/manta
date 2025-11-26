@@ -347,7 +347,7 @@ Key implications for the parser design:
 
 ---
 
-### Phase 10: New & Free Expressions
+### Phase 10: New & Free Expressions [DONE]
 **Goal**: Parse memory management operations
 
 #### Features to Add
