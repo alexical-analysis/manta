@@ -236,7 +236,7 @@ pub struct BinaryExpr {
     pub right: Box<Expr>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum BinaryOp {
     Add,
     Subtract,

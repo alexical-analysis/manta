@@ -2,6 +2,7 @@ use crate::ast::Expr;
 use crate::parser::ParseError;
 use crate::parser::lexer::Token;
 
+pub mod binary_operator;
 pub mod bool_literal;
 pub mod float_literal;
 pub mod group;
@@ -11,6 +12,7 @@ pub mod nil_literal;
 pub mod string_literal;
 pub mod unary_operator;
 
+pub use binary_operator::BinaryOperatorParselet;
 pub use bool_literal::BoolLiteralParselet;
 pub use float_literal::FloatLiteralParselet;
 pub use group::GroupParselet;

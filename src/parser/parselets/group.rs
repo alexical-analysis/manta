@@ -36,7 +36,7 @@ impl PrefixParselet for GroupParselet {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::parser::lexer::{self, Lexer, Span, TokenKind};
+    use crate::parser::lexer::Lexer;
 
     crate::test_parselet!(
         GroupParselet,

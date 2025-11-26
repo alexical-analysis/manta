@@ -216,29 +216,40 @@ This document outlines a comprehensive, phased approach to implementing the Mant
 
 ---
 
-### Phase 5: Binary Arithmetic Operators
+### Phase 5: Binary Arithmetic Operators [DONE]
 **Goal**: Parse binary arithmetic expressions with correct precedence
 
 #### Features to Add
 
 1. **Arithmetic Binary Operators**
-   - Operators: `+`, `-`, `*`, `/`, `%`
-   - Parselets:
-     - `AdditiveOpParselet` (handles `+`, `-`)
-     - `MultiplicativeOpParselet` (handles `*`, `/`, `%`)
+   - Operators: `+`, `-`, `*`, `/`
+   - Parselet:
+     - `BinaryOperatorParselet` (single parselet handles all binary arithmetic operations)
    - AST node: `Expr::BinaryExpr(BinaryExpr)`
 
 #### Key Implementation Points
 
+- Single `BinaryOperatorParselet` struct that takes:
+  - `operator: BinaryOp` - the specific operator (+, -, *, /)
+  - `precedence: Precedence` - precedence level for this operator
 - Use operator precedence:
-  - Additive: precedence 6 (left-associative)
-  - Multiplicative: precedence 7 (left-associative)
+  - Additive (+, -): precedence `Precedence::Addition` (left-associative)
+  - Multiplicative (*, /): precedence `Precedence::Multiplication` (left-associative)
 - Left-associative: `1 + 2 + 3` → `(1 + 2) + 3`
+- Precedence check uses `<=` to ensure correct left-associativity: when the next token has the same or lower precedence, we break from the infix parsing loop
+
+#### Implementation Details
+
+- Register each operator (Plus, Minus, Star, Slash) as an infix token with `BinaryOperatorParselet`
+- Each operator gets its appropriate precedence level
+- The parser's `parse_expression_precedence` loop continues while `next_precedence > min_precedence` (using `<=` check to break)
 
 #### Testing Strategy
 
-- Unit tests for precedence and associativity
-- Unit tests using hard coded code snippets
+- Unit tests for operator parsing (addition, subtraction, multiplication, division)
+- Precedence tests: `1 + 2 * 3` → `(1 + (2 * 3))`
+- Left-associativity tests: `1 + 2 + 3` → `((1 + 2) + 3)`
+- Complex expression tests to verify precedence chains
 
 ---
 

@@ -2,12 +2,12 @@ pub mod lexer;
 pub mod parselets;
 pub mod types;
 
-use crate::ast::{Expr, UnaryOp};
+use crate::ast::{BinaryOp, Expr, UnaryOp};
 use crate::parser::lexer::{Lexer, Token, TokenKind};
 use parselets::{
-    BoolLiteralParselet, FloatLiteralParselet, GroupParselet, IdentifierParselet, InfixParselet,
-    IntLiteralParselet, NilLiteralParselet, Precedence, PrefixParselet, StringLiteralParselet,
-    UnaryOperatorParselet,
+    BinaryOperatorParselet, BoolLiteralParselet, FloatLiteralParselet, GroupParselet,
+    IdentifierParselet, InfixParselet, IntLiteralParselet, NilLiteralParselet, Precedence,
+    PrefixParselet, StringLiteralParselet, UnaryOperatorParselet,
 };
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -98,6 +98,36 @@ impl Parser {
         );
         parser.register_prefix(TokenKind::OpenParen, Rc::new(GroupParselet {}));
 
+        // Register infix parselets for binary operators
+        parser.register_infix(
+            TokenKind::Plus,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::Add,
+                precedence: Precedence::Addition,
+            }),
+        );
+        parser.register_infix(
+            TokenKind::Minus,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::Subtract,
+                precedence: Precedence::Addition,
+            }),
+        );
+        parser.register_infix(
+            TokenKind::Star,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::Multiply,
+                precedence: Precedence::Multiplication,
+            }),
+        );
+        parser.register_infix(
+            TokenKind::Slash,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::Divide,
+                precedence: Precedence::Multiplication,
+            }),
+        );
+
         parser
     }
 
@@ -154,7 +184,6 @@ impl Parser {
         min_precedence: Precedence,
     ) -> Result<Expr, ParseError> {
         let token = self.consume()?;
-        println!("Parsing expression with token: {:?}", token);
 
         let prefix_opt = self.prefix_parselets.get(&token.kind);
         if prefix_opt.is_none() {
@@ -167,7 +196,7 @@ impl Parser {
 
         let mut left = prefix.parse(self, token)?;
 
-        // Loop while the next token's precedence is higher than min_precedence
+        // Loop while the next token's precedence is higher than or equal to min_precedence
         loop {
             let next_token = self.lookahead(0)?.clone();
             if next_token.kind == TokenKind::Eof || next_token.kind == TokenKind::CloseParen {
@@ -176,7 +205,7 @@ impl Parser {
 
             let next_precedence = self.get_precedence(&next_token.kind)?;
 
-            if next_precedence < min_precedence {
+            if next_precedence <= min_precedence {
                 break;
             }
 
@@ -460,6 +489,125 @@ mod tests {
                         }
                     }
                     _ => panic!("Expected UnaryExpr in outer UnaryExpr"),
+                }
+            },
+        },
+        parse_expression_addition {
+            input: "1 + 2",
+            want_var: Expr::BinaryExpr(bin),
+            want_value: {
+                assert_eq!(bin.operator, BinaryOp::Add);
+                match *bin.left {
+                    Expr::IntLiteral(1) => {}
+                    _ => panic!("Expected left to be IntLiteral(1)"),
+                }
+                match *bin.right {
+                    Expr::IntLiteral(2) => {}
+                    _ => panic!("Expected right to be IntLiteral(2)"),
+                }
+            },
+        },
+        parse_expression_multiplication {
+            input: "3 * 4",
+            want_var: Expr::BinaryExpr(bin),
+            want_value: {
+                assert_eq!(bin.operator, BinaryOp::Multiply);
+                match *bin.left {
+                    Expr::IntLiteral(3) => {}
+                    _ => panic!("Expected left to be IntLiteral(3)"),
+                }
+                match *bin.right {
+                    Expr::IntLiteral(4) => {}
+                    _ => panic!("Expected right to be IntLiteral(4)"),
+                }
+            },
+        },
+        parse_expression_subtraction {
+            input: "10 - 3",
+            want_var: Expr::BinaryExpr(bin),
+            want_value: {
+                assert_eq!(bin.operator, BinaryOp::Subtract);
+                match *bin.left {
+                    Expr::IntLiteral(10) => {}
+                    _ => panic!("Expected left to be IntLiteral(10)"),
+                }
+                match *bin.right {
+                    Expr::IntLiteral(3) => {}
+                    _ => panic!("Expected right to be IntLiteral(3)"),
+                }
+            },
+        },
+        parse_expression_division {
+            input: "20 / 4",
+            want_var: Expr::BinaryExpr(bin),
+            want_value: {
+                assert_eq!(bin.operator, BinaryOp::Divide);
+                match *bin.left {
+                    Expr::IntLiteral(20) => {}
+                    _ => panic!("Expected left to be IntLiteral(20)"),
+                }
+                match *bin.right {
+                    Expr::IntLiteral(4) => {}
+                    _ => panic!("Expected right to be IntLiteral(4)"),
+                }
+            },
+        },
+        parse_expression_multiply_over_add {
+            input: "1 + 2 * 3",
+            want_var: Expr::BinaryExpr(bin),
+            want_value: {
+                // Top level should be Add
+                assert_eq!(bin.operator, BinaryOp::Add);
+
+                // Left should be 1
+                match *bin.left {
+                    Expr::IntLiteral(1) => {}
+                    _ => panic!("Expected left to be IntLiteral(1)"),
+                }
+
+                // Right should be 2 * 3
+                match *bin.right {
+                    Expr::BinaryExpr(right_bin) => {
+                        assert_eq!(right_bin.operator, BinaryOp::Multiply);
+                        match *right_bin.left {
+                            Expr::IntLiteral(2) => {}
+                            _ => panic!("Expected 2"),
+                        }
+                        match *right_bin.right {
+                            Expr::IntLiteral(3) => {}
+                            _ => panic!("Expected 3"),
+                        }
+                    }
+                    _ => panic!("Expected BinaryExpr on right"),
+                }
+            },
+        },
+        parse_expression_associative_addition {
+            input: "1 + 2 + 3",
+            want_var: Expr::BinaryExpr(bin),
+            want_value: {
+                assert_eq!(bin.operator, BinaryOp::Add);
+
+                // Left should be (1 + 2)
+                match *bin.left {
+                    Expr::BinaryExpr(left_bin) => {
+                        assert_eq!(left_bin.operator, BinaryOp::Add);
+                        match *left_bin.left {
+                            Expr::IntLiteral(1) => {}
+                            _ => panic!("Expected 1"),
+                        }
+                        match *left_bin.right {
+                            Expr::IntLiteral(2) => {}
+                            _ => panic!("Expected 2"),
+                        }
+                    }
+                    _ => panic!("Expected BinaryExpr on left"),
+                }
+
+                // Right should be 3
+                match *bin.right {
+                    Expr::IntLiteral(3) => {}
+                    _ => panic!("Expected right to be IntLiteral(3)"),
                 }
             },
         },
