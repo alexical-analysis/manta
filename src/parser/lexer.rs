@@ -71,6 +71,7 @@ pub enum TokenKind {
     Plus,
     Bang,
     Minus,
+    Caret,
     Slash,
     SlashSlash,
     Percent,
@@ -458,6 +459,7 @@ impl Lexer {
             '_' => TokenKind::Underscore,
             '<' => TokenKind::LessThan,
             '>' => TokenKind::GreaterThan,
+            '^' => TokenKind::Caret,
             _ => panic!("Unknown character for single-char operator: {}", ch),
         };
 

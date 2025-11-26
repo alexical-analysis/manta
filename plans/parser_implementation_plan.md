@@ -211,7 +211,6 @@ This document outlines a comprehensive, phased approach to implementing the Mant
 
 #### Testing Strategy
 
-- Unit tests for operator parsing
 - Unit tests using hard coded code snippets
 
 ---
@@ -253,38 +252,38 @@ This document outlines a comprehensive, phased approach to implementing the Mant
 
 ---
 
-### Phase 6: Comparison & Logical Operators
+### Phase 6: Comparison & Logical Operators [DONE]
 **Goal**: Parse comparison and logical operations with correct precedence
 
 #### Features to Add
 
 1. **Comparison Operators**
    - Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`
-   - Parselet: `ComparisonOpParselet`
-   - Precedence: 5
+   - Parselet: 
+      - `BinaryOperatorParselet` (reuse the existing parselet)
+   - Precedence: `Precedence::Equality` and `Precedence::Comparison`
+   - AST node: `Expr::BinaryExpr(BinaryExpr)`
 
 2. **Logical Operators**
    - Operators: `&&`, `||`
-   - Parselets:
-     - `LogicalAndParselet` (precedence 3)
-     - `LogicalOrParselet` (precedence 2)
+   - Parselet: 
+      - `BinaryOperatorParselet` (reuse the existing parselet)
+   - Precedence: `Precedence::LogicalAnd` and `Precedence::LogicalOr`
+   - AST node: `Expr::BinaryExpr(BinaryExpr)`
 
-3. **Bitwise Operators** (optional for Phase 6, can defer)
-   - Operators: `&`, `|`, may include in later phase
+3. **Bitwise Operators**
+   - Operators: `&`, `|`, `^` may include in later phase
+   - Parselet: 
+      - `BinaryOperatorParselet` (reuse the existing parselet)
+   - Precedence: `Precedence::BitwiseAnd`, `Precedence::BitwiseXor` and `Precedence::BitwiseOr`
+   - AST node: `Expr::BinaryExpr(BinaryExpr)`
 
 #### Testing Strategy
 
-- Unit tests for precedence and short-circuit evaluation (conceptual)
-- Integration test: `tests/parser/logic_comparison.manta`
-  ```manta
-  fn test_logic() {
-      let a bool = true && false
-      let b bool = true || false
-      let c bool = 1 < 2
-      let d bool = 3 == 3
-      let e bool = true && 1 < 2 || false  // precedence test
-  }
-  ```
+- Unit tests for operator parsing
+- Unit tests using hard coded code snippets
+- Precedence tests: `3.14 == b && true != c` → `(3.14 == b) && (true != c)`
+- Left-associativity tests: `1 | 2 & b` → `(1 | (2 & b))`
 
 ---
 
@@ -297,7 +296,7 @@ This document outlines a comprehensive, phased approach to implementing the Mant
    - Syntax: `identifier ( argument_list? )`
    - Parselet: `CallParselet` (infix)
    - AST node: `Expr::Call(FunctionCall)`
-   - Precedence: 10 (highest for postfix operations)
+   - Precedence: `Precedence::Call`
 
 #### Implementation Detail
 
@@ -308,15 +307,6 @@ This document outlines a comprehensive, phased approach to implementing the Mant
 #### Testing Strategy
 
 - Unit tests for argument parsing
-- Integration test: `tests/parser/function_calls.manta`
-  ```manta
-  fn test_calls() {
-      let x i32 = add(1, 2)
-      let y i32 = add(add(1, 2), 3)
-      print()
-      print("hello", 42)
-  }
-  ```
 
 ---
 

@@ -134,6 +134,83 @@ impl Parser {
                 precedence: Precedence::Multiplication,
             }),
         );
+        parser.register_infix(
+            TokenKind::EqualEqual,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::Equal,
+                precedence: Precedence::Equality,
+            }),
+        );
+        parser.register_infix(
+            TokenKind::NotEqual,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::NotEqual,
+                precedence: Precedence::Equality,
+            }),
+        );
+        parser.register_infix(
+            TokenKind::LessThan,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::LessThan,
+                precedence: Precedence::Comparison,
+            }),
+        );
+        parser.register_infix(
+            TokenKind::GreaterThan,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::GreaterThan,
+                precedence: Precedence::Comparison,
+            }),
+        );
+        parser.register_infix(
+            TokenKind::LessOrEqual,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::LessThanOrEqual,
+                precedence: Precedence::Comparison,
+            }),
+        );
+        parser.register_infix(
+            TokenKind::GreaterOrEqual,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::GreaterThanOrEqual,
+                precedence: Precedence::Comparison,
+            }),
+        );
+        parser.register_infix(
+            TokenKind::AndAnd,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::LogicalAnd,
+                precedence: Precedence::LogicalAnd,
+            }),
+        );
+        parser.register_infix(
+            TokenKind::PipePipe,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::LogicalOr,
+                precedence: Precedence::LogicalOr,
+            }),
+        );
+        parser.register_infix(
+            TokenKind::And,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::BitwiseAnd,
+                precedence: Precedence::BitwiseAnd,
+            }),
+        );
+        parser.register_infix(
+            TokenKind::Pipe,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::BitwiseOr,
+                precedence: Precedence::BitwiseOr,
+            }),
+        );
+        parser.register_infix(
+            TokenKind::Caret,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::BitwiseXor,
+                precedence: Precedence::BitwiseXor,
+            }),
+        );
 
         parser
     }
@@ -630,6 +707,178 @@ mod tests {
                 match *bin.right {
                     Expr::IntLiteral(3) => {}
                     _ => panic!("Expected right to be IntLiteral(3)"),
+                }
+            },
+        },
+        parse_expression_equality_check {
+            input: "a == b",
+            want_var: Expr::BinaryExpr(bin),
+            want_value: {
+                assert_eq!(bin.operator, BinaryOp::Equal);
+
+                match *bin.left {
+                    Expr::Identifier(name) => assert_eq!(name, "a"),
+                    _ => panic!("Expected left to be Identifier(a)"),
+                }
+
+                match *bin.right {
+                    Expr::Identifier(name) => assert_eq!(name, "b"),
+                    _ => panic!("Expected right to be Identifier(b)"),
+                }
+            },
+        },
+        parse_expression_inequality_check {
+            input: "x != y",
+            want_var: Expr::BinaryExpr(bin),
+            want_value: {
+                assert_eq!(bin.operator, BinaryOp::NotEqual);
+
+                match *bin.left {
+                    Expr::Identifier(name) => assert_eq!(name, "x"),
+                    _ => panic!("Expected left to be Identifier(x)"),
+                }
+
+                match *bin.right {
+                    Expr::Identifier(name) => assert_eq!(name, "y"),
+                    _ => panic!("Expected right to be Identifier(y)"),
+                }
+            },
+        },
+        parse_expression_less_than {
+            input: "4 < b",
+            want_var: Expr::BinaryExpr(bin),
+            want_value: {
+                assert_eq!(bin.operator, BinaryOp::LessThan);
+
+                match *bin.left {
+                    Expr::IntLiteral(4) => (),
+                    _ => panic!("Expected left to be IntLiteral(4)"),
+                }
+
+                match *bin.right {
+                    Expr::Identifier(name) => assert_eq!(name, "b"),
+                    _ => panic!("Expected right to be Identifier(b)"),
+                }
+            },
+        },
+        parse_expression_greater_than {
+            input: "x > y",
+            want_var: Expr::BinaryExpr(bin),
+            want_value: {
+                assert_eq!(bin.operator, BinaryOp::GreaterThan);
+
+                match *bin.left {
+                    Expr::Identifier(name) => assert_eq!(name, "x"),
+                    _ => panic!("Expected left to be Identifier(x)"),
+                }
+
+                match *bin.right {
+                    Expr::Identifier(name) => assert_eq!(name, "y"),
+                    _ => panic!("Expected right to be Identifier(y)"),
+                }
+            },
+        },
+        parse_expression_less_or_equal {
+            input: "a <= b",
+            want_var: Expr::BinaryExpr(bin),
+            want_value: {
+                assert_eq!(bin.operator, BinaryOp::LessThanOrEqual);
+
+                match *bin.left {
+                    Expr::Identifier(name) => assert_eq!(name, "a"),
+                    _ => panic!("Expected left to be Identifier(a)"),
+                }
+
+                match *bin.right {
+                    Expr::Identifier(name) => assert_eq!(name, "b"),
+                    _ => panic!("Expected right to be Identifier(b)"),
+                }
+            },
+        },
+        parse_expression_greater_or_equal {
+            input: "x >= 9",
+            want_var: Expr::BinaryExpr(bin),
+            want_value: {
+                assert_eq!(bin.operator, BinaryOp::GreaterThanOrEqual);
+
+                match *bin.left {
+                    Expr::Identifier(name) => assert_eq!(name, "x"),
+                    _ => panic!("Expected left to be Identifier(x)"),
+                }
+
+                match *bin.right {
+                    Expr::IntLiteral(9) => (),
+                    _ => panic!("Expected right to be IntLiteral(9)"),
+                }
+            },
+        },
+        parse_expression_bool_expression {
+            input: "3.14 == b && true != d",
+            want_var: Expr::BinaryExpr(bin),
+            want_value: {
+                assert_eq!(bin.operator, BinaryOp::LogicalAnd);
+
+                match *bin.left {
+                    Expr::BinaryExpr(left_bin) => {
+                        assert_eq!(left_bin.operator, BinaryOp::Equal);
+
+                        match *left_bin.left {
+                            Expr::FloatLiteral(val) => assert_eq!(val, 3.14),
+                            _ => panic!("Expected FloatLiteral(3.14)"),
+                        }
+
+                        match *left_bin.right {
+                            Expr::Identifier(name) => assert_eq!(name, "b"),
+                            _ => panic!("Expected Identifier(b)"),
+                        }
+                    }
+                    _ => panic!("Expected left to be BinaryExpr"),
+                }
+
+                match *bin.right {
+                    Expr::BinaryExpr(right_bin) => {
+                        assert_eq!(right_bin.operator, BinaryOp::NotEqual);
+
+                        match *right_bin.left {
+                            Expr::BoolLiteral(val) => assert_eq!(val, true),
+                            _ => panic!("Expected BoolLiteral(true)"),
+                        }
+
+                        match *right_bin.right {
+                            Expr::Identifier(name) => assert_eq!(name, "d"),
+                            _ => panic!("Expected Identifier(d)"),
+                        }
+                    }
+                    _ => panic!("Expected right to be BinaryExpr"),
+                }
+            },
+        },
+        parse_expression_or_over_and {
+            input: "1 | 2 & b",
+            want_var: Expr::BinaryExpr(bin),
+            want_value: {
+                assert_eq!(bin.operator, BinaryOp::BitwiseOr);
+
+                match *bin.left {
+                    Expr::IntLiteral(1) => (),
+                    _ => panic!("Expected left to be IntLiteral(1)"),
+                }
+
+                match *bin.right {
+                    Expr::BinaryExpr(right_bin) => {
+                        assert_eq!(right_bin.operator, BinaryOp::BitwiseAnd);
+
+                        match *right_bin.left {
+                            Expr::IntLiteral(2) => (),
+                            _ => panic!("Expected IntLiteral(2)"),
+                        }
+
+                        match *right_bin.right {
+                            Expr::Identifier(name) => assert_eq!(name, "b"),
+                            _ => panic!("Expected Identifier(b)"),
+                        }
+                    }
+                    _ => panic!("Expected right to be BinaryExpr"),
                 }
             },
         },

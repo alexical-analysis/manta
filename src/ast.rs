@@ -249,8 +249,11 @@ pub enum BinaryOp {
     LessThanOrEqual,
     GreaterThan,
     GreaterThanOrEqual,
-    And,
-    Or,
+    LogicalAnd,
+    LogicalOr,
+    BitwiseAnd,
+    BitwiseOr,
+    BitwiseXor,
 }
 
 #[derive(Debug)]
