@@ -104,13 +104,13 @@ pub enum TypeSpec {
 }
 
 /// A block of statements
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Block {
     pub statements: Vec<Stmt>,
 }
 
 /// Statements in a block
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Stmt {
     Let(LetStmt),
     Assign(AssignStmt),
@@ -120,47 +120,47 @@ pub enum Stmt {
     Match(MatchStmt),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct LetStmt {
     pub name: String,
     pub type_annotation: Option<TypeSpec>,
     pub initializer: Option<Expr>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct AssignStmt {
     pub name: String,
     pub value: Expr,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ExprStmt {
     pub expr: Expr,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ReturnStmt {
     pub value: Option<Expr>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct DeferStmt {
     pub block: Block,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct MatchStmt {
     pub target: Expr,
     pub arms: Vec<MatchArm>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct MatchArm {
     pub pattern: Pattern,
     pub body: Block,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Pattern {
     EnumVariant {
         name: String,
@@ -176,7 +176,7 @@ pub enum Pattern {
 }
 
 /// Expressions
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Expr {
     // Literals
     IntLiteral(i64),
@@ -216,12 +216,12 @@ pub enum Expr {
     Cast(CastExpr),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct IdentifierExpr {
     pub name: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct EnumConstructor {
     // TODO: should these be IdentifierExpr?
     type_name: Option<String>,
@@ -229,7 +229,7 @@ pub struct EnumConstructor {
     payload: Option<Box<Expr>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct BinaryExpr {
     pub left: Box<Expr>,
     pub operator: BinaryOp,
@@ -256,7 +256,7 @@ pub enum BinaryOp {
     BitwiseXor,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UnaryExpr {
     pub operator: UnaryOp,
     pub operand: Box<Expr>,
@@ -271,58 +271,53 @@ pub enum UnaryOp {
     AddressOf,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct FunctionCall {
     pub func: Box<Expr>,
     pub args: Vec<Expr>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct IndexAccess {
     pub target: Box<Expr>,
     pub index: Box<Expr>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct FieldAccess {
     pub target: Box<Expr>,
     pub field: Box<IdentifierExpr>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Assignment {
     // target is any l-value expression (identifier, deref, index, field access)
     pub target: Box<Expr>,
     pub value: Box<Expr>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct TryExpr {
     pub expr: Box<Expr>,
-    pub catch: Option<CatchHandler>,
+    pub catch_binding: Box<IdentifierExpr>,
+    pub catch_body: Box<Block>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct CastExpr {
     expr: Box<Expr>,
     target_type: TypeSpec,
 }
 
-#[derive(Debug)]
-pub struct CatchHandler {
-    pub error_binding: Option<String>,
-    pub body: Block,
-}
-
 /// Valid allocation expressions include new(T), new([N]T), new([]T, len) etc.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct NewExpr {
     pub type_spec: TypeSpec,
     pub len: Option<Box<Expr>>,
     pub cap: Option<Box<Expr>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct FreeExpr {
     pub expr: Box<Expr>,
 }

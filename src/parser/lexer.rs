@@ -16,7 +16,7 @@ impl Span {
 }
 
 /// The kind of Token produced by the lexer.
-#[derive(Debug, Display, EnumString, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Display, EnumString, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum TokenKind {
     Ident,
     Int,

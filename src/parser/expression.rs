@@ -62,8 +62,7 @@ mod tests {
             $(
                 #[test]
                 fn $case() {
-                    let input = $input;
-                    let lexer = Lexer::new(input);
+                    let lexer = Lexer::new($input);
                     let mut parser = Parser::new(lexer);
 
                     let expr = parse_expression(&mut parser, Precedence::Base).unwrap();

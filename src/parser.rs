@@ -1,9 +1,10 @@
 pub mod expression;
 pub mod lexer;
 pub mod parselets;
+pub mod statement;
 pub mod types;
 
-use crate::ast::{BinaryOp, Expr, UnaryOp};
+use crate::ast::{BinaryOp, Expr, Stmt, UnaryOp};
 use lexer::{Lexer, Token, TokenKind};
 use parselets::{
     BinaryOperatorParselet, BoolLiteralParselet, CallParselet, FieldAccessParselet,
@@ -17,12 +18,13 @@ use std::rc::Rc;
 /// Parse error type for the parser core.
 #[derive(Debug, Clone)]
 pub enum ParseError {
+    Custom(String),
     UnexpectedToken(String),
     UnexpectedEof(String),
     MissingExpression(String),
-    Custom(String),
     InvalidTypeSpec(String),
     InvalidArguments(String),
+    UnknownStatement(String),
 }
 
 impl ParseError {
@@ -221,6 +223,11 @@ impl Parser {
         parser
     }
 
+    /// Returns true if the given token is a valid prefix for a parselet
+    pub fn is_expression_prefix(&self, token_kind: &TokenKind) -> bool {
+        self.prefix_parselets.contains_key(token_kind)
+    }
+
     /// Ensure we have at least `distance + 1` tokens buffered and return a reference
     /// to the token at `distance` (0-based).
     pub fn lookahead(&mut self, distance: usize) -> Result<&Token, ParseError> {
@@ -261,11 +268,14 @@ impl Parser {
         self.infix_parselets.insert(kind, parselet);
     }
 
-    /// Parse an expression, starting with minimum precedence 0.
+    /// Parse an expression, starting with minimum precedence.
     /// This is the public API for expression parsing.
     pub fn parse_expression(&mut self) -> Result<Expr, ParseError> {
         expression::parse_expression(self, Precedence::Base)
-        // self.parse_expression_precedence(Precedence::Base)
+    }
+
+    pub fn parse_statement(&mut self) -> Result<Stmt, ParseError> {
+        statement::parse_statement(self)
     }
 
     /// Check if the expression is done based on the next token kind
