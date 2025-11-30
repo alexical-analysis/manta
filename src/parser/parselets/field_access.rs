@@ -1,7 +1,7 @@
 use super::Precedence;
-use crate::ast::{Expr, FieldAccess, IdentifierExpr};
+use crate::ast::{Expr, FieldAccessExpr, IdentifierExpr};
 use crate::parser::lexer::{Token, TokenKind};
-use crate::parser::parselets::InfixParselet;
+use crate::parser::parselets::InfixExprParselet;
 use crate::parser::{ParseError, Parser};
 
 /// Parses field access expressions.
@@ -9,12 +9,12 @@ use crate::parser::{ParseError, Parser};
 //// Example: `pet.name`
 pub struct FieldAccessParselet;
 
-impl InfixParselet for FieldAccessParselet {
+impl InfixExprParselet for FieldAccessParselet {
     fn parse(&self, parser: &mut Parser, left: Expr, _token: Token) -> Result<Expr, ParseError> {
         let field_token = parser.consume()?;
 
         let field_name = match field_token.kind {
-            TokenKind::Ident => IdentifierExpr {
+            TokenKind::Identifier => IdentifierExpr {
                 name: field_token.lexeme,
             },
             _ => {
@@ -24,7 +24,7 @@ impl InfixParselet for FieldAccessParselet {
             }
         };
 
-        Ok(Expr::FieldAccess(FieldAccess {
+        Ok(Expr::FieldAccess(FieldAccessExpr {
             target: Box::new(left),
             field: Box::new(field_name),
         }))

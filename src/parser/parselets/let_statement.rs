@@ -1,6 +1,6 @@
 use crate::ast::{LetStmt, Stmt};
 use crate::parser::lexer::{Token, TokenKind};
-use crate::parser::parselets::StatementParselet;
+use crate::parser::parselets::PrefixStmtParselet;
 use crate::parser::types;
 use crate::parser::{ParseError, Parser};
 
@@ -9,10 +9,10 @@ use crate::parser::{ParseError, Parser};
 /// Example: `let x i32`
 pub struct LetParselet;
 
-impl StatementParselet for LetParselet {
+impl PrefixStmtParselet for LetParselet {
     fn parse(&self, parser: &mut Parser, _token: Token) -> Result<Stmt, ParseError> {
         let ident = parser.consume()?;
-        if ident.kind != TokenKind::Ident {
+        if ident.kind != TokenKind::Identifier {
             return Err(ParseError::UnexpectedToken(
                 "let statment required an identifier".to_string(),
             ));
@@ -39,7 +39,7 @@ impl StatementParselet for LetParselet {
             return Ok(Stmt::Let(LetStmt {
                 name: ident.lexeme,
                 type_annotation: type_spec,
-                initializer: None,
+                value: None,
             }));
         }
 
@@ -50,7 +50,11 @@ impl StatementParselet for LetParselet {
         Ok(Stmt::Let(LetStmt {
             name: ident.lexeme,
             type_annotation: type_spec,
-            initializer: Some(value),
+            value: Some(value),
         }))
+    }
+
+    fn matches(&self, _parser: &mut Parser) -> bool {
+        true
     }
 }

@@ -1,6 +1,6 @@
 use crate::ast::{Expr, IdentifierExpr};
 use crate::parser::lexer::Token;
-use crate::parser::parselets::PrefixParselet;
+use crate::parser::parselets::PrefixExprParselet;
 use crate::parser::{ParseError, Parser};
 
 /// Parses identifier expressions.
@@ -8,7 +8,7 @@ use crate::parser::{ParseError, Parser};
 /// Example: `foo`, `myVariable`, `count`
 pub struct IdentifierParselet;
 
-impl PrefixParselet for IdentifierParselet {
+impl PrefixExprParselet for IdentifierParselet {
     fn parse(&self, _parser: &mut Parser, token: Token) -> Result<Expr, ParseError> {
         Ok(Expr::Identifier(IdentifierExpr { name: token.lexeme }))
     }

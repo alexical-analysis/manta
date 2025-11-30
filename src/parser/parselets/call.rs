@@ -1,9 +1,9 @@
 use std::ops::Deref;
 
 use super::Precedence;
-use crate::ast::{Expr, FreeExpr, FunctionCall, IdentifierExpr, NewExpr};
+use crate::ast::{CallExpr, Expr, FreeExpr, IdentifierExpr, NewExpr};
 use crate::parser::lexer::{Token, TokenKind};
-use crate::parser::parselets::InfixParselet;
+use crate::parser::parselets::InfixExprParselet;
 use crate::parser::types as type_parser;
 use crate::parser::{ParseError, Parser};
 
@@ -12,7 +12,7 @@ use crate::parser::{ParseError, Parser};
 //// Example: `foo(1, 2, "bar")`
 pub struct CallParselet;
 
-impl InfixParselet for CallParselet {
+impl InfixExprParselet for CallParselet {
     fn parse(&self, parser: &mut Parser, left: Expr, token: Token) -> Result<Expr, ParseError> {
         // Special-case memory ops where the callee is a bare identifier
         if let Expr::Identifier(IdentifierExpr { ref name }) = left {
@@ -27,7 +27,7 @@ impl InfixParselet for CallParselet {
         // Check for empty argument list
         let matched = parser.match_token(TokenKind::CloseParen)?;
         if matched {
-            return Ok(Expr::Call(crate::ast::FunctionCall {
+            return Ok(Expr::Call(crate::ast::CallExpr {
                 func: Box::new(left),
                 args: arguments,
             }));
@@ -64,7 +64,7 @@ impl InfixParselet for CallParselet {
                 let expr = Box::new(expr);
                 Ok(Expr::Free(FreeExpr { expr }))
             }
-            _ => Ok(Expr::Call(FunctionCall {
+            _ => Ok(Expr::Call(CallExpr {
                 func: Box::new(left),
                 args: arguments,
             })),

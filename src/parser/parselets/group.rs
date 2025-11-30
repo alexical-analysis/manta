@@ -1,6 +1,6 @@
 use crate::ast::Expr;
 use crate::parser::lexer::{Token, TokenKind};
-use crate::parser::parselets::PrefixParselet;
+use crate::parser::parselets::PrefixExprParselet;
 use crate::parser::{ParseError, Parser};
 
 /// Parses grouped expressions enclosed in parentheses.
@@ -8,7 +8,7 @@ use crate::parser::{ParseError, Parser};
 /// Example: `(a + b)`
 pub struct GroupParselet;
 
-impl PrefixParselet for GroupParselet {
+impl PrefixExprParselet for GroupParselet {
     fn parse(&self, parser: &mut Parser, _token: Token) -> Result<Expr, ParseError> {
         // Parse the inner expression
         let expr = match parser.parse_expression() {

@@ -8,7 +8,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "Maybei32",
     "span": {
       "start": 37,
@@ -32,7 +32,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "Some",
     "span": {
       "start": 57,
@@ -48,7 +48,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "i32",
     "span": {
       "start": 62,
@@ -64,7 +64,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "None",
     "span": {
       "start": 71,
@@ -88,7 +88,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "maybe_div",
     "span": {
       "start": 82,
@@ -104,7 +104,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "a",
     "span": {
       "start": 92,
@@ -120,7 +120,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "b",
     "span": {
       "start": 95,
@@ -128,7 +128,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "i32",
     "span": {
       "start": 97,
@@ -144,7 +144,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "Maybei32",
     "span": {
       "start": 102,
@@ -168,7 +168,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "b",
     "span": {
       "start": 120,
@@ -216,7 +216,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "None",
     "span": {
       "start": 145,
@@ -248,7 +248,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "Some",
     "span": {
       "start": 168,
@@ -264,7 +264,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "a",
     "span": {
       "start": 173,
@@ -280,7 +280,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "b",
     "span": {
       "start": 177,
@@ -312,7 +312,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "main",
     "span": {
       "start": 186,
@@ -352,7 +352,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "r",
     "span": {
       "start": 203,
@@ -368,7 +368,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "maybe_div",
     "span": {
       "start": 208,
@@ -424,7 +424,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "r",
     "span": {
       "start": 235,
@@ -448,7 +448,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "Some",
     "span": {
       "start": 248,
@@ -464,7 +464,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "v",
     "span": {
       "start": 253,
@@ -496,7 +496,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "print",
     "span": {
       "start": 261,
@@ -528,7 +528,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "v",
     "span": {
       "start": 279,
@@ -560,7 +560,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "None",
     "span": {
       "start": 293,
@@ -584,7 +584,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "print",
     "span": {
       "start": 303,

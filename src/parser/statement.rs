@@ -1,4 +1,4 @@
-use crate::ast::{Block, ExprStmt, Stmt};
+use crate::ast::{BlockStmt, ExprStmt, Stmt};
 use crate::parser::lexer::TokenKind;
 use crate::parser::{ParseError, Parser};
 
@@ -8,27 +8,25 @@ pub fn parse_statement(parser: &mut Parser) -> Result<Stmt, ParseError> {
     let token = parser.lookahead(0)?;
     let token_kind = token.kind;
 
-    let parselet = parser.statement_parselets.get(&token_kind);
+    let parselet = parser.prefix_stmt_parselets.get(&token_kind);
     if parselet.is_none() {
         let expr = parser.parse_expression()?;
-        println!("got expression {:?}", expr);
         return Ok(Stmt::Expr(ExprStmt { expr }));
     }
 
+    // we need to do an additional check here because some of the statments are a lot more complex to match
+    // than just checking the token prefix
     let parselet = parselet.unwrap().clone();
+    if !parselet.matches(parser) {
+        let expr = parser.parse_expression()?;
+        return Ok(Stmt::Expr(ExprStmt { expr }));
+    }
 
     let token = parser.consume()?;
     parselet.parse(parser, token)
 }
 
-pub fn parse_block(parser: &mut Parser) -> Result<Block, ParseError> {
-    // let matched = parser.match_token(TokenKind::OpenBrace)?;
-    // if !matched {
-    //     return Err(ParseError::UnexpectedToken(
-    //         "blocks must start with '{'".to_string(),
-    //     ));
-    // }
-
+pub fn parse_block(parser: &mut Parser) -> Result<BlockStmt, ParseError> {
     let mut statements = vec![];
     loop {
         let matched = parser.match_token(TokenKind::CloseBrace)?;
@@ -47,18 +45,19 @@ pub fn parse_block(parser: &mut Parser) -> Result<Block, ParseError> {
         statements.push(statement);
     }
 
-    Ok(Block { statements })
+    Ok(BlockStmt { statements })
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
     use crate::ast::{
-        BinaryExpr, BinaryOp, DeferStmt, Expr, FieldAccess, FreeExpr, IdentifierExpr, IndexAccess,
-        NewExpr, ReturnStmt, Stmt,
+        AssignStmt, BinaryExpr, BinaryOp, DeferStmt, Expr, FieldAccessExpr, FreeExpr,
+        IdentifierExpr, IndexExpr, NewExpr, ReturnStmt, ShortLetStmt, Stmt,
     };
-    use crate::ast::{FunctionCall, LetStmt, TypeSpec};
+    use crate::ast::{CallExpr, LetStmt, TypeSpec};
     use crate::parser::lexer::Lexer;
+    use pretty_assertions::assert_eq;
 
     macro_rules! test_parse_statement {
         ( $( $case:ident { input: $input:expr, want_var: $want_var:pat, want_value: $want_value:expr, } ),*, ) => {
@@ -88,7 +87,7 @@ mod test {
                 LetStmt {
                     name: "x".to_string(),
                     type_annotation: Some(TypeSpec::Int32),
-                    initializer: None
+                    value: None
                 }
             ),
         },
@@ -100,7 +99,7 @@ mod test {
                 LetStmt {
                     name: "y".to_string(),
                     type_annotation: Some(TypeSpec::Bool),
-                    initializer: Some(Expr::BoolLiteral(true)),
+                    value: Some(Expr::BoolLiteral(true)),
                 },
             ),
         },
@@ -112,7 +111,7 @@ mod test {
                 LetStmt {
                     name: "pi".to_string(),
                     type_annotation: None,
-                    initializer: Some(Expr::FloatLiteral(3.14)),
+                    value: Some(Expr::FloatLiteral(3.14)),
                 }
             ),
         },
@@ -124,7 +123,7 @@ mod test {
                 LetStmt {
                     name: "jill".to_string(),
                     type_annotation: Some(TypeSpec::Named("Person".to_string())),
-                    initializer: Some(Expr::Call(FunctionCall {
+                    value: Some(Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
                             name: "new_person".to_string()
                         })),
@@ -154,9 +153,9 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 ReturnStmt {
-                    value: Some(Expr::Index(IndexAccess {
-                        target: Box::new(Expr::Call(FunctionCall {
-                            func: Box::new(Expr::FieldAccess(FieldAccess {
+                    value: Some(Expr::Index(IndexExpr {
+                        target: Box::new(Expr::Call(CallExpr {
+                            func: Box::new(Expr::FieldAccess(FieldAccessExpr {
                                 target: Box::new(Expr::Identifier(IdentifierExpr {
                                     name: "builder".to_string(),
                                 })),
@@ -177,7 +176,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 DeferStmt {
-                    block: Block { statements: vec![] }
+                    block: BlockStmt { statements: vec![] }
                 }
             ),
         },
@@ -187,7 +186,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 DeferStmt {
-                    block: Block {
+                    block: BlockStmt {
                         statements: vec![Stmt::Expr(ExprStmt {
                             expr: Expr::Free(FreeExpr {
                                 expr: Box::new(Expr::Identifier(IdentifierExpr {
@@ -205,10 +204,10 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 DeferStmt {
-                    block: Block {
+                    block: BlockStmt {
                         statements: vec![
                             Stmt::Expr(ExprStmt {
-                                expr: Expr::Call(FunctionCall {
+                                expr: Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
                                         name: "print".to_string()
                                     })),
@@ -237,22 +236,22 @@ mod test {
             want_var: Stmt::Block(stmt),
             want_value: assert_eq!(
                 stmt,
-                Block {
+                BlockStmt {
                     statements: vec![
                         Stmt::Let(LetStmt {
                             name: "a".to_string(),
                             type_annotation: None,
-                            initializer: Some(Expr::IntLiteral(10)),
+                            value: Some(Expr::IntLiteral(10)),
                         }),
                         Stmt::Let(LetStmt {
                             name: "b".to_string(),
                             type_annotation: Some(TypeSpec::Int16),
-                            initializer: Some(Expr::IntLiteral(20)),
+                            value: Some(Expr::IntLiteral(20)),
                         }),
                         Stmt::Let(LetStmt {
                             name: "c".to_string(),
                             type_annotation: None,
-                            initializer: Some(Expr::BinaryExpr(BinaryExpr {
+                            value: Some(Expr::BinaryExpr(BinaryExpr {
                                 left: Box::new(Expr::Identifier(IdentifierExpr {
                                     name: "a".to_string()
                                 })),
@@ -263,6 +262,93 @@ mod test {
                             })),
                         }),
                     ]
+                }
+            ),
+        },
+        parse_stmt_assign {
+            input: "x = 10",
+            want_var: Stmt::Assign(stmt),
+            want_value: assert_eq!(
+                stmt,
+                AssignStmt {
+                    name: "x".to_string(),
+                    value: Expr::IntLiteral(10),
+                },
+            ),
+        },
+        parse_stmt_assign_call {
+            input: "name = person.name(a, 1 + two())",
+            want_var: Stmt::Assign(stmt),
+            want_value: assert_eq!(
+                stmt,
+                AssignStmt {
+                    name: "name".to_string(),
+                    value: Expr::Call(CallExpr {
+                        func: Box::new(Expr::FieldAccess(FieldAccessExpr {
+                            target: Box::new(Expr::Identifier(IdentifierExpr {
+                                name: "person".to_string()
+                            })),
+                            field: Box::new(IdentifierExpr {
+                                name: "name".to_string()
+                            }),
+                        })),
+                        args: vec![
+                            Expr::Identifier(IdentifierExpr {
+                                name: "a".to_string(),
+                            }),
+                            Expr::BinaryExpr(BinaryExpr {
+                                left: Box::new(Expr::IntLiteral(1)),
+                                operator: BinaryOp::Add,
+                                right: Box::new(Expr::Call(CallExpr {
+                                    func: Box::new(Expr::Identifier(IdentifierExpr {
+                                        name: "two".to_string(),
+                                    })),
+                                    args: vec![],
+                                })),
+                            })
+                        ],
+                    })
+                }
+            ),
+        },
+        parse_stmt_short_let {
+            input: "x := 10",
+            want_var: Stmt::ShortLet(stmt),
+            want_value: assert_eq!(
+                stmt,
+                ShortLetStmt {
+                    name: "x".to_string(),
+                    value: Expr::IntLiteral(10),
+                },
+            ),
+        },
+        parse_stmt_short_let_index {
+            input: "got := test.result.value[2 | 3_000]",
+            want_var: Stmt::ShortLet(stmt),
+            want_value: assert_eq!(
+                stmt,
+                ShortLetStmt {
+                    name: "got".to_string(),
+                    value: Expr::Index(IndexExpr {
+                        target: Box::new(Expr::FieldAccess(FieldAccessExpr {
+                            target: Box::new(Expr::FieldAccess(FieldAccessExpr {
+                                target: Box::new(Expr::Identifier(IdentifierExpr {
+                                    name: "test".to_string(),
+                                })),
+                                field: Box::new(IdentifierExpr {
+                                    name: "result".to_string(),
+                                }),
+                            })),
+                            field: Box::new(IdentifierExpr {
+                                name: "value".to_string(),
+                            }),
+                        })),
+                        index: Box::new(Expr::BinaryExpr(BinaryExpr {
+                            left: Box::new(Expr::IntLiteral(2)),
+                            operator: BinaryOp::BitwiseOr,
+                            right: Box::new(Expr::IntLiteral(3_000)),
+                        })),
+                    })
                 }
             ),
         },

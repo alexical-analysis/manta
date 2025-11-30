@@ -366,7 +366,7 @@ Key implications for the parser design:
 
 ---
 
-### Phase 11: Statements - Let, Return, Defer
+### Phase 11: Statements - Let, Return, Defer [DONE]
 **Goal**: Parse statement-level constructs in blocks
 
 #### Features to Add

@@ -62,7 +62,7 @@ pub fn parse_type(parser: &mut Parser) -> Result<TypeSpec, ParseError> {
             }
         }
 
-        TokenKind::Ident => {
+        TokenKind::Identifier => {
             let id = parser.consume()?;
             let name = id.lexeme;
             let tyspec = match name.as_str() {

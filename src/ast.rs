@@ -18,7 +18,7 @@ pub struct FunctionDecl {
     pub name: String,
     pub params: Vec<Parameter>,
     pub return_type: Option<TypeSpec>,
-    pub body: Block,
+    pub body: BlockStmt,
 }
 
 /// Function parameter
@@ -105,7 +105,7 @@ pub enum TypeSpec {
 
 /// A block of statements
 #[derive(Debug, PartialEq)]
-pub struct Block {
+pub struct BlockStmt {
     pub statements: Vec<Stmt>,
 }
 
@@ -113,19 +113,26 @@ pub struct Block {
 #[derive(Debug, PartialEq)]
 pub enum Stmt {
     Let(LetStmt),
+    ShortLet(ShortLetStmt),
     Assign(AssignStmt),
     Expr(ExprStmt),
     Return(ReturnStmt),
     Defer(DeferStmt),
     Match(MatchStmt),
-    Block(Block),
+    Block(BlockStmt),
 }
 
 #[derive(Debug, PartialEq)]
 pub struct LetStmt {
     pub name: String,
     pub type_annotation: Option<TypeSpec>,
-    pub initializer: Option<Expr>,
+    pub value: Option<Expr>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ShortLetStmt {
+    pub name: String,
+    pub value: Expr,
 }
 
 #[derive(Debug, PartialEq)]
@@ -146,7 +153,7 @@ pub struct ReturnStmt {
 
 #[derive(Debug, PartialEq)]
 pub struct DeferStmt {
-    pub block: Block,
+    pub block: BlockStmt,
 }
 
 #[derive(Debug, PartialEq)]
@@ -158,7 +165,7 @@ pub struct MatchStmt {
 #[derive(Debug, PartialEq)]
 pub struct MatchArm {
     pub pattern: Pattern,
-    pub body: Block,
+    pub body: BlockStmt,
 }
 
 #[derive(Debug, PartialEq)]
@@ -188,23 +195,23 @@ pub enum Expr {
 
     // Identifiers and references
     Identifier(IdentifierExpr),
-    EnumConstructor(EnumConstructor),
+    EnumConstructor(EnumConstructorExpr),
 
     // Operations
     BinaryExpr(BinaryExpr),
     UnaryExpr(UnaryExpr),
 
     // Function call
-    Call(FunctionCall),
+    Call(CallExpr),
 
     // Other expressions
-    Assignment(Assignment),
+    Assignment(AssignmentExpr),
 
     // Indexing and field access
-    Index(IndexAccess),
+    Index(IndexExpr),
 
     // Accessing a field for a struct or enum
-    FieldAccess(FieldAccess),
+    FieldAccess(FieldAccessExpr),
 
     // Memory operations
     New(NewExpr),
@@ -223,7 +230,7 @@ pub struct IdentifierExpr {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct EnumConstructor {
+pub struct EnumConstructorExpr {
     // TODO: should these be IdentifierExpr?
     type_name: Option<String>,
     variant: String,
@@ -273,25 +280,25 @@ pub enum UnaryOp {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct FunctionCall {
+pub struct CallExpr {
     pub func: Box<Expr>,
     pub args: Vec<Expr>,
 }
 
 #[derive(Debug, PartialEq)]
-pub struct IndexAccess {
+pub struct IndexExpr {
     pub target: Box<Expr>,
     pub index: Box<Expr>,
 }
 
 #[derive(Debug, PartialEq)]
-pub struct FieldAccess {
+pub struct FieldAccessExpr {
     pub target: Box<Expr>,
     pub field: Box<IdentifierExpr>,
 }
 
 #[derive(Debug, PartialEq)]
-pub struct Assignment {
+pub struct AssignmentExpr {
     // target is any l-value expression (identifier, deref, index, field access)
     pub target: Box<Expr>,
     pub value: Box<Expr>,
@@ -301,7 +308,7 @@ pub struct Assignment {
 pub struct TryExpr {
     pub expr: Box<Expr>,
     pub catch_binding: Box<IdentifierExpr>,
-    pub catch_body: Box<Block>,
+    pub catch_body: Box<BlockStmt>,
 }
 
 #[derive(Debug, PartialEq)]

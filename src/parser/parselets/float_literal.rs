@@ -1,6 +1,6 @@
 use crate::ast::Expr;
 use crate::parser::lexer::Token;
-use crate::parser::parselets::PrefixParselet;
+use crate::parser::parselets::PrefixExprParselet;
 use crate::parser::{ParseError, Parser};
 
 /// Parses floating-point literal expressions.
@@ -8,7 +8,7 @@ use crate::parser::{ParseError, Parser};
 /// Example: `3.14`
 pub struct FloatLiteralParselet;
 
-impl PrefixParselet for FloatLiteralParselet {
+impl PrefixExprParselet for FloatLiteralParselet {
     fn parse(&self, _parser: &mut Parser, token: Token) -> Result<Expr, ParseError> {
         let value = token
             .lexeme

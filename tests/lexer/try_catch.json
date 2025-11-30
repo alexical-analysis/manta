@@ -8,7 +8,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "ErrStr",
     "span": {
       "start": 34,
@@ -32,7 +32,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "Ok",
     "span": {
       "start": 52,
@@ -48,7 +48,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "str",
     "span": {
       "start": 55,
@@ -64,7 +64,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "IOError",
     "span": {
       "start": 64,
@@ -88,7 +88,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "read_file",
     "span": {
       "start": 78,
@@ -104,7 +104,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "path",
     "span": {
       "start": 88,
@@ -112,7 +112,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "str",
     "span": {
       "start": 93,
@@ -128,7 +128,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "ErrStr",
     "span": {
       "start": 98,
@@ -152,7 +152,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "Ok",
     "span": {
       "start": 112,
@@ -168,7 +168,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "f",
     "span": {
       "start": 115,
@@ -192,7 +192,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "open",
     "span": {
       "start": 121,
@@ -208,7 +208,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "path",
     "span": {
       "start": 126,
@@ -256,7 +256,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "IOError",
     "span": {
       "start": 148,
@@ -288,7 +288,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "close",
     "span": {
       "start": 170,
@@ -304,7 +304,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "f",
     "span": {
       "start": 176,
@@ -336,7 +336,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "Ok",
     "span": {
       "start": 187,
@@ -352,7 +352,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "s",
     "span": {
       "start": 190,
@@ -376,7 +376,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "read_to_string",
     "span": {
       "start": 196,
@@ -392,7 +392,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "f",
     "span": {
       "start": 211,
@@ -440,7 +440,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "IOError",
     "span": {
       "start": 230,
@@ -472,7 +472,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "Ok",
     "span": {
       "start": 252,
@@ -488,7 +488,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "s",
     "span": {
       "start": 255,
@@ -520,7 +520,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "main",
     "span": {
       "start": 295,
@@ -560,7 +560,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "Ok",
     "span": {
       "start": 309,
@@ -576,7 +576,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "content",
     "span": {
       "start": 312,
@@ -600,7 +600,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "read_file",
     "span": {
       "start": 324,
@@ -648,7 +648,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "e",
     "span": {
       "start": 355,
@@ -672,7 +672,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "print",
     "span": {
       "start": 368,
@@ -704,7 +704,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "e",
     "span": {
       "start": 391,
@@ -736,7 +736,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "print",
     "span": {
       "start": 419,
@@ -752,7 +752,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "content",
     "span": {
       "start": 425,

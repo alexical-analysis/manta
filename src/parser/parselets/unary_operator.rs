@@ -1,7 +1,7 @@
 use crate::ast::{Expr, UnaryExpr, UnaryOp};
 use crate::parser::expression;
 use crate::parser::lexer::Token;
-use crate::parser::parselets::{Precedence, PrefixParselet};
+use crate::parser::parselets::{Precedence, PrefixExprParselet};
 use crate::parser::{ParseError, Parser};
 
 /// Parses unary negation expressions.
@@ -11,7 +11,7 @@ pub struct UnaryOperatorParselet {
     pub operator: UnaryOp,
 }
 
-impl PrefixParselet for UnaryOperatorParselet {
+impl PrefixExprParselet for UnaryOperatorParselet {
     fn parse(&self, parser: &mut Parser, _token: Token) -> Result<Expr, ParseError> {
         let right = expression::parse_expression(parser, Precedence::Prefix)?;
         Ok(Expr::UnaryExpr(UnaryExpr {

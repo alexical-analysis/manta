@@ -1,6 +1,6 @@
 use crate::ast::{ReturnStmt, Stmt};
 use crate::parser::lexer::Token;
-use crate::parser::parselets::StatementParselet;
+use crate::parser::parselets::PrefixStmtParselet;
 use crate::parser::{ParseError, Parser};
 
 /// Parses let statements.
@@ -8,7 +8,7 @@ use crate::parser::{ParseError, Parser};
 /// Example: `return 10`
 pub struct ReturnParselet;
 
-impl StatementParselet for ReturnParselet {
+impl PrefixStmtParselet for ReturnParselet {
     fn parse(&self, parser: &mut Parser, _token: Token) -> Result<Stmt, ParseError> {
         let next = parser.lookahead(0)?;
         let token_kind = next.kind;
@@ -21,5 +21,9 @@ impl StatementParselet for ReturnParselet {
         }
 
         Ok(Stmt::Return(ReturnStmt { value }))
+    }
+
+    fn matches(&self, _parser: &mut Parser) -> bool {
+        true
     }
 }

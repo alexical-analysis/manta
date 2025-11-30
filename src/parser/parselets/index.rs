@@ -1,7 +1,7 @@
 use super::Precedence;
-use crate::ast::{Expr, IndexAccess};
+use crate::ast::{Expr, IndexExpr};
 use crate::parser::lexer::{Token, TokenKind};
-use crate::parser::parselets::InfixParselet;
+use crate::parser::parselets::InfixExprParselet;
 use crate::parser::{ParseError, Parser};
 
 /// Parses index access expressions.
@@ -9,7 +9,7 @@ use crate::parser::{ParseError, Parser};
 /// Example: `array[0]`
 pub struct IndexParselet;
 
-impl InfixParselet for IndexParselet {
+impl InfixExprParselet for IndexParselet {
     fn parse(&self, parser: &mut Parser, left: Expr, _token: Token) -> Result<Expr, ParseError> {
         let index_expr = parser.parse_expression()?;
 
@@ -21,7 +21,7 @@ impl InfixParselet for IndexParselet {
             ));
         }
 
-        Ok(Expr::Index(IndexAccess {
+        Ok(Expr::Index(IndexExpr {
             target: Box::new(left),
             index: Box::new(index_expr),
         }))

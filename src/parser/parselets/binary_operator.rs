@@ -1,7 +1,7 @@
 use crate::ast::{BinaryExpr, BinaryOp, Expr};
 use crate::parser::expression;
 use crate::parser::lexer::Token;
-use crate::parser::parselets::{InfixParselet, Precedence};
+use crate::parser::parselets::{InfixExprParselet, Precedence};
 use crate::parser::{ParseError, Parser};
 
 /// Parses binary arithmetic operators: +, -, *, /
@@ -17,7 +17,7 @@ pub struct BinaryOperatorParselet {
     pub precedence: Precedence,
 }
 
-impl InfixParselet for BinaryOperatorParselet {
+impl InfixExprParselet for BinaryOperatorParselet {
     fn parse(&self, parser: &mut Parser, left: Expr, _token: Token) -> Result<Expr, ParseError> {
         let right = expression::parse_expression(parser, self.precedence)?;
 

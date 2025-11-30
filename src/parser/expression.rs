@@ -11,7 +11,7 @@ pub fn parse_expression(
 ) -> Result<Expr, ParseError> {
     let token = parser.consume()?;
 
-    let prefix_opt = parser.prefix_parselets.get(&token.kind);
+    let prefix_opt = parser.prefix_expr_parselets.get(&token.kind);
     if prefix_opt.is_none() {
         return Err(ParseError::UnexpectedToken(format!(
             "No prefix parselet for token kind: {:?}",
@@ -40,7 +40,7 @@ pub fn parse_expression(
         }
 
         let token = parser.consume()?;
-        let infix_opt = parser.infix_parselets.get(&token.kind);
+        let infix_opt = parser.infix_expr_parselets.get(&token.kind);
         if infix_opt.is_none() {
             break;
         }

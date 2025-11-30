@@ -1,6 +1,6 @@
 use crate::ast::Expr;
 use crate::parser::lexer::Token;
-use crate::parser::parselets::PrefixParselet;
+use crate::parser::parselets::PrefixExprParselet;
 use crate::parser::{ParseError, Parser};
 
 /// Parses string literal expressions.
@@ -8,7 +8,7 @@ use crate::parser::{ParseError, Parser};
 /// Example: `"hello world"`
 pub struct StringLiteralParselet;
 
-impl PrefixParselet for StringLiteralParselet {
+impl PrefixExprParselet for StringLiteralParselet {
     fn parse(&self, _parser: &mut Parser, token: Token) -> Result<Expr, ParseError> {
         Ok(Expr::StringLiteral(token.lexeme))
     }

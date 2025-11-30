@@ -2,6 +2,7 @@ use crate::ast::{Expr, Stmt};
 use crate::parser::lexer::Token;
 use crate::parser::{ParseError, Parser};
 
+pub mod assign_statement;
 pub mod binary_operator;
 pub mod block_statement;
 pub mod bool_literal;
@@ -19,6 +20,7 @@ pub mod return_statement;
 pub mod string_literal;
 pub mod unary_operator;
 
+pub use assign_statement::AssignParselet;
 pub use binary_operator::BinaryOperatorParselet;
 pub use block_statement::BlockParselet;
 pub use bool_literal::BoolLiteralParselet;
@@ -54,14 +56,14 @@ pub enum Precedence {
     Call,
 }
 
-/// Trait for prefix parselets.
-pub trait PrefixParselet {
+/// Trait for prefix expression parselets.
+pub trait PrefixExprParselet {
     /// Parse a prefix expression given the consumed token.
     fn parse(&self, parser: &mut Parser, token: Token) -> Result<Expr, ParseError>;
 }
 
-/// Trait for infix parselets.
-pub trait InfixParselet {
+/// Trait for infix expression parselets.
+pub trait InfixExprParselet {
     /// Parse an infix expression with `left` already parsed and the consumed token.
     fn parse(
         &self,
@@ -74,8 +76,12 @@ pub trait InfixParselet {
     fn precedence(&self) -> Precedence;
 }
 
-/// Trait for statement parselets.
-pub trait StatementParselet {
-    /// Parse a statement
+/// Trait for prefix statement parselets.
+pub trait PrefixStmtParselet {
+    /// Parse a prefix statement given the consumed token.
     fn parse(&self, parser: &mut Parser, token: Token) -> Result<Stmt, ParseError>;
+
+    /// Ensures that the parselset matches the expected token stream.
+    /// This function should NEVER consume tokens from the parser or things will fail.
+    fn matches(&self, parser: &mut Parser) -> bool;
 }

@@ -8,10 +8,11 @@ use crate::ast::{BinaryOp, Expr, Stmt, UnaryOp};
 use crate::parser::parselets::BlockParselet;
 use lexer::{Lexer, Token, TokenKind};
 use parselets::{
-    BinaryOperatorParselet, BoolLiteralParselet, CallParselet, DeferParselet, FieldAccessParselet,
-    FloatLiteralParselet, GroupParselet, IdentifierParselet, IndexParselet, InfixParselet,
-    IntLiteralParselet, LetParselet, NilLiteralParselet, Precedence, PrefixParselet,
-    ReturnParselet, StatementParselet, StringLiteralParselet, UnaryOperatorParselet,
+    AssignParselet, BinaryOperatorParselet, BoolLiteralParselet, CallParselet, DeferParselet,
+    FieldAccessParselet, FloatLiteralParselet, GroupParselet, IdentifierParselet, IndexParselet,
+    InfixExprParselet, IntLiteralParselet, LetParselet, NilLiteralParselet, Precedence,
+    PrefixExprParselet, PrefixStmtParselet, ReturnParselet, StringLiteralParselet,
+    UnaryOperatorParselet,
 };
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -49,11 +50,13 @@ pub struct Parser {
     lexer: Lexer,
     // small read buffer for lookahead
     read: Vec<Token>,
-    // prefix and infix registries stored as HashMaps
-    prefix_parselets: HashMap<TokenKind, Rc<dyn PrefixParselet>>,
-    infix_parselets: HashMap<TokenKind, Rc<dyn InfixParselet>>,
-    // statement registries stored as HashMaps
-    statement_parselets: HashMap<TokenKind, Rc<dyn StatementParselet>>,
+
+    // prefix and infix expression parselets
+    prefix_expr_parselets: HashMap<TokenKind, Rc<dyn PrefixExprParselet>>,
+    infix_expr_parselets: HashMap<TokenKind, Rc<dyn InfixExprParselet>>,
+
+    // prefix and infix statement parselets
+    prefix_stmt_parselets: HashMap<TokenKind, Rc<dyn PrefixStmtParselet>>,
 }
 
 impl Parser {
@@ -62,9 +65,9 @@ impl Parser {
         let mut parser = Parser {
             lexer,
             read: Vec::new(),
-            prefix_parselets: HashMap::new(),
-            infix_parselets: HashMap::new(),
-            statement_parselets: HashMap::new(),
+            prefix_expr_parselets: HashMap::new(),
+            infix_expr_parselets: HashMap::new(),
+            prefix_stmt_parselets: HashMap::new(),
         };
 
         // Register all prefix parselets
@@ -74,7 +77,7 @@ impl Parser {
         parser.register_prefix(TokenKind::TrueLiteral, Rc::new(BoolLiteralParselet));
         parser.register_prefix(TokenKind::FalseLiteral, Rc::new(BoolLiteralParselet));
         parser.register_prefix(TokenKind::NilLiteral, Rc::new(NilLiteralParselet));
-        parser.register_prefix(TokenKind::Ident, Rc::new(IdentifierParselet));
+        parser.register_prefix(TokenKind::Identifier, Rc::new(IdentifierParselet));
         parser.register_prefix(
             TokenKind::Minus,
             Rc::new(UnaryOperatorParselet {
@@ -229,13 +232,14 @@ impl Parser {
         parser.register_statement(TokenKind::ReturnKeyword, Rc::new(ReturnParselet));
         parser.register_statement(TokenKind::DeferKeyword, Rc::new(DeferParselet));
         parser.register_statement(TokenKind::OpenBrace, Rc::new(BlockParselet));
+        parser.register_statement(TokenKind::Identifier, Rc::new(AssignParselet));
 
         parser
     }
 
     /// Returns true if the given token is a valid prefix for a parselet
     pub fn is_expression_prefix(&self, token_kind: &TokenKind) -> bool {
-        self.prefix_parselets.contains_key(token_kind)
+        self.prefix_expr_parselets.contains_key(token_kind)
     }
 
     /// Ensure we have at least `distance + 1` tokens buffered and return a reference
@@ -269,18 +273,18 @@ impl Parser {
     }
 
     /// Register a prefix parselet for a token kind.
-    pub fn register_prefix(&mut self, kind: TokenKind, parselet: Rc<dyn PrefixParselet>) {
-        self.prefix_parselets.insert(kind, parselet);
+    pub fn register_prefix(&mut self, kind: TokenKind, parselet: Rc<dyn PrefixExprParselet>) {
+        self.prefix_expr_parselets.insert(kind, parselet);
     }
 
     /// Register an infix parselet for a token kind.
-    pub fn register_infix(&mut self, kind: TokenKind, parselet: Rc<dyn InfixParselet>) {
-        self.infix_parselets.insert(kind, parselet);
+    pub fn register_infix(&mut self, kind: TokenKind, parselet: Rc<dyn InfixExprParselet>) {
+        self.infix_expr_parselets.insert(kind, parselet);
     }
 
     /// Register a statement parser for a token kind.
-    pub fn register_statement(&mut self, kind: TokenKind, parselet: Rc<dyn StatementParselet>) {
-        self.statement_parselets.insert(kind, parselet);
+    pub fn register_statement(&mut self, kind: TokenKind, parselet: Rc<dyn PrefixStmtParselet>) {
+        self.prefix_stmt_parselets.insert(kind, parselet);
     }
 
     /// Parse an expression, starting with minimum precedence.
@@ -295,7 +299,7 @@ impl Parser {
 
     /// Get the precedence of a token kind
     fn get_precedence(&self, kind: &TokenKind) -> Result<Precedence, ParseError> {
-        match self.infix_parselets.get(kind) {
+        match self.infix_expr_parselets.get(kind) {
             Some(parselet) => Ok(parselet.precedence()),
             None => Err(ParseError::UnexpectedToken(format!(
                 "Unknown token precedence for kind: {:?}",

@@ -8,7 +8,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "maybe_alloc",
     "span": {
       "start": 31,
@@ -24,7 +24,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "cond",
     "span": {
       "start": 43,
@@ -32,7 +32,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "bool",
     "span": {
       "start": 48,
@@ -56,7 +56,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "i32",
     "span": {
       "start": 55,
@@ -80,7 +80,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "cond",
     "span": {
       "start": 68,
@@ -96,7 +96,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "p",
     "span": {
       "start": 83,
@@ -112,7 +112,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "new",
     "span": {
       "start": 88,
@@ -128,7 +128,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "i32",
     "span": {
       "start": 92,
@@ -152,7 +152,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "p",
     "span": {
       "start": 106,
@@ -184,7 +184,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "p",
     "span": {
       "start": 128,
@@ -232,7 +232,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "main",
     "span": {
       "start": 162,
@@ -264,7 +264,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "p",
     "span": {
       "start": 175,
@@ -280,7 +280,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "maybe_alloc",
     "span": {
       "start": 180,
@@ -320,7 +320,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "p",
     "span": {
       "start": 206,
@@ -352,7 +352,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "print",
     "span": {
       "start": 225,
@@ -376,7 +376,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "p",
     "span": {
       "start": 232,
@@ -392,7 +392,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "free",
     "span": {
       "start": 243,
@@ -408,7 +408,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "p",
     "span": {
       "start": 248,
@@ -448,7 +448,7 @@
     }
   },
   {
-    "kind": "Ident",
+    "kind": "Identifier",
     "lexeme": "print",
     "span": {
       "start": 272,

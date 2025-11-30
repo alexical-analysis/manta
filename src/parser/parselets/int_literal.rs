@@ -1,6 +1,6 @@
 use crate::ast::Expr;
 use crate::parser::lexer::Token;
-use crate::parser::parselets::PrefixParselet;
+use crate::parser::parselets::PrefixExprParselet;
 use crate::parser::{ParseError, Parser};
 
 /// Parses integer literal expressions.
@@ -8,10 +8,11 @@ use crate::parser::{ParseError, Parser};
 /// Example: `42`
 pub struct IntLiteralParselet;
 
-impl PrefixParselet for IntLiteralParselet {
+impl PrefixExprParselet for IntLiteralParselet {
     fn parse(&self, _parser: &mut Parser, token: Token) -> Result<Expr, ParseError> {
         let value = token
             .lexeme
+            .replace("_", "")
             .parse::<i64>()
             .map_err(|_| ParseError::invalid_integer(&token.lexeme))?;
 

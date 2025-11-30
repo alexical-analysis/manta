@@ -1,6 +1,6 @@
 use crate::ast::Expr;
 use crate::parser::lexer::Token;
-use crate::parser::parselets::PrefixParselet;
+use crate::parser::parselets::PrefixExprParselet;
 use crate::parser::{ParseError, Parser};
 
 /// Parses boolean literal expressions.
@@ -8,7 +8,7 @@ use crate::parser::{ParseError, Parser};
 /// Example: `true`, `false`
 pub struct BoolLiteralParselet;
 
-impl PrefixParselet for BoolLiteralParselet {
+impl PrefixExprParselet for BoolLiteralParselet {
     fn parse(&self, _parser: &mut Parser, token: Token) -> Result<Expr, ParseError> {
         let value = match token.kind {
             crate::parser::lexer::TokenKind::TrueLiteral => true,

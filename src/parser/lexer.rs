@@ -18,7 +18,7 @@ impl Span {
 /// The kind of Token produced by the lexer.
 #[derive(Debug, Display, EnumString, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum TokenKind {
-    Ident,
+    Identifier,
     Int,
     Float,
     Str,
@@ -296,7 +296,7 @@ impl Lexer {
             "catch" => TokenKind::CatchKeyword,
             "type" => TokenKind::TypeKeyword,
             "import" => TokenKind::ImportKeyword,
-            _ => TokenKind::Ident,
+            _ => TokenKind::Identifier,
         };
 
         Token::new(kind, lex, Span::new(start, end))
@@ -627,7 +627,7 @@ mod tests {
                     "let".to_string(),
                     Span::new(0, 3),
                 ),
-                Token::new(TokenKind::Ident, "x".to_string(), Span::new(4, 5)),
+                Token::new(TokenKind::Identifier, "x".to_string(), Span::new(4, 5)),
                 Token::new(TokenKind::Equal, "=".to_string(), Span::new(6, 7)),
                 Token::new(TokenKind::Int, "42".to_string(), Span::new(8, 10)),
                 Token::new(TokenKind::Eof, String::new(), Span::new(10, 10)),
@@ -648,7 +648,7 @@ mod tests {
                     "let".to_string(),
                     Span::new(17, 20),
                 ),
-                Token::new(TokenKind::Ident, "x".to_string(), Span::new(30, 31)),
+                Token::new(TokenKind::Identifier, "x".to_string(), Span::new(30, 31)),
                 Token::new(TokenKind::Equal, "=".to_string(), Span::new(32, 33)),
                 Token::new(TokenKind::Int, "1".to_string(), Span::new(34, 35)),
                 Token::new(TokenKind::Eof, String::new(), Span::new(43, 43)),
@@ -671,33 +671,33 @@ mod tests {
         lex_input_multi_char_operations {
             input: "a == b && c != d <= e >= f := += *",
             want: vec![
-                Token::new(TokenKind::Ident, "a".to_string(), Span::new(0, 1)),
+                Token::new(TokenKind::Identifier, "a".to_string(), Span::new(0, 1)),
                 Token::new(
                     TokenKind::EqualEqual,
                     "==".to_string(),
                     Span::new(2, 4),
                 ),
-                Token::new(TokenKind::Ident, "b".to_string(), Span::new(5, 6)),
+                Token::new(TokenKind::Identifier, "b".to_string(), Span::new(5, 6)),
                 Token::new(TokenKind::AndAnd, "&&".to_string(), Span::new(7, 9)),
-                Token::new(TokenKind::Ident, "c".to_string(), Span::new(10, 11)),
+                Token::new(TokenKind::Identifier, "c".to_string(), Span::new(10, 11)),
                 Token::new(
                     TokenKind::NotEqual,
                     "!=".to_string(),
                     Span::new(12, 14),
                 ),
-                Token::new(TokenKind::Ident, "d".to_string(), Span::new(15, 16)),
+                Token::new(TokenKind::Identifier, "d".to_string(), Span::new(15, 16)),
                 Token::new(
                     TokenKind::LessOrEqual,
                     "<=".to_string(),
                     Span::new(17, 19),
                 ),
-                Token::new(TokenKind::Ident, "e".to_string(), Span::new(20, 21)),
+                Token::new(TokenKind::Identifier, "e".to_string(), Span::new(20, 21)),
                 Token::new(
                     TokenKind::GreaterOrEqual,
                     ">=".to_string(),
                     Span::new(22, 24),
                 ),
-                Token::new(TokenKind::Ident, "f".to_string(), Span::new(25, 26)),
+                Token::new(TokenKind::Identifier, "f".to_string(), Span::new(25, 26)),
                 Token::new(
                     TokenKind::ColonEqual,
                     ":=".to_string(),
@@ -721,8 +721,8 @@ mod tests {
             input: ".Ok x = 1",
             want: vec![
                 Token::new(TokenKind::Dot, ".".to_string(), Span::new(0, 1)),
-                Token::new(TokenKind::Ident, "Ok".to_string(), Span::new(1, 3)),
-                Token::new(TokenKind::Ident, "x".to_string(), Span::new(4, 5)),
+                Token::new(TokenKind::Identifier, "Ok".to_string(), Span::new(1, 3)),
+                Token::new(TokenKind::Identifier, "x".to_string(), Span::new(4, 5)),
                 Token::new(TokenKind::Equal, "=".to_string(), Span::new(6, 7)),
                 Token::new(TokenKind::Int, "1".to_string(), Span::new(8, 9)),
                 Token::new(TokenKind::Eof, String::new(), Span::new(9, 9)),
@@ -737,7 +737,7 @@ mod tests {
                     Span::new(0, 4),
                 ),
                 Token::new(
-                    TokenKind::Ident,
+                    TokenKind::Identifier,
                     "ErrWrite".to_string(),
                     Span::new(5, 13),
                 ),
@@ -751,9 +751,9 @@ mod tests {
                     "{".to_string(),
                     Span::new(19, 20),
                 ),
-                Token::new(TokenKind::Ident, "Ok".to_string(), Span::new(21, 23)),
+                Token::new(TokenKind::Identifier, "Ok".to_string(), Span::new(21, 23)),
                 Token::new(
-                    TokenKind::Ident,
+                    TokenKind::Identifier,
                     "IOError".to_string(),
                     Span::new(24, 31),
                 ),
@@ -774,7 +774,7 @@ mod tests {
                     Span::new(0, 2),
                 ),
                 Token::new(
-                    TokenKind::Ident,
+                    TokenKind::Identifier,
                     "write_and_cleanup".to_string(),
                     Span::new(3, 20),
                 ),
@@ -784,18 +784,18 @@ mod tests {
                     Span::new(20, 21),
                 ),
                 Token::new(
-                    TokenKind::Ident,
+                    TokenKind::Identifier,
                     "path".to_string(),
                     Span::new(21, 25),
                 ),
-                Token::new(TokenKind::Ident, "str".to_string(), Span::new(26, 29)),
+                Token::new(TokenKind::Identifier, "str".to_string(), Span::new(26, 29)),
                 Token::new(
                     TokenKind::CloseParen,
                     ")".to_string(),
                     Span::new(29, 30),
                 ),
                 Token::new(
-                    TokenKind::Ident,
+                    TokenKind::Identifier,
                     "ErrWrite".to_string(),
                     Span::new(31, 39),
                 ),
@@ -816,9 +816,9 @@ mod tests {
             input: ".Ok(f) := open(path) catch { return .IOError }",
             want: vec![
                 Token::new(TokenKind::Dot, ".".to_string(), Span::new(0, 1)),
-                Token::new(TokenKind::Ident, "Ok".to_string(), Span::new(1, 3)),
+                Token::new(TokenKind::Identifier, "Ok".to_string(), Span::new(1, 3)),
                 Token::new(TokenKind::OpenParen, "(".to_string(), Span::new(3, 4)),
-                Token::new(TokenKind::Ident, "f".to_string(), Span::new(4, 5)),
+                Token::new(TokenKind::Identifier, "f".to_string(), Span::new(4, 5)),
                 Token::new(
                     TokenKind::CloseParen,
                     ")".to_string(),
@@ -830,7 +830,7 @@ mod tests {
                     Span::new(7, 9),
                 ),
                 Token::new(
-                    TokenKind::Ident,
+                    TokenKind::Identifier,
                     "open".to_string(),
                     Span::new(10, 14),
                 ),
@@ -840,7 +840,7 @@ mod tests {
                     Span::new(14, 15),
                 ),
                 Token::new(
-                    TokenKind::Ident,
+                    TokenKind::Identifier,
                     "path".to_string(),
                     Span::new(15, 19),
                 ),
@@ -866,7 +866,7 @@ mod tests {
                 ),
                 Token::new(TokenKind::Dot, ".".to_string(), Span::new(36, 37)),
                 Token::new(
-                    TokenKind::Ident,
+                    TokenKind::Identifier,
                     "IOError".to_string(),
                     Span::new(37, 44),
                 ),
@@ -885,14 +885,14 @@ if p != nil {
     free(p)
 }",
             want: vec![
-                Token::new(TokenKind::Ident, "p".to_string(), Span::new(0, 1)),
+                Token::new(TokenKind::Identifier, "p".to_string(), Span::new(0, 1)),
                 Token::new(
                     TokenKind::ColonEqual,
                     ":=".to_string(),
                     Span::new(2, 4),
                 ),
                 Token::new(
-                    TokenKind::Ident,
+                    TokenKind::Identifier,
                     "maybe_alloc".to_string(),
                     Span::new(5, 16),
                 ),
@@ -916,7 +916,7 @@ if p != nil {
                     "if".to_string(),
                     Span::new(24, 26),
                 ),
-                Token::new(TokenKind::Ident, "p".to_string(), Span::new(27, 28)),
+                Token::new(TokenKind::Identifier, "p".to_string(), Span::new(27, 28)),
                 Token::new(
                     TokenKind::NotEqual,
                     "!=".to_string(),
@@ -933,7 +933,7 @@ if p != nil {
                     Span::new(36, 37),
                 ),
                 Token::new(
-                    TokenKind::Ident,
+                    TokenKind::Identifier,
                     "print".to_string(),
                     Span::new(42, 47),
                 ),
@@ -943,14 +943,14 @@ if p != nil {
                     Span::new(47, 48),
                 ),
                 Token::new(TokenKind::Star, "*".to_string(), Span::new(48, 49)),
-                Token::new(TokenKind::Ident, "p".to_string(), Span::new(49, 50)),
+                Token::new(TokenKind::Identifier, "p".to_string(), Span::new(49, 50)),
                 Token::new(
                     TokenKind::CloseParen,
                     ")".to_string(),
                     Span::new(50, 51),
                 ),
                 Token::new(
-                    TokenKind::Ident,
+                    TokenKind::Identifier,
                     "free".to_string(),
                     Span::new(56, 60),
                 ),
@@ -959,7 +959,7 @@ if p != nil {
                     "(".to_string(),
                     Span::new(60, 61),
                 ),
-                Token::new(TokenKind::Ident, "p".to_string(), Span::new(61, 62)),
+                Token::new(TokenKind::Identifier, "p".to_string(), Span::new(61, 62)),
                 Token::new(
                     TokenKind::CloseParen,
                     ")".to_string(),
