@@ -9,9 +9,9 @@ use crate::parser::parselets::BlockParselet;
 use lexer::{Lexer, Token, TokenKind};
 use parselets::{
     AssignParselet, BinaryOperatorParselet, BoolLiteralParselet, CallParselet, DeferParselet,
-    FieldAccessParselet, FloatLiteralParselet, GroupParselet, IdentifierParselet, IndexParselet,
-    InfixExprParselet, IntLiteralParselet, LetParselet, NilLiteralParselet, Precedence,
-    PrefixExprParselet, PrefixStmtParselet, ReturnParselet, StringLiteralParselet,
+    FieldAccessParselet, FloatLiteralParselet, GroupParselet, IdentifierParselet, IfParselet,
+    IndexParselet, InfixExprParselet, IntLiteralParselet, LetParselet, NilLiteralParselet,
+    Precedence, PrefixExprParselet, PrefixStmtParselet, ReturnParselet, StringLiteralParselet,
     UnaryOperatorParselet,
 };
 use std::collections::HashMap;
@@ -233,6 +233,7 @@ impl Parser {
         parser.register_statement(TokenKind::DeferKeyword, Rc::new(DeferParselet));
         parser.register_statement(TokenKind::OpenBrace, Rc::new(BlockParselet));
         parser.register_statement(TokenKind::Identifier, Rc::new(AssignParselet));
+        parser.register_statement(TokenKind::IfKeyword, Rc::new(IfParselet));
 
         parser
     }

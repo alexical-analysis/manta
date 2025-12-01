@@ -1,17 +1,19 @@
 // examples/defer_free.manta
 
-type ErrWrite enum {
+// WriteAndCleanup is the return type for the write_and_cleanup function
+type WriteAndCleanup enum {
     Ok
     IOError
 }
 
-fn write_and_cleanup(path string) ErrWrite {
-    .Ok(f) := open(path) catch { return .IOError }
+// write_and_cleanup writes the contents of the file at the given path to a temporary buffer
+fn write_and_cleanup(path str) WriteAndCleanup {
+    try .Ok(f) := open(path) catch { return .IOError }
     defer { close(f) }
 
     buf := new([]u8, 256)
     defer { free(buf) }
 
-    .Ok(n) := write(f, buf) catch { return .IOError }
+    try .Ok(n) := write(f, buf) catch { return .IOError }
     return .Ok
 }

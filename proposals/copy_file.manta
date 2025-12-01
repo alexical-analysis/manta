@@ -1,30 +1,51 @@
 // examples/copy_file.manta
 
-// allow users to define anonymous return enums
-fn read_file(file str) enum { Ok([]byte); PermError; NotFound } {
-    // TODO
+// ReadFile is the return type of the read_file function
+type ReadFile enum {
+    Ok
+    PermError
+    NotFound
 }
 
-fn write_file(file str, data []byte) enum { Ok; PermError; MissingDir } { 
-    // TODO
+// read_file reads the file at the given location
+fn read_file(file str) ReadFile {
+    // code omitted for brevity
 }
 
+// WriteFile is the return type of the write_file function
+type WriteFile enum {
+    Ok
+    PermError
+    MissingDir
+}
+
+// write_file writes the file at the given location
+fn write_file(file str, data []byte) WriteFile { 
+    // code omitted for brevity
+}
+
+// CopyFile is the return value of the copy_file function
 type CopyFile enum {
     Ok
     MissingSrc
     MissingDst
 
-    // This uses a zig style comptime to extract the anonymous return type of the function
-    ReadError(comp return_type(read_file))
-    WriteError(comp return_type(write_file))
+    ReadError(ReadFile)
+    WriteError(WriteFile)
 }
 
+// copy_file coppies the file from the src file to the dest file
 fn copy_file(src, dst str) CopyFile {
     if src == "" { return .MissingSrc }
     if dst == "" { return .MissingDst }
 
-    .Ok(buf) := read_file(src) else(e) { .ReadError(e) }
-    .Ok := write_file(src, buf) else(e) { .WriteError(e) }
+    try .Ok(buf) := read_file(src) catch(e) { return .ReadError(e) }
 
-    return .OK
+    ok := write_file(dst, buf)
+    if .Ok(b) := ok {
+        print("wrote ${b} bytes")
+        return .Ok
+    } else { 
+        return .WriteError(ok) 
+    }
 }

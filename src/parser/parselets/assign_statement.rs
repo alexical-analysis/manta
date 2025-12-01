@@ -10,7 +10,6 @@ pub struct AssignParselet;
 
 impl PrefixStmtParselet for AssignParselet {
     fn parse(&self, parser: &mut Parser, token: Token) -> Result<Stmt, ParseError> {
-        // eat the '='/':=' token which are check in the matches method
         let assign_token = parser.consume()?;
 
         let expr = parser.parse_expression()?;

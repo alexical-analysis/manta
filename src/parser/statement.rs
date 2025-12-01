@@ -28,6 +28,7 @@ pub fn parse_statement(parser: &mut Parser) -> Result<Stmt, ParseError> {
 
 pub fn parse_block(parser: &mut Parser) -> Result<BlockStmt, ParseError> {
     let mut statements = vec![];
+
     loop {
         let matched = parser.match_token(TokenKind::CloseBrace)?;
         if matched {
@@ -52,8 +53,8 @@ pub fn parse_block(parser: &mut Parser) -> Result<BlockStmt, ParseError> {
 mod test {
     use super::*;
     use crate::ast::{
-        AssignStmt, BinaryExpr, BinaryOp, DeferStmt, Expr, FieldAccessExpr, FreeExpr,
-        IdentifierExpr, IndexExpr, NewExpr, ReturnStmt, ShortLetStmt, Stmt,
+        AssignStmt, BinaryExpr, BinaryOp, BlockStmt, DeferStmt, Expr, FieldAccessExpr, FreeExpr,
+        IdentifierExpr, IfStmt, IndexExpr, NewExpr, ReturnStmt, ShortLetStmt, Stmt,
     };
     use crate::ast::{CallExpr, LetStmt, TypeSpec};
     use crate::parser::lexer::Lexer;
@@ -348,6 +349,68 @@ mod test {
                             operator: BinaryOp::BitwiseOr,
                             right: Box::new(Expr::IntLiteral(3_000)),
                         })),
+                    })
+                }
+            ),
+        },
+        parse_stmt_if {
+            input: "if true {\nprint(\"ok\")\n}",
+            want_var: Stmt::If(stmt),
+            want_value: assert_eq!(
+                stmt,
+                IfStmt {
+                    check: Box::new(Expr::BoolLiteral(true)),
+                    success: BlockStmt {
+                        statements: vec![Stmt::Expr(ExprStmt {
+                            expr: Expr::Call(CallExpr {
+                                func: Box::new(Expr::Identifier(IdentifierExpr {
+                                    name: "print".to_string(),
+                                })),
+                                args: vec![Expr::StringLiteral("ok".to_string())],
+                            })
+                        })],
+                    },
+                    fail: None,
+                },
+            ),
+        },
+        parse_stmt_if_else {
+            input: "if a < 13 {\nprint(\"ok\")\n} else {\na = 10 + number(3.14)\n}\n",
+            want_var: Stmt::If(stmt),
+            want_value: assert_eq!(
+                stmt,
+                IfStmt {
+                    check: Box::new(Expr::BinaryExpr(BinaryExpr {
+                        left: Box::new(Expr::Identifier(IdentifierExpr {
+                            name: "a".to_string(),
+                        })),
+                        operator: BinaryOp::LessThan,
+                        right: Box::new(Expr::IntLiteral(13)),
+                    })),
+                    success: BlockStmt {
+                        statements: vec![Stmt::Expr(ExprStmt {
+                            expr: Expr::Call(CallExpr {
+                                func: Box::new(Expr::Identifier(IdentifierExpr {
+                                    name: "print".to_string(),
+                                })),
+                                args: vec![Expr::StringLiteral("ok".to_string())],
+                            }),
+                        })],
+                    },
+                    fail: Some(BlockStmt {
+                        statements: vec![Stmt::Assign(AssignStmt {
+                            name: "a".to_string(),
+                            value: Expr::BinaryExpr(BinaryExpr {
+                                left: Box::new(Expr::IntLiteral(10)),
+                                operator: BinaryOp::Add,
+                                right: Box::new(Expr::Call(CallExpr {
+                                    func: Box::new(Expr::Identifier(IdentifierExpr {
+                                        name: "number".to_string(),
+                                    })),
+                                    args: vec![Expr::FloatLiteral(3.14)],
+                                })),
+                            })
+                        }),]
                     })
                 }
             ),

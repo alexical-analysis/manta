@@ -1,0 +1,47 @@
+use(
+    "math/rand"
+)
+
+// Piece represents a chess piece
+type Piece enum {
+    Empty default // this is the default value for the Piece enum
+
+    WhiteKing
+    WhiteQueen
+    WhiteBishop 
+    WhiteKnight
+    WhiteRook
+    WhitePawn
+
+    BlackKing
+    BlackQueen
+    BlackBishop 
+    BlackKnight
+    BlackRook
+    BlackPawn
+}
+
+fn main() {
+    // new chess board full of empty squares
+    board := [8][8]Piece{}
+
+    board[rand.Intn(8)][rand.Intn(8)] = .WhiteQueen
+
+    // itterate through the full board searching for
+    // the randomly placed white queen piece 
+    for row in 0..8 {
+        for col in 0..10 {
+            if board[row][col] == .WhiteQueen {
+                print("found the white queen", row, col)
+            }
+
+            if board[row][col] == .BlackQueen {
+                throw Piece.BlackQueen
+            }
+        }
+    } catch Piece(p) {
+        // this will catch thrown Peice values but not other types of values
+        // this means that when the for loop throws and error value it will not be caught here
+        println!("found: black queen")
+    }
+}

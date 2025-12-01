@@ -109,6 +109,13 @@ pub struct BlockStmt {
     pub statements: Vec<Stmt>,
 }
 
+#[derive(Debug, PartialEq)]
+pub struct IfStmt {
+    pub check: Box<Expr>,
+    pub success: BlockStmt,
+    pub fail: Option<BlockStmt>,
+}
+
 /// Statements in a block
 #[derive(Debug, PartialEq)]
 pub enum Stmt {
@@ -120,6 +127,7 @@ pub enum Stmt {
     Defer(DeferStmt),
     Match(MatchStmt),
     Block(BlockStmt),
+    If(IfStmt),
 }
 
 #[derive(Debug, PartialEq)]

@@ -1,22 +1,23 @@
 // examples/option_match.manta
 
-type Maybei32 enum {
-    Some(i32)
-    None
+// Div is the return type for the div function
+type Div enum {
+    Ok(i32)
+    DivByZero
 }
 
-fn maybe_div(a, b i32) Maybei32 {
+// div tries to divide the given integers. If b is 0 the function returns .DivByZero
+fn div(a, b i32) Div {
     if b == 0 {
-        return .None
+        return .DivByZero
     }
-    return .Some(a / b)
+    return .Ok(a / b)
 }
 
 fn main() {
-    let r := maybe_div(10, 2)
+    let r = div(10, 2)
     match r {
-        .Some(v) => { print("result: ", v) }
-        .None => { print("no result") }
+        .Ok(v) => { print("result: ", v) }
+        .DivByZero => { print("can not divide by zero") }
     }
-    return
 }
