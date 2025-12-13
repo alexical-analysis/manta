@@ -21,7 +21,7 @@ impl InfixExprParselet for BinaryOperatorParselet {
     fn parse(&self, parser: &mut Parser, left: Expr, _token: Token) -> Result<Expr, ParseError> {
         let right = expression::parse_expression(parser, self.precedence)?;
 
-        Ok(Expr::BinaryExpr(BinaryExpr {
+        Ok(Expr::Binary(BinaryExpr {
             left: Box::new(left),
             operator: self.operator,
             right: Box::new(right),

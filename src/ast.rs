@@ -206,8 +206,8 @@ pub enum Expr {
     EnumConstructor(EnumConstructorExpr),
 
     // Operations
-    BinaryExpr(BinaryExpr),
-    UnaryExpr(UnaryExpr),
+    Binary(BinaryExpr),
+    Unary(UnaryExpr),
 
     // Function call
     Call(CallExpr),
@@ -301,7 +301,8 @@ pub struct IndexExpr {
 
 #[derive(Debug, PartialEq)]
 pub struct FieldAccessExpr {
-    pub target: Box<Expr>,
+    // this is an option because this can be infered in some contexts
+    pub target: Option<Box<Expr>>,
     pub field: Box<IdentifierExpr>,
 }
 

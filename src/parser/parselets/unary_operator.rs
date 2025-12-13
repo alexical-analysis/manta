@@ -14,7 +14,7 @@ pub struct UnaryOperatorParselet {
 impl PrefixExprParselet for UnaryOperatorParselet {
     fn parse(&self, parser: &mut Parser, _token: Token) -> Result<Expr, ParseError> {
         let right = expression::parse_expression(parser, Precedence::Prefix)?;
-        Ok(Expr::UnaryExpr(UnaryExpr {
+        Ok(Expr::Unary(UnaryExpr {
             operator: self.operator,
             operand: Box::new(right),
         }))

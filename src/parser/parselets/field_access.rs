@@ -25,7 +25,7 @@ impl InfixExprParselet for FieldAccessParselet {
         };
 
         Ok(Expr::FieldAccess(FieldAccessExpr {
-            target: Box::new(left),
+            target: Some(Box::new(left)),
             field: Box::new(field_name),
         }))
     }

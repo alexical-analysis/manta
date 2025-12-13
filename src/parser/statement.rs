@@ -163,9 +163,9 @@ mod test {
                     value: Some(Expr::Index(IndexExpr {
                         target: Box::new(Expr::Call(CallExpr {
                             func: Box::new(Expr::FieldAccess(FieldAccessExpr {
-                                target: Box::new(Expr::Identifier(IdentifierExpr {
+                                target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                                     name: "builder".to_string(),
-                                })),
+                                }))),
                                 field: Box::new(IdentifierExpr {
                                     name: "string".to_string()
                                 }),
@@ -258,7 +258,7 @@ mod test {
                         Stmt::Let(LetStmt {
                             name: "c".to_string(),
                             type_annotation: None,
-                            value: Some(Expr::BinaryExpr(BinaryExpr {
+                            value: Some(Expr::Binary(BinaryExpr {
                                 left: Box::new(Expr::Identifier(IdentifierExpr {
                                     name: "a".to_string()
                                 })),
@@ -296,9 +296,9 @@ mod test {
                     }),
                     rvalue: Expr::Call(CallExpr {
                         func: Box::new(Expr::FieldAccess(FieldAccessExpr {
-                            target: Box::new(Expr::Identifier(IdentifierExpr {
+                            target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                                 name: "person".to_string()
-                            })),
+                            }))),
                             field: Box::new(IdentifierExpr {
                                 name: "name".to_string()
                             }),
@@ -307,7 +307,7 @@ mod test {
                             Expr::Identifier(IdentifierExpr {
                                 name: "a".to_string(),
                             }),
-                            Expr::BinaryExpr(BinaryExpr {
+                            Expr::Binary(BinaryExpr {
                                 left: Box::new(Expr::IntLiteral(1)),
                                 operator: BinaryOp::Add,
                                 right: Box::new(Expr::Call(CallExpr {
@@ -362,19 +362,19 @@ mod test {
                     },
                     value: Expr::Index(IndexExpr {
                         target: Box::new(Expr::FieldAccess(FieldAccessExpr {
-                            target: Box::new(Expr::FieldAccess(FieldAccessExpr {
-                                target: Box::new(Expr::Identifier(IdentifierExpr {
+                            target: Some(Box::new(Expr::FieldAccess(FieldAccessExpr {
+                                target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                                     name: "test".to_string(),
-                                })),
+                                }))),
                                 field: Box::new(IdentifierExpr {
                                     name: "result".to_string(),
                                 }),
-                            })),
+                            }))),
                             field: Box::new(IdentifierExpr {
                                 name: "value".to_string(),
                             }),
                         })),
-                        index: Box::new(Expr::BinaryExpr(BinaryExpr {
+                        index: Box::new(Expr::Binary(BinaryExpr {
                             left: Box::new(Expr::IntLiteral(2)),
                             operator: BinaryOp::BitwiseOr,
                             right: Box::new(Expr::IntLiteral(3_000)),
@@ -410,7 +410,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 IfStmt {
-                    check: Box::new(Expr::BinaryExpr(BinaryExpr {
+                    check: Box::new(Expr::Binary(BinaryExpr {
                         left: Box::new(Expr::Identifier(IdentifierExpr {
                             name: "a".to_string(),
                         })),
@@ -432,7 +432,7 @@ mod test {
                             lvalue: Expr::Identifier(IdentifierExpr {
                                 name: "a".to_string(),
                             }),
-                            rvalue: Expr::BinaryExpr(BinaryExpr {
+                            rvalue: Expr::Binary(BinaryExpr {
                                 left: Box::new(Expr::IntLiteral(10)),
                                 operator: BinaryOp::Add,
                                 right: Box::new(Expr::Call(CallExpr {
