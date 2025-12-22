@@ -60,7 +60,7 @@ mod test {
     use super::*;
     use crate::ast::{
         AssignStmt, BinaryExpr, BinaryOp, BlockStmt, DeferStmt, Expr, FieldAccessExpr, FreeExpr,
-        IdentifierExpr, IfStmt, IndexExpr, NewExpr, ReturnStmt, ShortLetStmt, Stmt, TryStmt,
+        IdentifierExpr, IfStmt, IndexExpr, MatchStmt, NewExpr, ReturnStmt, ShortLetStmt, Stmt, TryStmt,
     };
     use crate::ast::{CallExpr, LetStmt, TypeSpec};
     use crate::parser::lexer::Lexer;
@@ -560,6 +560,54 @@ mod test {
                             }),
                         ],
                     })),
+                }
+            ),
+        },
+        parse_stmt_match {
+            input: "match x {\n.Some(v) { print(v) }\n.None { print(\"none\") }\n}",
+            want_var: Stmt::Match(stmt),
+            want_value: assert_eq!(
+                stmt,
+                crate::ast::MatchStmt {
+                    target: Expr::Identifier(IdentifierExpr {
+                        name: "x".to_string(),
+                    }),
+                    arms: vec![
+                        crate::ast::MatchArm {
+                            pattern: crate::ast::Pattern::EnumVariant {
+                                name: "Some".to_string(),
+                                payload_binding: Some("v".to_string()),
+                            },
+                            body: BlockStmt {
+                                statements: vec![Stmt::Expr(ExprStmt {
+                                    expr: Expr::Call(CallExpr {
+                                        func: Box::new(Expr::Identifier(IdentifierExpr {
+                                            name: "print".to_string(),
+                                        })),
+                                        args: vec![Expr::Identifier(IdentifierExpr {
+                                            name: "v".to_string(),
+                                        })],
+                                    }),
+                                })],
+                            },
+                        },
+                        crate::ast::MatchArm {
+                            pattern: crate::ast::Pattern::EnumVariant {
+                                name: "None".to_string(),
+                                payload_binding: None,
+                            },
+                            body: BlockStmt {
+                                statements: vec![Stmt::Expr(ExprStmt {
+                                    expr: Expr::Call(CallExpr {
+                                        func: Box::new(Expr::Identifier(IdentifierExpr {
+                                            name: "print".to_string(),
+                                        })),
+                                        args: vec![Expr::StringLiteral("none".to_string())],
+                                    }),
+                                })],
+                            },
+                        },
+                    ],
                 }
             ),
         },

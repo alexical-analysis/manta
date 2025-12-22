@@ -480,139 +480,131 @@
     }
   },
   {
-    "kind": "Arrow",
-    "lexeme": "=>",
-    "span": {
-      "start": 369,
-      "end": 371
-    }
-  },
-  {
     "kind": "OpenBrace",
     "lexeme": "{",
     "span": {
-      "start": 372,
-      "end": 373
+      "start": 369,
+      "end": 370
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "print",
     "span": {
-      "start": 374,
-      "end": 379
+      "start": 371,
+      "end": 376
     }
   },
   {
     "kind": "OpenParen",
     "lexeme": "(",
     "span": {
-      "start": 379,
-      "end": 380
+      "start": 376,
+      "end": 377
     }
   },
   {
     "kind": "Str",
     "lexeme": "result: ",
     "span": {
-      "start": 380,
-      "end": 390
+      "start": 377,
+      "end": 387
     }
   },
   {
     "kind": "Comma",
     "lexeme": ",",
     "span": {
-      "start": 390,
-      "end": 391
+      "start": 387,
+      "end": 388
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "v",
     "span": {
-      "start": 392,
-      "end": 393
+      "start": 389,
+      "end": 390
     }
   },
   {
     "kind": "CloseParen",
     "lexeme": ")",
     "span": {
-      "start": 393,
-      "end": 394
+      "start": 390,
+      "end": 391
     }
   },
   {
     "kind": "CloseBrace",
     "lexeme": "}",
     "span": {
-      "start": 395,
-      "end": 396
+      "start": 392,
+      "end": 393
     }
   },
   {
     "kind": "Dot",
     "lexeme": ".",
     "span": {
-      "start": 405,
-      "end": 406
+      "start": 402,
+      "end": 403
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "DivByZero",
     "span": {
-      "start": 406,
-      "end": 415
-    }
-  },
-  {
-    "kind": "Arrow",
-    "lexeme": "=>",
-    "span": {
-      "start": 416,
-      "end": 418
+      "start": 403,
+      "end": 412
     }
   },
   {
     "kind": "OpenBrace",
     "lexeme": "{",
     "span": {
-      "start": 419,
-      "end": 420
+      "start": 413,
+      "end": 414
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "print",
     "span": {
-      "start": 421,
-      "end": 426
+      "start": 415,
+      "end": 420
     }
   },
   {
     "kind": "OpenParen",
     "lexeme": "(",
     "span": {
-      "start": 426,
-      "end": 427
+      "start": 420,
+      "end": 421
     }
   },
   {
     "kind": "Str",
     "lexeme": "can not divide by zero",
     "span": {
-      "start": 427,
-      "end": 451
+      "start": 421,
+      "end": 445
     }
   },
   {
     "kind": "CloseParen",
     "lexeme": ")",
     "span": {
-      "start": 451,
-      "end": 452
+      "start": 445,
+      "end": 446
+    }
+  },
+  {
+    "kind": "CloseBrace",
+    "lexeme": "}",
+    "span": {
+      "start": 447,
+      "end": 448
     }
   },
   {
@@ -627,24 +619,16 @@
     "kind": "CloseBrace",
     "lexeme": "}",
     "span": {
-      "start": 459,
-      "end": 460
-    }
-  },
-  {
-    "kind": "CloseBrace",
-    "lexeme": "}",
-    "span": {
-      "start": 461,
-      "end": 462
+      "start": 455,
+      "end": 456
     }
   },
   {
     "kind": "Eof",
     "lexeme": "",
     "span": {
-      "start": 463,
-      "end": 463
+      "start": 457,
+      "end": 457
     }
   }
 ]

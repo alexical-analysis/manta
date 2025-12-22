@@ -17,7 +17,7 @@ fn div(a, b i32) Div {
 fn main() {
     let r = div(10, 2)
     match r {
-        .Ok(v) => { print("result: ", v) }
-        .DivByZero => { print("can not divide by zero") }
+        .Ok(v) { print("result: ", v) }
+        .DivByZero { print("can not divide by zero") }
     }
 }

@@ -11,8 +11,8 @@ use parselets::{
     AssignParselet, BinaryOperatorParselet, BoolLiteralParselet, CallParselet, DeferParselet,
     FieldAccessParselet, FloatLiteralParselet, GroupParselet, IdentifierParselet, IfParselet,
     IndexParselet, InferedVariantParselet, InfixExprParselet, IntLiteralParselet, LetParselet,
-    NilLiteralParselet, Precedence, PrefixExprParselet, PrefixStmtParselet, ReturnParselet,
-    StringLiteralParselet, TryParselet, UnaryOperatorParselet,
+    MatchParselet, NilLiteralParselet, Precedence, PrefixExprParselet, PrefixStmtParselet,
+    ReturnParselet, StringLiteralParselet, TryParselet, UnaryOperatorParselet,
 };
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -238,6 +238,7 @@ impl Parser {
         parser.register_stmt_prefix(TokenKind::OpenBrace, Rc::new(BlockParselet));
         parser.register_stmt_prefix(TokenKind::IfKeyword, Rc::new(IfParselet));
         parser.register_stmt_prefix(TokenKind::TryKeyword, Rc::new(TryParselet));
+        parser.register_stmt_prefix(TokenKind::MatchKeyword, Rc::new(MatchParselet));
 
         // Register infix statement parselets
         parser.register_stmt_infix(TokenKind::Equal, Rc::new(AssignParselet));
