@@ -35,9 +35,8 @@ impl PrefixStmtParselet for TryParselet {
             ));
         }
 
-        let decl;
         let next = parser.lookahead(0)?;
-        if next.kind == TokenKind::OpenParen {
+        let decl = if next.kind == TokenKind::OpenParen {
             parser.consume()?;
             let ident_name = parser.consume()?;
             let matched = parser.match_token(TokenKind::CloseParen)?;
@@ -47,11 +46,11 @@ impl PrefixStmtParselet for TryParselet {
                 ));
             }
 
-            decl = Some(Box::new(IdentifierExpr {
+            Some(Box::new(IdentifierExpr {
                 name: ident_name.lexeme,
-            }));
+            }))
         } else {
-            decl = None;
+            None
         };
 
         let matched = parser.match_token(TokenKind::ColonEqual)?;
@@ -67,9 +66,8 @@ impl PrefixStmtParselet for TryParselet {
         let next = parser.consume()?;
         match next.kind {
             TokenKind::CatchKeyword => {
-                let catch_binding;
                 let next = parser.lookahead(0)?;
-                if next.kind == TokenKind::OpenParen {
+                let catch_binding = if next.kind == TokenKind::OpenParen {
                     parser.consume()?;
                     let catch_ident = parser.consume()?;
                     if catch_ident.kind != TokenKind::Identifier {
@@ -80,47 +78,42 @@ impl PrefixStmtParselet for TryParselet {
                     }
                     parser.match_token(TokenKind::CloseParen)?;
 
-                    catch_binding = Some(Box::new(IdentifierExpr {
+                    Some(Box::new(IdentifierExpr {
                         name: catch_ident.lexeme,
-                    }));
+                    }))
                 } else {
-                    catch_binding = None;
-                }
+                    None
+                };
 
-                let catch_body;
                 let next = parser.lookahead(0)?;
-                if next.kind == TokenKind::OpenBrace {
+                let catch_body = if next.kind == TokenKind::OpenBrace {
                     parser.consume()?;
-                    catch_body = Some(Box::new(statement::parse_block(parser)?));
+                    Some(Box::new(statement::parse_block(parser)?))
                 } else {
-                    catch_body = None;
-                }
+                    None
+                };
 
-                return Ok(Stmt::Try(TryStmt {
+                Ok(Stmt::Try(TryStmt {
                     pattern_enum: enum_name,
                     pattern_variant: variant_name,
                     decl: decl,
                     expr: Box::new(expr),
                     catch_binding: catch_binding,
                     catch_body,
-                }));
+                }))
             }
-            TokenKind::Bang => {
-                return Ok(Stmt::Try(TryStmt {
-                    pattern_enum: enum_name,
-                    pattern_variant: variant_name,
-                    decl: decl,
-                    expr: Box::new(expr),
-                    catch_binding: None,
-                    catch_body: None,
-                }));
-            }
-            _ => {
-                return Err(ParseError::UnexpectedToken(format!(
-                    "invalid token after try/catch {:?}",
-                    next,
-                )));
-            }
-        };
+            TokenKind::Bang => Ok(Stmt::Try(TryStmt {
+                pattern_enum: enum_name,
+                pattern_variant: variant_name,
+                decl: decl,
+                expr: Box::new(expr),
+                catch_binding: None,
+                catch_body: None,
+            })),
+            _ => Err(ParseError::UnexpectedToken(format!(
+                "invalid token after try/catch {:?}",
+                next,
+            ))),
+        }
     }
 }

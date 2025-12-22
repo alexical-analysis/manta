@@ -13,12 +13,11 @@ impl PrefixStmtParselet for ReturnParselet {
         let next = parser.lookahead(0)?;
         let token_kind = next.kind;
 
-        let value;
-        if parser.is_expression_prefix(&token_kind) {
-            value = Some(parser.parse_expression()?);
+        let value = if parser.is_expression_prefix(&token_kind) {
+            Some(parser.parse_expression()?)
         } else {
-            value = None;
-        }
+            None
+        };
 
         Ok(Stmt::Return(ReturnStmt { value }))
     }

@@ -27,8 +27,8 @@ mod tests {
     crate::test_parselet!(
         FloatLiteralParselet,
         test_parse_3_14 {
-            input: "3.14",
-            want: Expr::FloatLiteral(3.14),
+            input: "3.45",
+            want: Expr::FloatLiteral(3.45),
             want_value: (),
         },
         test_parse_0_0 {

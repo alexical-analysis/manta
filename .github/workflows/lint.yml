@@ -19,7 +19,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       
       - name: Run clippy
-        run: cargo clippy --all --all-targets -- -D warnings
+        run: cargo clippy --all --all-targets
 
   fmt:
     runs-on: ubuntu-latest

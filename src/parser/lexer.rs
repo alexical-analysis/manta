@@ -175,7 +175,7 @@ impl Lexer {
         }
 
         // operators and punctuation
-        return Ok(self.read_operator_or_punct());
+        Ok(self.read_operator_or_punct())
     }
 
     // internal helpers for the lexer
@@ -273,7 +273,7 @@ impl Lexer {
 
     fn read_ident_or_keyword(&mut self) -> Token {
         let start = self.pos;
-        let lex = self.eat_while(|ch| is_ident_continue(ch));
+        let lex = self.eat_while(is_ident_continue);
         let end = self.pos;
 
         let kind = match lex.as_str() {
@@ -429,9 +429,9 @@ impl Lexer {
                 _ => None,
             };
 
-            if kind.is_some() {
+            if let Some(kind) = kind {
                 self.bump();
-                return Token::new(kind.unwrap(), two, Span::new(start, self.pos));
+                return Token::new(kind, two, Span::new(start, self.pos));
             }
         }
 

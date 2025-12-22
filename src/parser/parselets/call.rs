@@ -7,7 +7,7 @@ use crate::parser::{ParseError, Parser};
 
 /// Parses function call expressions.
 ///
-//// Example: `foo(1, 2, "bar")`
+/// Example: `foo(1, 2, "bar")`
 pub struct CallParselet;
 
 impl InfixExprParselet for CallParselet {

@@ -6,7 +6,7 @@ use crate::parser::{ParseError, Parser};
 
 /// Parses field access expressions.
 ///
-//// Example: `pet.name`
+/// Example: `pet.name`
 pub struct FieldAccessParselet;
 
 impl InfixExprParselet for FieldAccessParselet {

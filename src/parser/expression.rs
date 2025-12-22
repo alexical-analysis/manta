@@ -99,8 +99,8 @@ mod tests {
             want_value: (),
         },
         parse_expression_float_literal {
-            input: "3.14",
-            want_var: Expr::FloatLiteral(3.14),
+            input: "3.45",
+            want_var: Expr::FloatLiteral(3.45),
             want_value: (),
         },
         parse_expression_string_literal {
@@ -452,13 +452,13 @@ mod tests {
             ),
         },
         parse_expression_bool_expression {
-            input: "3.14 == b && true != d",
+            input: "3.45 == b && true != d",
             want_var: Expr::Binary(expr),
             want_value: assert_eq!(
                 expr,
                 BinaryExpr {
                     left: Box::new(Expr::Binary(BinaryExpr {
-                        left: Box::new(Expr::FloatLiteral(3.14)),
+                        left: Box::new(Expr::FloatLiteral(3.45)),
                         operator: BinaryOp::Equal,
                         right: Box::new(Expr::Identifier(IdentifierExpr {
                             name: "b".to_string(),

@@ -111,14 +111,14 @@ mod test {
             ),
         },
         parse_stmt_let_no_type {
-            input: "let pi = 3.14",
+            input: "let pi = 3.45",
             want_var: Stmt::Let(stmt),
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
                     name: "pi".to_string(),
                     type_annotation: None,
-                    value: Some(Expr::FloatLiteral(3.14)),
+                    value: Some(Expr::FloatLiteral(3.45)),
                 }
             ),
         },
@@ -405,7 +405,7 @@ mod test {
             ),
         },
         parse_stmt_if_else {
-            input: "if a < 13 {\nprint(\"ok\")\n} else {\na = 10 + number(3.14)\n}\n",
+            input: "if a < 13 {\nprint(\"ok\")\n} else {\na = 10 + number(3.45)\n}\n",
             want_var: Stmt::If(stmt),
             want_value: assert_eq!(
                 stmt,
@@ -439,7 +439,7 @@ mod test {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
                                         name: "number".to_string(),
                                     })),
-                                    args: vec![Expr::FloatLiteral(3.14)],
+                                    args: vec![Expr::FloatLiteral(3.45)],
                                 })),
                             })
                         }),]
