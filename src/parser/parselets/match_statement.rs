@@ -1,7 +1,7 @@
 use crate::ast::{BlockStmt, MatchArm, MatchStmt, Pattern, Stmt};
 use crate::parser::lexer::{Token, TokenKind};
 use crate::parser::parselets::PrefixStmtParselet;
-use crate::parser::{statement, ParseError, Parser};
+use crate::parser::{ParseError, Parser, statement};
 
 /// Parses match statements
 ///
@@ -117,4 +117,3 @@ fn parse_enum_variant(parser: &mut Parser) -> Result<Pattern, ParseError> {
         payload_binding,
     })
 }
-
