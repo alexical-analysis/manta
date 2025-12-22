@@ -1,4 +1,4 @@
-use crate::ast::{BlockStmt, MatchArm, MatchStmt, Pattern, Stmt};
+use crate::ast::{MatchArm, MatchStmt, Pattern, Stmt};
 use crate::parser::lexer::{Token, TokenKind};
 use crate::parser::parselets::PrefixStmtParselet;
 use crate::parser::{ParseError, Parser, statement};

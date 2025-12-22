@@ -1,5 +1,6 @@
 /// Top-level declarations in a Manta program
-pub enum TopLevelDecl {
+#[derive(Debug, PartialEq)]
+pub enum Decl {
     Function(FunctionDecl),
     Type(TypeDecl),
     Const(ConstDecl),
@@ -14,6 +15,7 @@ pub enum TopLevelDecl {
 ///     return a + b
 /// }
 /// ```
+#[derive(Debug, PartialEq)]
 pub struct FunctionDecl {
     pub name: String,
     pub params: Vec<Parameter>,
@@ -22,37 +24,44 @@ pub struct FunctionDecl {
 }
 
 /// Function parameter
+#[derive(Debug, PartialEq)]
 pub struct Parameter {
     pub name: String,
-    pub type_spec: Option<TypeSpec>,
+    pub type_spec: TypeSpec,
 }
 
 /// Type declaration (struct or enum)
+#[derive(Debug, PartialEq)]
 pub struct TypeDecl {
     pub name: String,
     pub kind: TypeKind,
 }
 
+#[derive(Debug, PartialEq)]
 pub enum TypeKind {
     Struct(StructType),
     Enum(EnumType),
 }
 
 /// Struct type with named fields
+#[derive(Debug, PartialEq)]
 pub struct StructType {
     pub fields: Vec<StructField>,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct StructField {
     pub name: String,
     pub type_spec: TypeSpec,
 }
 
 /// Enum type with named variants
+#[derive(Debug, PartialEq)]
 pub struct EnumType {
     pub variants: Vec<EnumVariant>,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct EnumVariant {
     pub name: String,
     pub payload: Option<TypeSpec>,
@@ -64,6 +73,7 @@ pub struct EnumVariant {
 /// ```manta
 /// const PI = 3.14159
 /// ```
+#[derive(Debug, PartialEq)]
 pub struct ConstDecl {
     pub name: String,
     pub value: Expr,
@@ -76,6 +86,7 @@ pub struct ConstDecl {
 /// import "math"
 /// import ("std", "io")
 /// ```
+#[derive(Debug, PartialEq, Clone)]
 pub struct ImportDecl {
     pub modules: Vec<String>,
 }

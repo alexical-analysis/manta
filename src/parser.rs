@@ -1,11 +1,14 @@
+pub mod declaration;
 pub mod expression;
 pub mod lexer;
 pub mod parselets;
 pub mod statement;
 pub mod types;
 
-use crate::ast::{BinaryOp, Expr, Stmt, UnaryOp};
-use crate::parser::parselets::{BlockParselet, InfixStmtParselet, ShortLetParselet};
+use crate::ast::{BinaryOp, Decl, Expr, UnaryOp};
+use crate::parser::parselets::{
+    BlockParselet, InfixStmtParselet, PrefixDeclParselet, ShortLetParselet,
+};
 use lexer::{Lexer, Token, TokenKind};
 use parselets::{
     AssignParselet, BinaryOperatorParselet, BoolLiteralParselet, CallParselet, DeferParselet,
@@ -59,6 +62,9 @@ pub struct Parser {
     // prefix and infix statement parselets
     prefix_stmt_parselets: HashMap<TokenKind, Rc<dyn PrefixStmtParselet>>,
     infix_stmt_parselets: HashMap<TokenKind, Rc<dyn InfixStmtParselet>>,
+
+    // top-level declaration parselets
+    prefix_decl_parselets: HashMap<TokenKind, Rc<dyn PrefixDeclParselet>>,
 }
 
 impl Parser {
@@ -71,6 +77,7 @@ impl Parser {
             infix_expr_parselets: HashMap::new(),
             prefix_stmt_parselets: HashMap::new(),
             infix_stmt_parselets: HashMap::new(),
+            prefix_decl_parselets: HashMap::new(),
         };
 
         // Register all prefix parselets
@@ -244,6 +251,12 @@ impl Parser {
         parser.register_stmt_infix(TokenKind::Equal, Rc::new(AssignParselet));
         parser.register_stmt_infix(TokenKind::ColonEqual, Rc::new(ShortLetParselet));
 
+        // Register prefix declaration parselets
+        parser.register_decl_prefix(
+            TokenKind::FnKeyword,
+            Rc::new(parselets::FunctionDeclParselet),
+        );
+
         parser
     }
 
@@ -302,10 +315,31 @@ impl Parser {
         self.infix_stmt_parselets.insert(kind, parselets);
     }
 
+    /// Register a prefix decl parselet for a token kind.
+    pub fn register_decl_prefix(&mut self, kind: TokenKind, parselet: Rc<dyn PrefixDeclParselet>) {
+        self.prefix_decl_parselets.insert(kind, parselet);
+    }
+
     /// Parse an expression, starting with minimum precedence.
     /// This is the public API for expression parsing.
     pub fn parse_expression(&mut self) -> Result<Expr, ParseError> {
         expression::parse_expression(self, Precedence::Base)
+    }
+
+    /// Parse a complete Manta program, returning a list of top-level declarations.
+    pub fn parse_program(&mut self) -> Result<Vec<Decl>, ParseError> {
+        let mut declarations = vec![];
+
+        loop {
+            let token_kind = self.lookahead(0)?.kind;
+            if token_kind == TokenKind::Eof {
+                break;
+            }
+            let decl = declaration::parse_declaration(self)?;
+            declarations.push(decl);
+        }
+
+        Ok(declarations)
     }
 
     /// Get the precedence of a token kind

@@ -1,4 +1,4 @@
-use crate::ast::{Expr, Stmt};
+use crate::ast::{Decl, Expr, Stmt};
 use crate::parser::lexer::Token;
 use crate::parser::{ParseError, Parser};
 
@@ -10,6 +10,7 @@ pub mod call;
 pub mod defer_statement;
 pub mod field_access;
 pub mod float_literal;
+pub mod function_declaration;
 pub mod group;
 pub mod identifier;
 pub mod if_statement;
@@ -33,6 +34,7 @@ pub use call::CallParselet;
 pub use defer_statement::DeferParselet;
 pub use field_access::FieldAccessParselet;
 pub use float_literal::FloatLiteralParselet;
+pub use function_declaration::FunctionDeclParselet;
 pub use group::GroupParselet;
 pub use identifier::IdentifierParselet;
 pub use if_statement::IfParselet;
@@ -91,4 +93,10 @@ pub trait PrefixStmtParselet {
 pub trait InfixStmtParselet {
     /// Parse an infix statement with `left` already parsed and the consumed token.
     fn parse(&self, parser: &mut Parser, left: Expr, token: Token) -> Result<Stmt, ParseError>;
+}
+
+/// Trait for top-level declaration parselets.
+pub trait PrefixDeclParselet {
+    /// Parse a top-level declaration given the consumed token.
+    fn parse(&self, parser: &mut Parser, token: Token) -> Result<Decl, ParseError>;
 }
