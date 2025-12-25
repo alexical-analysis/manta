@@ -557,7 +557,7 @@ Key implications for the parser design:
 
 ---
 
-### Phase 17: Top-Level Declarations - Types (Struct/Enum)
+### Phase 17: Top-Level Declarations - Types (Struct/Enum) [DONE]
 **Goal**: Parse type declarations
 
 #### Features to Add
@@ -607,14 +607,6 @@ Key implications for the parser design:
 #### Testing Strategy
 
 - Unit tests
-- Integration test: `tests/parser/top_level.manta`
-  ```manta
-  import "std"
-  import ("io", "math")
-
-  const PI = 3.14159
-  const MAX i32 = 100
-  ```
 
 ---
 

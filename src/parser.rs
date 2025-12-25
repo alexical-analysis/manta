@@ -11,11 +11,12 @@ use crate::parser::parselets::{
 };
 use lexer::{Lexer, Token, TokenKind};
 use parselets::{
-    AssignParselet, BinaryOperatorParselet, BoolLiteralParselet, CallParselet, DeferParselet,
-    FieldAccessParselet, FloatLiteralParselet, GroupParselet, IdentifierParselet, IfParselet,
-    IndexParselet, InferedVariantParselet, InfixExprParselet, IntLiteralParselet, LetParselet,
-    MatchParselet, NilLiteralParselet, Precedence, PrefixExprParselet, PrefixStmtParselet,
-    ReturnParselet, StringLiteralParselet, TryParselet, TypeDeclParselet, UnaryOperatorParselet,
+    AssignParselet, BinaryOperatorParselet, BoolLiteralParselet, CallParselet, ConstDeclParselet,
+    DeferParselet, FieldAccessParselet, FloatLiteralParselet, GroupParselet, IdentifierParselet,
+    IfParselet, ImportDeclParselet, IndexParselet, InferedVariantParselet, InfixExprParselet,
+    IntLiteralParselet, LetParselet, MatchParselet, NilLiteralParselet, Precedence,
+    PrefixExprParselet, PrefixStmtParselet, ReturnParselet, StringLiteralParselet, TryParselet,
+    TypeDeclParselet, UnaryOperatorParselet,
 };
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -257,6 +258,8 @@ impl Parser {
             Rc::new(parselets::FunctionDeclParselet),
         );
         parser.register_decl_prefix(TokenKind::TypeKeyword, Rc::new(TypeDeclParselet));
+        parser.register_decl_prefix(TokenKind::ConstKeyword, Rc::new(ConstDeclParselet));
+        parser.register_decl_prefix(TokenKind::ImportKeyword, Rc::new(ImportDeclParselet));
 
         parser
     }

@@ -23,9 +23,9 @@ pub fn parse_declaration(parser: &mut Parser) -> Result<Decl, ParseError> {
 mod tests {
     use super::*;
     use crate::ast::{
-        BinaryExpr, BinaryOp, BlockStmt, CallExpr, EnumType, EnumVariant, Expr, ExprStmt,
-        FunctionDecl, IdentifierExpr, IfStmt, NewExpr, Parameter, ReturnStmt, Stmt, StructField,
-        StructType, TypeDecl, TypeSpec,
+        BinaryExpr, BinaryOp, BlockStmt, CallExpr, ConstDecl, EnumType, EnumVariant, Expr,
+        ExprStmt, FunctionDecl, IdentifierExpr, IfStmt, ImportDecl, NewExpr, Parameter, ReturnStmt,
+        Stmt, StructField, StructType, TypeDecl, TypeSpec,
     };
     use crate::parser::lexer::Lexer;
     use pretty_assertions::assert_eq;
@@ -362,6 +362,78 @@ mod tests {
                         name: "None".to_string(),
                     },
                     type_spec: TypeSpec::Struct(StructType { fields: vec![] }),
+                },
+            ),
+        },
+        parse_decl_const_literal {
+            input: "const PI = 3.45",
+            want_var: Decl::Const(decl),
+            want_value: assert_eq!(
+                decl,
+                ConstDecl {
+                    name: "PI".to_string(),
+                    value: Expr::FloatLiteral(3.45),
+                },
+            ),
+        },
+        parse_decl_const_integer {
+            input: "const MAX_SIZE = 1024",
+            want_var: Decl::Const(decl),
+            want_value: assert_eq!(
+                decl,
+                ConstDecl {
+                    name: "MAX_SIZE".to_string(),
+                    value: Expr::IntLiteral(1024),
+                },
+            ),
+        },
+        parse_decl_const_expression {
+            input: "const DOUBLE = 5 + 5",
+            want_var: Decl::Const(decl),
+            want_value: assert_eq!(
+                decl,
+                ConstDecl {
+                    name: "DOUBLE".to_string(),
+                    value: Expr::Binary(BinaryExpr {
+                        left: Box::new(Expr::IntLiteral(5)),
+                        operator: BinaryOp::Add,
+                        right: Box::new(Expr::IntLiteral(5)),
+                    }),
+                },
+            ),
+        },
+        parse_decl_const_string {
+            input: r#"const VERSION = "1.0.0""#,
+            want_var: Decl::Const(decl),
+            want_value: assert_eq!(
+                decl,
+                ConstDecl {
+                    name: "VERSION".to_string(),
+                    value: Expr::StringLiteral("1.0.0".to_string()),
+                },
+            ),
+        },
+        parse_decl_import_single {
+            input: r#"import ("math")"#,
+            want_var: Decl::Import(decl),
+            want_value: assert_eq!(
+                decl,
+                ImportDecl {
+                    modules: vec!["math".to_string()],
+                },
+            ),
+        },
+        parse_decl_import_multiple {
+            input: r#"import (
+                "std"
+                "io"
+                "math"
+            )"#,
+            want_var: Decl::Import(decl),
+            want_value: assert_eq!(
+                decl,
+                ImportDecl {
+                    modules: vec!["std".to_string(), "io".to_string(), "math".to_string()],
                 },
             ),
         },
