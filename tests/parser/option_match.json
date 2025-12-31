@@ -1,0 +1,222 @@
+[
+  {
+    "Type": {
+      "name": {
+        "name": "Div"
+      },
+      "type_spec": {
+        "Enum": {
+          "variants": [
+            {
+              "name": "Ok",
+              "payload": "Int32"
+            },
+            {
+              "name": "DivByZero",
+              "payload": null
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "Function": {
+      "name": "div",
+      "params": [
+        {
+          "name": "a",
+          "type_spec": "Int32"
+        },
+        {
+          "name": "b",
+          "type_spec": "Int32"
+        }
+      ],
+      "return_type": {
+        "Named": "Div"
+      },
+      "body": {
+        "statements": [
+          {
+            "If": {
+              "check": {
+                "Binary": {
+                  "left": {
+                    "Identifier": {
+                      "name": "b"
+                    }
+                  },
+                  "operator": "Equal",
+                  "right": {
+                    "IntLiteral": 0
+                  }
+                }
+              },
+              "success": {
+                "statements": [
+                  {
+                    "Return": {
+                      "value": {
+                        "FieldAccess": {
+                          "target": null,
+                          "field": {
+                            "name": "DivByZero"
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "fail": null
+            }
+          },
+          {
+            "Return": {
+              "value": {
+                "Call": {
+                  "func": {
+                    "FieldAccess": {
+                      "target": null,
+                      "field": {
+                        "name": "Ok"
+                      }
+                    }
+                  },
+                  "args": [
+                    {
+                      "Binary": {
+                        "left": {
+                          "Identifier": {
+                            "name": "a"
+                          }
+                        },
+                        "operator": "Divide",
+                        "right": {
+                          "Identifier": {
+                            "name": "b"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "Function": {
+      "name": "main",
+      "params": [],
+      "return_type": null,
+      "body": {
+        "statements": [
+          {
+            "Let": {
+              "name": "r",
+              "type_annotation": null,
+              "value": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "div"
+                    }
+                  },
+                  "args": [
+                    {
+                      "IntLiteral": 10
+                    },
+                    {
+                      "IntLiteral": 2
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "Match": {
+              "target": {
+                "Identifier": {
+                  "name": "r"
+                }
+              },
+              "arms": [
+                {
+                  "pattern": {
+                    "EnumVariant": {
+                      "name": "Ok",
+                      "payload_binding": "v"
+                    }
+                  },
+                  "body": {
+                    "statements": [
+                      {
+                        "Expr": {
+                          "expr": {
+                            "Call": {
+                              "func": {
+                                "Identifier": {
+                                  "name": "print"
+                                }
+                              },
+                              "args": [
+                                {
+                                  "StringLiteral": "result: "
+                                },
+                                {
+                                  "Identifier": {
+                                    "name": "v"
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pattern": {
+                    "EnumVariant": {
+                      "name": "DivByZero",
+                      "payload_binding": null
+                    }
+                  },
+                  "body": {
+                    "statements": [
+                      {
+                        "Expr": {
+                          "expr": {
+                            "Call": {
+                              "func": {
+                                "Identifier": {
+                                  "name": "print"
+                                }
+                              },
+                              "args": [
+                                {
+                                  "StringLiteral": "can not divide by zero"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+]

@@ -1,0 +1,298 @@
+[
+  {
+    "Type": {
+      "name": {
+        "name": "ReadFile"
+      },
+      "type_spec": {
+        "Enum": {
+          "variants": [
+            {
+              "name": "Ok",
+              "payload": "String"
+            },
+            {
+              "name": "IOError",
+              "payload": null
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "Function": {
+      "name": "read_file",
+      "params": [
+        {
+          "name": "path",
+          "type_spec": "String"
+        }
+      ],
+      "return_type": {
+        "Named": "ReadFile"
+      },
+      "body": {
+        "statements": [
+          {
+            "Try": {
+              "pattern_enum": null,
+              "pattern_variant": {
+                "name": "Ok"
+              },
+              "decl": {
+                "name": "f"
+              },
+              "expr": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "open"
+                    }
+                  },
+                  "args": [
+                    {
+                      "Identifier": {
+                        "name": "path"
+                      }
+                    }
+                  ]
+                }
+              },
+              "catch_binding": null,
+              "catch_body": {
+                "statements": [
+                  {
+                    "Return": {
+                      "value": {
+                        "FieldAccess": {
+                          "target": null,
+                          "field": {
+                            "name": "IOError"
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Defer": {
+              "block": {
+                "statements": [
+                  {
+                    "Expr": {
+                      "expr": {
+                        "Call": {
+                          "func": {
+                            "Identifier": {
+                              "name": "close"
+                            }
+                          },
+                          "args": [
+                            {
+                              "Identifier": {
+                                "name": "f"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Try": {
+              "pattern_enum": null,
+              "pattern_variant": {
+                "name": "Ok"
+              },
+              "decl": {
+                "name": "s"
+              },
+              "expr": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "read_to_string"
+                    }
+                  },
+                  "args": [
+                    {
+                      "Identifier": {
+                        "name": "f"
+                      }
+                    }
+                  ]
+                }
+              },
+              "catch_binding": null,
+              "catch_body": {
+                "statements": [
+                  {
+                    "Return": {
+                      "value": {
+                        "FieldAccess": {
+                          "target": null,
+                          "field": {
+                            "name": "IOError"
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Return": {
+              "value": {
+                "Call": {
+                  "func": {
+                    "FieldAccess": {
+                      "target": null,
+                      "field": {
+                        "name": "Ok"
+                      }
+                    }
+                  },
+                  "args": [
+                    {
+                      "Identifier": {
+                        "name": "s"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "Function": {
+      "name": "main",
+      "params": [],
+      "return_type": null,
+      "body": {
+        "statements": [
+          {
+            "Try": {
+              "pattern_enum": null,
+              "pattern_variant": {
+                "name": "Ok"
+              },
+              "decl": {
+                "name": "content"
+              },
+              "expr": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "read_file"
+                    }
+                  },
+                  "args": [
+                    {
+                      "StringLiteral": "/tmp/x.txt"
+                    }
+                  ]
+                }
+              },
+              "catch_binding": {
+                "name": "e"
+              },
+              "catch_body": {
+                "statements": [
+                  {
+                    "Expr": {
+                      "expr": {
+                        "Call": {
+                          "func": {
+                            "Identifier": {
+                              "name": "print"
+                            }
+                          },
+                          "args": [
+                            {
+                              "StringLiteral": "read failed: "
+                            },
+                            {
+                              "Identifier": {
+                                "name": "e"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Return": {
+                      "value": null
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Expr": {
+              "expr": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "print"
+                    }
+                  },
+                  "args": [
+                    {
+                      "Identifier": {
+                        "name": "content"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "Try": {
+              "pattern_enum": null,
+              "pattern_variant": {
+                "name": "Ok"
+              },
+              "decl": {
+                "name": "content"
+              },
+              "expr": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "read_file"
+                    }
+                  },
+                  "args": [
+                    {
+                      "StringLiteral": "/tmp/missing.txt"
+                    }
+                  ]
+                }
+              },
+              "catch_binding": null,
+              "catch_body": null
+            }
+          }
+        ]
+      }
+    }
+  }
+]

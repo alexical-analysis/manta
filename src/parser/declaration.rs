@@ -1,4 +1,5 @@
 use crate::ast::Decl;
+use crate::parser::TokenKind;
 use crate::parser::{ParseError, Parser};
 
 /// Parse a top level declration for a manta program.
@@ -15,6 +16,15 @@ pub fn parse_declaration(parser: &mut Parser) -> Result<Decl, ParseError> {
 
     let prefix = prefix_opt.unwrap().clone();
     let decl = prefix.parse(parser, token)?;
+
+    // expect a semicolon after declarations
+    let matched = parser.match_token(TokenKind::Semicolon)?;
+    if !matched {
+        return Err(ParseError::UnexpectedToken(format!(
+            "Missing semicolon, got {:?}",
+            parser.lookahead(0),
+        )));
+    }
 
     Ok(decl)
 }

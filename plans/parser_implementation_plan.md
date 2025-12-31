@@ -590,7 +590,7 @@ Key implications for the parser design:
 
 ---
 
-### Phase 18: Top-Level Declarations - Const & Import
+### Phase 18: Top-Level Declarations - Const & Import [DONE]
 **Goal**: Parse const and import declarations
 
 #### Features to Add

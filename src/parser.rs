@@ -362,6 +362,8 @@ impl Parser {
 mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
+    use std::fs;
+    use std::path::Path;
 
     #[test]
     fn lookahead_and_consume_basic() {
@@ -431,6 +433,93 @@ mod tests {
                 assert!(msg.contains("No prefix parselet"));
             }
             _ => panic!("Expected UnexpectedToken error"),
+        }
+    }
+
+    #[test]
+    fn parse_file_tests() {
+        let test_dir = Path::new("tests/src");
+        let parser_dir = Path::new("tests/parser");
+
+        if !test_dir.exists() {
+            panic!(
+                "Test directory does not exist. Please create a '{:?}' with test .manta files.",
+                test_dir
+            );
+        }
+
+        let entries = fs::read_dir(test_dir).expect("Failed to read tests/parser directory");
+
+        // Read all .manta files from tests/parser and check them against expected parser output
+        for entry in entries {
+            assert_file_eq(entry, test_dir, parser_dir);
+        }
+    }
+
+    fn assert_file_eq(
+        entry: Result<std::fs::DirEntry, std::io::Error>,
+        test_dir: &std::path::Path,
+        parser_dir: &std::path::Path,
+    ) {
+        let entry =
+            entry.expect(format!("Failed to read entry in '{:?}' directory", test_dir).as_str());
+
+        let path = entry.path();
+        let ext = path.extension().expect("Failed to get file extension");
+        if ext != "manta" {
+            // Skip over non-manta files
+            return;
+        }
+
+        let file_name = path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("unknown");
+
+        let source =
+            fs::read_to_string(&path).expect(&format!("Failed to read {}", path.display()));
+
+        let lexer = Lexer::new(&source);
+        let mut parser = Parser::new(lexer);
+
+        let ast: Result<Vec<crate::ast::Decl>, ParseError> = parser.parse_program();
+
+        let ast = match ast {
+            Ok(a) => a,
+            Err(e) => {
+                panic!("Parser error for {}: {:?}", file_name, e);
+            }
+        };
+
+        let json_output =
+            serde_json::to_string_pretty(&ast).expect("Failed to serialize AST to JSON");
+
+        let parser_file = parser_dir.join(format!("{}.json", file_name));
+
+        if parser_file.exists() {
+            let expected_json = fs::read_to_string(&parser_file)
+                .expect(&format!("Failed to read {}", parser_file.display()));
+
+            assert_eq!(
+                json_output, expected_json,
+                "Parser output mismatch for {}",
+                file_name
+            );
+        } else {
+            // Create the parser directory if it doesn't exist
+            fs::create_dir_all(parser_dir).expect("Failed to create parser test directory");
+
+            // Write the output if the file does not exist
+            fs::write(&parser_file, &json_output).expect(&format!(
+                "Failed to write parser output to {:?}",
+                parser_file
+            ));
+
+            // If we generated the output file, fail the test to prompt the user to verify it's correctness
+            panic!(
+                "Generated new parser output file: {:?}. Please verify its correctness.",
+                parser_file
+            );
         }
     }
 }

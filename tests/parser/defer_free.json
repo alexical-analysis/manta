@@ -1,0 +1,213 @@
+[
+  {
+    "Type": {
+      "name": {
+        "name": "WriteAndCleanup"
+      },
+      "type_spec": {
+        "Enum": {
+          "variants": [
+            {
+              "name": "Ok",
+              "payload": null
+            },
+            {
+              "name": "IOError",
+              "payload": null
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "Function": {
+      "name": "write_and_cleanup",
+      "params": [
+        {
+          "name": "path",
+          "type_spec": "String"
+        }
+      ],
+      "return_type": {
+        "Named": "WriteAndCleanup"
+      },
+      "body": {
+        "statements": [
+          {
+            "Try": {
+              "pattern_enum": null,
+              "pattern_variant": {
+                "name": "Ok"
+              },
+              "decl": {
+                "name": "f"
+              },
+              "expr": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "open"
+                    }
+                  },
+                  "args": [
+                    {
+                      "Identifier": {
+                        "name": "path"
+                      }
+                    }
+                  ]
+                }
+              },
+              "catch_binding": null,
+              "catch_body": {
+                "statements": [
+                  {
+                    "Return": {
+                      "value": {
+                        "FieldAccess": {
+                          "target": null,
+                          "field": {
+                            "name": "IOError"
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Defer": {
+              "block": {
+                "statements": [
+                  {
+                    "Expr": {
+                      "expr": {
+                        "Call": {
+                          "func": {
+                            "Identifier": {
+                              "name": "close"
+                            }
+                          },
+                          "args": [
+                            {
+                              "Identifier": {
+                                "name": "f"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "ShortLet": {
+              "name": {
+                "name": "buf"
+              },
+              "value": {
+                "New": {
+                  "type_spec": {
+                    "Slice": "UInt8"
+                  },
+                  "len": {
+                    "IntLiteral": 256
+                  },
+                  "cap": null
+                }
+              }
+            }
+          },
+          {
+            "Defer": {
+              "block": {
+                "statements": [
+                  {
+                    "Expr": {
+                      "expr": {
+                        "Free": {
+                          "expr": {
+                            "Identifier": {
+                              "name": "buf"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Try": {
+              "pattern_enum": null,
+              "pattern_variant": {
+                "name": "Ok"
+              },
+              "decl": {
+                "name": "n"
+              },
+              "expr": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "write"
+                    }
+                  },
+                  "args": [
+                    {
+                      "Identifier": {
+                        "name": "f"
+                      }
+                    },
+                    {
+                      "Identifier": {
+                        "name": "buf"
+                      }
+                    }
+                  ]
+                }
+              },
+              "catch_binding": null,
+              "catch_body": {
+                "statements": [
+                  {
+                    "Return": {
+                      "value": {
+                        "FieldAccess": {
+                          "target": null,
+                          "field": {
+                            "name": "IOError"
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Return": {
+              "value": {
+                "FieldAccess": {
+                  "target": null,
+                  "field": {
+                    "name": "Ok"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+]

@@ -1,5 +1,7 @@
+use serde::{Deserialize, Serialize};
+
 /// Top-level declarations in a Manta program
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum Decl {
     Function(FunctionDecl),
     Type(TypeDecl),
@@ -15,7 +17,7 @@ pub enum Decl {
 ///     return a + b
 /// }
 /// ```
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct FunctionDecl {
     pub name: String,
     pub params: Vec<Parameter>,
@@ -23,14 +25,14 @@ pub struct FunctionDecl {
     pub body: BlockStmt,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct TypeDecl {
     pub name: IdentifierExpr,
     pub type_spec: TypeSpec,
 }
 
 /// Function parameter
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Parameter {
     pub name: String,
     pub type_spec: TypeSpec,
@@ -42,7 +44,7 @@ pub struct Parameter {
 /// ```manta
 /// const PI = 3.14159
 /// ```
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ConstDecl {
     pub name: String,
     pub value: Expr,
@@ -55,13 +57,13 @@ pub struct ConstDecl {
 /// import "math"
 /// import ("std", "io")
 /// ```
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct ImportDecl {
     pub modules: Vec<String>,
 }
 
 /// Type specification
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum TypeSpec {
     Int32,
     Int16,
@@ -86,43 +88,43 @@ pub enum TypeSpec {
 }
 
 /// Array type with size
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct ArrayType {
     pub type_spec: Box<TypeSpec>,
     pub size: usize,
 }
 
 /// Struct type with named fields
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct StructType {
     pub fields: Vec<StructField>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct StructField {
     pub name: String,
     pub type_spec: TypeSpec,
 }
 
 /// Enum type with named variants
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct EnumType {
     pub variants: Vec<EnumVariant>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct EnumVariant {
     pub name: String,
     pub payload: Option<TypeSpec>,
 }
 
 /// A block of statements
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct BlockStmt {
     pub statements: Vec<Stmt>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct TryStmt {
     pub pattern_enum: Option<Box<IdentifierExpr>>,
     pub pattern_variant: Box<IdentifierExpr>,
@@ -132,7 +134,7 @@ pub struct TryStmt {
     pub catch_body: Option<Box<BlockStmt>>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct IfStmt {
     pub check: Box<Expr>,
     pub success: BlockStmt,
@@ -140,7 +142,7 @@ pub struct IfStmt {
 }
 
 /// Statements in a block
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum Stmt {
     Let(LetStmt),
     ShortLet(ShortLetStmt),
@@ -154,53 +156,53 @@ pub enum Stmt {
     If(IfStmt),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct LetStmt {
     pub name: String,
     pub type_annotation: Option<TypeSpec>,
     pub value: Option<Expr>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ShortLetStmt {
     pub name: IdentifierExpr,
     pub value: Expr,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct AssignStmt {
     pub lvalue: Expr,
     pub rvalue: Expr,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ExprStmt {
     pub expr: Expr,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ReturnStmt {
     pub value: Option<Expr>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct DeferStmt {
     pub block: BlockStmt,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct MatchStmt {
     pub target: Expr,
     pub arms: Vec<MatchArm>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct MatchArm {
     pub pattern: Pattern,
     pub body: BlockStmt,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum Pattern {
     EnumVariant {
         name: String,
@@ -216,7 +218,7 @@ pub enum Pattern {
 }
 
 /// Expressions
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum Expr {
     // Literals
     IntLiteral(i64),
@@ -253,12 +255,12 @@ pub enum Expr {
     Cast(CastExpr),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct IdentifierExpr {
     pub name: String,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct EnumConstructorExpr {
     // TODO: should these be IdentifierExpr?
     type_name: Option<String>,
@@ -266,14 +268,14 @@ pub struct EnumConstructorExpr {
     payload: Option<Box<Expr>>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct BinaryExpr {
     pub left: Box<Expr>,
     pub operator: BinaryOp,
     pub right: Box<Expr>,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
 pub enum BinaryOp {
     Add,
     Subtract,
@@ -293,13 +295,13 @@ pub enum BinaryOp {
     BitwiseXor,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct UnaryExpr {
     pub operator: UnaryOp,
     pub operand: Box<Expr>,
 }
 
-#[derive(PartialEq, Debug, Clone, Copy)]
+#[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum UnaryOp {
     Not,
     Negate,
@@ -308,47 +310,47 @@ pub enum UnaryOp {
     AddressOf,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct CallExpr {
     pub func: Box<Expr>,
     pub args: Vec<Expr>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct IndexExpr {
     pub target: Box<Expr>,
     pub index: Box<Expr>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct FieldAccessExpr {
     // this is an option because this can be infered in some contexts
     pub target: Option<Box<Expr>>,
     pub field: Box<IdentifierExpr>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct AssignmentExpr {
     // target is any l-value expression (identifier, deref, index, field access)
     pub target: Box<Expr>,
     pub value: Box<Expr>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct CastExpr {
     expr: Box<Expr>,
     target_type: TypeSpec,
 }
 
 /// Valid allocation expressions include new(T), new([N]T), new([]T, len) etc.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct NewExpr {
     pub type_spec: TypeSpec,
     pub len: Option<Box<Expr>>,
     pub cap: Option<Box<Expr>>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct FreeExpr {
     pub expr: Box<Expr>,
 }
