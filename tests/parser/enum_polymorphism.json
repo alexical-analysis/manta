@@ -1,0 +1,287 @@
+[
+  {
+    "Import": {
+      "modules": [
+        "math"
+      ]
+    }
+  },
+  {
+    "Type": {
+      "name": {
+        "name": "Shape"
+      },
+      "type_spec": {
+        "Enum": {
+          "variants": [
+            {
+              "name": "Circle",
+              "payload": "Int32"
+            },
+            {
+              "name": "Square",
+              "payload": "Int32"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "Function": {
+      "name": "area",
+      "params": [
+        {
+          "name": "s",
+          "type_spec": {
+            "Named": "Shape"
+          }
+        }
+      ],
+      "return_type": "Int32",
+      "body": {
+        "statements": [
+          {
+            "Match": {
+              "target": {
+                "Identifier": {
+                  "name": "s"
+                }
+              },
+              "arms": [
+                {
+                  "pattern": {
+                    "EnumVariant": {
+                      "name": "Circle",
+                      "payload_binding": "r"
+                    }
+                  },
+                  "body": {
+                    "statements": [
+                      {
+                        "Return": {
+                          "value": {
+                            "Binary": {
+                              "left": {
+                                "Binary": {
+                                  "left": {
+                                    "FieldAccess": {
+                                      "target": {
+                                        "Identifier": {
+                                          "name": "math"
+                                        }
+                                      },
+                                      "field": {
+                                        "name": "PI"
+                                      }
+                                    }
+                                  },
+                                  "operator": "Multiply",
+                                  "right": {
+                                    "Identifier": {
+                                      "name": "r"
+                                    }
+                                  }
+                                }
+                              },
+                              "operator": "Multiply",
+                              "right": {
+                                "Identifier": {
+                                  "name": "r"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pattern": {
+                    "EnumVariant": {
+                      "name": "Square",
+                      "payload_binding": "s"
+                    }
+                  },
+                  "body": {
+                    "statements": [
+                      {
+                        "Return": {
+                          "value": {
+                            "Binary": {
+                              "left": {
+                                "Identifier": {
+                                  "name": "s"
+                                }
+                              },
+                              "operator": "Multiply",
+                              "right": {
+                                "Identifier": {
+                                  "name": "s"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "Function": {
+      "name": "main",
+      "params": [],
+      "return_type": null,
+      "body": {
+        "statements": [
+          {
+            "Let": {
+              "name": "square",
+              "type_annotation": null,
+              "value": {
+                "Call": {
+                  "func": {
+                    "FieldAccess": {
+                      "target": {
+                        "Identifier": {
+                          "name": "Shape"
+                        }
+                      },
+                      "field": {
+                        "name": "Square"
+                      }
+                    }
+                  },
+                  "args": [
+                    {
+                      "IntLiteral": 10
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "Let": {
+              "name": "square_area",
+              "type_annotation": null,
+              "value": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "area"
+                    }
+                  },
+                  "args": [
+                    {
+                      "Identifier": {
+                        "name": "square"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "Expr": {
+              "expr": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "print"
+                    }
+                  },
+                  "args": [
+                    {
+                      "Identifier": {
+                        "name": "square_area"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "Let": {
+              "name": "circle",
+              "type_annotation": null,
+              "value": {
+                "Call": {
+                  "func": {
+                    "FieldAccess": {
+                      "target": {
+                        "Identifier": {
+                          "name": "Shape"
+                        }
+                      },
+                      "field": {
+                        "name": "Circle"
+                      }
+                    }
+                  },
+                  "args": [
+                    {
+                      "IntLiteral": 3
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "Let": {
+              "name": "circle_area",
+              "type_annotation": null,
+              "value": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "area"
+                    }
+                  },
+                  "args": [
+                    {
+                      "Identifier": {
+                        "name": "circle"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "Expr": {
+              "expr": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "print"
+                    }
+                  },
+                  "args": [
+                    {
+                      "Identifier": {
+                        "name": "circle"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+]

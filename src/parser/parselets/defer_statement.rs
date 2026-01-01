@@ -11,7 +11,6 @@ pub struct DeferParselet;
 
 impl PrefixStmtParselet for DeferParselet {
     fn parse(&self, parser: &mut Parser, token: Token) -> Result<Stmt, ParseError> {
-        println!("token {:?} {:?}", token, parser.lookahead(0));
         let matched = parser.match_token(TokenKind::OpenBrace)?;
         if !matched {
             return Err(ParseError::UnexpectedToken(

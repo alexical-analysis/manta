@@ -6,7 +6,6 @@ use crate::parser::{ParseError, Parser};
 pub fn parse_statement(parser: &mut Parser) -> Result<Stmt, ParseError> {
     // need to peek here because we don't know if this is an expression or a statement yet
     let token = parser.lookahead(0)?;
-    println!("\t\tparsing a statment, got token {:?}", token);
     let token_kind = token.kind;
 
     let parselet = parser.prefix_stmt_parselets.get(&token_kind);

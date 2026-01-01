@@ -1,0 +1,30 @@
+// examples/nil_refs.manta
+
+import (
+    "math"
+)
+
+// Shape is an enum for different types of geometric shapes
+type Shape enum {
+    Circle(i32)
+    Square(i32)
+}
+
+// area calculates the area of a given shape
+fn area(s Shape) i32 {
+    // match requires that you to handle all the shape variants
+    match s {
+        .Circle(r) { return math.PI * r * r }
+        .Square(s) { return s * s }
+    }
+}
+
+fn main() {
+    let square = Shape.Square(10)
+    let square_area = area(square)
+    print(square_area)
+
+    let circle = Shape.Circle(3)
+    let circle_area = area(circle)
+    print(circle)
+}

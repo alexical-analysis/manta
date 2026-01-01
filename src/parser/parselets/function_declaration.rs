@@ -18,7 +18,6 @@ impl PrefixDeclParselet for FunctionDeclParselet {
 }
 
 fn parse_function_declaration(parser: &mut Parser) -> Result<FunctionDecl, ParseError> {
-    println!("\tparsing function");
     // Expect function name
     let name_token = parser.lookahead(0)?;
     if name_token.kind != TokenKind::Identifier {
@@ -63,7 +62,6 @@ fn parse_function_declaration(parser: &mut Parser) -> Result<FunctionDecl, Parse
         ));
     }
 
-    println!("\tparsing body!");
     let body = statement::parse_block(parser)?;
 
     Ok(FunctionDecl {
