@@ -1,17 +1,27 @@
 // examples/defer_free.manta
+mod main
+
+use (
+    "os"
+)
 
 type ErrWrite enum {
     Ok
-    IOError
+    WriteErr(os::OpenFile)
+    OpenErr(os::WriteFile)
 }
 
 fn write_and_cleanup(path string) ErrWrite {
-    .Ok(f) := try open(path) catch { return .IOError }
+    let .Ok(f) = os::open_file(path) wrap .OpenErr
     defer { close(f) }
 
-    buf := new([]u8, 256)
+    let buf = new([]u8, 256)
     defer { free(buf) }
 
-    .Ok(n) := try write(f, buf, 256) catch { return .IOError }
+    let .Ok(n) = os::write_file(f, buf, 256) wrap .WriteErr
     return .Ok
+}
+
+fn main() {
+    write_and_cleanup("test.md")
 }

@@ -1,0 +1,85 @@
+mod main
+
+use (
+    "fmt"
+    "heap"
+    "bytes"
+)
+
+fn main() {
+    let .Ok(alloc) = heap::new_default_allocator()!
+    defer { alloc.free_all() }
+
+    let .Ok(the_answer) = new_integer(alloc, 42)!
+    defer { let .Ok = alloc.free(the_answer)! }
+
+    let .Ok(active_user) = User.new(alloc, 101, "Ray")!
+    defer { let .Ok = active_user.free(alloc)! }
+
+    let .Ok = fmt::printfln(alloc, "Int: {my_int}")!
+    let .Ok = fmt::printfln(alloc, "User: {active_user}")!
+}
+
+type NewInteger enum {
+    Ok(i32)
+    AllocErr(heap::AllocatorNew)
+}
+
+fn new_integer(alloc heap::Allocator, value i32) NewInteger {
+    let .Ok(ptr) = alloc.new(value) or .AllocErr
+    return .Ok(ptr)
+}
+
+type User struct {
+    id u32
+    username str
+}
+
+type UserNew enum {
+    Ok(User)
+    AllocErr(heap::AllocatorNew)
+}
+
+impl User {
+    fn new(alloc heap::Allocator, id u32, name []u8) UserNew {
+        let .Ok(name) = str.new(alloc, str.with_value(name)) or .AllocErr
+
+        let .Ok(user) = alloc.new(User{}) or .AllocErr
+        *user = User{
+            id: id,
+            username: name,
+        }
+
+        return .Ok(user)
+    }
+
+    fn free(self, alloc heap::Allocator) heap::Free {
+        let .Ok = alloc.free(self.username) or e { return e }
+        let .Ok = alloc.free(self) or e { return e }
+
+        return .Ok
+    }
+
+    fn string(self, alloc heap::Allocator) str {
+        // just use a hard coded default here since we can't return
+        // an error value, the show MUST go on
+        let .Ok(id_byes) = bytes.U32toA(alloc, self.id) default "�"
+
+        let prefix = "{ "
+        let infix = ", "
+        let sufix = " }"
+        let size = prefix.byte_count() + 
+            id_bytes.byte_count() + 
+            infix.byte_count() + 
+            self.name.byte_count() + 
+            suffix.byte_count() 
+
+        let .Ok(ret) = str.new(alloc, str.with_cap(size))!
+
+        // this could fail but since we can't return an error, just do our best an roll forward
+        let .Ok = ret.append(alloc, prefix, id_bytes, infix, self.name, suffix) or {}
+
+        return ret
+    }
+}
+

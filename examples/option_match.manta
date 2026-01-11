@@ -1,4 +1,9 @@
 // examples/option_match.manta
+mod main
+
+use (
+    "fmt"
+)
 
 type Maybei32 enum {
     Some(i32)
@@ -15,8 +20,7 @@ fn maybe_div(a, b i32) Maybei32 {
 fn main() {
     let r = maybe_div(10, 2)
     match r {
-        .Some(v) { print("result: ", v) }
-        .None { print("no result") }
+        .Some(v) { fmt::println("result: ", v) }
+        .None    { fmt::println("no result") }
     }
-    return
 }

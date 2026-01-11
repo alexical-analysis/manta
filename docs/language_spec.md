@@ -1,442 +1,635 @@
-# Manta language - core features draft
+# Manta Language Specification
 
-This document describes the initial core language features and concrete syntax proposals for the Manta language. It covers:
+A comprehensive guide to the Manta programming language—a systems language with manual memory management, explicit error handling, and strong sum types.
 
-- Defer keyword
-- Manual memory management via `new` and `free`
-- Proper Sum types using Rust-style enumerations
-- Rust-like keywords and primitive type names (`fn`, `i8`, `f32`, etc.)
-- Zig-style `try`/`catch` error propagation syntax
+## Overview
 
-This is a draft intended to guide lexer/parser and AST design.
+Manta is a small, explicit systems language designed for performance and clarity. It features:
 
-## Design goals
+- **Manual memory management**: Explicit `new` and `free` primitives, no garbage collector
+- **Strong sum types**: Rust-style enums for type-safe error handling and optional values
+- **Deferred cleanup**: Lexically-scoped `defer` blocks for resource management
+- **Explicit error handling**: Pattern-matching and exception-like `except` clauses for error propagation
+- **Module system**: Go style code organize using `mod` declarations and `use` for imports
+- **Familiar syntax**: Keywords and type names inspired by Go, Rust, C, and Zig
 
-- Small, explicit systems-language style: manual memory management, no GC, explicit ownership by programmer.
-- Familiar look-and-feel for Rust/C/Zig/Golang programmers.
-- Simplicity for compiler implementation: explicit constructs with small number of cases.
+## Design Goals
 
-## 1) Keywords and primitives
+- **Simplicity**: Small language with explicit, easy-to-understand constructs
+- **Control**: Manual memory management with no hidden allocations or GC pauses
+- **Familiarity**: Syntax that resonates with systems programmers from Rust, C, Zig, and Go
+- **Clarity**: Explicit constructs and minimal magic; compiler implementation stays tractable
 
-Keywords (reserved):
+## 1. Keywords and Primitives
 
-- fn, return, if, else, while, for, break, continue, defer, new, free, catch, struct, enum, match, let, const
+### Reserved Keywords
 
-Primitive integer and float type names:
+Core language constructs:
+- `fn` - function declaration
+- `defer` - deferred cleanup block
+- `match` - pattern matching on sum types
+- `let`, `mut` - variable bindings (immutable and mutable)
+- `var`, `const` - module-level variable and constant declarations
+- `mod` - module declaration
+- `use` - import modules
+- `type` - type declarations
+- `struct`, `enum` - type definitions (used in type declarations and literals)
 
-- i8, i16, i32, i64, isize
-- u8, u16, u32, u64, usize
-- f32, f64
-- bool, char
+Control flow:
+- `return` - return from function
+- `break` - break out of the current loop
+- `continue` - start the next iteration of the current loop
+- `if`, `else` - conditional execution
+- `for`, `loop` - loops
+- `break`, `continue` - loop control
 
-Type syntax:
+Error handling:
+- `or`, `wrap` - error handling alternatives in `except` clauses
+- `!` - panic in `except` clauses
 
-- Simple: `let x i32`
-- Pointer types: `*T` (raw pointer)
+### Primitive Types
 
-Function syntax:
+Integer types:
+- Signed: `i8`, `i16`, `i32`, `i64`
+- Unsigned: `u8`, `u16`, `u32`, `u64`
 
-// notice that the i32 type can be listed only once at the end of the
-// parameter list like in Go
+Float types:
+- `f32`, `f64`
+
+Other types:
+- `bool` - boolean (true/false)
+- `str` - string type
+- `meta` - meta type with runtime metadata on types
+
+Composite type constructors (used in declarations and literals):
+- `*T` - pointer/reference to type T
+- `[N]T` - fixed-size array of N elements of type T
+- `[]T` - slice (dynamic array) of type T
+- `struct { ... }` - structure type
+- `enum { ... }` - enumeration/sum type
+
+### Variables and Type Annotations
+
+Variable declarations:
+
+```
+let x i32              // immutable, explicit type
+let x = 10             // immutable, inferred type
+mut x i32 = 20         // mutable, explicit type
+mut x = 30             // mutable, inferred type
+```
+
+Module-level declarations:
+
+```
+const PI = 3.14159     // constant
+var counter = 0        // mutable variable
+```
+
+### Function Syntax
+
+Basic function:
+
+```
 fn add(a, b i32) i32 {
     return a + b
 }
+```
 
-Short forms:
+Function with no return type (implicitly returns nothing):
 
-x := 3    // type inference
-let x i32 // explicit type
+```
+fn greet(name str) {
+    fmt::println("Hello world!")
+}
+```
 
-## 2) Defer
+Function returning multiple types via `struct` or `enum` (using sum types):
 
-Purpose: run cleanup code at the end of the current scope. Works similarly to Go's `defer` and Rust's `Drop` but explicit and lexically scoped. This is particularly useful for ensuring that allocated resources are cleaned up at the end of the function in which they are used.
-
-Syntax:
-
-defer { /* statements */ }
-
-Semantics:
-
-- When a `defer` statement is executed, the block is pushed onto a per-scope stack of deferred actions.
-- Deferred blocks run in LIFO order when exiting the current scope — on normal exit or due to a `return` or due to unwinding from a `try/catch` failure (subject to semantics below).
-- Deferred blocks run even if a function returns early.
-- If a deferred block uses variables from the surrounding scope, those are captured by reference to the variables as they exist at defer-execution time (i.e., when the deferred block runs). Captures are shallow — care required with pointers.
-
-Examples:
-
-fn copy(dst *u8, src *u8, n usize) {
-    defer { free dst }
-    // ... use dst
+```
+type DivResult enum {
+    Ok(i32)
+    DivisionByZero
 }
 
-Edge cases:
-- If `free` is called both in deferred block and manually, this is a double-free bug — runtime should not silently prevent it. The language docs will warn programmers, and the complier should try to warn on this as well.
-
-## 3) Manual memory management: `new` and `free`
-
-Purpose: provide raw allocation primitives. No GC or automatic reference counting.
-
-Syntax:
-
-p := new(i32)        // type is *i32
-arr = new([10]i32) // allocate array of 10 i32s. Type is [10]i32
-arr1 = new([]i32, 10) // allocate slice of i32s with length and capacity of 10. Type is []i32
-arr2 = new([]i32, 10, 0) // allocate slice of i32s with length of 0 and capacity of 10. Type is []i32
-
-free(p)
-free(arr)
-free(arr1)
-free(arr2)
-
-Allocation semantics:
-- `new(T)` returns a raw pointer `*T` pointing to newly allocated memory, zero-initialized by default.
-- `new([N]T)` allocates N contiguous elements and returns an `[10]i32` which is a distinct type.
-- `free(ptr)` deallocates memory previously allocated by `new`.
-- Behavior on freeing memory not from `new` or double-free is undefined (program behavior unspecified).
-
-Ownership and pointer safety:
-- The language does not enforce ownership at compile time. It's the programmer's responsibility.
-
-Examples:
-
-fn example() {
-    p := new(i32)
-    *p = 10
-    free(p)
-}
-
-fn make_slice(n usize) []i32 {
-    a = new([]i32, n)
-    return a
-}
-
-## 4) None value and Option-like semantics
-
-We use Rust-inspired syntax to handle optional or result types using sum types.
-Thes sum times can be defined using the enum keyword.
-
-Type-level:
-- To keep things simple, the language does not support compile time macros (yet).
-- Instead, custom sum types can be easily defined for a given type with Some and None variants
-- Syntax is simplified by complier by allowing simple type inference on enum types
-- By convention Manta uses `Maybe` as the prefix for Optional types
-
-Syntax:
-
-// here the type def
-type Maybei32 enum {
-    Some(i32) // variants can have values since they are proper sum types
-    None
-}
-
-// and the function that will use it
-fn maybe_div(a, b i32) Maybei32 {
+fn divide(a, b i32) DivResult {
     if b == 0 {
-        // Maybei32.None is also allowed here but the complier is smart enough to infer
-        // what should fill the type hole for the expression to be correct.
-        // Only simple versions of this are supported however, more complex cases require
-        // the code to be explicit
-        return .None 
+        return .DivisionByZero
     }
-    return .Some(a / b)
+    return .Ok(a / b)
 }
+```
 
-Unwrapping options:
-- `match` is preferred for it's explicitness.
-- `if .Some(y) = x` style syntax will be a future addition, but will not be in the first version
-- `try/catch` syntax can also be used to unwrap variants
+This is often used to handle potential function errors.
 
-## Match (pattern matching for sum types)
+## 2. Module System
 
-Purpose: provide a structured, exhaustive way to deconstruct sum types (enums) and bind their payloads.
+### Module Declaration
 
-Syntax examples:
+Every Manta source file begins with a module declaration:
 
-match value {
-    .Some(v) {
-        // use v
-    }
-    .None {
-        // handle none
-    }
+```
+mod main
+```
+
+This declares the current file as belonging to the `main` module.
+
+### Imports with `use`
+
+Import modules from the standard library or other packages using `use`:
+
+```
+use (
+    "os"
+    "strings"
+    "fmt"
+)
+```
+
+This imports the `os`, `strings`, and `fmt` modules, making their exported symbols available via module-qualified names (e.g., `os::open_file`, `fmt::println`).
+
+### Module-Qualified Names
+
+Access exported symbols from other modules using the `::` operator:
+
+```
+fn main() {
+    let f = os::open_file("/path/to/file")
+    fmt::println("Opened file")
 }
+```
 
-Match is an expression and can yield a value:
+## 3. Types and Type Declarations
 
-result := match maybe_val {
-    .Some(v) { v * 2 }
-    .None { 0 }
+### Type Aliases
+
+Declare a type alias with the `type` keyword:
+
+```
+type UserId = u64
+type FilePath = str
+```
+
+### Struct Types
+
+Define a struct with named fields:
+
+```
+type Point struct {
+    x i32
+    y i32
 }
+```
 
-Patterns supported initially:
+Create struct where the values inferred is inferred:
 
-- Enum variant patterns: `.Variant(...)` with optional bindings (e.g. `.Ok(x)`).
-- Literal patterns: numbers, strings, booleans.
-- Wildcard `_` to match anything.
-- Variable binding: a bare identifier binds the matched value.
+```
+let p = Point { x: 10, y: 20 }
+```
 
-Semantics:
+### Enum Types (Sum Types)
 
-- Match arms are tested in order. The first matching arm is taken.
-- The match expression must be exhaustive. If not all variants/literals are handled, the compiler requires a wildcard arm (`_`) or will emit an error.
-- Patterns can bind inner values which are only in scope within the arm block/expression.
-- No implicit fallthrough between arms.
-- Match can be used both as a statement (for control flow) and as an expression that yields a value.
+Define an enum, notice that variants that may carry data, this is called the payload:
 
-Examples:
-
-type Maybei32 enum {
-    Some(i32)
-    None
+```
+type Result enum {
+    Ok(str)
+    Err(str)
 }
+```
 
-fn describe(m Maybei32) str {
-    return match m {
-        .Some(v) { "has value" }
-        .None { "none" }
-    }
+Note: the variants can only contain a single type as the payload which differs from Rust.
+
+Enum values can be created using dot notation:
+
+```
+fn process() Result {
+    return Result.Ok("Success")
 }
+```
 
-// Using match as control flow
+The complier will infer the variants type allowing you to omit the type:
+
+```
+fn process() Result {
+    return .Ok("Success")
+}
+```
+
+Note: type inference will not propagate and will only work if the statement can be inferred directly
+
+Match on enum values:
+
+```
+let res = process()
 match res {
-    .Ok(val) { process(val) }
-    .IOError { log("io error") }
-    _ { log("other error") }
+    .Ok(msg) { /* handle success */ }
+    .Err(msg) { /* handle error */ }
 }
+```
 
-Grammar snippet (pseudo-EBNF):
+## 4. Control Flow and Statements
 
-match_expr := 'match' expression '{' match_arm+ '}'
-match_arm := pattern block
-pattern := variant_pattern | literal | identifier | '_'
-variant_pattern := '.' identifier ( '(' identifier ')' )?
+### Defer
 
-Integration with `try`/destructuring:
+Run cleanup code at the end of the current scope using `defer`:
 
-The existing destructuring assignment style (e.g. `.Some(x) := foo()`) is a convenience that desugars to a `match` or conditional check; the `match` form is the general, explicit mechanism and is preferred for complex cases.
-
-## 5) try/catch error propagation
-
-Design goal: small and ergonomic error propagation similar to Zig's `try` but with a `catch` block for handling failures.
-
-Concepts:
-- Like the Optional types above, Result types are explicitly defined for now
-- `try` can be used used to unwrap these errors just like with other sum types
-- By convention Manta uses `Err` as the prefix for Result types.
-- `catch` can be used to handle or convert errors.
-
-Standard Syntax:
-
-.Some(x) := foo() catch (e) {
-    // handle error and return from the function
-    // This block must return else the value of x
-    // would be invalid
+```
+fn copy_file(src str, dst str) {
+    let f = os::open_file(src)
+    defer { os::close_file(f) }
+    
+    // ... use f
 }
+```
 
 Semantics:
-- `foo()` return a `ErrT`, if the value is a `ErrT.Some` variant, x is unwraped and set to that value.
-- If the return value is any other variant, e is set to that value and IS NOT UNWRAPED.
+- Deferred blocks execute in LIFO order when exiting the current scope (normal return, early return, or error unwinding)
+- Variables captured by deferred blocks are captured by reference at defer-execution time
+- Multiple defers in a scope form a stack and execute in reverse order
 
-Default Syntax:
+### Return
 
-.Some(x) := foo() else 0
+Return from a function:
 
-Default Semantics:
-- `foo()` return a `ErrT`, if the value is a `ErrT.Some` variant, x is unwraped and set to that value.
-- If the return value is any other variant, the value of x is set to 0.
+```
+fn get_value() i32 {
+    return 42
+}
+```
 
-Shorthand Syntax:
+Return with no value (for functions with no return type):
 
-.Some(x) := foo()
+```
+fn process() {
+    return
+}
+```
 
-Shorthand Semantics:
-- `foo()` return a `ErrT`, if the value is a `ErrT.Some` variant, x is unwraped and set to that value.
-- If the return value is any other variant, that variant is returned from the function (early return).
+### Match Statements
 
-Combining with `defer`:
-- Deferred blocks should run before propagating an error (i.e., when `try` causes an early return, run defers in the current scope first), ensuring cleanup.
+Match on sum types for exhaustive pattern matching:
 
-Examples:
+```
+match value {
+    .Some(v) { /* handle v */ }
+    .None { /* handle none */ }
+    _ { /* catch-all */ }
+}
+```
 
-type ErrStr enum {
-    Ok(str) // proper sum type variant with a value
-    IOError
+Pattern options:
+- Enum variant patterns: `.Variant`, `.Variant(binding)`, `ModuleName.Variant(binding)`
+- Literal patterns: numbers, strings, booleans
+- Variable binding: bare identifier binds the matched value
+- Wildcard: `_` matches anything
+- Named Wildcard: Any valid identifier. Works like `_` but binds the value to the identifier
+
+Match is not an expression and can not yield a value:
+
+## 5. Error Handling with `except`
+
+Error handling in Manta uses sum types (`enums`) and the `except` clause to provide explicit, type-safe error propagation.
+
+### Except Clause Syntax
+
+Bind a value from an expression
+
+```
+let pattern = expression except?
+```
+
+Where `except` is one of three forms:
+
+#### 1. Panic Form: `!`
+
+Unwrap the value or panic. Use when you're confident the value exists:
+
+```
+let .Ok(content) = read_file(path)!
+```
+
+If the result is not `.Ok`, the program panics.
+
+#### 2. Handler Form: `or(...) block`
+
+Handle the error with a block of code. Optionally bind the error:
+
+```
+let .Ok(content) = read_file(path) or(err) {
+    print("Error: ", err)
+    return
+}
+```
+
+The binding is optional:
+
+```
+let .Ok(value) = compute() or {
+    return default_error
+}
+```
+
+#### 3 Wrapper Form: `wrap [TypeSpec].Variant`
+
+Unwrap the value or wrap the error in another variant and return:
+
+```
+let .Ok(content) = read_file(path) wrap .ReadError
+```
+
+If the result is not `.Ok`, the error is wrapped in the `.ReadError` variant and automatically returned from the function.
+
+### Common Error Type Convention
+
+By convention, Manta programs define error types with an `Ok` variant for success:
+
+```
+type FileError enum {
+    Ok(str)
+    OpenFailed(str)
+    ReadFailed(str)
 }
 
-fn read_or_default(path str) ErrStr {
-    .Ok(f) := open(path) catch { return .IOError }
-    defer { close(f) }
+fn read_file(path str) FileError {
+    let .Ok(f) = os::open_file(path) wrap .OpenFailed
+    defer { os::close_file(f) }
+    
+    let .Ok(content) = os::read_to_string(f) wrap .ReadFailed
+    return .Ok(content)
+}
+```
 
-    .Ok(s) = read_to_string(f) catch { return .IOError }
-    return .Ok(s) // the complier infers the correct enum variant
+### Using Except with Defer
+
+Deferred blocks execute before an error is propagated:
+
+```
+fn process(path str) FileError {
+    let .Ok(f) = os::open_file(path)!
+    defer { os::close_file(f) }
+    
+    let .Ok(data) = os::read(f) or(e) {
+        // defer will run here before handler executes
+        return .ReadError
+    }
+    
+    return .Ok(data)
+}
+```
+
+### Examples
+
+Basic error handling:
+
+```
+fn read_or_default(path str) str {
+    let .Ok(content) = read_file(path) or {
+        return "default content"
+    }
+    return content
+}
+```
+
+Chaining error handlers:
+
+```
+
+type ComplexOperation enum {
+    Ok(str)
+    OpenError(OpenFile)
+    ReadError(ReadFile)
+    ParseError(ParseData)
 }
 
-.Ok(content) := read_or_default("/tmp/x.txt") catch (e) {
-    // return fallback string
-    return ""
+fn complex_operation(path str) ComplexOperation {
+    let .Ok(f) = open_file(path) wrap .OpenError
+    let .Ok(data) = read_file(f) wrap .ReadError
+    let .Ok(parsed) = parse_data(data) wrap .ParseError
+    return .Ok(parsed)
 }
+```
 
-## 6) Parsing notes and grammar snippets
+## 6. Operator Precedence
 
-Tokenization highlights:
-- Keywords: listed above.
-- Identifiers: [A-Za-z_][A-Za-z0-9_]* (case-sensitive)
-- Integers: [0-9_]+ with optional suffixes
-- Strings: double-quoted
-- Punctuation: { } ( ) [ ] , ; * & | !
+This section describes operator precedence and associativity in the Manta parser.
 
-Minimal grammar examples (pseudo-EBNF):
+### Precedence Levels (Highest to Lowest)
 
-function_decl := 'fn' identifier '(' param_list? ')' (type)? block
-param_list := param (',' param)*
-param := identifier type?
-block := '{' statement* '}'
-statement := let_stmt | expr_stmt | defer_stmt | return_stmt | ...
-try_stmt      := identifier? '.' identifier '(' identifier ')' ':=' try_body
-try_body      := expression 'catch' ( '(' identifier ')' )? block
-let_stmt := 'let' identifier (type_spec | (type_spec? '=' expression))
-defer_stmt := 'defer' block
+1. **Call** (highest)
+   - Function/method calls and indexing
+   - Tokens: `OpenParen`, `OpenBracket`
 
-## 7) Operator precedence in Manta
+2. **Prefix**
+   - Unary operators: `-` (negation), `!` (boolean not), `&` (address-of), `*` (dereference)
 
-This section describes the intended operator precedence and associativity used by the Manta parser core.
-The parser's precedence levels are defined by the `Precedence` enum in `src/parser.rs` and token kinds are defined in `src/parser/lexer.rs`.
+3. **Multiplicative**
+   - `*`, `/`, `%`
+   - Left-associative: `a * b / c` → `(a * b) / c`
 
-Notes:
-- The `Precedence` enum (in `src/parser.rs`) orders variants from lowest to highest precedence. The Pratt parser uses these values when deciding whether to continue parsing infix operators.
-- The lexer exposes operator tokens as the `TokenKind` variants in `src/parser/lexer.rs`. Where possible the token names are shown below.
+4. **Additive**
+   - `+`, `-` (binary)
+   - Left-associative: `a + b - c` → `(a + b) - c`
 
-### Precedence levels (highest → lowest)
+5. **Comparison**
+   - `<`, `>`, `<=`, `>=`
+   - Non-associative (chaining not allowed)
 
-1. Call (highest)
-   - Purpose: function / method call binding (tightest binding).
-   - Typical token: `OpenParen` used as a postfix/infix for call parselets.
+6. **Equality**
+   - `==`, `!=`
+   - Non-associative
 
-2. Prefix
-   - Purpose: unary operators that appear before an expression (e.g. unary `-`).
-   - Typical tokens: `Minus` (unary negation), `&` (address-of) if used as a prefix in the language.
-   - Notes: Prefix parselets are handled when the prefix token is consumed; infix parselets are then applied according to their precedence.
+7. **Logical AND**
+   - `&&`
+   - Left-associative: `a && b && c` → `(a && b) && c`
 
-3. Exponentiation
-   - Purpose: power operator `**`.
-   - Token: `StarStar`.
-   - Associativity: right-associative (i.e. `a ** b ** c` parsed as `a ** (b ** c)`).
+8. **Logical OR**
+   - `||`
+   - Left-associative: `a || b || c` → `(a || b) || c`
 
-4. Multiplication
-   - Purpose: `*`, `/`, `%`.
-   - Tokens: `Star`, `Slash`, `Percent`.
-   - Associativity: left-associative (i.e. `a * b / c` parsed as `(a * b) / c`).
+9. **Bitwise AND**
+   - `&`
+   - Left-associative
 
-5. Addition
-   - Purpose: `+`, `-` (binary add/subtract).
-   - Tokens: `Plus`, `Minus`.
-   - Associativity: left-associative.
+10. **Bitwise OR**
+    - `|`
+    - Left-associative
 
-6. Comparison
-   - Purpose: ordering comparisons.
-   - Tokens: `GreaterThan`, `LessThan`, `GreaterOrEqual`, `LessOrEqual`.
-   - Notes: languages vary on whether chained comparisons are allowed; Manta's parser should decide whether to support chaining (`a < b < c`) or to make comparisons non-associative.
+11. **Assignment** (lowest)
+    - `=`
+    - Right-associative: `a = b = c` → `a = (b = c)`
 
-7. Equality
-   - Purpose: equality / inequality.
-   - Tokens: `EqualEqual`, `NotEqual`.
-   - Associativity: typically non-associative; if parsed as left-associative, be explicit about semantics.
-
-8. Logical AND
-   - Purpose: boolean AND.
-   - Token: `AndAnd`.
-   - Associativity: left-associative.
-
-9. Logical OR
-   - Purpose: boolean OR.
-   - Token: `PipePipe`.
-   - Associativity: left-associative.
-
-10. Assignment (lowest)
-    - Purpose: assignment and compound assignment.
-    - Tokens: `Equal` (simple assignment `=`), `PlusEqual`, `MinusEqual`, `ColonEqual` (used by some constructs), etc.
-    - Associativity: typically right-associative (`a = b = c` parsed as `a = (b = c)`).
-
-11. Base
-    - Purpose: base level used as the stopping point for the Pratt parser; primary expressions (literals, identifiers) are handled by prefix parselets.
-
-### Operator Precedence Examples
+### Examples
 
 - `a + b * c` → `a + (b * c)` (multiplication binds tighter than addition)
 - `-a * b` → `(-a) * b` (prefix binds before multiplication)
-- `a ** b ** c` → `a ** (b ** c)` (exponentiation is right-associative)
 - `a && b || c` → `(a && b) || c` (AND has higher precedence than OR)
 - `a = b + c` → `a = (b + c)` (assignment is low precedence)
 
-## 8) Examples
+## 7. Memory Management
 
-Full example showing defer + new/free + try/catch + Option:
+Purpose: provide raw allocation primitives for explicit memory management without garbage collection.
 
-type MaybeErri32 enum {
-    Ok(i32)
+### Pointers
+
+Reference types are strongly typed pointers:
+
+```
+let p *i32           // pointer to i32, must be initalized before use
+let arr *[10]i32     // pointer to array of 10 i32s
+```
+
+Dereference with `*`:
+
+```
+let val = *p         // dereference p to get i32
+*p = 42              // write through pointer
+```
+
+Address-of with `&`:
+
+```
+let ptr = &variable  // get address of variable
+```
+
+For better type safety, prefer sum types (`enums`) for optional values:
+
+```
+type Maybe enum {
+    Some(i32)
     None
-    IOError
-    InvalidInt
+}
+```
+
+### Allocation Functions
+
+Allocation functions:
+
+```
+new(@T)           // allocate a new value, returns *T
+free(ptr)        // deallocate
+```
+
+## 8. Examples and Patterns
+
+### File Reading with Error Handling
+
+```
+mod main
+
+use (
+    "os"
+)
+
+type FileError enum {
+    Ok(str)
+    OpenFailed(str)
+    ReadFailed(str)
 }
 
-fn process(path *u8) MaybeErri32 {
-    .Ok(f) := open(path) catch { return .IOError }
-    defer { close(f) }
+fn read_file(path str) FileError {
+    let .Ok(f) = os::open_file(path) wrap .OpenFailed
+    defer { os::close_file(f) }
+    
+    let .Ok(content) = os::read_to_string(f) wrap .ReadFailed
+    return .Ok(content)
+}
 
-    buf := new([]u8, 1024)
-    defer { free(buf) }
-
-    .Ok(n) := read(f, buf, 1024) catch { return .IOError }
-    if n == 0 {
-        return .Ok(None)
+fn main() {
+    let .Ok(content) = read_file("/tmp/data.txt") or(err) {
+        print("Failed to read file: ", err)
+        return
     }
+    
+    print("File contents: ", content)
+}
+```
 
-    // parse integer from buf
-    .Ok(val) := parse_int(buf) catch { return .InvalidInt }
+### Pattern Matching and Control Flow
 
-    return .Ok(val)
+```
+type Status enum {
+    Success(i32)
+    Warning(str)
+    Failure(str)
 }
 
-## 9) Edge cases and follow-ups
+fn handle_status(status Status) {
+    match status {
+        .Success(code) {
+            print("Success with code: ", code)
+        }
+        .Warning(msg) {
+            print("Warning: ", msg)
+        }
+        .Failure(msg) {
+            print("Failed: ", msg)
+        }
+    }
+}
+```
 
-- Define exact semantics for captures in `defer` blocks (by reference vs copy). Recommendation: capture variables by reference; if the user needs copies, they should explicitly copy into the defer block.
-- Decide on typed `free` (should `free` require a `*T` or accept `void*`?). Recommendation: `free(ptr: *any)` is accepted.
+### Struct and Enum Usage
 
-## Reference types and `nil`
-
-Overview:
-- Reference types in Manta are strongly typed pointers to other types (e.g. `*T` where `T` is any type). They are not untyped `void*` values. This enables better static checking and clearer APIs.
-- Initially, reference types can contain the sentinel value `nil` to represent the absence of a value. Long-term, the goal is for control-flow and dataflow analysis combined with sum types (enums/Option) to ensure that `nil` values are eliminated in safe code paths.
-
-Syntax and typing:
-- A reference type is written as `*T` where `T` is the pointee type (primitive, struct, enum, etc.). Example: `*i32`, `*Foo`, `*Maybei32`.
-- `nil` is a literal with a polymorphic reference type. It can be assigned to any `*T`.
-
-Semantics:
-- Strong typing: a value of type `*T` cannot be implicitly assigned to `*U` unless `T == U` or an explicit cast is provided.
-- `nil` may be stored into any `*T` variable, but operations that dereference `nil` are undefined/compile-time error where the compiler can prove it; otherwise they are a runtime error.
-- The recommended idiom is to prefer `Option`/sum-types for values that may be absent and reserve `nil` references for interoperability and incremental migration.
-
-Control-flow analysis plan:
-- The long-term plan is to implement a control-flow and dataflow analysis pass that tracks `nil`ness across branches and ensures that dereferences only occur when statically provable non-nil. This will be similar in spirit to non-null analysis in modern compilers.
-- When combined with sum types, the compiler can prefer `MaybeT` for safe absence and use `nil` only where necessary. Over time, we may add language-level annotations or `nonnull` qualifiers to enforce non-nullability.
-
-Examples:
-
-let p *i32 // default value here is nil
-if some_condition {
-    p = new(i32)
-    *p = 10
+```
+type Point struct {
+    x i32
+    y i32
 }
 
-// Later deref: compiler will require proof that p is non-nil here; otherwise programmer must check
-if p != nil {
-    print(*p)
-} else {
-    // handle absence
+type Color enum {
+    Red
+    Green
+    Blue
 }
 
-Integration with `defer` and `new`/`free`:
-- Because references are typed, `free` takes a `*T` and performs deallocation for that typed allocation. `free(nil)` is a no-op.
-- `defer` can capture typed references and will run cleanup even if they are `nil` (user code should check before freeing if necessary).
+fn create_point() {
+    let p = Point { x: 10, y: 20 }
+    let r = Color.Red
+    let Color(g) = .Green
+}
+```
 
+## 9. Edge Cases and Future Work
+
+### Double-Free Prevention
+
+- Freeing memory allocated by `new` twice is undefined behavior
+- The compiler should warn on potential double-frees
+- Programmers must ensure `free` is not called both manually and in deferred blocks for the same pointer
+
+### Null Safety
+
+Rather than a `null` value, manta provides sum types to create optional values.
+The unsafe package does have a `none` value which can be used for zero value pointers.
+However, this should not be used outside of type unsafe code.
+
+### Control Flow
+
+- Conditional expressions (`switch`)
+- Loop statements (`loop`, `for`)
+
+### Module System
+
+- Module visibility modifiers (`pub`)
+
+## Appendix: Lexical Tokens
+
+### Identifiers and Keywords
+
+- Identifiers: `[A-Za-z_][A-Za-z0-9_]*` (case-sensitive)
+- Keywords: Reserved words listed in section 1
+
+### Literals
+
+- Integers: `[0-9_]+` (base-10)
+- Floats: `[0-9]+\.[0-9]+` (decimal)
+- Strings: Double-quoted UTF-8 text
+- Booleans: `true`, `false`
+
+### Punctuation
+
+- Delimiters: `{`, `}`, `(`, `)`, `[`, `]`
+- Operators: `+`, `-`, `*`, `/`, `%`, `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `&`, `|`, `!`, `=`
+- Module paths: `::`
+- Other: `,`, `.`, `*` (pointer prefix)

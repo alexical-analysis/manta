@@ -1,0 +1,114 @@
+mod main
+
+use (
+    "bytes"
+    "mem"
+    "math"
+    "unsafe"
+)
+
+fn main() {
+    let .Ok(heap) = mem::Allocator.new()!
+    defer { heap.free() }
+
+    // @ turns type specs and values into meta structs
+    // which contain runtime metadata about the underlying
+    // datatype. This can be used to allocate memory
+    // 
+    // the return type of this function is unsafe::ptr
+    // the matching rules for this type are that it can be
+    // matched into any type variant as long as it's not
+    // 'none'. In this case the value will be matched into
+    // n as an i32 value. '!' means we'll just panic if
+    // allocation fails but we could handle it explicitly if
+    // we wanted to for some reason
+    mut i32(n) = heap.alloc(@i32)!
+    n = 20
+    fmt::printfln("n is {}", n)
+
+    // alloc_copy works a little like alloc but it copies the
+    // value into the allocated memory before returning the
+    // unsafe::ptr
+    let i32(answer) = heap.alloc_copy(42)!
+    fmt::printfln("the answer to life the universe and everything is {}", answer)
+
+    // bump allocator is a custom allocator
+    let bump = BumpAllocator.new()
+    defer { bump.free() }
+
+    {
+        let math::Vec3(v) = bump.alloc(@math::Vec3)!
+        fmt::printfln("vec3 value is {}", v)
+
+        // reset the allocator to get all the jucy memory again.
+        bump.reset()
+
+        // at this point v is not no longer valid but it get's dropped
+        // becuase the scope where it was declared is closed
+    }
+
+    // we can redeclare v here with a new allocation and it's valid again
+    let math::Vec3(v) = bump.alloc(@math::Vec3)!
+    fmt::printfln("vec3 value is {}", v)
+}
+
+type BumpAllocator struct {
+    heap       []u8
+    idx        u64
+}
+
+impl BumpAllocator {
+    pub fn new() BumpAllocator {
+        // alloc can be used to allocate memory from the global heap
+        // this line allocates a slice of 256 unsafe::ptr's
+        // In production code we would handle the failure but
+        // in this case we'll just panic
+        let .Ok(heap) = alloc([]u8, 256)!
+
+        // type here is infered like when we return an enum variant
+        return { heap: heap }
+    }
+
+    pub fn alloc_copy(self, v any) unsafe::ptr {
+        let addr = self.alloc(@v)
+        let .Ok = unsafe::copy(addr, unsafe::any_bytes(v))!
+
+        return addr
+    }
+
+    pub fn alloc(self, v meta) unsafe::ptr {
+        if self.idx + v.size > self.heap.len {
+            // none is a unsafe::ptr of 0 and will not match
+            // type spec patterns like other unsafe::ptr values
+            return none
+        }
+
+        
+
+        // unsafe::ptr is a 32-bit value that can hold any pointer value
+        // and be be pattern matched into any type variant
+        // unless it's a 'none' value in which case it won't match any
+        // type variant other than itself
+        // any pointer typ can also be matched into this variant
+        // making it the go-between type for unsafe type conversions
+        let unsafe::ptr(ret) = &self.heap[self.idx]
+
+        self.idx += size 
+
+        return ret
+    }
+
+    fn reset(self) {
+        // free all the blocks so they can be used again
+        for let i in 0..self.metadata.len {
+            let .Ok = self.metadata[i] = .Free!
+        }
+        self.idx = 0
+    }
+
+    fn free(self) {
+        // these calls will free the memory from the global heap
+        free(self.heap)
+        free(self.metadata)
+    }
+}

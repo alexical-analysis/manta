@@ -1,0 +1,37 @@
+mod main
+
+use (
+    "bufio"
+    "fmt"
+    "io"
+    "os"
+    "strconv"
+    "strings"
+)
+
+type Prompt enum {
+    Ok
+    Err(GetNumber)
+}
+
+fn prompt() Prompt {
+    let .Ok = fmt::println("Please enter a positive number:")!
+    let .Ok(num) = get_number() or .Err
+
+    let .Ok = fmt::println(f"{num} + 2 is {num + 2}")!
+    return .Ok
+}
+
+type GetNumber enum {
+    Ok(u64)
+    ReadErr(bufio::ReadLine)
+    StoU64Err(strconv::StoU64)
+}
+
+fn get_number() GetNumber {
+    let .Ok(num) = bufio::read_line(os::stdin) wrap .ReadErr
+    defer { free(num) }
+
+    let .Ok(num) = strconv::stou64(num) wrap .StoU64Err
+    return .Ok(num)
+}

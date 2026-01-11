@@ -1,0 +1,37 @@
+// examples/nil_refs.manta
+
+use (
+    "mem"
+    "fmt"
+)
+
+type MaybeAlloc struct {
+    .Ok(*i32)
+    .AllocErr(unsafe::ptr)
+    .None
+}
+
+fn maybe_alloc(cond bool) MaybeAlloc {
+    // this can be used instead of an if
+    let true = cond or { return .None }
+
+    // unsafe::ptr is a pointer that can be 'none'
+    // when zero. The pattern matching rules with
+    // unsafe::ptr are that it can be matched into
+    // any type variant unless it's 'none' in which
+    // case it will only match 'none'
+    mut i32(p) = alloc(@i32) wrap .AllocErr
+    *p = 42
+    return .Ok(p)
+}
+
+fn main() {
+    match maybe_alloc(false) {
+        .Ok(p)       { fmt::println(*p) }
+        .AllocErr(e) { fmt::printfln("allocation failed {}", e) }
+        .None        { fmt::println("no allocation")}
+    }
+
+    // this is technically not required but it should still be supported.
+    return
+}

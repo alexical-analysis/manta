@@ -23,7 +23,7 @@ type Piece enum {
 
 fn main() {
     // new chess board full of empty squares
-    board := [8][8]Piece{}
+    let board = [8][8]Piece{}
 
     board[rand.Intn(8)][rand.Intn(8)] = .WhiteQueen
 

@@ -1,0 +1,41 @@
+mod main
+
+use (
+    "fmt"
+    "fs"
+    "fs/flag"
+    "io"
+    "os"
+    "strings"
+)
+
+/// WriteErr is the return type for the write_hello function
+type WriteHello enum {
+    Ok
+    CreateErr(os::Create)
+    WriteErr(io::Write)
+}
+
+/// write_hello writes the string "Hello world!" to 
+/// a new file at the given path
+fn write_hello(path str) WriteHello {
+    let oflags = flag::WRONLY | flag::TRUNC
+    let .Ok(file) = os::create(path, 0o0644, oflags) or .CreateErr
+    defer { let .Ok = io::close(file)! }
+    
+    let buf = strings::to_utf8("Hello world!\n");
+    match io::write(file, buf) {
+        .Ok { return .Ok }
+        err { return .WriteErr(err) }
+    }
+}
+
+fn main() {
+    let path = os::args[1]
+    match write_hello(path) {
+        Ok           {}
+        CreateErr(e) { fmt::fataln(f"Error creating {path}: {e}") }
+        WriteErr(e)  { fmt::fataln(f"Error writing {path}: {e}") }
+    }
+}
+

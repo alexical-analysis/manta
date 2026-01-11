@@ -39,10 +39,10 @@ fn copy_file(src, dst str) CopyFile {
     if src == "" { return .MissingSrc }
     if dst == "" { return .MissingDst }
 
-    try .Ok(buf) := read_file(src) catch(e) { return .ReadError(e) }
+    let .Ok(buf) = read_file(src) or(e) { return .ReadError(e) }
 
-    ok := write_file(dst, buf)
-    if .Ok(b) := ok {
+    let ok = write_file(dst, buf)
+    if .Ok(b) = ok {
         print("wrote ${b} bytes")
         return .Ok
     } else { 

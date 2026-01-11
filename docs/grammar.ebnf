@@ -6,70 +6,76 @@
 ; Note: This is a simplified grammar for the initial compiler front-end. It omits some
 ; expression precedence and operator details for brevity
 
-program       := { top_level_decl } ; file of declarations
+program        := { top_level_decl } ; file of declarations
 
-top_level_decl := function_decl | type_decl | import_decl | const_decl
+top_level_decl := mod_decl | function_decl | type_decl | use_decl | var_decl
 
-function_decl := 'fn' identifier '(' param_list? ')' return_type? block
-param_list    := param (',' param)*
-param         := identifier (type_spec)?
-return_type   := type_spec
+mod_decl       := 'mod' IDENT 
+use_decl       := 'use' use_block
+use_block      := '(' STRING+ ')'
 
-type_decl     := 'type' identifier ( 'enum' '{' enum_variant+ '}' | 'struct' '{' field_decl* '}' )
-enum_variant  := identifier ( '(' type_spec ')' )? ; variants optionally carry a single type
+function_decl  := 'fn' IDENT '(' param_list? ')' type_spec? block
+param_list     := param (',' param)*
+param          := IDENT type_spec?
+block          := '{' statement* '}'
 
-field_decl    := identifier type_spec
+type_decl      := 'type' IDENT type_spec
+var_decl       := ('const' | 'var') IDENT '=' expression
 
-const_decl    := 'const' identifier '=' expression
-import_decl   := 'import' ( STRING | import_block )
+statement      := let_stmt | return_stmt | defer_stmt | match_stmt | expr_stmt
+let_stmt       := ( 'let' | 'mut' ) pattern  '=' expression except?
+except         := ( '!' | 'or' ( '(' IDENT ')' )? block | 'wrap' type_spec '.' IDENT )
 
-import_block  := '(' STRING+ ')'
-block         := '{' statement* '}'
+break_stmt     := 'break'
+continue_stmt  := 'continue'
+return_stmt    := 'return' expression?
+defer_stmt     := 'defer' block
+match_stmt     := 'match' expression '{' match_arm+ '}'
+match_arm      := pattern block
+pattern        := type_spec '.' IDENT ( '(' IDENT ')' )? | literal | IDENT | '_'
 
-statement     := let_stmt | decl_stmt | assign_stmt | try_stmt | expr_stmt | return_stmt | defer_stmt | match_stmt
-let_stmt      := 'let' identifier (type_spec | (type_spec? '=' expression))
-decl_stmt     := identifier ':=' expression
-assign_stmt   := identifier '=' expression
-try_stmt      := identifier? '.' identifier '(' identifier ')' ':=' try_body
-try_body      := expression 'catch' ( '(' identifier ')' )? block
-return_stmt   := 'return' expression?
-defer_stmt    := 'defer' block
-match_stmt    := 'match' expression '{' match_arm+ '}'
-match_arm     := pattern block
-pattern       := identifier? '.' identifier ( '(' identifier ')' )? | literal | identifier | '_'
+for_stmt       := 'for' expression? ';' expression? ';' expression? block
+for_in_stmt    := 'for' IDENT 'in' expression block
+loop_stmt      := 'loop' block
+switch_stmt    := 'switch' '{' switch_case+ '}'
+switch_case    := ( expression | '_' ) body
 
-expr_stmt     := expression
+expr_stmt      := expression
+expression     := binary_expr | unary_expr | primary_expr | assign_expr
+assign_expr    := expression '=' expression
+binary_expr    := expression binary_op expression
+binary_op      := '+'  | '-'  | '*'  | '/'  | '%'
+                | '==' | '!=' | '<'  | '>'  | '<=' | '>='
+                | '&&' | '||'
+                | '&'  | '|'
 
-expression  := binary_expr | unary_expr | primary_expr
+unary_expr     := unary_op unary_expr | primary_expr
+unary_op       := '-' | '!' | '&' | '*' | '@'
 
-binary_expr   := expression binary_op expression
+primary_expr   := literal
+                | '(' expression ')'
+                | call_expr
+                | ( IDENT '::' )? IDENT
 
-binary_op     := '+'  | '-'  | '*'  | '/'  | '%'
-               | '==' | '!=' | '<'  | '>'  | '<=' | '>='
-               | '&&' | '||'
-               | '&'  | '|'
+call_expr      := expression '(' argument_list? ')'
+argument_list  := expression (',' expression)*
+literal        := INTEGER | FLOAT | STRING | RUNE | slice_literal | array_literal | struct_literal | enum_literal | 'true' | 'false'
+slice_literal  := slice_type? '{' ( literal ',' )* '}'
+array_literal  := array_type? '{' ( literal ',' )* '}'
+struct_literal := struct_type? '{' ( IDENT ':' expression )* '}'
+enum_literal   := enum_type? '.' IDENT ( '(' expression ')' )?
 
-unary_expr    := unary_op unary_expr | primary_expr
+type_spec      := basic_type | pointer_type | array_type | slice_type | (IDENT '::')? IDENT 
+basic_type     := 'i8' | 'i16' | 'i32' | 'i64' | 'u8' | 'u16' | 'u32' | 'u64' | 'f32' | 'f64' | 'bool' | 'str' | 'rune'
+pointer_type   := '*' type_spec
+array_type     := '[' INTEGER ']' type_spec
+slice_type     := '[]' type_spec
+struct_type    := 'struct' '{' field_decl* '}'
+field_decl     := IDENT type_spec
 
-unary_op      := '-' | '!' | '&' | '*'
+enum_type      := 'enum' '{' enum_variant+ '}' 
+enum_variant   := IDENT ( '(' type_spec ')' )? ; variants optionally carry a single type
 
-primary_expr  := literal
-               | identifier
-               | '(' expression ')'
-               | call_expr
-
-call_expr     := identifier '(' argument_list? ')'
-argument_list := expression (',' expression)*
-literal       := INTEGER | FLOAT | STRING | 'nil' | 'true' | 'false'
-
-type_spec     := basic_type | pointer_type | array_type | slice_type | identifier
-basic_type    := 'i8' | 'i16' | 'i32' | 'i64' | 'isize' | 'u8' | 'u16' | 'u32' | 'u64' | 'usize' | 'f32' | 'f64' | 'bool' | 'char' | 'str'
-pointer_type  := '*' type_spec
-array_type    := '[' INTEGER ']' type_spec
-slice_type    := '[]' type_spec
-
-identifier    := IDENT
-
-; Terminals: IDENT, INTEGER, FLOAT, STRING, and punctuation are defined in the lexer/token list
+; Terminals: IDENT, INTEGER, FLOAT, STRING, RUNE, and punctuation are defined in the lexer/token list
 
 ; End of EBNF draft

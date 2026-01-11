@@ -6,10 +6,10 @@ as the canonical source when implementing the lexer.
 Tokens (grouped):
 
 1) Keywords (case-sensitive):
-- fn, return, if, else, while, for, break, continue, defer, new, free, try, catch, struct, enum, match, let, const, type, import
+- fn, return, loop, for, break, continue, defer, alloc, free, let, mut, var, const, struct, enum, match, type, use
 
 2) Primitive type tokens (treated as identifiers in the parser but useful to call out):
-- i8, i16, i32, i64, isize, u8, u16, u32, u64, usize, f32, f64, bool, char, str
+- i8, i16, i32, i64, u8, u16, u32, u64, f32, f64, bool, rune, str
 
 3) Operators and punctuation (single or multi-char tokens):
 - { } ( ) [ ] , : ; = > < > | . * + - / % & _
@@ -19,8 +19,7 @@ Tokens (grouped):
 - INTEGER (decimal, allow underscores, e.g. 1_000)
 - FLOAT (decimal float, allow underscores, e.g. 1_000.00)
 - STRING (double-quoted)
-- CHAR (single-quoted)
-- NIL (the literal `nil`) — can be produced as a separate token or as IDENT("nil"); using a separate token simplifies parsing
+- RUNE (single-quoted)
 - TRUE / FALSE (booleans `true` and `false`)
 
 5) Identifiers:
@@ -31,14 +30,6 @@ Tokens (grouped):
 - BLOCK_COMMENT: /* ... */
 - WHITESPACE: spaces, tabs, newlines (skipped)
 
-Notes and choices:
-- `:=` vs `=`: The grammar allows both `:=` (short-decl/infer) and `=` (assignment/explicit). The lexer should emit a distinct token for `:=`.
-- `nil` as a dedicated `NIL` token simplifies recognition and ties directly to reference semantics.
-- Multi-character tokens like `==` (logical equal check) and `:=` (short assignment) should be recognized before single-char tokens.
+Example token stream for `let answer = 42`:
+- LET IDENT('answer') EQUAL INTEGER(42)
 
-Example token stream for `let p *i32 = nil`:
-- LET STAR IDENT('i32') EQUAL NIL
-
-Next steps:
-- Implement lexer that emits these tokens and write unit tests for tokenizing example inputs.
-- Expand tokens if new operators or syntax are added (e.g. pattern guards `if` in match arms).
