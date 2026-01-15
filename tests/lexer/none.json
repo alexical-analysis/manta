@@ -1,0 +1,898 @@
+[
+  {
+    "kind": "ModKeyword",
+    "lexeme": "mod",
+    "span": {
+      "start": 27,
+      "end": 30
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "main",
+    "span": {
+      "start": 31,
+      "end": 35
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 35,
+      "end": 36
+    }
+  },
+  {
+    "kind": "UseKeyword",
+    "lexeme": "use",
+    "span": {
+      "start": 37,
+      "end": 40
+    }
+  },
+  {
+    "kind": "OpenParen",
+    "lexeme": "(",
+    "span": {
+      "start": 41,
+      "end": 42
+    }
+  },
+  {
+    "kind": "Str",
+    "lexeme": "fmt",
+    "span": {
+      "start": 47,
+      "end": 52
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 52,
+      "end": 53
+    }
+  },
+  {
+    "kind": "CloseParen",
+    "lexeme": ")",
+    "span": {
+      "start": 53,
+      "end": 54
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 54,
+      "end": 55
+    }
+  },
+  {
+    "kind": "TypeKeyword",
+    "lexeme": "type",
+    "span": {
+      "start": 56,
+      "end": 60
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "MaybeAlloc",
+    "span": {
+      "start": 61,
+      "end": 71
+    }
+  },
+  {
+    "kind": "EnumKeyword",
+    "lexeme": "enum",
+    "span": {
+      "start": 72,
+      "end": 76
+    }
+  },
+  {
+    "kind": "OpenBrace",
+    "lexeme": "{",
+    "span": {
+      "start": 77,
+      "end": 78
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "Ok",
+    "span": {
+      "start": 83,
+      "end": 85
+    }
+  },
+  {
+    "kind": "OpenParen",
+    "lexeme": "(",
+    "span": {
+      "start": 85,
+      "end": 86
+    }
+  },
+  {
+    "kind": "Star",
+    "lexeme": "*",
+    "span": {
+      "start": 86,
+      "end": 87
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "i32",
+    "span": {
+      "start": 87,
+      "end": 90
+    }
+  },
+  {
+    "kind": "CloseParen",
+    "lexeme": ")",
+    "span": {
+      "start": 90,
+      "end": 91
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 91,
+      "end": 92
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "DidNotAlloc",
+    "span": {
+      "start": 96,
+      "end": 107
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 107,
+      "end": 108
+    }
+  },
+  {
+    "kind": "CloseBrace",
+    "lexeme": "}",
+    "span": {
+      "start": 108,
+      "end": 109
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 109,
+      "end": 110
+    }
+  },
+  {
+    "kind": "FnKeyword",
+    "lexeme": "fn",
+    "span": {
+      "start": 170,
+      "end": 172
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "maybe_alloc",
+    "span": {
+      "start": 173,
+      "end": 184
+    }
+  },
+  {
+    "kind": "OpenParen",
+    "lexeme": "(",
+    "span": {
+      "start": 184,
+      "end": 185
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "cond",
+    "span": {
+      "start": 185,
+      "end": 189
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "bool",
+    "span": {
+      "start": 190,
+      "end": 194
+    }
+  },
+  {
+    "kind": "CloseParen",
+    "lexeme": ")",
+    "span": {
+      "start": 194,
+      "end": 195
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "MaybeAlloc",
+    "span": {
+      "start": 196,
+      "end": 206
+    }
+  },
+  {
+    "kind": "OpenBrace",
+    "lexeme": "{",
+    "span": {
+      "start": 207,
+      "end": 208
+    }
+  },
+  {
+    "kind": "IfKeyword",
+    "lexeme": "if",
+    "span": {
+      "start": 213,
+      "end": 215
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "cond",
+    "span": {
+      "start": 216,
+      "end": 220
+    }
+  },
+  {
+    "kind": "OpenBrace",
+    "lexeme": "{",
+    "span": {
+      "start": 221,
+      "end": 222
+    }
+  },
+  {
+    "kind": "LetKeyword",
+    "lexeme": "let",
+    "span": {
+      "start": 231,
+      "end": 234
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "i32",
+    "span": {
+      "start": 235,
+      "end": 238
+    }
+  },
+  {
+    "kind": "OpenParen",
+    "lexeme": "(",
+    "span": {
+      "start": 238,
+      "end": 239
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "p",
+    "span": {
+      "start": 239,
+      "end": 240
+    }
+  },
+  {
+    "kind": "CloseParen",
+    "lexeme": ")",
+    "span": {
+      "start": 240,
+      "end": 241
+    }
+  },
+  {
+    "kind": "Colon",
+    "lexeme": ":",
+    "span": {
+      "start": 242,
+      "end": 243
+    }
+  },
+  {
+    "kind": "Equal",
+    "lexeme": "=",
+    "span": {
+      "start": 243,
+      "end": 244
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "alloc",
+    "span": {
+      "start": 245,
+      "end": 250
+    }
+  },
+  {
+    "kind": "OpenParen",
+    "lexeme": "(",
+    "span": {
+      "start": 250,
+      "end": 251
+    }
+  },
+  {
+    "kind": "At",
+    "lexeme": "@",
+    "span": {
+      "start": 251,
+      "end": 252
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "i32",
+    "span": {
+      "start": 252,
+      "end": 255
+    }
+  },
+  {
+    "kind": "CloseParen",
+    "lexeme": ")",
+    "span": {
+      "start": 255,
+      "end": 256
+    }
+  },
+  {
+    "kind": "Bang",
+    "lexeme": "!",
+    "span": {
+      "start": 257,
+      "end": 258
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 258,
+      "end": 259
+    }
+  },
+  {
+    "kind": "Star",
+    "lexeme": "*",
+    "span": {
+      "start": 267,
+      "end": 268
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "p",
+    "span": {
+      "start": 268,
+      "end": 269
+    }
+  },
+  {
+    "kind": "Equal",
+    "lexeme": "=",
+    "span": {
+      "start": 270,
+      "end": 271
+    }
+  },
+  {
+    "kind": "Int",
+    "lexeme": "42",
+    "span": {
+      "start": 272,
+      "end": 274
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 274,
+      "end": 275
+    }
+  },
+  {
+    "kind": "ReturnKeyword",
+    "lexeme": "return",
+    "span": {
+      "start": 283,
+      "end": 289
+    }
+  },
+  {
+    "kind": "Dot",
+    "lexeme": ".",
+    "span": {
+      "start": 290,
+      "end": 291
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "Ok",
+    "span": {
+      "start": 291,
+      "end": 293
+    }
+  },
+  {
+    "kind": "OpenParen",
+    "lexeme": "(",
+    "span": {
+      "start": 293,
+      "end": 294
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "p",
+    "span": {
+      "start": 294,
+      "end": 295
+    }
+  },
+  {
+    "kind": "CloseParen",
+    "lexeme": ")",
+    "span": {
+      "start": 295,
+      "end": 296
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 296,
+      "end": 297
+    }
+  },
+  {
+    "kind": "CloseBrace",
+    "lexeme": "}",
+    "span": {
+      "start": 301,
+      "end": 302
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 302,
+      "end": 303
+    }
+  },
+  {
+    "kind": "ReturnKeyword",
+    "lexeme": "return",
+    "span": {
+      "start": 312,
+      "end": 318
+    }
+  },
+  {
+    "kind": "Dot",
+    "lexeme": ".",
+    "span": {
+      "start": 319,
+      "end": 320
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "DidNotAlloc",
+    "span": {
+      "start": 320,
+      "end": 331
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 331,
+      "end": 332
+    }
+  },
+  {
+    "kind": "CloseBrace",
+    "lexeme": "}",
+    "span": {
+      "start": 332,
+      "end": 333
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 333,
+      "end": 334
+    }
+  },
+  {
+    "kind": "FnKeyword",
+    "lexeme": "fn",
+    "span": {
+      "start": 335,
+      "end": 337
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "main",
+    "span": {
+      "start": 338,
+      "end": 342
+    }
+  },
+  {
+    "kind": "OpenParen",
+    "lexeme": "(",
+    "span": {
+      "start": 342,
+      "end": 343
+    }
+  },
+  {
+    "kind": "CloseParen",
+    "lexeme": ")",
+    "span": {
+      "start": 343,
+      "end": 344
+    }
+  },
+  {
+    "kind": "OpenBrace",
+    "lexeme": "{",
+    "span": {
+      "start": 345,
+      "end": 346
+    }
+  },
+  {
+    "kind": "MatchKeyword",
+    "lexeme": "match",
+    "span": {
+      "start": 351,
+      "end": 356
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "maybe_alloc",
+    "span": {
+      "start": 357,
+      "end": 368
+    }
+  },
+  {
+    "kind": "OpenParen",
+    "lexeme": "(",
+    "span": {
+      "start": 368,
+      "end": 369
+    }
+  },
+  {
+    "kind": "FalseLiteral",
+    "lexeme": "false",
+    "span": {
+      "start": 369,
+      "end": 374
+    }
+  },
+  {
+    "kind": "CloseParen",
+    "lexeme": ")",
+    "span": {
+      "start": 374,
+      "end": 375
+    }
+  },
+  {
+    "kind": "OpenBrace",
+    "lexeme": "{",
+    "span": {
+      "start": 376,
+      "end": 377
+    }
+  },
+  {
+    "kind": "Dot",
+    "lexeme": ".",
+    "span": {
+      "start": 386,
+      "end": 387
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "Ok",
+    "span": {
+      "start": 387,
+      "end": 389
+    }
+  },
+  {
+    "kind": "OpenParen",
+    "lexeme": "(",
+    "span": {
+      "start": 389,
+      "end": 390
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "p",
+    "span": {
+      "start": 390,
+      "end": 391
+    }
+  },
+  {
+    "kind": "CloseParen",
+    "lexeme": ")",
+    "span": {
+      "start": 391,
+      "end": 392
+    }
+  },
+  {
+    "kind": "OpenBrace",
+    "lexeme": "{",
+    "span": {
+      "start": 393,
+      "end": 394
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "fmt",
+    "span": {
+      "start": 395,
+      "end": 398
+    }
+  },
+  {
+    "kind": "ColonColon",
+    "lexeme": "::",
+    "span": {
+      "start": 398,
+      "end": 400
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "println",
+    "span": {
+      "start": 400,
+      "end": 407
+    }
+  },
+  {
+    "kind": "OpenParen",
+    "lexeme": "(",
+    "span": {
+      "start": 407,
+      "end": 408
+    }
+  },
+  {
+    "kind": "Star",
+    "lexeme": "*",
+    "span": {
+      "start": 408,
+      "end": 409
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "p",
+    "span": {
+      "start": 409,
+      "end": 410
+    }
+  },
+  {
+    "kind": "CloseParen",
+    "lexeme": ")",
+    "span": {
+      "start": 410,
+      "end": 411
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "",
+    "span": {
+      "start": 412,
+      "end": 412
+    }
+  },
+  {
+    "kind": "CloseBrace",
+    "lexeme": "}",
+    "span": {
+      "start": 412,
+      "end": 413
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 413,
+      "end": 414
+    }
+  },
+  {
+    "kind": "Dot",
+    "lexeme": ".",
+    "span": {
+      "start": 422,
+      "end": 423
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "DidNotAlloc",
+    "span": {
+      "start": 423,
+      "end": 434
+    }
+  },
+  {
+    "kind": "OpenBrace",
+    "lexeme": "{",
+    "span": {
+      "start": 435,
+      "end": 436
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "fmt",
+    "span": {
+      "start": 437,
+      "end": 440
+    }
+  },
+  {
+    "kind": "ColonColon",
+    "lexeme": "::",
+    "span": {
+      "start": 440,
+      "end": 442
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "println",
+    "span": {
+      "start": 442,
+      "end": 449
+    }
+  },
+  {
+    "kind": "OpenParen",
+    "lexeme": "(",
+    "span": {
+      "start": 449,
+      "end": 450
+    }
+  },
+  {
+    "kind": "Str",
+    "lexeme": "no allocation",
+    "span": {
+      "start": 450,
+      "end": 465
+    }
+  },
+  {
+    "kind": "CloseParen",
+    "lexeme": ")",
+    "span": {
+      "start": 465,
+      "end": 466
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "",
+    "span": {
+      "start": 467,
+      "end": 467
+    }
+  },
+  {
+    "kind": "CloseBrace",
+    "lexeme": "}",
+    "span": {
+      "start": 467,
+      "end": 468
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 468,
+      "end": 469
+    }
+  },
+  {
+    "kind": "CloseBrace",
+    "lexeme": "}",
+    "span": {
+      "start": 473,
+      "end": 474
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 474,
+      "end": 475
+    }
+  },
+  {
+    "kind": "CloseBrace",
+    "lexeme": "}",
+    "span": {
+      "start": 475,
+      "end": 476
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 476,
+      "end": 477
+    }
+  },
+  {
+    "kind": "Eof",
+    "lexeme": "",
+    "span": {
+      "start": 477,
+      "end": 477
+    }
+  }
+]

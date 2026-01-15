@@ -7,6 +7,7 @@ pub enum Decl {
     Type(TypeDecl),
     Const(ConstDecl),
     Use(UseDecl),
+    Mod(ModDecl),
 }
 
 /// Function declaration
@@ -62,6 +63,17 @@ pub struct UseDecl {
     pub modules: Vec<String>,
 }
 
+/// Mod declaration
+///
+/// Example:
+/// ```manta
+/// mod main
+/// ```
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct ModDecl {
+    pub name: String,
+}
+
 /// Type specification
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum TypeSpec {
@@ -73,8 +85,8 @@ pub enum TypeSpec {
     UInt16,
     UInt8,
     UInt64,
-    Float64,
     Float32,
+    Float64,
     String,
     Bool,
     // User-defined types
@@ -188,6 +200,7 @@ pub struct MatchArm {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum Pattern {
     EnumVariant {
+        type_name: Option<String>,
         name: String,
         payload_binding: Option<String>,
     },
@@ -197,10 +210,13 @@ pub enum Pattern {
     BoolLiteral(bool),
     FloatLiteral(f64),
 
+    TypeSpec {
+        type_spec: TypeSpec,
+        payload_binding: String,
+    },
+
     Identifier(String),
     Default, // the _ pattern
-
-             // TODO: need to support type specs
 }
 
 /// Expressions

@@ -1,7 +1,9 @@
 // examples/nil_refs.manta
+mod main
 
-import (
+use (
     "math"
+    "fmt"
 )
 
 // Shape is an enum for different types of geometric shapes
@@ -22,9 +24,9 @@ fn area(s Shape) i32 {
 fn main() {
     let square = Shape.Square(10)
     let square_area = area(square)
-    print(square_area)
+    fmt::println(square_area)
 
-    let circle = Shape.Circle(3)
+    let Shape(circle) = .Circle(3)
     let circle_area = area(circle)
-    print(circle)
+    fmt::println(circle)
 }

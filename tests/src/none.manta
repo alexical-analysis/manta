@@ -1,0 +1,29 @@
+// examples/nil_refs.manta
+mod main
+
+use (
+    "fmt"
+)
+
+type MaybeAlloc enum {
+    Ok(*i32)
+    DidNotAlloc
+}
+
+// maybe_alloc allocates memory for an i32 if cond is true
+fn maybe_alloc(cond bool) MaybeAlloc {
+    if cond {
+        let i32(p) := alloc(@i32) !
+        *p = 42
+        return .Ok(p)
+    }
+    
+    return .DidNotAlloc
+}
+
+fn main() {
+    match maybe_alloc(false) {
+        .Ok(p) { fmt::println(*p) }
+        .DidNotAlloc { fmt::println("no allocation") }
+    }
+}

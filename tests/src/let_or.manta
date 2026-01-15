@@ -1,0 +1,36 @@
+// examples/try_catch.manta
+mod main
+
+use (
+    "os"
+    "io"
+    "fmt"
+)
+
+// ReadFile is the return type for the read_file function
+type ReadFile enum {
+    Ok(str)
+    OpenErr(os::Open)
+    ReadErr(io:ReadToString)
+}
+
+// read_file reads the file at the given path
+fn read_file(path str) ReadFile {
+    let .Ok(f) := os::open(path) wrap .OpenErr
+    defer { os::close(f) }
+
+    let .Ok(s) := io::read_to_string(f) wrap .ReadErr
+    return .Ok(s)
+}
+
+// entry point for the program
+fn main() {
+    let .Ok(content) = read_file("/tmp/x.txt") or(e) {
+        fmt::printfln("read failed: ", e)
+        return
+    }
+    fmt::println(content)
+
+    // a try can become a simple panic if it has a trailing !
+    let .Ok(content) = read_file("/tmp/missing.txt") !
+}

@@ -1,4 +1,4 @@
-use crate::ast::{BlockStmt, ExprStmt, Pattern, Stmt};
+use crate::ast::{BlockStmt, ExprStmt, Pattern, Stmt, TypeSpec};
 use crate::parser::lexer::TokenKind;
 use crate::parser::{ParseError, Parser};
 
@@ -81,7 +81,51 @@ pub fn parse_pattern(parser: &mut Parser) -> Result<Pattern, ParseError> {
     match token.kind {
         TokenKind::Identifier => {
             let token = parser.consume()?;
-            Ok(Pattern::Identifier(token.lexeme))
+            let next = parser.lookahead(0)?;
+            match next.kind {
+                TokenKind::Dot => {
+                    parser.consume()?;
+                    parse_enum_pattern(parser, Some(token.lexeme))
+                }
+                TokenKind::OpenParen => {
+                    parser.consume()?;
+                    if parser.lookahead(0)?.kind == TokenKind::Identifier {
+                        let payload_binding = parser.consume()?.lexeme;
+                        let type_spec = match token.lexeme.as_str() {
+                            "i8" => TypeSpec::Int8,
+                            "i16" => TypeSpec::Int16,
+                            "i32" => TypeSpec::Int32,
+                            "i64" => TypeSpec::Int64,
+                            "u8" => TypeSpec::UInt8,
+                            "u16" => TypeSpec::UInt16,
+                            "u32" => TypeSpec::UInt32,
+                            "u64" => TypeSpec::UInt64,
+                            "f32" => TypeSpec::Float32,
+                            "f64" => TypeSpec::Float64,
+                            "str" => TypeSpec::String,
+                            "bool" => TypeSpec::Bool,
+                            s => TypeSpec::Named(s.to_string()),
+                        };
+
+                        parser.match_token(TokenKind::CloseParen)?;
+                        Ok(Pattern::TypeSpec {
+                            type_spec,
+                            payload_binding,
+                        })
+                    } else {
+                        Err(ParseError::UnexpectedToken(
+                            "invalid type pattern match".to_string(),
+                        ))
+                    }
+                }
+                _ => {
+                    if token.lexeme == "_" {
+                        Ok(Pattern::Default)
+                    } else {
+                        Ok(Pattern::Identifier(token.lexeme))
+                    }
+                }
+            }
         }
         TokenKind::Int => {
             let token = parser.consume()?;
@@ -111,35 +155,7 @@ pub fn parse_pattern(parser: &mut Parser) -> Result<Pattern, ParseError> {
         }
         TokenKind::Dot => {
             parser.consume()?;
-            let ident = parser.lookahead(0)?;
-            if ident.kind != TokenKind::Identifier {
-                return Err(ParseError::UnexpectedToken(
-                    "Not a valid pattern".to_string(),
-                ));
-            }
-            let name = ident.lexeme.clone();
-
-            let mut payload_binding = None;
-            parser.consume()?;
-            if parser.lookahead(0).unwrap().kind == TokenKind::OpenParen {
-                parser.consume()?;
-                let payload = parser.lookahead(0)?;
-                if payload.kind != TokenKind::Identifier {
-                    return Err(ParseError::UnexpectedToken(
-                        "Not a valid pattern".to_string(),
-                    ));
-                }
-
-                payload_binding = Some(payload.lexeme.clone());
-                parser.consume()?;
-
-                parser.match_token(TokenKind::CloseParen)?;
-            }
-
-            Ok(Pattern::EnumVariant {
-                name,
-                payload_binding,
-            })
+            parse_enum_pattern(parser, None)
         }
         _ => Err(ParseError::UnexpectedToken(
             "Not a valid pattern".to_string(),
@@ -147,13 +163,49 @@ pub fn parse_pattern(parser: &mut Parser) -> Result<Pattern, ParseError> {
     }
 }
 
+fn parse_enum_pattern(
+    parser: &mut Parser,
+    type_name: Option<String>,
+) -> Result<Pattern, ParseError> {
+    let ident = parser.lookahead(0)?;
+    if ident.kind != TokenKind::Identifier {
+        return Err(ParseError::UnexpectedToken(
+            "Not a valid pattern".to_string(),
+        ));
+    }
+    let name = ident.lexeme.clone();
+
+    let mut payload_binding = None;
+    parser.consume()?;
+    if parser.lookahead(0).unwrap().kind == TokenKind::OpenParen {
+        parser.consume()?;
+        let payload = parser.lookahead(0)?;
+        if payload.kind != TokenKind::Identifier {
+            return Err(ParseError::UnexpectedToken(
+                "Not a valid pattern".to_string(),
+            ));
+        }
+
+        payload_binding = Some(payload.lexeme.clone());
+        parser.consume()?;
+
+        parser.match_token(TokenKind::CloseParen)?;
+    }
+
+    Ok(Pattern::EnumVariant {
+        type_name,
+        name,
+        payload_binding,
+    })
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
     use crate::ast::{
-        AssignStmt, BinaryExpr, BinaryOp, BlockStmt, CallExpr, DeferStmt, Expr, FieldAccessExpr,
-        FreeExpr, IdentifierExpr, IfStmt, IndexExpr, LetStmt, MatchArm, MatchStmt, NewExpr,
-        Pattern, ReturnStmt, Stmt, TypeSpec, UnaryExpr, UnaryOp,
+        AssignStmt, BinaryExpr, BinaryOp, BlockStmt, CallExpr, DeferStmt, EnumVariant, Expr,
+        FieldAccessExpr, FreeExpr, IdentifierExpr, IfStmt, IndexExpr, LetStmt, MatchArm, MatchStmt,
+        NewExpr, Pattern, ReturnStmt, Stmt, TypeSpec, UnaryExpr, UnaryOp,
     };
     use crate::parser::lexer::Lexer;
     use pretty_assertions::assert_eq;
@@ -178,26 +230,31 @@ mod test {
 
     test_parse_statement!(
         parse_stmt_let {
-            input: "let x i32",
+            input: "let x = 10",
             want_var: Stmt::Let(stmt),
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    name: "x".to_string(),
-                    type_annotation: Some(TypeSpec::Int32),
-                    value: None
+                    pattern: Pattern::Identifier("x".to_string()),
+                    value: Expr::IntLiteral(10),
+                    or_binding: None,
+                    except: None,
                 }
             ),
         },
         parse_stmt_let_with_value {
-            input: "let y bool = true",
+            input: "let bool(y) = true",
             want_var: Stmt::Let(stmt),
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    name: "y".to_string(),
-                    type_annotation: Some(TypeSpec::Bool),
-                    value: Some(Expr::BoolLiteral(true)),
+                    pattern: Pattern::TypeSpec {
+                        type_spec: TypeSpec::Bool,
+                        payload_binding: "y".to_string(),
+                    },
+                    value: Expr::BoolLiteral(true),
+                    or_binding: None,
+                    except: None,
                 },
             ),
         },
@@ -207,26 +264,31 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    name: "pi".to_string(),
-                    type_annotation: None,
-                    value: Some(Expr::FloatLiteral(3.45)),
-                }
+                    pattern: Pattern::Identifier("pi".to_string()),
+                    value: Expr::FloatLiteral(3.45),
+                    or_binding: None,
+                    except: None,
+                },
             ),
         },
         parse_stmt_let_user_type {
-            input: "let jill Person = new_person()",
+            input: "let Person(jill) = new_person()",
             want_var: Stmt::Let(stmt),
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    name: "jill".to_string(),
-                    type_annotation: Some(TypeSpec::Named("Person".to_string())),
-                    value: Some(Expr::Call(CallExpr {
+                    pattern: Pattern::TypeSpec {
+                        type_spec: TypeSpec::Named("Person".to_string()),
+                        payload_binding: "jill".to_string(),
+                    },
+                    value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
                             name: "new_person".to_string()
                         })),
                         args: vec![],
-                    })),
+                    }),
+                    or_binding: None,
+                    except: None,
                 },
             ),
         },
@@ -330,26 +392,53 @@ mod test {
             ),
         },
         parse_stmt_block {
-            input: "{\nlet a = 10\nlet b i16 = 20\nlet c = a + b\n}",
+            input: r###"{
+    let a = 10
+    let .Ok(b) = maybe_int(42) !
+    let c = a + b
+}"###,
             want_var: Stmt::Block(stmt),
             want_value: assert_eq!(
                 stmt,
                 BlockStmt {
                     statements: vec![
                         Stmt::Let(LetStmt {
-                            name: "a".to_string(),
-                            type_annotation: None,
-                            value: Some(Expr::IntLiteral(10)),
+                            pattern: Pattern::Identifier("a".to_string()),
+                            value: Expr::IntLiteral(10),
+                            or_binding: None,
+                            except: None,
                         }),
                         Stmt::Let(LetStmt {
-                            name: "b".to_string(),
-                            type_annotation: Some(TypeSpec::Int16),
-                            value: Some(Expr::IntLiteral(20)),
+                            pattern: Pattern::EnumVariant {
+                                type_name: None,
+                                name: "Ok".to_string(),
+                                payload_binding: Some("b".to_string()),
+                            },
+                            value: Expr::Call(CallExpr {
+                                func: Box::new(Expr::Identifier(IdentifierExpr {
+                                    name: "maybe_int".to_string()
+                                })),
+                                args: vec![Expr::IntLiteral(42)],
+                            }),
+                            or_binding: Some(Box::new(IdentifierExpr {
+                                name: "e".to_string()
+                            })),
+                            except: Some(BlockStmt {
+                                statements: vec![Stmt::Expr(ExprStmt {
+                                    expr: Expr::Call(CallExpr {
+                                        func: Box::new(Expr::Identifier(IdentifierExpr {
+                                            name: "panic".to_string()
+                                        })),
+                                        args: vec![Expr::Identifier(IdentifierExpr {
+                                            name: "e".to_string(),
+                                        })],
+                                    })
+                                })],
+                            }),
                         }),
                         Stmt::Let(LetStmt {
-                            name: "c".to_string(),
-                            type_annotation: None,
-                            value: Some(Expr::Binary(BinaryExpr {
+                            pattern: Pattern::Identifier("c".to_string()),
+                            value: Expr::Binary(BinaryExpr {
                                 left: Box::new(Expr::Identifier(IdentifierExpr {
                                     name: "a".to_string()
                                 })),
@@ -357,7 +446,9 @@ mod test {
                                 right: Box::new(Expr::Identifier(IdentifierExpr {
                                     name: "b".to_string()
                                 })),
-                            })),
+                            }),
+                            or_binding: None,
+                            except: None,
                         }),
                     ]
                 }
@@ -446,7 +537,9 @@ mod test {
             ),
         },
         parse_stmt_if {
-            input: "if true {\nprint(\"ok\")\n}",
+            input: r###"if true {
+    print("ok")
+}"###,
             want_var: Stmt::If(stmt),
             want_value: assert_eq!(
                 stmt,
@@ -467,7 +560,11 @@ mod test {
             ),
         },
         parse_stmt_if_else {
-            input: "if a < 13 {\nprint(\"ok\")\n} else {\na = 10 + number(3.45)\n}\n",
+            input: r###"if a < 13 {
+    print("ok")
+} else {
+    a = 10 + number(3.45)
+}"###,
             want_var: Stmt::If(stmt),
             want_value: assert_eq!(
                 stmt,
@@ -524,54 +621,62 @@ mod test {
                 }
             ),
         },
-        /*
         parse_stmt_let_with_panic {
-            input: "let .Ok := call() !",
-            want_var: Stmt::Try(stmt),
+            input: "let .Ok = call() !",
+            want_var: Stmt::Let(stmt),
             want_value: assert_eq!(
                 stmt,
-                TryStmt {
-                    pattern_enum: None,
-                    pattern_variant: Box::new(IdentifierExpr {
-                        name: "Ok".to_string()
-                    }),
-                    decl: None,
-                    expr: Box::new(Expr::Call(CallExpr {
+                LetStmt {
+                    pattern: Pattern::EnumVariant {
+                        type_name: None,
+                        name: "Ok".to_string(),
+                        payload_binding: None,
+                    },
+                    value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                            name: "call".to_string(),
+                            name: "call".to_string()
                         })),
                         args: vec![],
+                    }),
+                    or_binding: Some(Box::new(IdentifierExpr {
+                        name: "e".to_string()
                     })),
-                    catch_binding: None,
-                    catch_body: None,
+                    except: Some(BlockStmt {
+                        statements: vec![Stmt::Expr(ExprStmt {
+                            expr: Expr::Call(CallExpr {
+                                func: Box::new(Expr::Identifier(IdentifierExpr {
+                                    name: "panic".to_string()
+                                })),
+                                args: vec![Expr::Identifier(IdentifierExpr {
+                                    name: "e".to_string()
+                                })],
+                            }),
+                        })],
+                    }),
                 },
             ),
         },
         parse_stmt_try_simple_catch {
-            input: r###"let m::Ret.Valid(v) = validate("data") or {
+            input: r###"let Ret.Valid(v) = validate("data") or {
     print("invalid!")
 }"###,
-            want_var: Stmt::Try(stmt),
+            want_var: Stmt::Let(stmt),
             want_value: assert_eq!(
                 stmt,
-                TryStmt {
-                    pattern_enum: Some(Box::new(IdentifierExpr {
-                        name: "Ret".to_string(),
-                    })),
-                    pattern_variant: Box::new(IdentifierExpr {
+                LetStmt {
+                    pattern: Pattern::EnumVariant {
+                        type_name: Some("Ret".to_string()),
                         name: "Valid".to_string(),
-                    }),
-                    decl: Some(Box::new(IdentifierExpr {
-                        name: "v".to_string()
-                    })),
-                    expr: Box::new(Expr::Call(CallExpr {
+                        payload_binding: Some("v".to_string()),
+                    },
+                    value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
                             name: "validate".to_string()
                         })),
                         args: vec![Expr::StringLiteral("data".to_string())],
-                    })),
-                    catch_binding: None,
-                    catch_body: Some(Box::new(BlockStmt {
+                    }),
+                    or_binding: None,
+                    except: Some(BlockStmt {
                         statements: vec![Stmt::Expr(ExprStmt {
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -580,25 +685,25 @@ mod test {
                                 args: vec![Expr::StringLiteral("invalid!".to_string())],
                             }),
                         })],
-                    })),
+                    }),
                 },
             ),
         },
         parse_stmt_try_catch_binding {
-            input: r###"try .Err = build_item(name, false) or(i) {
+            input: r###"let .Err = build_item(name, false) or(i) {
     print("built item")
     return i
 }"###,
-            want_var: Stmt::Try(stmt),
+            want_var: Stmt::Let(stmt),
             want_value: assert_eq!(
                 stmt,
-                TryStmt {
-                    pattern_enum: None,
-                    pattern_variant: Box::new(IdentifierExpr {
-                        name: "Err".to_string()
-                    }),
-                    decl: None,
-                    expr: Box::new(Expr::Call(CallExpr {
+                LetStmt {
+                    pattern: Pattern::EnumVariant {
+                        type_name: None,
+                        name: "Err".to_string(),
+                        payload_binding: None
+                    },
+                    value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
                             name: "build_item".to_string(),
                         })),
@@ -608,11 +713,11 @@ mod test {
                             }),
                             Expr::BoolLiteral(false),
                         ],
-                    })),
-                    catch_binding: Some(Box::new(IdentifierExpr {
+                    }),
+                    or_binding: Some(Box::new(IdentifierExpr {
                         name: "i".to_string()
                     })),
-                    catch_body: Some(Box::new(BlockStmt {
+                    except: Some(BlockStmt {
                         statements: vec![
                             Stmt::Expr(ExprStmt {
                                 expr: Expr::Call(CallExpr {
@@ -628,13 +733,53 @@ mod test {
                                 })),
                             }),
                         ],
-                    })),
+                    }),
                 }
             ),
         },
-        */
+        parse_stmt_let_with_wrap {
+            input: "let .Ok(d) = div() wrap .Err",
+            want_var: Stmt::Let(stmt),
+            want_value: assert_eq!(
+                stmt,
+                LetStmt {
+                    pattern: Pattern::EnumVariant {
+                        type_name: None,
+                        name: "Ok".to_string(),
+                        payload_binding: Some("d".to_string())
+                    },
+                    value: Expr::Call(CallExpr {
+                        func: Box::new(Expr::Identifier(IdentifierExpr {
+                            name: "div".to_string()
+                        })),
+                        args: vec![],
+                    }),
+                    or_binding: Some(Box::new(IdentifierExpr {
+                        name: "e".to_string()
+                    })),
+                    except: Some(BlockStmt {
+                        statements: vec![Stmt::Return(ReturnStmt {
+                            value: Some(Expr::Call(CallExpr {
+                                func: Box::new(Expr::FieldAccess(FieldAccessExpr {
+                                    target: None,
+                                    field: Box::new(IdentifierExpr {
+                                        name: "Err".to_string()
+                                    })
+                                })),
+                                args: vec![Expr::Identifier(IdentifierExpr {
+                                    name: "e".to_string()
+                                })],
+                            })),
+                        })],
+                    }),
+                },
+            ),
+        },
         parse_stmt_match {
-            input: "match x {\n.Some(v) { print(v) }\n.None { print(\"none\") }\n}",
+            input: r###"match x {
+    .Some(v) { print(v) }
+    .None { print("none") }
+}"###,
             want_var: Stmt::Match(stmt),
             want_value: assert_eq!(
                 stmt,
@@ -645,6 +790,7 @@ mod test {
                     arms: vec![
                         MatchArm {
                             pattern: Pattern::EnumVariant {
+                                type_name: None,
                                 name: "Some".to_string(),
                                 payload_binding: Some("v".to_string()),
                             },
@@ -663,6 +809,7 @@ mod test {
                         },
                         MatchArm {
                             pattern: Pattern::EnumVariant {
+                                type_name: None,
                                 name: "None".to_string(),
                                 payload_binding: None,
                             },
@@ -682,7 +829,11 @@ mod test {
             ),
         },
         parse_stmt_match_mixed_patterns {
-            input: "match result {\n.Success(val) { print(val) }\n.Warning(msg) { print(msg) }\n.Failed { print(\"error\") }\n}",
+            input: r###"match result {
+    .Success(val) { print(val) }
+    .Warning(msg) { print(msg) }
+    .Failed { print("error") }
+}"###,
             want_var: Stmt::Match(stmt),
             want_value: assert_eq!(
                 stmt,
@@ -693,6 +844,7 @@ mod test {
                     arms: vec![
                         MatchArm {
                             pattern: Pattern::EnumVariant {
+                                type_name: None,
                                 name: "Success".to_string(),
                                 payload_binding: Some("val".to_string()),
                             },
@@ -711,6 +863,7 @@ mod test {
                         },
                         MatchArm {
                             pattern: Pattern::EnumVariant {
+                                type_name: None,
                                 name: "Warning".to_string(),
                                 payload_binding: Some("msg".to_string()),
                             },
@@ -729,6 +882,7 @@ mod test {
                         },
                         MatchArm {
                             pattern: Pattern::EnumVariant {
+                                type_name: None,
                                 name: "Failed".to_string(),
                                 payload_binding: None,
                             },
@@ -748,7 +902,10 @@ mod test {
             ),
         },
         parse_stmt_match_empty_payload {
-            input: "match signal {\n.Ready() { print(\"go\") }\n.Idle(ts) { print(\"idle since\", ts) }\n}",
+            input: r###"match signal {
+    .Ready { print("go") }
+    .Idle(ts) { print("idle since", ts) }
+}"###,
             want_var: Stmt::Match(stmt),
             want_value: assert_eq!(
                 stmt,
@@ -759,6 +916,7 @@ mod test {
                     arms: vec![
                         MatchArm {
                             pattern: Pattern::EnumVariant {
+                                type_name: None,
                                 name: "Ready".to_string(),
                                 payload_binding: None,
                             },
@@ -775,6 +933,7 @@ mod test {
                         },
                         MatchArm {
                             pattern: Pattern::EnumVariant {
+                                type_name: None,
                                 name: "Idle".to_string(),
                                 payload_binding: Some("ts".to_string()),
                             },
@@ -800,86 +959,53 @@ mod test {
         },
     );
 
-    // Tests for parse_pattern function
-    #[test]
-    fn test_parse_pattern_int_literal() {
-        let lexer = Lexer::new("42");
-        let mut parser = Parser::new(lexer);
-        let pattern = parse_pattern(&mut parser).unwrap();
-        assert_eq!(pattern, Pattern::IntLiteral(42));
+    macro_rules! test_parse_patterns {
+        ( $( $case:ident { input: $input:expr, want: $want:expr, } ),*, ) => {
+            $(
+                #[test]
+                fn $case() {
+                    let lexer = Lexer::new($input);
+                    let mut parser = Parser::new(lexer);
+                    let pattern = parse_pattern(&mut parser).unwrap();
+                    assert_eq!(pattern, $want)
+                }
+            )*
+        }
     }
 
-    #[test]
-    fn test_parse_pattern_string_literal() {
-        let lexer = Lexer::new("\"hello\"");
-        let mut parser = Parser::new(lexer);
-        let pattern = parse_pattern(&mut parser).unwrap();
-        assert_eq!(pattern, Pattern::StringLiteral("hello".to_string()));
-    }
-
-    #[test]
-    fn test_parse_pattern_float_literal() {
-        let lexer = Lexer::new("3.14");
-        let mut parser = Parser::new(lexer);
-        let pattern = parse_pattern(&mut parser).unwrap();
-        assert_eq!(pattern, Pattern::FloatLiteral(3.14));
-    }
-
-    #[test]
-    fn test_parse_pattern_true_literal() {
-        let lexer = Lexer::new("true");
-        let mut parser = Parser::new(lexer);
-        let pattern = parse_pattern(&mut parser).unwrap();
-        assert_eq!(pattern, Pattern::BoolLiteral(true));
-    }
-
-    #[test]
-    fn test_parse_pattern_false_literal() {
-        let lexer = Lexer::new("false");
-        let mut parser = Parser::new(lexer);
-        let pattern = parse_pattern(&mut parser).unwrap();
-        assert_eq!(pattern, Pattern::BoolLiteral(false));
-    }
-
-    #[test]
-    fn test_parse_pattern_underscore() {
-        let lexer = Lexer::new("_");
-        let mut parser = Parser::new(lexer);
-        let pattern = parse_pattern(&mut parser).unwrap();
-        assert_eq!(pattern, Pattern::Default);
-    }
-
-    #[test]
-    fn test_parse_pattern_identifier() {
-        let lexer = Lexer::new("myVar");
-        let mut parser = Parser::new(lexer);
-        let pattern = parse_pattern(&mut parser).unwrap();
-        assert_eq!(pattern, Pattern::Identifier("myVar".to_string()));
-    }
-
-    #[test]
-    fn test_parse_pattern_type_spec_i32() {
-        let lexer = Lexer::new("i32");
-        let mut parser = Parser::new(lexer);
-        let pattern = parse_pattern(&mut parser).unwrap();
-        assert_eq!(pattern, Pattern::TypeSpec(TypeSpec::Int32));
-    }
-
-    #[test]
-    fn test_parse_pattern_type_spec_bool() {
-        let lexer = Lexer::new("bool");
-        let mut parser = Parser::new(lexer);
-        let pattern = parse_pattern(&mut parser).unwrap();
-        assert_eq!(pattern, Pattern::TypeSpec(TypeSpec::Bool));
-    }
-
-    #[test]
-    fn test_parse_pattern_type_spec_string() {
-        let lexer = Lexer::new("string");
-        let mut parser = Parser::new(lexer);
-        let pattern = parse_pattern(&mut parser).unwrap();
-        assert_eq!(pattern, Pattern::TypeSpec(TypeSpec::String));
-    }
+    test_parse_patterns!(
+        test_parse_pattern_int_literal {
+            input: "42",
+            want: Pattern::IntLiteral(42),
+        },
+        test_parse_pattern_string_literal {
+            input: r###""hello""###,
+            want: Pattern::StringLiteral("hello".to_string()),
+        },
+        test_parse_pattern_float_literal {
+            input: "3.45",
+            want: Pattern::FloatLiteral(3.45),
+        },
+        test_parse_pattern_true_literal {
+            input: "true",
+            want: Pattern::BoolLiteral(true),
+        },
+        test_parse_pattern_default {
+            input: "_",
+            want: Pattern::Default,
+        },
+        test_parse_pattern_identifier {
+            input: "my_var",
+            want: Pattern::Identifier("my_var".to_string()),
+        },
+        test_parse_pattern_type_match {
+            input: "f32(f)",
+            want: Pattern::TypeSpec {
+                type_spec: TypeSpec::Float32,
+                payload_binding: "f".to_string(),
+            },
+        },
+    );
 
     #[test]
     fn test_parse_pattern_invalid() {

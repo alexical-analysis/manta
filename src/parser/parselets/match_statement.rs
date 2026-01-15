@@ -120,6 +120,7 @@ fn parse_enum_variant(parser: &mut Parser) -> Result<Pattern, ParseError> {
     }
 
     Ok(Pattern::EnumVariant {
+        type_name: None,
         name,
         payload_binding,
     })

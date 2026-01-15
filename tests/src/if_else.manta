@@ -1,19 +1,24 @@
 // examples/if_else.manta
+mod main
+
+use (
+    "fmt"
+)
 
 // test if our if statments work
 fn main() {
-    check_this := true
+    let check_this = true
 
     if check_this {
-        print("yes")
+        fmt::println("yes")
     }
 
     let nine = 9
 
     if nine > 10 {
-        print("no")
+        fmt::println("no")
     } else {
-        print("yes")
+        fmt::println("yes")
     }
 }
 

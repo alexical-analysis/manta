@@ -1,378 +1,506 @@
 [
   {
-    "kind": "FnKeyword",
-    "lexeme": "fn",
+    "kind": "ModKeyword",
+    "lexeme": "mod",
     "span": {
-      "start": 60,
-      "end": 62
+      "start": 26,
+      "end": 29
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "main",
     "span": {
-      "start": 63,
-      "end": 67
-    }
-  },
-  {
-    "kind": "OpenParen",
-    "lexeme": "(",
-    "span": {
-      "start": 67,
-      "end": 68
-    }
-  },
-  {
-    "kind": "CloseParen",
-    "lexeme": ")",
-    "span": {
-      "start": 68,
-      "end": 69
-    }
-  },
-  {
-    "kind": "OpenBrace",
-    "lexeme": "{",
-    "span": {
-      "start": 70,
-      "end": 71
-    }
-  },
-  {
-    "kind": "Identifier",
-    "lexeme": "check_this",
-    "span": {
-      "start": 76,
-      "end": 86
-    }
-  },
-  {
-    "kind": "ColonEqual",
-    "lexeme": ":=",
-    "span": {
-      "start": 87,
-      "end": 89
-    }
-  },
-  {
-    "kind": "TrueLiteral",
-    "lexeme": "true",
-    "span": {
-      "start": 90,
-      "end": 94
+      "start": 30,
+      "end": 34
     }
   },
   {
     "kind": "Semicolon",
     "lexeme": "\n",
     "span": {
-      "start": 94,
-      "end": 95
+      "start": 34,
+      "end": 35
     }
   },
   {
-    "kind": "IfKeyword",
-    "lexeme": "if",
+    "kind": "UseKeyword",
+    "lexeme": "use",
     "span": {
-      "start": 100,
-      "end": 102
-    }
-  },
-  {
-    "kind": "Identifier",
-    "lexeme": "check_this",
-    "span": {
-      "start": 103,
-      "end": 113
-    }
-  },
-  {
-    "kind": "OpenBrace",
-    "lexeme": "{",
-    "span": {
-      "start": 114,
-      "end": 115
-    }
-  },
-  {
-    "kind": "Identifier",
-    "lexeme": "print",
-    "span": {
-      "start": 124,
-      "end": 129
+      "start": 36,
+      "end": 39
     }
   },
   {
     "kind": "OpenParen",
     "lexeme": "(",
     "span": {
-      "start": 129,
-      "end": 130
+      "start": 40,
+      "end": 41
     }
   },
   {
     "kind": "Str",
-    "lexeme": "yes",
+    "lexeme": "fmt",
     "span": {
-      "start": 130,
-      "end": 135
+      "start": 46,
+      "end": 51
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 51,
+      "end": 52
     }
   },
   {
     "kind": "CloseParen",
     "lexeme": ")",
     "span": {
-      "start": 135,
-      "end": 136
+      "start": 52,
+      "end": 53
     }
   },
   {
     "kind": "Semicolon",
     "lexeme": "\n",
     "span": {
-      "start": 136,
-      "end": 137
+      "start": 53,
+      "end": 54
     }
   },
   {
-    "kind": "CloseBrace",
-    "lexeme": "}",
+    "kind": "FnKeyword",
+    "lexeme": "fn",
     "span": {
-      "start": 141,
-      "end": 142
+      "start": 88,
+      "end": 90
     }
   },
   {
-    "kind": "Semicolon",
-    "lexeme": "\n",
+    "kind": "Identifier",
+    "lexeme": "main",
     "span": {
-      "start": 142,
-      "end": 143
+      "start": 91,
+      "end": 95
+    }
+  },
+  {
+    "kind": "OpenParen",
+    "lexeme": "(",
+    "span": {
+      "start": 95,
+      "end": 96
+    }
+  },
+  {
+    "kind": "CloseParen",
+    "lexeme": ")",
+    "span": {
+      "start": 96,
+      "end": 97
+    }
+  },
+  {
+    "kind": "OpenBrace",
+    "lexeme": "{",
+    "span": {
+      "start": 98,
+      "end": 99
     }
   },
   {
     "kind": "LetKeyword",
     "lexeme": "let",
     "span": {
-      "start": 148,
-      "end": 151
+      "start": 104,
+      "end": 107
     }
   },
   {
     "kind": "Identifier",
-    "lexeme": "nine",
+    "lexeme": "check_this",
     "span": {
-      "start": 152,
-      "end": 156
+      "start": 108,
+      "end": 118
     }
   },
   {
     "kind": "Equal",
     "lexeme": "=",
     "span": {
-      "start": 157,
-      "end": 158
+      "start": 119,
+      "end": 120
     }
   },
   {
-    "kind": "Int",
-    "lexeme": "9",
+    "kind": "TrueLiteral",
+    "lexeme": "true",
     "span": {
-      "start": 159,
-      "end": 160
+      "start": 121,
+      "end": 125
     }
   },
   {
     "kind": "Semicolon",
     "lexeme": "\n",
     "span": {
-      "start": 160,
-      "end": 161
+      "start": 125,
+      "end": 126
     }
   },
   {
     "kind": "IfKeyword",
     "lexeme": "if",
     "span": {
-      "start": 166,
+      "start": 131,
+      "end": 133
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "check_this",
+    "span": {
+      "start": 134,
+      "end": 144
+    }
+  },
+  {
+    "kind": "OpenBrace",
+    "lexeme": "{",
+    "span": {
+      "start": 145,
+      "end": 146
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "fmt",
+    "span": {
+      "start": 155,
+      "end": 158
+    }
+  },
+  {
+    "kind": "ColonColon",
+    "lexeme": "::",
+    "span": {
+      "start": 158,
+      "end": 160
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "println",
+    "span": {
+      "start": 160,
+      "end": 167
+    }
+  },
+  {
+    "kind": "OpenParen",
+    "lexeme": "(",
+    "span": {
+      "start": 167,
       "end": 168
-    }
-  },
-  {
-    "kind": "Identifier",
-    "lexeme": "nine",
-    "span": {
-      "start": 169,
-      "end": 173
-    }
-  },
-  {
-    "kind": "GreaterThan",
-    "lexeme": ">",
-    "span": {
-      "start": 174,
-      "end": 175
-    }
-  },
-  {
-    "kind": "Int",
-    "lexeme": "10",
-    "span": {
-      "start": 176,
-      "end": 178
-    }
-  },
-  {
-    "kind": "OpenBrace",
-    "lexeme": "{",
-    "span": {
-      "start": 179,
-      "end": 180
-    }
-  },
-  {
-    "kind": "Identifier",
-    "lexeme": "print",
-    "span": {
-      "start": 189,
-      "end": 194
-    }
-  },
-  {
-    "kind": "OpenParen",
-    "lexeme": "(",
-    "span": {
-      "start": 194,
-      "end": 195
-    }
-  },
-  {
-    "kind": "Str",
-    "lexeme": "no",
-    "span": {
-      "start": 195,
-      "end": 199
-    }
-  },
-  {
-    "kind": "CloseParen",
-    "lexeme": ")",
-    "span": {
-      "start": 199,
-      "end": 200
-    }
-  },
-  {
-    "kind": "Semicolon",
-    "lexeme": "\n",
-    "span": {
-      "start": 200,
-      "end": 201
-    }
-  },
-  {
-    "kind": "CloseBrace",
-    "lexeme": "}",
-    "span": {
-      "start": 205,
-      "end": 206
-    }
-  },
-  {
-    "kind": "ElseKeyword",
-    "lexeme": "else",
-    "span": {
-      "start": 207,
-      "end": 211
-    }
-  },
-  {
-    "kind": "OpenBrace",
-    "lexeme": "{",
-    "span": {
-      "start": 212,
-      "end": 213
-    }
-  },
-  {
-    "kind": "Identifier",
-    "lexeme": "print",
-    "span": {
-      "start": 222,
-      "end": 227
-    }
-  },
-  {
-    "kind": "OpenParen",
-    "lexeme": "(",
-    "span": {
-      "start": 227,
-      "end": 228
     }
   },
   {
     "kind": "Str",
     "lexeme": "yes",
     "span": {
-      "start": 228,
-      "end": 233
+      "start": 168,
+      "end": 173
     }
   },
   {
     "kind": "CloseParen",
     "lexeme": ")",
     "span": {
-      "start": 233,
-      "end": 234
+      "start": 173,
+      "end": 174
     }
   },
   {
     "kind": "Semicolon",
     "lexeme": "\n",
     "span": {
-      "start": 234,
-      "end": 235
+      "start": 174,
+      "end": 175
     }
   },
   {
     "kind": "CloseBrace",
     "lexeme": "}",
+    "span": {
+      "start": 179,
+      "end": 180
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 180,
+      "end": 181
+    }
+  },
+  {
+    "kind": "LetKeyword",
+    "lexeme": "let",
+    "span": {
+      "start": 186,
+      "end": 189
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "nine",
+    "span": {
+      "start": 190,
+      "end": 194
+    }
+  },
+  {
+    "kind": "Equal",
+    "lexeme": "=",
+    "span": {
+      "start": 195,
+      "end": 196
+    }
+  },
+  {
+    "kind": "Int",
+    "lexeme": "9",
+    "span": {
+      "start": 197,
+      "end": 198
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 198,
+      "end": 199
+    }
+  },
+  {
+    "kind": "IfKeyword",
+    "lexeme": "if",
+    "span": {
+      "start": 204,
+      "end": 206
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "nine",
+    "span": {
+      "start": 207,
+      "end": 211
+    }
+  },
+  {
+    "kind": "GreaterThan",
+    "lexeme": ">",
+    "span": {
+      "start": 212,
+      "end": 213
+    }
+  },
+  {
+    "kind": "Int",
+    "lexeme": "10",
+    "span": {
+      "start": 214,
+      "end": 216
+    }
+  },
+  {
+    "kind": "OpenBrace",
+    "lexeme": "{",
+    "span": {
+      "start": 217,
+      "end": 218
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "fmt",
+    "span": {
+      "start": 227,
+      "end": 230
+    }
+  },
+  {
+    "kind": "ColonColon",
+    "lexeme": "::",
+    "span": {
+      "start": 230,
+      "end": 232
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "println",
+    "span": {
+      "start": 232,
+      "end": 239
+    }
+  },
+  {
+    "kind": "OpenParen",
+    "lexeme": "(",
     "span": {
       "start": 239,
       "end": 240
     }
   },
   {
+    "kind": "Str",
+    "lexeme": "no",
+    "span": {
+      "start": 240,
+      "end": 244
+    }
+  },
+  {
+    "kind": "CloseParen",
+    "lexeme": ")",
+    "span": {
+      "start": 244,
+      "end": 245
+    }
+  },
+  {
     "kind": "Semicolon",
     "lexeme": "\n",
     "span": {
-      "start": 240,
-      "end": 241
+      "start": 245,
+      "end": 246
     }
   },
   {
     "kind": "CloseBrace",
     "lexeme": "}",
     "span": {
-      "start": 241,
-      "end": 242
+      "start": 250,
+      "end": 251
+    }
+  },
+  {
+    "kind": "ElseKeyword",
+    "lexeme": "else",
+    "span": {
+      "start": 252,
+      "end": 256
+    }
+  },
+  {
+    "kind": "OpenBrace",
+    "lexeme": "{",
+    "span": {
+      "start": 257,
+      "end": 258
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "fmt",
+    "span": {
+      "start": 267,
+      "end": 270
+    }
+  },
+  {
+    "kind": "ColonColon",
+    "lexeme": "::",
+    "span": {
+      "start": 270,
+      "end": 272
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "println",
+    "span": {
+      "start": 272,
+      "end": 279
+    }
+  },
+  {
+    "kind": "OpenParen",
+    "lexeme": "(",
+    "span": {
+      "start": 279,
+      "end": 280
+    }
+  },
+  {
+    "kind": "Str",
+    "lexeme": "yes",
+    "span": {
+      "start": 280,
+      "end": 285
+    }
+  },
+  {
+    "kind": "CloseParen",
+    "lexeme": ")",
+    "span": {
+      "start": 285,
+      "end": 286
     }
   },
   {
     "kind": "Semicolon",
     "lexeme": "\n",
     "span": {
-      "start": 242,
-      "end": 243
+      "start": 286,
+      "end": 287
+    }
+  },
+  {
+    "kind": "CloseBrace",
+    "lexeme": "}",
+    "span": {
+      "start": 291,
+      "end": 292
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 292,
+      "end": 293
+    }
+  },
+  {
+    "kind": "CloseBrace",
+    "lexeme": "}",
+    "span": {
+      "start": 293,
+      "end": 294
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 294,
+      "end": 295
     }
   },
   {
     "kind": "Eof",
     "lexeme": "",
     "span": {
-      "start": 244,
-      "end": 244
+      "start": 296,
+      "end": 296
     }
   }
 ]

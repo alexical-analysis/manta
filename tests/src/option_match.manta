@@ -1,4 +1,9 @@
 // examples/option_match.manta
+mod main
+
+use (
+    "fmt"
+)
 
 // Div is the return type for the div function
 type Div enum {
@@ -17,7 +22,7 @@ fn div(a, b i32) Div {
 fn main() {
     let r = div(10, 2)
     match r {
-        .Ok(v) { print("result: ", v) }
-        .DivByZero { print("can not divide by zero") }
+        .Ok(v) { fmt::println("result: ", v) }
+        .DivByZero { fmt::println("can not divide by zero") }
     }
 }

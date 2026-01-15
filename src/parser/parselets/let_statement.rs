@@ -1,7 +1,7 @@
-use crate::ast::{BlockStmt, CallExpr, Expr, ExprStmt, IdentifierExpr, LetStmt, Stmt};
+use crate::ast::{BlockStmt, CallExpr, Expr, ExprStmt, IdentifierExpr, LetStmt, ReturnStmt, Stmt};
 use crate::parser::lexer::{Token, TokenKind};
 use crate::parser::parselets::PrefixStmtParselet;
-use crate::parser::{ParseError, Parser, statement};
+use crate::parser::{ParseError, Parser, Precedence, expression, statement};
 
 /// Parses try expressions
 ///
@@ -82,6 +82,29 @@ impl PrefixStmtParselet for LetParselet {
                                     name: "e".to_string(),
                                 })],
                             }),
+                        })],
+                    }),
+                }))
+            }
+            TokenKind::WrapKeyword => {
+                parser.consume()?;
+
+                let expr = expression::parse_expression(parser, Precedence::Base)?;
+
+                Ok(Stmt::Let(LetStmt {
+                    pattern,
+                    value,
+                    or_binding: Some(Box::new(IdentifierExpr {
+                        name: "e".to_string(),
+                    })),
+                    except: Some(BlockStmt {
+                        statements: vec![Stmt::Return(ReturnStmt {
+                            value: Some(Expr::Call(CallExpr {
+                                func: Box::new(expr),
+                                args: vec![Expr::Identifier(IdentifierExpr {
+                                    name: "e".to_string(),
+                                })],
+                            })),
                         })],
                     }),
                 }))

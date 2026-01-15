@@ -56,7 +56,6 @@ pub enum TokenKind {
     Colon,
     ColonColon,
     Semicolon,
-    ColonEqual,
     PlusEqual,
     MinusEqual,
     Equal,
@@ -66,6 +65,7 @@ pub enum TokenKind {
     LessThan,
     GreaterOrEqual,
     LessOrEqual,
+    At,
     Pipe,
     PipePipe,
     And,
@@ -497,7 +497,6 @@ impl Lexer {
                 "=>" => Some(TokenKind::Arrow),
                 "&&" => Some(TokenKind::AndAnd),
                 "||" => Some(TokenKind::PipePipe),
-                ":=" => Some(TokenKind::ColonEqual),
                 "::" => Some(TokenKind::ColonColon),
                 "+=" => Some(TokenKind::PlusEqual),
                 "-=" => Some(TokenKind::MinusEqual),
@@ -535,6 +534,7 @@ impl Lexer {
             '<' => TokenKind::LessThan,
             '>' => TokenKind::GreaterThan,
             '^' => TokenKind::Caret,
+            '@' => TokenKind::At,
             _ => panic!("Unknown character for single-char operator: {}", ch),
         };
 
@@ -601,7 +601,6 @@ mod tests {
     use std::fs::{self, DirEntry};
     use std::path::Path;
 
-    /*
     #[test]
     fn lex_file_tests() {
         let test_dir = Path::new("tests/src");
@@ -621,7 +620,6 @@ mod tests {
             assert_file_eq(entry, test_dir, lex_dir);
         }
     }
-    */
 
     fn assert_file_eq(entry: Result<DirEntry, std::io::Error>, test_dir: &Path, lex_dir: &Path) {
         let entry = match entry {
@@ -778,7 +776,7 @@ mod tests {
             ],
         },
         lex_input_multi_char_operations {
-            input: "a == b && c != d <= e >= f := += *",
+            input: "a == b && c != d <= e >= f  = += *",
             want: vec![
                 Token::new(TokenKind::Identifier, "a".to_string(), Span::new(0, 1)),
                 Token::new(
@@ -808,9 +806,9 @@ mod tests {
                 ),
                 Token::new(TokenKind::Identifier, "f".to_string(), Span::new(25, 26)),
                 Token::new(
-                    TokenKind::ColonEqual,
-                    ":=".to_string(),
-                    Span::new(27, 29),
+                    TokenKind::Equal,
+                    "=".to_string(),
+                    Span::new(28, 29),
                 ),
                 Token::new(
                     TokenKind::PlusEqual,

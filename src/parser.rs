@@ -5,15 +5,16 @@ pub mod parselets;
 pub mod statement;
 pub mod types;
 
-use crate::ast::{BinaryOp, Decl, Expr, UnaryOp};
+use crate::ast::{BinaryOp, Decl, Expr, ModDecl, UnaryOp};
 use crate::parser::parselets::{BlockParselet, InfixStmtParselet, PrefixDeclParselet};
 use lexer::{Lexer, Token, TokenKind};
 use parselets::{
     AssignParselet, BinaryOperatorParselet, BoolLiteralParselet, CallParselet, ConstDeclParselet,
     DeferParselet, FieldAccessParselet, FloatLiteralParselet, GroupParselet, IdentifierParselet,
     IfParselet, IndexParselet, InferedVariantParselet, InfixExprParselet, IntLiteralParselet,
-    LetParselet, MatchParselet, Precedence, PrefixExprParselet, PrefixStmtParselet, ReturnParselet,
-    StringLiteralParselet, TypeDeclParselet, UnaryOperatorParselet, UseDeclParselet,
+    LetParselet, MatchParselet, ModDeclParselet, Precedence, PrefixExprParselet,
+    PrefixStmtParselet, ReturnParselet, StringLiteralParselet, TypeDeclParselet,
+    UnaryOperatorParselet, UseDeclParselet,
 };
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -246,7 +247,6 @@ impl Parser {
 
         // Register infix statement parselets
         parser.register_stmt_infix(TokenKind::Equal, Rc::new(AssignParselet));
-        parser.register_stmt_infix(TokenKind::ColonEqual, Rc::new(ShortLetParselet));
 
         // Register prefix declaration parselets
         parser.register_decl_prefix(
@@ -256,6 +256,7 @@ impl Parser {
         parser.register_decl_prefix(TokenKind::TypeKeyword, Rc::new(TypeDeclParselet));
         parser.register_decl_prefix(TokenKind::ConstKeyword, Rc::new(ConstDeclParselet));
         parser.register_decl_prefix(TokenKind::UseKeyword, Rc::new(UseDeclParselet));
+        parser.register_decl_prefix(TokenKind::ModKeyword, Rc::new(ModDeclParselet));
 
         parser
     }
@@ -453,7 +454,6 @@ mod tests {
             assert_file_eq(entry, test_dir, parser_dir);
         }
     }
-    */
 
     fn assert_file_eq(
         entry: Result<std::fs::DirEntry, std::io::Error>,
@@ -527,4 +527,5 @@ mod tests {
             );
         }
     }
+    */
 }
