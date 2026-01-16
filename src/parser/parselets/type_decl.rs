@@ -16,10 +16,13 @@ impl PrefixDeclParselet for TypeDeclParselet {
         // First, we need to check after the type name
         let name = parser.consume()?;
         if name.kind != TokenKind::Identifier {
-            return Err(ParseError::UnexpectedToken(format!(
-                "Expected type name after 'type' but found {:?}",
-                parser.lookahead(0),
-            )));
+            return Err(ParseError::UnexpectedToken(
+                name.clone(),
+                format!(
+                    "Expected type name after 'type' but found {:?}",
+                    parser.lookahead(0),
+                ),
+            ));
         }
 
         // Look ahead past the name to see struct or enum
@@ -27,10 +30,13 @@ impl PrefixDeclParselet for TypeDeclParselet {
         match next.kind {
             TokenKind::StructKeyword => parse_struct(name.lexeme, parser),
             TokenKind::EnumKeyword => parse_enum(name.lexeme, parser),
-            _ => Err(ParseError::UnexpectedToken(format!(
-                "Expected 'struct' or 'enum' after type name but found {:?}",
-                next
-            ))),
+            _ => Err(ParseError::UnexpectedToken(
+                next.clone(),
+                format!(
+                    "Expected 'struct' or 'enum' after type name but found {:?}",
+                    next
+                ),
+            )),
         }
     }
 }
@@ -40,6 +46,7 @@ fn parse_enum(name: String, parser: &mut Parser) -> Result<Decl, ParseError> {
     let matched = parser.match_token(TokenKind::OpenBrace)?;
     if !matched {
         return Err(ParseError::UnexpectedToken(
+            parser.lookahead(0)?.clone(),
             "Expected '{' before enum body".to_string(),
         ));
     }
@@ -51,6 +58,7 @@ fn parse_enum(name: String, parser: &mut Parser) -> Result<Decl, ParseError> {
     let matched = parser.match_token(TokenKind::CloseBrace)?;
     if !matched {
         return Err(ParseError::UnexpectedToken(
+            parser.lookahead(0)?.clone(),
             "Expected '}' after enum body".to_string(),
         ));
     }
@@ -76,6 +84,7 @@ fn parse_enum_variants(parser: &mut Parser) -> Result<Vec<EnumVariant>, ParseErr
         let tok = parser.lookahead(0)?;
         if tok.kind != TokenKind::Identifier {
             return Err(ParseError::UnexpectedToken(
+                tok.clone(),
                 "Expected variant name".to_string(),
             ));
         }
@@ -86,12 +95,14 @@ fn parse_enum_variants(parser: &mut Parser) -> Result<Vec<EnumVariant>, ParseErr
             parser.consume()?; // consume '('
 
             // Parse the payload type
-            let payload_type = types::parse_type(parser)?;
+            let token = parser.consume()?;
+            let payload_type = types::parse_type(parser, token)?;
 
             // Expect closing paren
             let matched = parser.match_token(TokenKind::CloseParen)?;
             if !matched {
                 return Err(ParseError::UnexpectedToken(
+                    parser.lookahead(0)?.clone(),
                     "Expected ')' after variant payload".to_string(),
                 ));
             }
@@ -110,6 +121,7 @@ fn parse_enum_variants(parser: &mut Parser) -> Result<Vec<EnumVariant>, ParseErr
         let matched = parser.match_token(TokenKind::Semicolon)?;
         if !matched {
             return Err(ParseError::UnexpectedToken(
+                parser.lookahead(0)?.clone(),
                 "Expected ';' after enum variant".to_string(),
             ));
         }
@@ -123,6 +135,7 @@ fn parse_enum_variants(parser: &mut Parser) -> Result<Vec<EnumVariant>, ParseErr
             }
             _ => {
                 return Err(ParseError::UnexpectedToken(
+                    parser.lookahead(0)?.clone(),
                     "Expected variant name or '}' in enum body".to_string(),
                 ));
             }
@@ -138,6 +151,7 @@ fn parse_struct(name: String, parser: &mut Parser) -> Result<Decl, ParseError> {
     let matched = parser.match_token(TokenKind::OpenBrace)?;
     if !matched {
         return Err(ParseError::UnexpectedToken(
+            parser.lookahead(0)?.clone(),
             "Expected '{' before struct body".to_string(),
         ));
     }
@@ -149,6 +163,7 @@ fn parse_struct(name: String, parser: &mut Parser) -> Result<Decl, ParseError> {
     let matched = parser.match_token(TokenKind::CloseBrace)?;
     if !matched {
         return Err(ParseError::UnexpectedToken(
+            parser.lookahead(0)?.clone(),
             "Expected '}' after struct body".to_string(),
         ));
     }
@@ -175,13 +190,15 @@ fn parse_struct_fields(parser: &mut Parser) -> Result<Vec<StructField>, ParseErr
         let tok = parser.lookahead(0)?;
         if tok.kind != TokenKind::Identifier {
             return Err(ParseError::UnexpectedToken(
+                tok.clone(),
                 "Expected field name".to_string(),
             ));
         }
         let field_name = parser.consume()?.lexeme;
 
         // Parse field type
-        let field_type = types::parse_type(parser)?;
+        let token = parser.consume()?;
+        let field_type = types::parse_type(parser, token)?;
 
         fields.push(StructField {
             name: field_name,
@@ -192,6 +209,7 @@ fn parse_struct_fields(parser: &mut Parser) -> Result<Vec<StructField>, ParseErr
         let matched = parser.match_token(TokenKind::Semicolon)?;
         if !matched {
             return Err(ParseError::UnexpectedToken(
+                parser.lookahead(0)?.clone(),
                 "Expected ';' after enum variant".to_string(),
             ));
         }
@@ -205,6 +223,7 @@ fn parse_struct_fields(parser: &mut Parser) -> Result<Vec<StructField>, ParseErr
             }
             _ => {
                 return Err(ParseError::UnexpectedToken(
+                    parser.lookahead(0)?.clone(),
                     "Expected field name or '}' in struct body".to_string(),
                 ));
             }

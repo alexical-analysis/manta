@@ -1,4 +1,4 @@
-use crate::ast::{Expr, FieldAccessExpr, IdentifierExpr};
+use crate::ast::{DotAccessExpr, Expr, IdentifierExpr};
 use crate::parser::lexer::{Token, TokenKind};
 use crate::parser::parselets::PrefixExprParselet;
 use crate::parser::{ParseError, Parser};
@@ -17,13 +17,14 @@ impl PrefixExprParselet for InferedVariantParselet {
             TokenKind::Identifier => next.lexeme.clone(),
             _ => {
                 return Err(ParseError::UnexpectedToken(
+                    next.clone(),
                     "enum variants must be identifiers".to_string(),
                 ));
             }
         };
         parser.consume()?;
 
-        Ok(Expr::FieldAccess(FieldAccessExpr {
+        Ok(Expr::DotAccess(DotAccessExpr {
             target: None,
             field: Box::new(IdentifierExpr { name: variant_name }),
         }))

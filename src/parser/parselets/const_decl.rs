@@ -16,6 +16,7 @@ impl PrefixDeclParselet for ConstDeclParselet {
         let name_token = parser.lookahead(0)?;
         if name_token.kind != TokenKind::Identifier {
             return Err(ParseError::UnexpectedToken(
+                name_token.clone(),
                 "Expected const name".to_string(),
             ));
         }
@@ -26,6 +27,7 @@ impl PrefixDeclParselet for ConstDeclParselet {
         let matched = parser.match_token(TokenKind::Equal)?;
         if !matched {
             return Err(ParseError::UnexpectedToken(
+                parser.lookahead(0)?.clone(),
                 "Expected '=' after const name".to_string(),
             ));
         }

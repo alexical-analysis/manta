@@ -1,7 +1,7 @@
 use crate::ast::{ArrayType, TypeSpec};
 use crate::parser::ParseError;
 use crate::parser::Parser;
-use crate::parser::lexer::TokenKind;
+use crate::parser::lexer::{Token, TokenKind};
 
 /// Parse a type specification from the token stream.
 /// Supports:
@@ -10,28 +10,25 @@ use crate::parser::lexer::TokenKind;
 /// - pointer: `* T`
 /// - array: `[N] T` where N is an integer literal (compile-time size)
 /// - slice: `[] T`
-pub fn parse_type(parser: &mut Parser) -> Result<TypeSpec, ParseError> {
-    let token = parser.lookahead(0)?;
-    //let kind = tk.kind.clone();
-
+pub fn parse_type(parser: &mut Parser, token: Token) -> Result<TypeSpec, ParseError> {
     match &token.kind {
         TokenKind::Star => {
             // pointer
-            parser.consume()?;
-            let inner = parse_type(parser)?;
+            let next = parser.consume()?;
+            let inner = parse_type(parser, next)?;
             Ok(TypeSpec::Pointer(Box::new(inner)))
         }
 
         TokenKind::OpenSquare => {
             // array or slice
-            parser.consume()?; // consume '['
             let next = parser.lookahead(0)?;
 
             match &next.kind {
                 TokenKind::CloseSquare => {
                     // slice: []T
                     parser.consume()?; // consume ']'
-                    let inner = parse_type(parser)?;
+                    let next = parser.consume()?;
+                    let inner = parse_type(parser, next)?;
                     Ok(TypeSpec::Slice(Box::new(inner)))
                 }
                 TokenKind::Int => {
@@ -52,7 +49,8 @@ pub fn parse_type(parser: &mut Parser) -> Result<TypeSpec, ParseError> {
                         ));
                     }
 
-                    let inner = parse_type(parser)?;
+                    let next = parser.consume()?;
+                    let inner = parse_type(parser, next)?;
                     Ok(TypeSpec::Array(ArrayType {
                         type_spec: Box::new(inner),
                         size,
@@ -66,8 +64,7 @@ pub fn parse_type(parser: &mut Parser) -> Result<TypeSpec, ParseError> {
         }
 
         TokenKind::Identifier => {
-            let id = parser.consume()?;
-            let name = id.lexeme;
+            let name = token.lexeme;
             let tyspec = match name.as_str() {
                 "i32" => TypeSpec::Int32,
                 "i16" => TypeSpec::Int16,
@@ -81,7 +78,27 @@ pub fn parse_type(parser: &mut Parser) -> Result<TypeSpec, ParseError> {
                 "f32" => TypeSpec::Float32,
                 "str" => TypeSpec::String,
                 "bool" => TypeSpec::Bool,
-                other => TypeSpec::Named(other.to_string()),
+                other => match parser.lookahead(0)?.kind {
+                    TokenKind::ColonColon => {
+                        parser.consume()?;
+                        let type_name = parser.consume()?;
+                        if type_name.kind != TokenKind::Identifier {
+                            return Err(ParseError::UnexpectedToken(
+                                type_name,
+                                "type name must be an identifier".to_string(),
+                            ));
+                        } else {
+                            TypeSpec::Named {
+                                module: Some(other.to_string()),
+                                name: type_name.lexeme,
+                            }
+                        }
+                    }
+                    _ => TypeSpec::Named {
+                        module: None,
+                        name: other.to_string(),
+                    },
+                },
             };
             Ok(tyspec)
         }
@@ -91,6 +108,23 @@ pub fn parse_type(parser: &mut Parser) -> Result<TypeSpec, ParseError> {
             other
         ))),
     }
+}
+
+pub fn is_type_keyword(ident: &str) -> bool {
+    matches!(
+        ident,
+        "i8" | "i16"
+            | "i32"
+            | "i64"
+            | "u8"
+            | "u16"
+            | "u32"
+            | "u64"
+            | "f32"
+            | "f64"
+            | "str"
+            | "bool"
+    )
 }
 
 #[cfg(test)]
@@ -104,7 +138,8 @@ mod tests {
                 #[test]
                 fn $case() {
                     let mut parser = Parser::new(Lexer::new($input));
-                    let type_spec = parse_type(&mut parser).unwrap();
+                    let token = parser.consume().unwrap();
+                    let type_spec = parse_type(&mut parser, token).unwrap();
                     assert_eq!(type_spec, $want);
                 }
            )*
@@ -118,7 +153,10 @@ mod tests {
         },
         parse_type_named_type {
             input: "MyType",
-            want: TypeSpec::Named("MyType".to_string()),
+            want: TypeSpec::Named {
+                module: None,
+                name: "MyType".to_string()
+            },
         },
         parse_type_pointer_type {
             input: "*i32",

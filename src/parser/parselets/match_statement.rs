@@ -1,7 +1,7 @@
-use crate::ast::{MatchArm, MatchStmt, Pattern, Stmt};
+use crate::ast::{MatchArm, MatchStmt, Stmt};
 use crate::parser::lexer::{Token, TokenKind};
 use crate::parser::parselets::PrefixStmtParselet;
-use crate::parser::{ParseError, Parser, statement};
+use crate::parser::{ParseError, Parser, pattern, statement};
 
 /// Parses match statements
 ///
@@ -15,6 +15,7 @@ impl PrefixStmtParselet for MatchParselet {
         let matched = parser.match_token(TokenKind::OpenBrace)?;
         if !matched {
             return Err(ParseError::UnexpectedToken(
+                parser.lookahead(0)?.clone(),
                 "Expected '{' after match expression".to_string(),
             ));
         }
@@ -30,15 +31,17 @@ impl PrefixStmtParselet for MatchParselet {
             let matches = parser.match_token(TokenKind::Eof)?;
             if matches {
                 return Err(ParseError::UnexpectedToken(
+                    parser.lookahead(0)?.clone(),
                     "missing closing '}' in match block".to_string(),
                 ));
             }
 
-            let pattern = parse_pattern(parser)?;
+            let pattern = pattern::parse_pattern(parser)?;
 
             let matched = parser.match_token(TokenKind::OpenBrace)?;
             if !matched {
                 return Err(ParseError::UnexpectedToken(
+                    parser.lookahead(0)?.clone(),
                     "Expected '{' after pattern in match arm".to_string(),
                 ));
             }
@@ -48,6 +51,7 @@ impl PrefixStmtParselet for MatchParselet {
             let matched = parser.match_token(TokenKind::Semicolon)?;
             if !matched {
                 return Err(ParseError::UnexpectedToken(
+                    parser.lookahead(0)?.clone(),
                     "Expected ';' after body in match arm".to_string(),
                 ));
             }
@@ -57,6 +61,7 @@ impl PrefixStmtParselet for MatchParselet {
 
         if arms.is_empty() {
             return Err(ParseError::UnexpectedToken(
+                parser.lookahead(0)?.clone(),
                 "match statement must have at least one arm".to_string(),
             ));
         }
@@ -65,6 +70,7 @@ impl PrefixStmtParselet for MatchParselet {
     }
 }
 
+/*
 /// Parse a pattern in a match arm
 fn parse_pattern(parser: &mut Parser) -> Result<Pattern, ParseError> {
     let token = parser.lookahead(0)?;
@@ -75,6 +81,7 @@ fn parse_pattern(parser: &mut Parser) -> Result<Pattern, ParseError> {
             parse_enum_variant(parser)
         }
         _ => Err(ParseError::UnexpectedToken(
+            token.clone(),
             "Expected pattern (e.g., '.Variant' or '.Variant(binding)')".to_string(),
         )),
     }
@@ -86,6 +93,7 @@ fn parse_enum_variant(parser: &mut Parser) -> Result<Pattern, ParseError> {
 
     if token.kind != TokenKind::Identifier {
         return Err(ParseError::UnexpectedToken(
+            token.clone(),
             "Expected identifier after '.' in enum variant pattern".to_string(),
         ));
     }
@@ -109,11 +117,13 @@ fn parse_enum_variant(parser: &mut Parser) -> Result<Pattern, ParseError> {
             let matched = parser.match_token(TokenKind::CloseParen)?;
             if !matched {
                 return Err(ParseError::UnexpectedToken(
+                    parser.lookahead(0)?.clone(),
                     "Expected ')' after binding identifier in enum pattern".to_string(),
                 ));
             }
         } else {
             return Err(ParseError::UnexpectedToken(
+                binding_token.clone(),
                 "Expected identifier or ')' in enum pattern payload".to_string(),
             ));
         }
@@ -125,3 +135,4 @@ fn parse_enum_variant(parser: &mut Parser) -> Result<Pattern, ParseError> {
         payload_binding,
     })
 }
+*/

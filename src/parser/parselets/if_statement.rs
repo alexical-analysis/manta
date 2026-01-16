@@ -16,6 +16,7 @@ impl PrefixStmtParselet for IfParselet {
         let matched = parser.match_token(TokenKind::OpenBrace)?;
         if !matched {
             return Err(ParseError::UnexpectedToken(
+                parser.lookahead(0)?.clone(),
                 "Expected '{' after if check".to_string(),
             ));
         }
@@ -28,15 +29,12 @@ impl PrefixStmtParselet for IfParselet {
             let matched = parser.match_token(TokenKind::OpenBrace)?;
             if !matched {
                 return Err(ParseError::UnexpectedToken(
+                    parser.lookahead(0)?.clone(),
                     "Expected '{' after else keyword".to_string(),
                 ));
             }
             fail = Some(statement::parse_block(parser)?);
         }
-
-        let one = parser.lookahead(0)?.kind;
-        let two = parser.lookahead(1)?.kind;
-        let three = parser.lookahead(2)?.kind;
 
         Ok(Stmt::If(IfStmt {
             check,

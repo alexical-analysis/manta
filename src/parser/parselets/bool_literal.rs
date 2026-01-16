@@ -1,5 +1,5 @@
 use crate::ast::Expr;
-use crate::parser::lexer::Token;
+use crate::parser::lexer::{Token, TokenKind};
 use crate::parser::parselets::PrefixExprParselet;
 use crate::parser::{ParseError, Parser};
 
@@ -10,13 +10,11 @@ pub struct BoolLiteralParselet;
 
 impl PrefixExprParselet for BoolLiteralParselet {
     fn parse(&self, _parser: &mut Parser, token: Token) -> Result<Expr, ParseError> {
-        let value = match token.kind {
-            crate::parser::lexer::TokenKind::TrueLiteral => true,
-            crate::parser::lexer::TokenKind::FalseLiteral => false,
-            _ => return Err(ParseError::Custom("Invalid boolean token".to_string())),
-        };
-
-        Ok(Expr::BoolLiteral(value))
+        match token.kind {
+            TokenKind::TrueLiteral => Ok(Expr::BoolLiteral(true)),
+            TokenKind::FalseLiteral => Ok(Expr::BoolLiteral(false)),
+            _ => Err(ParseError::Custom("Invalid boolean token".to_string())),
+        }
     }
 }
 

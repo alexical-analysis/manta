@@ -1,5 +1,5 @@
-use super::Precedence;
 use crate::ast::{CallExpr, Expr, FreeExpr, IdentifierExpr, NewExpr};
+use crate::parser::Precedence;
 use crate::parser::lexer::{Token, TokenKind};
 use crate::parser::parselets::InfixExprParselet;
 use crate::parser::types as type_parser;
@@ -46,6 +46,7 @@ impl InfixExprParselet for CallParselet {
         let matched = parser.match_token(TokenKind::CloseParen)?;
         if !matched {
             return Err(ParseError::UnexpectedToken(
+                parser.lookahead(0)?.clone(),
                 "expected ')' after function arguments".to_string(),
             ));
         }
@@ -69,16 +70,18 @@ impl InfixExprParselet for CallParselet {
         }
     }
 
-    fn precedence(&self) -> super::Precedence {
+    fn precedence(&self) -> Precedence {
         Precedence::Call
     }
 }
 
 impl CallParselet {
+    // TODO: this should acutally be 'alloc' instead of 'new'
     fn parse_new_call(&self, parser: &mut Parser, _token: Token) -> Result<Expr, ParseError> {
         // new(type_spec [, len [, cap]])
         // Parse a type specification first (not an expression)
-        let tyspec = type_parser::parse_type(parser)?;
+        let token = parser.consume()?;
+        let tyspec = type_parser::parse_type(parser, token)?;
 
         let mut len = None;
         let mut cap = None;
@@ -95,6 +98,7 @@ impl CallParselet {
 
         if !parser.match_token(TokenKind::CloseParen)? {
             return Err(ParseError::UnexpectedToken(
+                parser.lookahead(0)?.clone(),
                 "expected ')' after new(...)".to_string(),
             ));
         }

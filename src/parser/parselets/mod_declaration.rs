@@ -14,6 +14,7 @@ impl PrefixDeclParselet for ModDeclParselet {
         let name = parser.consume()?;
         if name.kind != TokenKind::Identifier {
             return Err(ParseError::UnexpectedToken(
+                name.clone(),
                 "Missing module name".to_string(),
             ));
         }

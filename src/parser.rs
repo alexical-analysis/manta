@@ -2,19 +2,25 @@ pub mod declaration;
 pub mod expression;
 pub mod lexer;
 pub mod parselets;
+pub mod pattern;
 pub mod statement;
 pub mod types;
 
-use crate::ast::{BinaryOp, Decl, Expr, ModDecl, UnaryOp};
-use crate::parser::parselets::{BlockParselet, InfixStmtParselet, PrefixDeclParselet};
+use crate::ast::{BinaryOp, Decl, Expr, UnaryOp};
+use crate::parser::parselets::{
+    BlockParselet, InfixPatternParselet, InfixStmtParselet, PrefixDeclParselet,
+    PrefixPatternParselet,
+};
 use lexer::{Lexer, Token, TokenKind};
 use parselets::{
     AssignParselet, BinaryOperatorParselet, BoolLiteralParselet, CallParselet, ConstDeclParselet,
-    DeferParselet, FieldAccessParselet, FloatLiteralParselet, GroupParselet, IdentifierParselet,
-    IfParselet, IndexParselet, InferedVariantParselet, InfixExprParselet, IntLiteralParselet,
-    LetParselet, MatchParselet, ModDeclParselet, Precedence, PrefixExprParselet,
-    PrefixStmtParselet, ReturnParselet, StringLiteralParselet, TypeDeclParselet,
-    UnaryOperatorParselet, UseDeclParselet,
+    DeferParselet, DotAccessParselet, FloatLiteralParselet, GroupParselet, IdentifierParselet,
+    IdentifierPatternParselet, IfParselet, IndexParselet, InferedVariantParselet,
+    InfixDotPatternParselet, InfixExprParselet, IntLiteralParselet, LetParselet,
+    LiteralPatternParselet, MatchParselet, MetaTypeParselet, ModDeclParselet, ModPatternParselet,
+    ModuleAccessParselet, PayloadPatternParselet, Precedence, PrefixDotPatternParselet,
+    PrefixExprParselet, PrefixStmtParselet, ReturnParselet, StringLiteralParselet,
+    TypeDeclParselet, TypePatternParselet, UnaryOperatorParselet, UseDeclParselet,
 };
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -23,13 +29,11 @@ use std::rc::Rc;
 #[derive(Debug, Clone)]
 pub enum ParseError {
     Custom(String),
-    UnexpectedToken(String),
-    UnexpectedEof(String),
+    UnexpectedToken(Token, String),
     MissingExpression(String),
     InvalidTypeSpec(String),
     InvalidArguments(String),
-    InvalidExpression(String),
-    UnknownStatement(String),
+    InvalidExpression(Token, String),
 }
 
 impl ParseError {
@@ -62,6 +66,10 @@ pub struct Parser {
     prefix_stmt_parselets: HashMap<TokenKind, Rc<dyn PrefixStmtParselet>>,
     infix_stmt_parselets: HashMap<TokenKind, Rc<dyn InfixStmtParselet>>,
 
+    // prefix and infix pattern match parselets
+    prefix_pattern_parselets: HashMap<TokenKind, Rc<dyn PrefixPatternParselet>>,
+    infix_pattern_parselets: HashMap<TokenKind, Rc<dyn InfixPatternParselet>>,
+
     // top-level declaration parselets
     prefix_decl_parselets: HashMap<TokenKind, Rc<dyn PrefixDeclParselet>>,
 }
@@ -76,6 +84,8 @@ impl Parser {
             infix_expr_parselets: HashMap::new(),
             prefix_stmt_parselets: HashMap::new(),
             infix_stmt_parselets: HashMap::new(),
+            prefix_pattern_parselets: HashMap::new(),
+            infix_pattern_parselets: HashMap::new(),
             prefix_decl_parselets: HashMap::new(),
         };
 
@@ -116,8 +126,9 @@ impl Parser {
                 operator: UnaryOp::AddressOf,
             }),
         );
-        parser.register_expr_prefix(TokenKind::OpenParen, Rc::new(GroupParselet {}));
-        parser.register_expr_prefix(TokenKind::Dot, Rc::new(InferedVariantParselet {}));
+        parser.register_expr_prefix(TokenKind::OpenParen, Rc::new(GroupParselet));
+        parser.register_expr_prefix(TokenKind::Dot, Rc::new(InferedVariantParselet));
+        parser.register_expr_prefix(TokenKind::At, Rc::new(MetaTypeParselet));
 
         // Register infix parselets for binary operators
         parser.register_expr_infix(
@@ -232,9 +243,10 @@ impl Parser {
                 precedence: Precedence::BitwiseXor,
             }),
         );
-        parser.register_expr_infix(TokenKind::OpenParen, Rc::new(CallParselet {}));
-        parser.register_expr_infix(TokenKind::OpenSquare, Rc::new(IndexParselet {}));
-        parser.register_expr_infix(TokenKind::Dot, Rc::new(FieldAccessParselet {}));
+        parser.register_expr_infix(TokenKind::OpenParen, Rc::new(CallParselet));
+        parser.register_expr_infix(TokenKind::OpenSquare, Rc::new(IndexParselet));
+        parser.register_expr_infix(TokenKind::Dot, Rc::new(DotAccessParselet));
+        parser.register_expr_infix(TokenKind::ColonColon, Rc::new(ModuleAccessParselet));
 
         // Register prefix statement parselets
         parser.register_stmt_prefix(TokenKind::LetKeyword, Rc::new(LetParselet));
@@ -257,6 +269,22 @@ impl Parser {
         parser.register_decl_prefix(TokenKind::ConstKeyword, Rc::new(ConstDeclParselet));
         parser.register_decl_prefix(TokenKind::UseKeyword, Rc::new(UseDeclParselet));
         parser.register_decl_prefix(TokenKind::ModKeyword, Rc::new(ModDeclParselet));
+
+        // Register prefix pattern parselets
+        parser.register_pattern_prefix(TokenKind::Identifier, Rc::new(IdentifierPatternParselet));
+        parser.register_pattern_prefix(TokenKind::Dot, Rc::new(PrefixDotPatternParselet));
+        parser.register_pattern_prefix(TokenKind::Star, Rc::new(TypePatternParselet));
+        parser.register_pattern_prefix(TokenKind::OpenSquare, Rc::new(TypePatternParselet));
+        parser.register_pattern_prefix(TokenKind::TrueLiteral, Rc::new(LiteralPatternParselet));
+        parser.register_pattern_prefix(TokenKind::FalseLiteral, Rc::new(LiteralPatternParselet));
+        parser.register_pattern_prefix(TokenKind::Int, Rc::new(LiteralPatternParselet));
+        parser.register_pattern_prefix(TokenKind::Float, Rc::new(LiteralPatternParselet));
+        parser.register_pattern_prefix(TokenKind::Str, Rc::new(LiteralPatternParselet));
+
+        // Register infix pattern parselets
+        parser.register_pattern_infix(TokenKind::Dot, Rc::new(InfixDotPatternParselet));
+        parser.register_pattern_infix(TokenKind::ColonColon, Rc::new(ModPatternParselet));
+        parser.register_pattern_infix(TokenKind::OpenParen, Rc::new(PayloadPatternParselet));
 
         parser
     }
@@ -316,6 +344,24 @@ impl Parser {
         self.infix_stmt_parselets.insert(kind, parselets);
     }
 
+    /// Register a prefix pattern parselet for a token kind.
+    pub fn register_pattern_prefix(
+        &mut self,
+        kind: TokenKind,
+        parselets: Rc<dyn PrefixPatternParselet>,
+    ) {
+        self.prefix_pattern_parselets.insert(kind, parselets);
+    }
+
+    /// Register a infix pattern parselet for a token kind.
+    pub fn register_pattern_infix(
+        &mut self,
+        kind: TokenKind,
+        parselets: Rc<dyn InfixPatternParselet>,
+    ) {
+        self.infix_pattern_parselets.insert(kind, parselets);
+    }
+
     /// Register a prefix decl parselet for a token kind.
     pub fn register_decl_prefix(&mut self, kind: TokenKind, parselet: Rc<dyn PrefixDeclParselet>) {
         self.prefix_decl_parselets.insert(kind, parselet);
@@ -347,7 +393,7 @@ impl Parser {
     fn get_precedence(&self, kind: &TokenKind) -> Result<Precedence, ParseError> {
         match self.infix_expr_parselets.get(kind) {
             Some(parselet) => Ok(parselet.precedence()),
-            None => Err(ParseError::UnexpectedToken(format!(
+            None => Err(ParseError::Custom(format!(
                 "Unknown token precedence for kind: {:?}",
                 kind
             ))),
@@ -427,14 +473,13 @@ mod tests {
         let result = parser.parse_expression();
         assert!(result.is_err());
         match result.unwrap_err() {
-            ParseError::UnexpectedToken(msg) => {
+            ParseError::UnexpectedToken(_, msg) => {
                 assert!(msg.contains("No prefix parselet"));
             }
             _ => panic!("Expected UnexpectedToken error"),
         }
     }
 
-    /*
     #[test]
     fn parse_file_tests() {
         let test_dir = Path::new("tests/src");
@@ -527,5 +572,4 @@ mod tests {
             );
         }
     }
-    */
 }

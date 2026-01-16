@@ -1,0 +1,167 @@
+[
+  {
+    "Mod": {
+      "name": "main"
+    }
+  },
+  {
+    "Use": {
+      "modules": [
+        "fmt"
+      ]
+    }
+  },
+  {
+    "Function": {
+      "name": "main",
+      "params": [],
+      "return_type": null,
+      "body": {
+        "statements": [
+          {
+            "Let": {
+              "pattern": {
+                "Identifier": {
+                  "name": "check_this"
+                }
+              },
+              "value": {
+                "BoolLiteral": true
+              },
+              "or_binding": null,
+              "except": null
+            }
+          },
+          {
+            "If": {
+              "check": {
+                "Identifier": {
+                  "name": "check_this"
+                }
+              },
+              "success": {
+                "statements": [
+                  {
+                    "Expr": {
+                      "expr": {
+                        "ModuleAccess": {
+                          "module": {
+                            "name": "fmt"
+                          },
+                          "expr": {
+                            "Call": {
+                              "func": {
+                                "Identifier": {
+                                  "name": "println"
+                                }
+                              },
+                              "args": [
+                                {
+                                  "StringLiteral": "yes"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "fail": null
+            }
+          },
+          {
+            "Let": {
+              "pattern": {
+                "Identifier": {
+                  "name": "nine"
+                }
+              },
+              "value": {
+                "IntLiteral": 9
+              },
+              "or_binding": null,
+              "except": null
+            }
+          },
+          {
+            "If": {
+              "check": {
+                "Binary": {
+                  "left": {
+                    "Identifier": {
+                      "name": "nine"
+                    }
+                  },
+                  "operator": "GreaterThan",
+                  "right": {
+                    "IntLiteral": 10
+                  }
+                }
+              },
+              "success": {
+                "statements": [
+                  {
+                    "Expr": {
+                      "expr": {
+                        "ModuleAccess": {
+                          "module": {
+                            "name": "fmt"
+                          },
+                          "expr": {
+                            "Call": {
+                              "func": {
+                                "Identifier": {
+                                  "name": "println"
+                                }
+                              },
+                              "args": [
+                                {
+                                  "StringLiteral": "no"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "fail": {
+                "statements": [
+                  {
+                    "Expr": {
+                      "expr": {
+                        "ModuleAccess": {
+                          "module": {
+                            "name": "fmt"
+                          },
+                          "expr": {
+                            "Call": {
+                              "func": {
+                                "Identifier": {
+                                  "name": "println"
+                                }
+                              },
+                              "args": [
+                                {
+                                  "StringLiteral": "yes"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+]

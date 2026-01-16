@@ -1,0 +1,345 @@
+[
+  {
+    "Mod": {
+      "name": "main"
+    }
+  },
+  {
+    "Use": {
+      "modules": [
+        "math",
+        "fmt"
+      ]
+    }
+  },
+  {
+    "Type": {
+      "name": {
+        "name": "Shape"
+      },
+      "type_spec": {
+        "Enum": {
+          "variants": [
+            {
+              "name": "Circle",
+              "payload": "Int32"
+            },
+            {
+              "name": "Square",
+              "payload": "Int32"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "Function": {
+      "name": "area",
+      "params": [
+        {
+          "name": "s",
+          "type_spec": {
+            "Named": {
+              "module": null,
+              "name": "Shape"
+            }
+          }
+        }
+      ],
+      "return_type": "Int32",
+      "body": {
+        "statements": [
+          {
+            "Match": {
+              "target": {
+                "Identifier": {
+                  "name": "s"
+                }
+              },
+              "arms": [
+                {
+                  "pattern": {
+                    "Payload": {
+                      "pat": {
+                        "DotAccess": {
+                          "target": null,
+                          "field": {
+                            "name": "Circle"
+                          }
+                        }
+                      },
+                      "payload": "r"
+                    }
+                  },
+                  "body": {
+                    "statements": [
+                      {
+                        "Return": {
+                          "value": {
+                            "Binary": {
+                              "left": {
+                                "Binary": {
+                                  "left": {
+                                    "DotAccess": {
+                                      "target": {
+                                        "Identifier": {
+                                          "name": "math"
+                                        }
+                                      },
+                                      "field": {
+                                        "name": "PI"
+                                      }
+                                    }
+                                  },
+                                  "operator": "Multiply",
+                                  "right": {
+                                    "Identifier": {
+                                      "name": "r"
+                                    }
+                                  }
+                                }
+                              },
+                              "operator": "Multiply",
+                              "right": {
+                                "Identifier": {
+                                  "name": "r"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pattern": {
+                    "Payload": {
+                      "pat": {
+                        "DotAccess": {
+                          "target": null,
+                          "field": {
+                            "name": "Square"
+                          }
+                        }
+                      },
+                      "payload": "s"
+                    }
+                  },
+                  "body": {
+                    "statements": [
+                      {
+                        "Return": {
+                          "value": {
+                            "Binary": {
+                              "left": {
+                                "Identifier": {
+                                  "name": "s"
+                                }
+                              },
+                              "operator": "Multiply",
+                              "right": {
+                                "Identifier": {
+                                  "name": "s"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "Function": {
+      "name": "main",
+      "params": [],
+      "return_type": null,
+      "body": {
+        "statements": [
+          {
+            "Let": {
+              "pattern": {
+                "Identifier": {
+                  "name": "square"
+                }
+              },
+              "value": {
+                "Call": {
+                  "func": {
+                    "DotAccess": {
+                      "target": {
+                        "Identifier": {
+                          "name": "Shape"
+                        }
+                      },
+                      "field": {
+                        "name": "Square"
+                      }
+                    }
+                  },
+                  "args": [
+                    {
+                      "IntLiteral": 10
+                    }
+                  ]
+                }
+              },
+              "or_binding": null,
+              "except": null
+            }
+          },
+          {
+            "Let": {
+              "pattern": {
+                "Identifier": {
+                  "name": "square_area"
+                }
+              },
+              "value": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "area"
+                    }
+                  },
+                  "args": [
+                    {
+                      "Identifier": {
+                        "name": "square"
+                      }
+                    }
+                  ]
+                }
+              },
+              "or_binding": null,
+              "except": null
+            }
+          },
+          {
+            "Expr": {
+              "expr": {
+                "ModuleAccess": {
+                  "module": {
+                    "name": "fmt"
+                  },
+                  "expr": {
+                    "Call": {
+                      "func": {
+                        "Identifier": {
+                          "name": "println"
+                        }
+                      },
+                      "args": [
+                        {
+                          "Identifier": {
+                            "name": "square_area"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "Let": {
+              "pattern": {
+                "Payload": {
+                  "pat": {
+                    "Identifier": {
+                      "name": "Shape"
+                    }
+                  },
+                  "payload": "circle"
+                }
+              },
+              "value": {
+                "Call": {
+                  "func": {
+                    "DotAccess": {
+                      "target": null,
+                      "field": {
+                        "name": "Circle"
+                      }
+                    }
+                  },
+                  "args": [
+                    {
+                      "IntLiteral": 3
+                    }
+                  ]
+                }
+              },
+              "or_binding": null,
+              "except": null
+            }
+          },
+          {
+            "Let": {
+              "pattern": {
+                "Identifier": {
+                  "name": "circle_area"
+                }
+              },
+              "value": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "area"
+                    }
+                  },
+                  "args": [
+                    {
+                      "Identifier": {
+                        "name": "circle"
+                      }
+                    }
+                  ]
+                }
+              },
+              "or_binding": null,
+              "except": null
+            }
+          },
+          {
+            "Expr": {
+              "expr": {
+                "ModuleAccess": {
+                  "module": {
+                    "name": "fmt"
+                  },
+                  "expr": {
+                    "Call": {
+                      "func": {
+                        "Identifier": {
+                          "name": "println"
+                        }
+                      },
+                      "args": [
+                        {
+                          "Identifier": {
+                            "name": "circle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+]

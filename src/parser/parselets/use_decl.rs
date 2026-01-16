@@ -14,6 +14,7 @@ impl PrefixDeclParselet for UseDeclParselet {
         let matched = parser.match_token(TokenKind::OpenParen)?;
         if !matched {
             return Err(ParseError::UnexpectedToken(
+                parser.lookahead(0)?.clone(),
                 "Expected '(' after import keyword".to_string(),
             ));
         }
@@ -25,6 +26,7 @@ impl PrefixDeclParselet for UseDeclParselet {
         let matched = parser.match_token(TokenKind::CloseParen)?;
         if !matched {
             return Err(ParseError::UnexpectedToken(
+                parser.lookahead(0)?.clone(),
                 "Expected ')' after import modules".to_string(),
             ));
         }
@@ -50,7 +52,10 @@ fn parse_import_modules(parser: &mut Parser) -> Result<Vec<String>, ParseError> 
 
         let matched = parser.match_token(TokenKind::Semicolon)?;
         if !matched {
-            return Err(ParseError::UnexpectedToken("Expected ';'".to_string()));
+            return Err(ParseError::UnexpectedToken(
+                parser.lookahead(0)?.clone(),
+                "Expected ';'".to_string(),
+            ));
         }
 
         modules.push(module.lexeme);
@@ -58,6 +63,7 @@ fn parse_import_modules(parser: &mut Parser) -> Result<Vec<String>, ParseError> 
 
     if modules.is_empty() {
         return Err(ParseError::UnexpectedToken(
+            parser.lookahead(0)?.clone(),
             "Expected at least one module name string in import".to_string(),
         ));
     }

@@ -10,13 +10,10 @@ pub struct IntLiteralParselet;
 
 impl PrefixExprParselet for IntLiteralParselet {
     fn parse(&self, _parser: &mut Parser, token: Token) -> Result<Expr, ParseError> {
-        let value = token
-            .lexeme
-            .replace("_", "")
-            .parse::<i64>()
-            .map_err(|_| ParseError::invalid_integer(&token.lexeme))?;
-
-        Ok(Expr::IntLiteral(value))
+        match token.lexeme.replace("_", "").parse() {
+            Ok(n) => Ok(Expr::IntLiteral(n)),
+            Err(e) => Err(ParseError::Custom(format!("invalid integer {:?}", e))),
+        }
     }
 }
 

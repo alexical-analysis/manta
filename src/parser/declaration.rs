@@ -8,10 +8,10 @@ pub fn parse_declaration(parser: &mut Parser) -> Result<Decl, ParseError> {
 
     let prefix_opt = parser.prefix_decl_parselets.get(&token.kind);
     if prefix_opt.is_none() {
-        return Err(ParseError::UnexpectedToken(format!(
-            "Unexpected token at top level: {:?}",
-            token.kind
-        )));
+        return Err(ParseError::UnexpectedToken(
+            token.clone(),
+            format!("Unexpected token at top level: {:?}", token.kind),
+        ));
     }
 
     let prefix = prefix_opt.unwrap().clone();
@@ -20,10 +20,10 @@ pub fn parse_declaration(parser: &mut Parser) -> Result<Decl, ParseError> {
     // expect a semicolon after declarations
     let matched = parser.match_token(TokenKind::Semicolon)?;
     if !matched {
-        return Err(ParseError::UnexpectedToken(format!(
-            "Missing semicolon, got {:?}",
-            parser.lookahead(0),
-        )));
+        return Err(ParseError::UnexpectedToken(
+            parser.lookahead(0)?.clone(),
+            format!("Missing semicolon, got {:?}", parser.lookahead(0),),
+        ));
     }
 
     Ok(decl)
@@ -313,7 +313,10 @@ mod tests {
             ),
         },
         parse_decl_enum {
-            input: "type Result enum {\n\tOk(MyType)\n\tError\n}",
+            input: r###"type Result enum {
+    Ok(m::MyType)
+    Error
+}"###,
             want_var: Decl::Type(decl),
             want_value: assert_eq!(
                 decl,
@@ -325,7 +328,10 @@ mod tests {
                         variants: vec![
                             EnumVariant {
                                 name: "Ok".to_string(),
-                                payload: Some(TypeSpec::Named("MyType".to_string())),
+                                payload: Some(TypeSpec::Named {
+                                    module: Some("m".to_string()),
+                                    name: "MyType".to_string()
+                                }),
                             },
                             EnumVariant {
                                 name: "Error".to_string(),
@@ -349,9 +355,10 @@ mod tests {
                         variants: vec![
                             EnumVariant {
                                 name: "Some".to_string(),
-                                payload: Some(TypeSpec::Pointer(Box::new(TypeSpec::Named(
-                                    "Node".to_string()
-                                )))),
+                                payload: Some(TypeSpec::Pointer(Box::new(TypeSpec::Named {
+                                    module: None,
+                                    name: "Node".to_string()
+                                }))),
                             },
                             EnumVariant {
                                 name: "None".to_string(),

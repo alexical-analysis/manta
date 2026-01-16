@@ -22,6 +22,7 @@ fn parse_function_declaration(parser: &mut Parser) -> Result<FunctionDecl, Parse
     let name_token = parser.lookahead(0)?;
     if name_token.kind != TokenKind::Identifier {
         return Err(ParseError::UnexpectedToken(
+            name_token.clone(),
             "Expected function name".to_string(),
         ));
     }
@@ -32,6 +33,7 @@ fn parse_function_declaration(parser: &mut Parser) -> Result<FunctionDecl, Parse
     let matched = parser.match_token(TokenKind::OpenParen)?;
     if !matched {
         return Err(ParseError::UnexpectedToken(
+            parser.lookahead(0)?.clone(),
             "Expected '(' after function name".to_string(),
         ));
     }
@@ -43,6 +45,7 @@ fn parse_function_declaration(parser: &mut Parser) -> Result<FunctionDecl, Parse
     let matched = parser.match_token(TokenKind::CloseParen)?;
     if !matched {
         return Err(ParseError::UnexpectedToken(
+            parser.lookahead(0)?.clone(),
             "Expected ')' after parameters".to_string(),
         ));
     }
@@ -51,13 +54,15 @@ fn parse_function_declaration(parser: &mut Parser) -> Result<FunctionDecl, Parse
     let return_type = if parser.lookahead(0)?.kind == TokenKind::OpenBrace {
         None
     } else {
-        Some(types::parse_type(parser)?)
+        let token = parser.consume()?;
+        Some(types::parse_type(parser, token)?)
     };
 
     // Parse function body
     let matched = parser.match_token(TokenKind::OpenBrace)?;
     if !matched {
         return Err(ParseError::UnexpectedToken(
+            parser.lookahead(0)?.clone(),
             "Expected '{' before function body".to_string(),
         ));
     }
@@ -92,6 +97,7 @@ fn parse_parameters(parser: &mut Parser) -> Result<Vec<Parameter>, ParseError> {
         let tok = parser.lookahead(0)?;
         if tok.kind != TokenKind::Identifier {
             return Err(ParseError::UnexpectedToken(
+                tok.clone(),
                 "Expected parameter name".to_string(),
             ));
         }
@@ -116,7 +122,8 @@ fn parse_parameters(parser: &mut Parser) -> Result<Vec<Parameter>, ParseError> {
         }
 
         // Now parse the type spec
-        let type_spec = types::parse_type(parser)?;
+        let token = parser.consume()?;
+        let type_spec = types::parse_type(parser, token)?;
 
         // Add all parameters with this type
         for name in param_names {
@@ -135,6 +142,7 @@ fn parse_parameters(parser: &mut Parser) -> Result<Vec<Parameter>, ParseError> {
             }
             _ => {
                 return Err(ParseError::UnexpectedToken(
+                    parser.lookahead(0)?.clone(),
                     "Expected ',' or ')' in parameter list".to_string(),
                 ));
             }

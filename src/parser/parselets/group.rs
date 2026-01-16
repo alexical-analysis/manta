@@ -23,7 +23,10 @@ impl PrefixExprParselet for GroupParselet {
         // Expect a closing ')'
         let matched = parser.match_token(TokenKind::CloseParen)?;
         if !matched {
-            return Err(ParseError::UnexpectedToken("expected ')'".to_string()));
+            return Err(ParseError::UnexpectedToken(
+                parser.lookahead(0)?.clone(),
+                "expected ')'".to_string(),
+            ));
         }
 
         Ok(expr)

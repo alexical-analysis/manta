@@ -1,4 +1,4 @@
-use crate::ast::{BlockStmt, ExprStmt, Pattern, Stmt, TypeSpec};
+use crate::ast::{BlockStmt, ExprStmt, Stmt};
 use crate::parser::lexer::TokenKind;
 use crate::parser::{ParseError, Parser};
 
@@ -17,7 +17,10 @@ pub fn parse_statement(parser: &mut Parser) -> Result<Stmt, ParseError> {
         // Consume trailing semicolon for prefix statements
         let matched = parser.match_token(TokenKind::Semicolon)?;
         if !matched {
-            return Err(ParseError::UnexpectedToken("missing ';'".to_string()));
+            return Err(ParseError::UnexpectedToken(
+                parser.lookahead(0)?.clone(),
+                "missing ';'".to_string(),
+            ));
         }
 
         return Ok(stmt);
@@ -38,14 +41,20 @@ pub fn parse_statement(parser: &mut Parser) -> Result<Stmt, ParseError> {
 
         let matched = parser.match_token(TokenKind::Semicolon)?;
         if !matched {
-            return Err(ParseError::UnexpectedToken("missing ';'".to_string()));
+            return Err(ParseError::UnexpectedToken(
+                parser.lookahead(0)?.clone(),
+                "missing ';'".to_string(),
+            ));
         }
 
         Ok(stmt)
     } else {
         let matched = parser.match_token(TokenKind::Semicolon)?;
         if !matched {
-            return Err(ParseError::UnexpectedToken("missing ';'".to_string()));
+            return Err(ParseError::UnexpectedToken(
+                parser.lookahead(0)?.clone(),
+                "missing ';'".to_string(),
+            ));
         }
 
         Ok(Stmt::Expr(ExprStmt { expr }))
@@ -61,9 +70,10 @@ pub fn parse_block(parser: &mut Parser) -> Result<BlockStmt, ParseError> {
             break;
         }
 
-        let matches = parser.match_token(TokenKind::Eof)?;
-        if matches {
+        let eof_token = parser.lookahead(0)?;
+        if eof_token.kind == TokenKind::Eof {
             return Err(ParseError::UnexpectedToken(
+                eof_token.clone(),
                 "missing closing '}' in block".to_string(),
             ));
         }
@@ -75,137 +85,14 @@ pub fn parse_block(parser: &mut Parser) -> Result<BlockStmt, ParseError> {
     Ok(BlockStmt { statements })
 }
 
-pub fn parse_pattern(parser: &mut Parser) -> Result<Pattern, ParseError> {
-    let token = parser.lookahead(0)?;
-
-    match token.kind {
-        TokenKind::Identifier => {
-            let token = parser.consume()?;
-            let next = parser.lookahead(0)?;
-            match next.kind {
-                TokenKind::Dot => {
-                    parser.consume()?;
-                    parse_enum_pattern(parser, Some(token.lexeme))
-                }
-                TokenKind::OpenParen => {
-                    parser.consume()?;
-                    if parser.lookahead(0)?.kind == TokenKind::Identifier {
-                        let payload_binding = parser.consume()?.lexeme;
-                        let type_spec = match token.lexeme.as_str() {
-                            "i8" => TypeSpec::Int8,
-                            "i16" => TypeSpec::Int16,
-                            "i32" => TypeSpec::Int32,
-                            "i64" => TypeSpec::Int64,
-                            "u8" => TypeSpec::UInt8,
-                            "u16" => TypeSpec::UInt16,
-                            "u32" => TypeSpec::UInt32,
-                            "u64" => TypeSpec::UInt64,
-                            "f32" => TypeSpec::Float32,
-                            "f64" => TypeSpec::Float64,
-                            "str" => TypeSpec::String,
-                            "bool" => TypeSpec::Bool,
-                            s => TypeSpec::Named(s.to_string()),
-                        };
-
-                        parser.match_token(TokenKind::CloseParen)?;
-                        Ok(Pattern::TypeSpec {
-                            type_spec,
-                            payload_binding,
-                        })
-                    } else {
-                        Err(ParseError::UnexpectedToken(
-                            "invalid type pattern match".to_string(),
-                        ))
-                    }
-                }
-                _ => {
-                    if token.lexeme == "_" {
-                        Ok(Pattern::Default)
-                    } else {
-                        Ok(Pattern::Identifier(token.lexeme))
-                    }
-                }
-            }
-        }
-        TokenKind::Int => {
-            let token = parser.consume()?;
-            let i: i64 = token.lexeme.parse().unwrap();
-            Ok(Pattern::IntLiteral(i))
-        }
-        TokenKind::Str => {
-            let token = parser.consume()?;
-            Ok(Pattern::StringLiteral(token.lexeme))
-        }
-        TokenKind::Float => {
-            let token = parser.consume()?;
-            let f: f64 = token.lexeme.parse().unwrap();
-            Ok(Pattern::FloatLiteral(f))
-        }
-        TokenKind::TrueLiteral => {
-            parser.consume()?;
-            Ok(Pattern::BoolLiteral(true))
-        }
-        TokenKind::FalseLiteral => {
-            parser.consume()?;
-            Ok(Pattern::BoolLiteral(false))
-        }
-        TokenKind::Underscore => {
-            parser.consume()?;
-            Ok(Pattern::Default)
-        }
-        TokenKind::Dot => {
-            parser.consume()?;
-            parse_enum_pattern(parser, None)
-        }
-        _ => Err(ParseError::UnexpectedToken(
-            "Not a valid pattern".to_string(),
-        )),
-    }
-}
-
-fn parse_enum_pattern(
-    parser: &mut Parser,
-    type_name: Option<String>,
-) -> Result<Pattern, ParseError> {
-    let ident = parser.lookahead(0)?;
-    if ident.kind != TokenKind::Identifier {
-        return Err(ParseError::UnexpectedToken(
-            "Not a valid pattern".to_string(),
-        ));
-    }
-    let name = ident.lexeme.clone();
-
-    let mut payload_binding = None;
-    parser.consume()?;
-    if parser.lookahead(0).unwrap().kind == TokenKind::OpenParen {
-        parser.consume()?;
-        let payload = parser.lookahead(0)?;
-        if payload.kind != TokenKind::Identifier {
-            return Err(ParseError::UnexpectedToken(
-                "Not a valid pattern".to_string(),
-            ));
-        }
-
-        payload_binding = Some(payload.lexeme.clone());
-        parser.consume()?;
-
-        parser.match_token(TokenKind::CloseParen)?;
-    }
-
-    Ok(Pattern::EnumVariant {
-        type_name,
-        name,
-        payload_binding,
-    })
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
     use crate::ast::{
-        AssignStmt, BinaryExpr, BinaryOp, BlockStmt, CallExpr, DeferStmt, EnumVariant, Expr,
-        FieldAccessExpr, FreeExpr, IdentifierExpr, IfStmt, IndexExpr, LetStmt, MatchArm, MatchStmt,
-        NewExpr, Pattern, ReturnStmt, Stmt, TypeSpec, UnaryExpr, UnaryOp,
+        AssignStmt, BinaryExpr, BinaryOp, BlockStmt, CallExpr, DeferStmt, DotAccessExpr,
+        DotAccessPat, EnumVariantPat, Expr, FreeExpr, IdentifierExpr, IdentifierPat, IfStmt,
+        IndexExpr, LetStmt, MatchArm, MatchStmt, ModuleAccesPat, ModuleAccessExpr, NewExpr,
+        Pattern, PayloadPat, ReturnStmt, Stmt, TypeSpec, UnaryExpr, UnaryOp,
     };
     use crate::parser::lexer::Lexer;
     use pretty_assertions::assert_eq;
@@ -235,7 +122,9 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::Identifier("x".to_string()),
+                    pattern: Pattern::Identifier(IdentifierPat {
+                        name: "x".to_string()
+                    }),
                     value: Expr::IntLiteral(10),
                     or_binding: None,
                     except: None,
@@ -248,10 +137,12 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::TypeSpec {
-                        type_spec: TypeSpec::Bool,
-                        payload_binding: "y".to_string(),
-                    },
+                    pattern: Pattern::Payload(PayloadPat {
+                        pat: Box::new(Pattern::Identifier(IdentifierPat {
+                            name: "bool".to_string()
+                        })),
+                        payload: "y".to_string()
+                    }),
                     value: Expr::BoolLiteral(true),
                     or_binding: None,
                     except: None,
@@ -264,7 +155,9 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::Identifier("pi".to_string()),
+                    pattern: Pattern::Identifier(IdentifierPat {
+                        name: "pi".to_string()
+                    }),
                     value: Expr::FloatLiteral(3.45),
                     or_binding: None,
                     except: None,
@@ -277,10 +170,12 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::TypeSpec {
-                        type_spec: TypeSpec::Named("Person".to_string()),
-                        payload_binding: "jill".to_string(),
-                    },
+                    pattern: Pattern::Payload(PayloadPat {
+                        pat: Box::new(Pattern::Identifier(IdentifierPat {
+                            name: "Person".to_string(),
+                        })),
+                        payload: "jill".to_string()
+                    }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
                             name: "new_person".to_string()
@@ -315,7 +210,7 @@ mod test {
                 ReturnStmt {
                     value: Some(Expr::Index(IndexExpr {
                         target: Box::new(Expr::Call(CallExpr {
-                            func: Box::new(Expr::FieldAccess(FieldAccessExpr {
+                            func: Box::new(Expr::DotAccess(DotAccessExpr {
                                 target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                                     name: "builder".to_string(),
                                 }))),
@@ -403,17 +298,23 @@ mod test {
                 BlockStmt {
                     statements: vec![
                         Stmt::Let(LetStmt {
-                            pattern: Pattern::Identifier("a".to_string()),
+                            pattern: Pattern::Identifier(IdentifierPat {
+                                name: "a".to_string()
+                            }),
                             value: Expr::IntLiteral(10),
                             or_binding: None,
                             except: None,
                         }),
                         Stmt::Let(LetStmt {
-                            pattern: Pattern::EnumVariant {
-                                type_name: None,
-                                name: "Ok".to_string(),
-                                payload_binding: Some("b".to_string()),
-                            },
+                            pattern: Pattern::Payload(PayloadPat {
+                                pat: Box::new(Pattern::DotAccess(DotAccessPat {
+                                    target: None,
+                                    field: IdentifierPat {
+                                        name: "Ok".to_string()
+                                    },
+                                })),
+                                payload: "b".to_string()
+                            }),
                             value: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
                                     name: "maybe_int".to_string()
@@ -437,7 +338,9 @@ mod test {
                             }),
                         }),
                         Stmt::Let(LetStmt {
-                            pattern: Pattern::Identifier("c".to_string()),
+                            pattern: Pattern::Identifier(IdentifierPat {
+                                name: "c".to_string()
+                            }),
                             value: Expr::Binary(BinaryExpr {
                                 left: Box::new(Expr::Identifier(IdentifierExpr {
                                     name: "a".to_string()
@@ -493,7 +396,7 @@ mod test {
                         name: "name".to_string(),
                     }),
                     rvalue: Expr::Call(CallExpr {
-                        func: Box::new(Expr::FieldAccess(FieldAccessExpr {
+                        func: Box::new(Expr::DotAccess(DotAccessExpr {
                             target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                                 name: "person".to_string()
                             }))),
@@ -612,7 +515,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 ReturnStmt {
-                    value: Some(Expr::FieldAccess(FieldAccessExpr {
+                    value: Some(Expr::DotAccess(DotAccessExpr {
                         target: None,
                         field: Box::new(IdentifierExpr {
                             name: "Ok".to_string(),
@@ -627,11 +530,12 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::EnumVariant {
-                        type_name: None,
-                        name: "Ok".to_string(),
-                        payload_binding: None,
-                    },
+                    pattern: Pattern::DotAccess(DotAccessPat {
+                        target: None,
+                        field: IdentifierPat {
+                            name: "Ok".to_string(),
+                        },
+                    }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
                             name: "call".to_string()
@@ -664,11 +568,17 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::EnumVariant {
-                        type_name: Some("Ret".to_string()),
-                        name: "Valid".to_string(),
-                        payload_binding: Some("v".to_string()),
-                    },
+                    pattern: Pattern::Payload(PayloadPat {
+                        pat: Box::new(Pattern::DotAccess(DotAccessPat {
+                            target: Some(Box::new(Pattern::Identifier(IdentifierPat {
+                                name: "Ret".to_string(),
+                            }))),
+                            field: IdentifierPat {
+                                name: "Valid".to_string(),
+                            },
+                        })),
+                        payload: "v".to_string()
+                    }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
                             name: "validate".to_string()
@@ -698,11 +608,12 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::EnumVariant {
-                        type_name: None,
-                        name: "Err".to_string(),
-                        payload_binding: None
-                    },
+                    pattern: Pattern::DotAccess(DotAccessPat {
+                        target: None,
+                        field: IdentifierPat {
+                            name: "Err".to_string()
+                        },
+                    }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
                             name: "build_item".to_string(),
@@ -743,11 +654,15 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::EnumVariant {
-                        type_name: None,
-                        name: "Ok".to_string(),
-                        payload_binding: Some("d".to_string())
-                    },
+                    pattern: Pattern::Payload(PayloadPat {
+                        pat: Box::new(Pattern::DotAccess(DotAccessPat {
+                            target: None,
+                            field: IdentifierPat {
+                                name: "Ok".to_string()
+                            },
+                        })),
+                        payload: "d".to_string()
+                    }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
                             name: "div".to_string()
@@ -760,7 +675,7 @@ mod test {
                     except: Some(BlockStmt {
                         statements: vec![Stmt::Return(ReturnStmt {
                             value: Some(Expr::Call(CallExpr {
-                                func: Box::new(Expr::FieldAccess(FieldAccessExpr {
+                                func: Box::new(Expr::DotAccess(DotAccessExpr {
                                     target: None,
                                     field: Box::new(IdentifierExpr {
                                         name: "Err".to_string()
@@ -789,11 +704,15 @@ mod test {
                     }),
                     arms: vec![
                         MatchArm {
-                            pattern: Pattern::EnumVariant {
-                                type_name: None,
-                                name: "Some".to_string(),
-                                payload_binding: Some("v".to_string()),
-                            },
+                            pattern: Pattern::Payload(PayloadPat {
+                                pat: Box::new(Pattern::DotAccess(DotAccessPat {
+                                    target: None,
+                                    field: IdentifierPat {
+                                        name: "Some".to_string()
+                                    },
+                                })),
+                                payload: "v".to_string(),
+                            }),
                             body: BlockStmt {
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
@@ -808,11 +727,12 @@ mod test {
                             },
                         },
                         MatchArm {
-                            pattern: Pattern::EnumVariant {
-                                type_name: None,
-                                name: "None".to_string(),
-                                payload_binding: None,
-                            },
+                            pattern: Pattern::DotAccess(DotAccessPat {
+                                target: None,
+                                field: IdentifierPat {
+                                    name: "None".to_string()
+                                },
+                            }),
                             body: BlockStmt {
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
@@ -843,11 +763,15 @@ mod test {
                     }),
                     arms: vec![
                         MatchArm {
-                            pattern: Pattern::EnumVariant {
-                                type_name: None,
-                                name: "Success".to_string(),
-                                payload_binding: Some("val".to_string()),
-                            },
+                            pattern: Pattern::Payload(PayloadPat {
+                                pat: Box::new(Pattern::DotAccess(DotAccessPat {
+                                    target: None,
+                                    field: IdentifierPat {
+                                        name: "Success".to_string(),
+                                    },
+                                })),
+                                payload: "val".to_string()
+                            }),
                             body: BlockStmt {
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
@@ -862,11 +786,15 @@ mod test {
                             },
                         },
                         MatchArm {
-                            pattern: Pattern::EnumVariant {
-                                type_name: None,
-                                name: "Warning".to_string(),
-                                payload_binding: Some("msg".to_string()),
-                            },
+                            pattern: Pattern::Payload(PayloadPat {
+                                pat: Box::new(Pattern::DotAccess(DotAccessPat {
+                                    target: None,
+                                    field: IdentifierPat {
+                                        name: "Warning".to_string(),
+                                    },
+                                })),
+                                payload: "msg".to_string()
+                            }),
                             body: BlockStmt {
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
@@ -881,11 +809,12 @@ mod test {
                             },
                         },
                         MatchArm {
-                            pattern: Pattern::EnumVariant {
-                                type_name: None,
-                                name: "Failed".to_string(),
-                                payload_binding: None,
-                            },
+                            pattern: Pattern::DotAccess(DotAccessPat {
+                                target: None,
+                                field: IdentifierPat {
+                                    name: "Failed".to_string()
+                                },
+                            }),
                             body: BlockStmt {
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
@@ -915,11 +844,12 @@ mod test {
                     }),
                     arms: vec![
                         MatchArm {
-                            pattern: Pattern::EnumVariant {
-                                type_name: None,
-                                name: "Ready".to_string(),
-                                payload_binding: None,
-                            },
+                            pattern: Pattern::DotAccess(DotAccessPat {
+                                target: None,
+                                field: IdentifierPat {
+                                    name: "Ready".to_string()
+                                },
+                            }),
                             body: BlockStmt {
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
@@ -932,11 +862,15 @@ mod test {
                             },
                         },
                         MatchArm {
-                            pattern: Pattern::EnumVariant {
-                                type_name: None,
-                                name: "Idle".to_string(),
-                                payload_binding: Some("ts".to_string()),
-                            },
+                            pattern: Pattern::Payload(PayloadPat {
+                                pat: Box::new(Pattern::DotAccess(DotAccessPat {
+                                    target: None,
+                                    field: IdentifierPat {
+                                        name: "Idle".to_string(),
+                                    },
+                                })),
+                                payload: "ts".to_string()
+                            }),
                             body: BlockStmt {
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
@@ -957,61 +891,59 @@ mod test {
                 }
             ),
         },
-    );
-
-    macro_rules! test_parse_patterns {
-        ( $( $case:ident { input: $input:expr, want: $want:expr, } ),*, ) => {
-            $(
-                #[test]
-                fn $case() {
-                    let lexer = Lexer::new($input);
-                    let mut parser = Parser::new(lexer);
-                    let pattern = parse_pattern(&mut parser).unwrap();
-                    assert_eq!(pattern, $want)
+        parse_stmt_module_access_identifier {
+            input: "fmt::println",
+            want_var: Stmt::Expr(stmt),
+            want_value: assert_eq!(
+                stmt,
+                ExprStmt {
+                    expr: Expr::ModuleAccess(ModuleAccessExpr {
+                        module: Box::new(IdentifierExpr {
+                            name: "fmt".to_string(),
+                        }),
+                        expr: Box::new(Expr::Identifier(IdentifierExpr {
+                            name: "println".to_string(),
+                        })),
+                    }),
                 }
-            )*
-        }
-    }
-
-    test_parse_patterns!(
-        test_parse_pattern_int_literal {
-            input: "42",
-            want: Pattern::IntLiteral(42),
+            ),
         },
-        test_parse_pattern_string_literal {
-            input: r###""hello""###,
-            want: Pattern::StringLiteral("hello".to_string()),
+        parse_stmt_module_access_call {
+            input: "fmt::println(\"hello\")",
+            want_var: Stmt::Expr(stmt),
+            want_value: assert_eq!(
+                stmt,
+                ExprStmt {
+                    expr: Expr::ModuleAccess(ModuleAccessExpr {
+                        module: Box::new(IdentifierExpr {
+                            name: "fmt".to_string(),
+                        }),
+                        expr: Box::new(Expr::Call(CallExpr {
+                            func: Box::new(Expr::Identifier(IdentifierExpr {
+                                name: "println".to_string(),
+                            })),
+                            args: vec![Expr::StringLiteral("hello".to_string())],
+                        })),
+                    }),
+                }
+            ),
         },
-        test_parse_pattern_float_literal {
-            input: "3.45",
-            want: Pattern::FloatLiteral(3.45),
-        },
-        test_parse_pattern_true_literal {
-            input: "true",
-            want: Pattern::BoolLiteral(true),
-        },
-        test_parse_pattern_default {
-            input: "_",
-            want: Pattern::Default,
-        },
-        test_parse_pattern_identifier {
-            input: "my_var",
-            want: Pattern::Identifier("my_var".to_string()),
-        },
-        test_parse_pattern_type_match {
-            input: "f32(f)",
-            want: Pattern::TypeSpec {
-                type_spec: TypeSpec::Float32,
-                payload_binding: "f".to_string(),
-            },
+        parse_stmt_module_access_type {
+            input: "math::vec3",
+            want_var: Stmt::Expr(stmt),
+            want_value: assert_eq!(
+                stmt,
+                ExprStmt {
+                    expr: Expr::ModuleAccess(ModuleAccessExpr {
+                        module: Box::new(IdentifierExpr {
+                            name: "math".to_string(),
+                        }),
+                        expr: Box::new(Expr::Identifier(IdentifierExpr {
+                            name: "vec3".to_string(),
+                        })),
+                    }),
+                }
+            ),
         },
     );
-
-    #[test]
-    fn test_parse_pattern_invalid() {
-        let lexer = Lexer::new("+ ");
-        let mut parser = Parser::new(lexer);
-        let result = parse_pattern(&mut parser);
-        assert!(result.is_err());
-    }
 }

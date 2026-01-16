@@ -1,0 +1,439 @@
+[
+  {
+    "Mod": {
+      "name": "main"
+    }
+  },
+  {
+    "Use": {
+      "modules": [
+        "os",
+        "io",
+        "fmt"
+      ]
+    }
+  },
+  {
+    "Type": {
+      "name": {
+        "name": "ReadFile"
+      },
+      "type_spec": {
+        "Enum": {
+          "variants": [
+            {
+              "name": "Ok",
+              "payload": "String"
+            },
+            {
+              "name": "OpenErr",
+              "payload": {
+                "Named": {
+                  "module": "os",
+                  "name": "Open"
+                }
+              }
+            },
+            {
+              "name": "ReadErr",
+              "payload": {
+                "Named": {
+                  "module": "io",
+                  "name": "ReadToString"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "Function": {
+      "name": "read_file",
+      "params": [
+        {
+          "name": "path",
+          "type_spec": "String"
+        }
+      ],
+      "return_type": {
+        "Named": {
+          "module": null,
+          "name": "ReadFile"
+        }
+      },
+      "body": {
+        "statements": [
+          {
+            "Let": {
+              "pattern": {
+                "Payload": {
+                  "pat": {
+                    "DotAccess": {
+                      "target": null,
+                      "field": {
+                        "name": "Ok"
+                      }
+                    }
+                  },
+                  "payload": "f"
+                }
+              },
+              "value": {
+                "ModuleAccess": {
+                  "module": {
+                    "name": "os"
+                  },
+                  "expr": {
+                    "Call": {
+                      "func": {
+                        "Identifier": {
+                          "name": "open"
+                        }
+                      },
+                      "args": [
+                        {
+                          "Identifier": {
+                            "name": "path"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              "or_binding": {
+                "name": "e"
+              },
+              "except": {
+                "statements": [
+                  {
+                    "Return": {
+                      "value": {
+                        "Call": {
+                          "func": {
+                            "DotAccess": {
+                              "target": null,
+                              "field": {
+                                "name": "OpenErr"
+                              }
+                            }
+                          },
+                          "args": [
+                            {
+                              "Identifier": {
+                                "name": "e"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Defer": {
+              "block": {
+                "statements": [
+                  {
+                    "Expr": {
+                      "expr": {
+                        "ModuleAccess": {
+                          "module": {
+                            "name": "os"
+                          },
+                          "expr": {
+                            "Call": {
+                              "func": {
+                                "Identifier": {
+                                  "name": "close"
+                                }
+                              },
+                              "args": [
+                                {
+                                  "Identifier": {
+                                    "name": "f"
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Let": {
+              "pattern": {
+                "Payload": {
+                  "pat": {
+                    "DotAccess": {
+                      "target": null,
+                      "field": {
+                        "name": "Ok"
+                      }
+                    }
+                  },
+                  "payload": "s"
+                }
+              },
+              "value": {
+                "ModuleAccess": {
+                  "module": {
+                    "name": "io"
+                  },
+                  "expr": {
+                    "Call": {
+                      "func": {
+                        "Identifier": {
+                          "name": "read_to_string"
+                        }
+                      },
+                      "args": [
+                        {
+                          "Identifier": {
+                            "name": "f"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              "or_binding": {
+                "name": "e"
+              },
+              "except": {
+                "statements": [
+                  {
+                    "Return": {
+                      "value": {
+                        "Call": {
+                          "func": {
+                            "DotAccess": {
+                              "target": null,
+                              "field": {
+                                "name": "ReadErr"
+                              }
+                            }
+                          },
+                          "args": [
+                            {
+                              "Identifier": {
+                                "name": "e"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Return": {
+              "value": {
+                "Call": {
+                  "func": {
+                    "DotAccess": {
+                      "target": null,
+                      "field": {
+                        "name": "Ok"
+                      }
+                    }
+                  },
+                  "args": [
+                    {
+                      "Identifier": {
+                        "name": "s"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "Function": {
+      "name": "main",
+      "params": [],
+      "return_type": null,
+      "body": {
+        "statements": [
+          {
+            "Let": {
+              "pattern": {
+                "Payload": {
+                  "pat": {
+                    "DotAccess": {
+                      "target": null,
+                      "field": {
+                        "name": "Ok"
+                      }
+                    }
+                  },
+                  "payload": "content"
+                }
+              },
+              "value": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "read_file"
+                    }
+                  },
+                  "args": [
+                    {
+                      "StringLiteral": "/tmp/x.txt"
+                    }
+                  ]
+                }
+              },
+              "or_binding": {
+                "name": "e"
+              },
+              "except": {
+                "statements": [
+                  {
+                    "Expr": {
+                      "expr": {
+                        "ModuleAccess": {
+                          "module": {
+                            "name": "fmt"
+                          },
+                          "expr": {
+                            "Call": {
+                              "func": {
+                                "Identifier": {
+                                  "name": "printfln"
+                                }
+                              },
+                              "args": [
+                                {
+                                  "StringLiteral": "read failed: "
+                                },
+                                {
+                                  "Identifier": {
+                                    "name": "e"
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Return": {
+                      "value": null
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Expr": {
+              "expr": {
+                "ModuleAccess": {
+                  "module": {
+                    "name": "fmt"
+                  },
+                  "expr": {
+                    "Call": {
+                      "func": {
+                        "Identifier": {
+                          "name": "println"
+                        }
+                      },
+                      "args": [
+                        {
+                          "Identifier": {
+                            "name": "content"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "Let": {
+              "pattern": {
+                "Payload": {
+                  "pat": {
+                    "DotAccess": {
+                      "target": null,
+                      "field": {
+                        "name": "Ok"
+                      }
+                    }
+                  },
+                  "payload": "content"
+                }
+              },
+              "value": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "read_file"
+                    }
+                  },
+                  "args": [
+                    {
+                      "StringLiteral": "/tmp/missing.txt"
+                    }
+                  ]
+                }
+              },
+              "or_binding": {
+                "name": "e"
+              },
+              "except": {
+                "statements": [
+                  {
+                    "Expr": {
+                      "expr": {
+                        "Call": {
+                          "func": {
+                            "Identifier": {
+                              "name": "panic"
+                            }
+                          },
+                          "args": [
+                            {
+                              "Identifier": {
+                                "name": "e"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+]

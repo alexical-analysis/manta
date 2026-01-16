@@ -1,7 +1,7 @@
 use crate::ast::{BlockStmt, CallExpr, Expr, ExprStmt, IdentifierExpr, LetStmt, ReturnStmt, Stmt};
 use crate::parser::lexer::{Token, TokenKind};
 use crate::parser::parselets::PrefixStmtParselet;
-use crate::parser::{ParseError, Parser, Precedence, expression, statement};
+use crate::parser::{ParseError, Parser, Precedence, expression, pattern, statement};
 
 /// Parses try expressions
 ///
@@ -12,14 +12,14 @@ pub struct LetParselet;
 
 impl PrefixStmtParselet for LetParselet {
     fn parse(&self, parser: &mut Parser, _token: Token) -> Result<Stmt, ParseError> {
-        let pattern = statement::parse_pattern(parser)?;
+        let pattern = pattern::parse_pattern(parser)?;
 
         let matched = parser.match_token(TokenKind::Equal)?;
         if !matched {
-            return Err(ParseError::UnexpectedToken(format!(
-                "expected ':=' but got {:?}",
-                parser.lookahead(0)?,
-            )));
+            return Err(ParseError::UnexpectedToken(
+                parser.lookahead(0)?.clone(),
+                format!("expected ':=' but got {:?}", parser.lookahead(0)?,),
+            ));
         }
 
         let value = parser.parse_expression()?;
@@ -33,10 +33,13 @@ impl PrefixStmtParselet for LetParselet {
                     parser.consume()?;
                     let catch_ident = parser.consume()?;
                     if catch_ident.kind != TokenKind::Identifier {
-                        return Err(ParseError::UnexpectedToken(format!(
-                            "catch binding must be an identifier, but got {:?}",
-                            catch_ident,
-                        )));
+                        return Err(ParseError::UnexpectedToken(
+                            catch_ident.clone(),
+                            format!(
+                                "catch binding must be an identifier, but got {:?}",
+                                catch_ident,
+                            ),
+                        ));
                     }
                     parser.match_token(TokenKind::CloseParen)?;
 
@@ -50,6 +53,7 @@ impl PrefixStmtParselet for LetParselet {
                 let matches = parser.match_token(TokenKind::OpenBrace)?;
                 if !matches {
                     return Err(ParseError::UnexpectedToken(
+                        parser.lookahead(0)?.clone(),
                         "or should be followed by a block".to_string(),
                     ));
                 }
@@ -115,10 +119,10 @@ impl PrefixStmtParselet for LetParselet {
                 or_binding: None,
                 except: None,
             })),
-            _ => Err(ParseError::UnexpectedToken(format!(
-                "invalid token after try/catch {:?}",
-                next,
-            ))),
+            _ => Err(ParseError::UnexpectedToken(
+                next.clone(),
+                format!("invalid token after try/catch {:?}", next,),
+            )),
         }
     }
 }

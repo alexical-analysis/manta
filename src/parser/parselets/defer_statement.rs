@@ -10,10 +10,11 @@ use crate::parser::{ParseError, Parser};
 pub struct DeferParselet;
 
 impl PrefixStmtParselet for DeferParselet {
-    fn parse(&self, parser: &mut Parser, token: Token) -> Result<Stmt, ParseError> {
+    fn parse(&self, parser: &mut Parser, _: Token) -> Result<Stmt, ParseError> {
         let matched = parser.match_token(TokenKind::OpenBrace)?;
         if !matched {
             return Err(ParseError::UnexpectedToken(
+                parser.lookahead(0)?.clone(),
                 "block must start with '{'".to_string(),
             ));
         }

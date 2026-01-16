@@ -14,10 +14,10 @@ type WriteAndCleanup enum {
 
 // write_and_cleanup writes the contents of the file at the given path to a temporary buffer
 fn write_and_cleanup(path str) WriteAndCleanup {
-    let .Ok(f) := os::open(path) wrap .OpenErr
+    let .Ok(f) = os::open(path) wrap .OpenErr
     defer { os::close(f) }
 
-    let buf = alloc([256]u8)
+    let []u8(buf) = alloc(@[]u8) !
     defer { free(buf) }
 
     let .Ok(n) = write(f, buf) wrap .WriteErr

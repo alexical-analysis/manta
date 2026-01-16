@@ -256,171 +256,163 @@
     }
   },
   {
-    "kind": "Colon",
-    "lexeme": ":",
+    "kind": "ColonColon",
+    "lexeme": "::",
     "span": {
       "start": 202,
-      "end": 203
+      "end": 204
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "ReadToString",
     "span": {
-      "start": 203,
-      "end": 215
+      "start": 204,
+      "end": 216
     }
   },
   {
     "kind": "CloseParen",
     "lexeme": ")",
-    "span": {
-      "start": 215,
-      "end": 216
-    }
-  },
-  {
-    "kind": "Semicolon",
-    "lexeme": "\n",
     "span": {
       "start": 216,
       "end": 217
     }
   },
   {
-    "kind": "CloseBrace",
-    "lexeme": "}",
+    "kind": "Semicolon",
+    "lexeme": "\n",
     "span": {
       "start": 217,
       "end": 218
     }
   },
   {
-    "kind": "Semicolon",
-    "lexeme": "\n",
+    "kind": "CloseBrace",
+    "lexeme": "}",
     "span": {
       "start": 218,
       "end": 219
     }
   },
   {
+    "kind": "Semicolon",
+    "lexeme": "\n",
+    "span": {
+      "start": 219,
+      "end": 220
+    }
+  },
+  {
     "kind": "FnKeyword",
     "lexeme": "fn",
     "span": {
-      "start": 266,
-      "end": 268
+      "start": 267,
+      "end": 269
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "read_file",
     "span": {
-      "start": 269,
-      "end": 278
+      "start": 270,
+      "end": 279
     }
   },
   {
     "kind": "OpenParen",
     "lexeme": "(",
     "span": {
-      "start": 278,
-      "end": 279
+      "start": 279,
+      "end": 280
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "path",
     "span": {
-      "start": 279,
-      "end": 283
+      "start": 280,
+      "end": 284
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "str",
     "span": {
-      "start": 284,
-      "end": 287
+      "start": 285,
+      "end": 288
     }
   },
   {
     "kind": "CloseParen",
     "lexeme": ")",
     "span": {
-      "start": 287,
-      "end": 288
+      "start": 288,
+      "end": 289
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "ReadFile",
     "span": {
-      "start": 289,
-      "end": 297
+      "start": 290,
+      "end": 298
     }
   },
   {
     "kind": "OpenBrace",
     "lexeme": "{",
     "span": {
-      "start": 298,
-      "end": 299
+      "start": 299,
+      "end": 300
     }
   },
   {
     "kind": "LetKeyword",
     "lexeme": "let",
     "span": {
-      "start": 304,
-      "end": 307
+      "start": 305,
+      "end": 308
     }
   },
   {
     "kind": "Dot",
     "lexeme": ".",
     "span": {
-      "start": 308,
-      "end": 309
+      "start": 309,
+      "end": 310
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "Ok",
     "span": {
-      "start": 309,
-      "end": 311
+      "start": 310,
+      "end": 312
     }
   },
   {
     "kind": "OpenParen",
     "lexeme": "(",
     "span": {
-      "start": 311,
-      "end": 312
+      "start": 312,
+      "end": 313
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "f",
     "span": {
-      "start": 312,
-      "end": 313
+      "start": 313,
+      "end": 314
     }
   },
   {
     "kind": "CloseParen",
     "lexeme": ")",
     "span": {
-      "start": 313,
-      "end": 314
-    }
-  },
-  {
-    "kind": "Colon",
-    "lexeme": ":",
-    "span": {
-      "start": 315,
-      "end": 316
+      "start": 314,
+      "end": 315
     }
   },
   {
@@ -648,627 +640,619 @@
     }
   },
   {
-    "kind": "Colon",
-    "lexeme": ":",
+    "kind": "Equal",
+    "lexeme": "=",
     "span": {
       "start": 390,
       "end": 391
     }
   },
   {
-    "kind": "Equal",
-    "lexeme": "=",
-    "span": {
-      "start": 391,
-      "end": 392
-    }
-  },
-  {
     "kind": "Identifier",
     "lexeme": "io",
     "span": {
-      "start": 393,
-      "end": 395
+      "start": 392,
+      "end": 394
     }
   },
   {
     "kind": "ColonColon",
     "lexeme": "::",
     "span": {
-      "start": 395,
-      "end": 397
+      "start": 394,
+      "end": 396
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "read_to_string",
     "span": {
-      "start": 397,
-      "end": 411
+      "start": 396,
+      "end": 410
     }
   },
   {
     "kind": "OpenParen",
     "lexeme": "(",
     "span": {
-      "start": 411,
-      "end": 412
+      "start": 410,
+      "end": 411
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "f",
     "span": {
-      "start": 412,
-      "end": 413
+      "start": 411,
+      "end": 412
     }
   },
   {
     "kind": "CloseParen",
     "lexeme": ")",
     "span": {
-      "start": 413,
-      "end": 414
+      "start": 412,
+      "end": 413
     }
   },
   {
     "kind": "WrapKeyword",
     "lexeme": "wrap",
     "span": {
-      "start": 415,
-      "end": 419
+      "start": 414,
+      "end": 418
     }
   },
   {
     "kind": "Dot",
     "lexeme": ".",
     "span": {
-      "start": 420,
-      "end": 421
+      "start": 419,
+      "end": 420
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "ReadErr",
     "span": {
-      "start": 421,
-      "end": 428
+      "start": 420,
+      "end": 427
     }
   },
   {
     "kind": "Semicolon",
     "lexeme": "\n",
     "span": {
-      "start": 428,
-      "end": 429
+      "start": 427,
+      "end": 428
     }
   },
   {
     "kind": "ReturnKeyword",
     "lexeme": "return",
     "span": {
-      "start": 433,
-      "end": 439
+      "start": 432,
+      "end": 438
     }
   },
   {
     "kind": "Dot",
     "lexeme": ".",
     "span": {
-      "start": 440,
-      "end": 441
+      "start": 439,
+      "end": 440
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "Ok",
     "span": {
-      "start": 441,
-      "end": 443
+      "start": 440,
+      "end": 442
     }
   },
   {
     "kind": "OpenParen",
     "lexeme": "(",
     "span": {
-      "start": 443,
-      "end": 444
+      "start": 442,
+      "end": 443
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "s",
     "span": {
-      "start": 444,
-      "end": 445
+      "start": 443,
+      "end": 444
     }
   },
   {
     "kind": "CloseParen",
     "lexeme": ")",
+    "span": {
+      "start": 444,
+      "end": 445
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
     "span": {
       "start": 445,
       "end": 446
     }
   },
   {
-    "kind": "Semicolon",
-    "lexeme": "\n",
+    "kind": "CloseBrace",
+    "lexeme": "}",
     "span": {
       "start": 446,
       "end": 447
     }
   },
   {
-    "kind": "CloseBrace",
-    "lexeme": "}",
+    "kind": "Semicolon",
+    "lexeme": "\n",
     "span": {
       "start": 447,
       "end": 448
     }
   },
   {
-    "kind": "Semicolon",
-    "lexeme": "\n",
-    "span": {
-      "start": 448,
-      "end": 449
-    }
-  },
-  {
     "kind": "FnKeyword",
     "lexeme": "fn",
     "span": {
-      "start": 481,
-      "end": 483
+      "start": 480,
+      "end": 482
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "main",
     "span": {
-      "start": 484,
-      "end": 488
+      "start": 483,
+      "end": 487
     }
   },
   {
     "kind": "OpenParen",
     "lexeme": "(",
+    "span": {
+      "start": 487,
+      "end": 488
+    }
+  },
+  {
+    "kind": "CloseParen",
+    "lexeme": ")",
     "span": {
       "start": 488,
       "end": 489
     }
   },
   {
-    "kind": "CloseParen",
-    "lexeme": ")",
-    "span": {
-      "start": 489,
-      "end": 490
-    }
-  },
-  {
     "kind": "OpenBrace",
     "lexeme": "{",
     "span": {
-      "start": 491,
-      "end": 492
+      "start": 490,
+      "end": 491
     }
   },
   {
     "kind": "LetKeyword",
     "lexeme": "let",
     "span": {
-      "start": 497,
-      "end": 500
+      "start": 496,
+      "end": 499
     }
   },
   {
     "kind": "Dot",
     "lexeme": ".",
     "span": {
-      "start": 501,
-      "end": 502
+      "start": 500,
+      "end": 501
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "Ok",
     "span": {
-      "start": 502,
-      "end": 504
+      "start": 501,
+      "end": 503
     }
   },
   {
     "kind": "OpenParen",
     "lexeme": "(",
     "span": {
-      "start": 504,
-      "end": 505
+      "start": 503,
+      "end": 504
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "content",
     "span": {
-      "start": 505,
-      "end": 512
+      "start": 504,
+      "end": 511
     }
   },
   {
     "kind": "CloseParen",
     "lexeme": ")",
     "span": {
-      "start": 512,
-      "end": 513
+      "start": 511,
+      "end": 512
     }
   },
   {
     "kind": "Equal",
     "lexeme": "=",
     "span": {
-      "start": 514,
-      "end": 515
+      "start": 513,
+      "end": 514
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "read_file",
     "span": {
-      "start": 516,
-      "end": 525
+      "start": 515,
+      "end": 524
     }
   },
   {
     "kind": "OpenParen",
     "lexeme": "(",
     "span": {
-      "start": 525,
-      "end": 526
+      "start": 524,
+      "end": 525
     }
   },
   {
     "kind": "Str",
     "lexeme": "/tmp/x.txt",
     "span": {
-      "start": 526,
-      "end": 538
+      "start": 525,
+      "end": 537
     }
   },
   {
     "kind": "CloseParen",
     "lexeme": ")",
     "span": {
-      "start": 538,
-      "end": 539
+      "start": 537,
+      "end": 538
     }
   },
   {
     "kind": "OrKeyword",
     "lexeme": "or",
     "span": {
-      "start": 540,
-      "end": 542
+      "start": 539,
+      "end": 541
     }
   },
   {
     "kind": "OpenParen",
     "lexeme": "(",
+    "span": {
+      "start": 541,
+      "end": 542
+    }
+  },
+  {
+    "kind": "Identifier",
+    "lexeme": "e",
     "span": {
       "start": 542,
       "end": 543
     }
   },
   {
-    "kind": "Identifier",
-    "lexeme": "e",
+    "kind": "CloseParen",
+    "lexeme": ")",
     "span": {
       "start": 543,
       "end": 544
     }
   },
   {
-    "kind": "CloseParen",
-    "lexeme": ")",
-    "span": {
-      "start": 544,
-      "end": 545
-    }
-  },
-  {
     "kind": "OpenBrace",
     "lexeme": "{",
     "span": {
-      "start": 546,
-      "end": 547
+      "start": 545,
+      "end": 546
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "fmt",
     "span": {
-      "start": 556,
-      "end": 559
+      "start": 555,
+      "end": 558
     }
   },
   {
     "kind": "ColonColon",
     "lexeme": "::",
     "span": {
-      "start": 559,
-      "end": 561
+      "start": 558,
+      "end": 560
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "printfln",
     "span": {
-      "start": 561,
-      "end": 569
+      "start": 560,
+      "end": 568
     }
   },
   {
     "kind": "OpenParen",
     "lexeme": "(",
     "span": {
-      "start": 569,
-      "end": 570
+      "start": 568,
+      "end": 569
     }
   },
   {
     "kind": "Str",
     "lexeme": "read failed: ",
     "span": {
-      "start": 570,
-      "end": 585
+      "start": 569,
+      "end": 584
     }
   },
   {
     "kind": "Comma",
     "lexeme": ",",
     "span": {
-      "start": 585,
-      "end": 586
+      "start": 584,
+      "end": 585
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "e",
     "span": {
-      "start": 587,
-      "end": 588
+      "start": 586,
+      "end": 587
     }
   },
   {
     "kind": "CloseParen",
     "lexeme": ")",
+    "span": {
+      "start": 587,
+      "end": 588
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
     "span": {
       "start": 588,
       "end": 589
     }
   },
   {
-    "kind": "Semicolon",
-    "lexeme": "\n",
-    "span": {
-      "start": 589,
-      "end": 590
-    }
-  },
-  {
     "kind": "ReturnKeyword",
     "lexeme": "return",
     "span": {
-      "start": 598,
-      "end": 604
+      "start": 597,
+      "end": 603
     }
   },
   {
     "kind": "Semicolon",
     "lexeme": "\n",
     "span": {
-      "start": 604,
-      "end": 605
+      "start": 603,
+      "end": 604
     }
   },
   {
     "kind": "CloseBrace",
     "lexeme": "}",
+    "span": {
+      "start": 608,
+      "end": 609
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
     "span": {
       "start": 609,
       "end": 610
     }
   },
   {
-    "kind": "Semicolon",
-    "lexeme": "\n",
-    "span": {
-      "start": 610,
-      "end": 611
-    }
-  },
-  {
     "kind": "Identifier",
     "lexeme": "fmt",
     "span": {
-      "start": 615,
-      "end": 618
+      "start": 614,
+      "end": 617
     }
   },
   {
     "kind": "ColonColon",
     "lexeme": "::",
     "span": {
-      "start": 618,
-      "end": 620
+      "start": 617,
+      "end": 619
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "println",
     "span": {
-      "start": 620,
-      "end": 627
+      "start": 619,
+      "end": 626
     }
   },
   {
     "kind": "OpenParen",
     "lexeme": "(",
     "span": {
-      "start": 627,
-      "end": 628
+      "start": 626,
+      "end": 627
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "content",
     "span": {
-      "start": 628,
-      "end": 635
+      "start": 627,
+      "end": 634
     }
   },
   {
     "kind": "CloseParen",
     "lexeme": ")",
+    "span": {
+      "start": 634,
+      "end": 635
+    }
+  },
+  {
+    "kind": "Semicolon",
+    "lexeme": "\n",
     "span": {
       "start": 635,
       "end": 636
     }
   },
   {
-    "kind": "Semicolon",
-    "lexeme": "\n",
-    "span": {
-      "start": 636,
-      "end": 637
-    }
-  },
-  {
     "kind": "LetKeyword",
     "lexeme": "let",
     "span": {
-      "start": 704,
-      "end": 707
+      "start": 703,
+      "end": 706
     }
   },
   {
     "kind": "Dot",
     "lexeme": ".",
     "span": {
-      "start": 708,
-      "end": 709
+      "start": 707,
+      "end": 708
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "Ok",
     "span": {
-      "start": 709,
-      "end": 711
+      "start": 708,
+      "end": 710
     }
   },
   {
     "kind": "OpenParen",
     "lexeme": "(",
     "span": {
-      "start": 711,
-      "end": 712
+      "start": 710,
+      "end": 711
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "content",
     "span": {
-      "start": 712,
-      "end": 719
+      "start": 711,
+      "end": 718
     }
   },
   {
     "kind": "CloseParen",
     "lexeme": ")",
     "span": {
-      "start": 719,
-      "end": 720
+      "start": 718,
+      "end": 719
     }
   },
   {
     "kind": "Equal",
     "lexeme": "=",
     "span": {
-      "start": 721,
-      "end": 722
+      "start": 720,
+      "end": 721
     }
   },
   {
     "kind": "Identifier",
     "lexeme": "read_file",
     "span": {
-      "start": 723,
-      "end": 732
+      "start": 722,
+      "end": 731
     }
   },
   {
     "kind": "OpenParen",
     "lexeme": "(",
     "span": {
-      "start": 732,
-      "end": 733
+      "start": 731,
+      "end": 732
     }
   },
   {
     "kind": "Str",
     "lexeme": "/tmp/missing.txt",
     "span": {
-      "start": 733,
-      "end": 751
+      "start": 732,
+      "end": 750
     }
   },
   {
     "kind": "CloseParen",
     "lexeme": ")",
     "span": {
-      "start": 751,
-      "end": 752
+      "start": 750,
+      "end": 751
     }
   },
   {
     "kind": "Bang",
     "lexeme": "!",
     "span": {
-      "start": 753,
-      "end": 754
+      "start": 752,
+      "end": 753
     }
   },
   {
     "kind": "Semicolon",
     "lexeme": "\n",
     "span": {
-      "start": 754,
-      "end": 755
+      "start": 753,
+      "end": 754
     }
   },
   {
     "kind": "CloseBrace",
     "lexeme": "}",
     "span": {
-      "start": 755,
-      "end": 756
+      "start": 754,
+      "end": 755
     }
   },
   {
     "kind": "Semicolon",
     "lexeme": "\n",
     "span": {
-      "start": 756,
-      "end": 757
+      "start": 755,
+      "end": 756
     }
   },
   {
     "kind": "Eof",
     "lexeme": "",
     "span": {
-      "start": 757,
-      "end": 757
+      "start": 756,
+      "end": 756
     }
   }
 ]

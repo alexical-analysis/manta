@@ -11,15 +11,15 @@ use (
 type ReadFile enum {
     Ok(str)
     OpenErr(os::Open)
-    ReadErr(io:ReadToString)
+    ReadErr(io::ReadToString)
 }
 
 // read_file reads the file at the given path
 fn read_file(path str) ReadFile {
-    let .Ok(f) := os::open(path) wrap .OpenErr
+    let .Ok(f) = os::open(path) wrap .OpenErr
     defer { os::close(f) }
 
-    let .Ok(s) := io::read_to_string(f) wrap .ReadErr
+    let .Ok(s) = io::read_to_string(f) wrap .ReadErr
     return .Ok(s)
 }
 

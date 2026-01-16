@@ -1,0 +1,315 @@
+[
+  {
+    "Mod": {
+      "name": "main"
+    }
+  },
+  {
+    "Use": {
+      "modules": [
+        "fmt",
+        "mem"
+      ]
+    }
+  },
+  {
+    "Type": {
+      "name": {
+        "name": "MaybeAlloc"
+      },
+      "type_spec": {
+        "Enum": {
+          "variants": [
+            {
+              "name": "Ok",
+              "payload": {
+                "Pointer": "Int32"
+              }
+            },
+            {
+              "name": "DidNotAlloc",
+              "payload": null
+            },
+            {
+              "name": "AllocFailed",
+              "payload": {
+                "Named": {
+                  "module": "mem",
+                  "name": "Alloc"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "Function": {
+      "name": "maybe_alloc",
+      "params": [
+        {
+          "name": "cond",
+          "type_spec": "Bool"
+        }
+      ],
+      "return_type": {
+        "Named": {
+          "module": null,
+          "name": "MaybeAlloc"
+        }
+      },
+      "body": {
+        "statements": [
+          {
+            "If": {
+              "check": {
+                "Identifier": {
+                  "name": "cond"
+                }
+              },
+              "success": {
+                "statements": [
+                  {
+                    "Let": {
+                      "pattern": {
+                        "Payload": {
+                          "pat": {
+                            "Identifier": {
+                              "name": "i32"
+                            }
+                          },
+                          "payload": "p"
+                        }
+                      },
+                      "value": {
+                        "Call": {
+                          "func": {
+                            "Identifier": {
+                              "name": "alloc"
+                            }
+                          },
+                          "args": [
+                            {
+                              "MetaType": {
+                                "type_spec": "Int32"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "or_binding": {
+                        "name": "e"
+                      },
+                      "except": {
+                        "statements": [
+                          {
+                            "Return": {
+                              "value": {
+                                "Call": {
+                                  "func": {
+                                    "DotAccess": {
+                                      "target": null,
+                                      "field": {
+                                        "name": "AllocFailed"
+                                      }
+                                    }
+                                  },
+                                  "args": [
+                                    {
+                                      "Identifier": {
+                                        "name": "e"
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "Assign": {
+                      "lvalue": {
+                        "Unary": {
+                          "operator": "Dereference",
+                          "operand": {
+                            "Identifier": {
+                              "name": "p"
+                            }
+                          }
+                        }
+                      },
+                      "rvalue": {
+                        "IntLiteral": 42
+                      }
+                    }
+                  },
+                  {
+                    "Return": {
+                      "value": {
+                        "Call": {
+                          "func": {
+                            "DotAccess": {
+                              "target": null,
+                              "field": {
+                                "name": "Ok"
+                              }
+                            }
+                          },
+                          "args": [
+                            {
+                              "Identifier": {
+                                "name": "p"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "fail": null
+            }
+          },
+          {
+            "Return": {
+              "value": {
+                "DotAccess": {
+                  "target": null,
+                  "field": {
+                    "name": "DidNotAlloc"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "Function": {
+      "name": "main",
+      "params": [],
+      "return_type": null,
+      "body": {
+        "statements": [
+          {
+            "Match": {
+              "target": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "maybe_alloc"
+                    }
+                  },
+                  "args": [
+                    {
+                      "BoolLiteral": false
+                    }
+                  ]
+                }
+              },
+              "arms": [
+                {
+                  "pattern": {
+                    "Payload": {
+                      "pat": {
+                        "DotAccess": {
+                          "target": null,
+                          "field": {
+                            "name": "Ok"
+                          }
+                        }
+                      },
+                      "payload": "p"
+                    }
+                  },
+                  "body": {
+                    "statements": [
+                      {
+                        "Expr": {
+                          "expr": {
+                            "ModuleAccess": {
+                              "module": {
+                                "name": "fmt"
+                              },
+                              "expr": {
+                                "Call": {
+                                  "func": {
+                                    "Identifier": {
+                                      "name": "println"
+                                    }
+                                  },
+                                  "args": [
+                                    {
+                                      "Unary": {
+                                        "operator": "Dereference",
+                                        "operand": {
+                                          "Identifier": {
+                                            "name": "p"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pattern": {
+                    "DotAccess": {
+                      "target": null,
+                      "field": {
+                        "name": "DidNotAlloc"
+                      }
+                    }
+                  },
+                  "body": {
+                    "statements": [
+                      {
+                        "Expr": {
+                          "expr": {
+                            "ModuleAccess": {
+                              "module": {
+                                "name": "fmt"
+                              },
+                              "expr": {
+                                "Call": {
+                                  "func": {
+                                    "Identifier": {
+                                      "name": "println"
+                                    }
+                                  },
+                                  "args": [
+                                    {
+                                      "StringLiteral": "no allocation"
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+]

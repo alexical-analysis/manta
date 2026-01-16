@@ -90,13 +90,22 @@ pub enum TypeSpec {
     String,
     Bool,
     // User-defined types
-    Named(String),
+    Named {
+        module: Option<String>,
+        name: String,
+    },
     // Composite types
     Pointer(Box<TypeSpec>),
     Slice(Box<TypeSpec>),
     Array(ArrayType),
     Struct(StructType),
     Enum(EnumType),
+}
+
+/// MetaType
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct MetaTypeExpr {
+    pub type_spec: TypeSpec,
 }
 
 /// Array type with size
@@ -199,24 +208,49 @@ pub struct MatchArm {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum Pattern {
-    EnumVariant {
-        type_name: Option<String>,
-        name: String,
-        payload_binding: Option<String>,
-    },
-
     IntLiteral(i64),
     StringLiteral(String),
     BoolLiteral(bool),
     FloatLiteral(f64),
 
-    TypeSpec {
-        type_spec: TypeSpec,
-        payload_binding: String,
-    },
+    TypeSpec(TypeSpec),
 
-    Identifier(String),
+    Payload(PayloadPat),
+    ModuleAccess(ModuleAccesPat),
+    DotAccess(DotAccessPat),
+
+    Identifier(IdentifierPat),
     Default, // the _ pattern
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct ModuleAccesPat {
+    pub module: Box<IdentifierPat>,
+    pub pat: Box<Pattern>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct DotAccessPat {
+    pub target: Option<Box<Pattern>>,
+    pub field: IdentifierPat,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct PayloadPat {
+    pub pat: Box<Pattern>,
+    pub payload: String,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct EnumVariantPat {
+    pub type_name: Option<String>,
+    pub name: String,
+    pub payload_binding: Option<String>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct IdentifierPat {
+    pub name: String,
 }
 
 /// Expressions
@@ -247,7 +281,13 @@ pub enum Expr {
     Index(IndexExpr),
 
     // Accessing a field for a struct or enum
-    FieldAccess(FieldAccessExpr),
+    DotAccess(DotAccessExpr),
+
+    // Accessing a member of a module
+    ModuleAccess(ModuleAccessExpr),
+
+    // Mete Type expression
+    MetaType(MetaTypeExpr),
 
     // Memory operations
     New(NewExpr),
@@ -325,10 +365,16 @@ pub struct IndexExpr {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct FieldAccessExpr {
+pub struct DotAccessExpr {
     // this is an option because this can be infered in some contexts
     pub target: Option<Box<Expr>>,
     pub field: Box<IdentifierExpr>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct ModuleAccessExpr {
+    pub module: Box<IdentifierExpr>,
+    pub expr: Box<Expr>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

@@ -1,0 +1,265 @@
+[
+  {
+    "Mod": {
+      "name": "main"
+    }
+  },
+  {
+    "Use": {
+      "modules": [
+        "fmt"
+      ]
+    }
+  },
+  {
+    "Type": {
+      "name": {
+        "name": "Div"
+      },
+      "type_spec": {
+        "Enum": {
+          "variants": [
+            {
+              "name": "Ok",
+              "payload": "Int32"
+            },
+            {
+              "name": "DivByZero",
+              "payload": null
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "Function": {
+      "name": "div",
+      "params": [
+        {
+          "name": "a",
+          "type_spec": "Int32"
+        },
+        {
+          "name": "b",
+          "type_spec": "Int32"
+        }
+      ],
+      "return_type": {
+        "Named": {
+          "module": null,
+          "name": "Div"
+        }
+      },
+      "body": {
+        "statements": [
+          {
+            "If": {
+              "check": {
+                "Binary": {
+                  "left": {
+                    "Identifier": {
+                      "name": "b"
+                    }
+                  },
+                  "operator": "Equal",
+                  "right": {
+                    "IntLiteral": 0
+                  }
+                }
+              },
+              "success": {
+                "statements": [
+                  {
+                    "Return": {
+                      "value": {
+                        "DotAccess": {
+                          "target": null,
+                          "field": {
+                            "name": "DivByZero"
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "fail": null
+            }
+          },
+          {
+            "Return": {
+              "value": {
+                "Call": {
+                  "func": {
+                    "DotAccess": {
+                      "target": null,
+                      "field": {
+                        "name": "Ok"
+                      }
+                    }
+                  },
+                  "args": [
+                    {
+                      "Binary": {
+                        "left": {
+                          "Identifier": {
+                            "name": "a"
+                          }
+                        },
+                        "operator": "Divide",
+                        "right": {
+                          "Identifier": {
+                            "name": "b"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "Function": {
+      "name": "main",
+      "params": [],
+      "return_type": null,
+      "body": {
+        "statements": [
+          {
+            "Let": {
+              "pattern": {
+                "Identifier": {
+                  "name": "r"
+                }
+              },
+              "value": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "div"
+                    }
+                  },
+                  "args": [
+                    {
+                      "IntLiteral": 10
+                    },
+                    {
+                      "IntLiteral": 2
+                    }
+                  ]
+                }
+              },
+              "or_binding": null,
+              "except": null
+            }
+          },
+          {
+            "Match": {
+              "target": {
+                "Identifier": {
+                  "name": "r"
+                }
+              },
+              "arms": [
+                {
+                  "pattern": {
+                    "Payload": {
+                      "pat": {
+                        "DotAccess": {
+                          "target": null,
+                          "field": {
+                            "name": "Ok"
+                          }
+                        }
+                      },
+                      "payload": "v"
+                    }
+                  },
+                  "body": {
+                    "statements": [
+                      {
+                        "Expr": {
+                          "expr": {
+                            "ModuleAccess": {
+                              "module": {
+                                "name": "fmt"
+                              },
+                              "expr": {
+                                "Call": {
+                                  "func": {
+                                    "Identifier": {
+                                      "name": "println"
+                                    }
+                                  },
+                                  "args": [
+                                    {
+                                      "StringLiteral": "result: "
+                                    },
+                                    {
+                                      "Identifier": {
+                                        "name": "v"
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pattern": {
+                    "DotAccess": {
+                      "target": null,
+                      "field": {
+                        "name": "DivByZero"
+                      }
+                    }
+                  },
+                  "body": {
+                    "statements": [
+                      {
+                        "Expr": {
+                          "expr": {
+                            "ModuleAccess": {
+                              "module": {
+                                "name": "fmt"
+                              },
+                              "expr": {
+                                "Call": {
+                                  "func": {
+                                    "Identifier": {
+                                      "name": "println"
+                                    }
+                                  },
+                                  "args": [
+                                    {
+                                      "StringLiteral": "can not divide by zero"
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+]

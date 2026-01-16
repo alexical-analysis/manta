@@ -1,0 +1,335 @@
+[
+  {
+    "Mod": {
+      "name": "main"
+    }
+  },
+  {
+    "Use": {
+      "modules": [
+        "os"
+      ]
+    }
+  },
+  {
+    "Type": {
+      "name": {
+        "name": "WriteAndCleanup"
+      },
+      "type_spec": {
+        "Enum": {
+          "variants": [
+            {
+              "name": "Ok",
+              "payload": null
+            },
+            {
+              "name": "OpenErr",
+              "payload": {
+                "Named": {
+                  "module": "os",
+                  "name": "Open"
+                }
+              }
+            },
+            {
+              "name": "WriteErr",
+              "payload": {
+                "Named": {
+                  "module": "os",
+                  "name": "Write"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "Function": {
+      "name": "write_and_cleanup",
+      "params": [
+        {
+          "name": "path",
+          "type_spec": "String"
+        }
+      ],
+      "return_type": {
+        "Named": {
+          "module": null,
+          "name": "WriteAndCleanup"
+        }
+      },
+      "body": {
+        "statements": [
+          {
+            "Let": {
+              "pattern": {
+                "Payload": {
+                  "pat": {
+                    "DotAccess": {
+                      "target": null,
+                      "field": {
+                        "name": "Ok"
+                      }
+                    }
+                  },
+                  "payload": "f"
+                }
+              },
+              "value": {
+                "ModuleAccess": {
+                  "module": {
+                    "name": "os"
+                  },
+                  "expr": {
+                    "Call": {
+                      "func": {
+                        "Identifier": {
+                          "name": "open"
+                        }
+                      },
+                      "args": [
+                        {
+                          "Identifier": {
+                            "name": "path"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              "or_binding": {
+                "name": "e"
+              },
+              "except": {
+                "statements": [
+                  {
+                    "Return": {
+                      "value": {
+                        "Call": {
+                          "func": {
+                            "DotAccess": {
+                              "target": null,
+                              "field": {
+                                "name": "OpenErr"
+                              }
+                            }
+                          },
+                          "args": [
+                            {
+                              "Identifier": {
+                                "name": "e"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Defer": {
+              "block": {
+                "statements": [
+                  {
+                    "Expr": {
+                      "expr": {
+                        "ModuleAccess": {
+                          "module": {
+                            "name": "os"
+                          },
+                          "expr": {
+                            "Call": {
+                              "func": {
+                                "Identifier": {
+                                  "name": "close"
+                                }
+                              },
+                              "args": [
+                                {
+                                  "Identifier": {
+                                    "name": "f"
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Let": {
+              "pattern": {
+                "Payload": {
+                  "pat": {
+                    "TypeSpec": {
+                      "Slice": "UInt8"
+                    }
+                  },
+                  "payload": "buf"
+                }
+              },
+              "value": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "alloc"
+                    }
+                  },
+                  "args": [
+                    {
+                      "MetaType": {
+                        "type_spec": {
+                          "Slice": "UInt8"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "or_binding": {
+                "name": "e"
+              },
+              "except": {
+                "statements": [
+                  {
+                    "Expr": {
+                      "expr": {
+                        "Call": {
+                          "func": {
+                            "Identifier": {
+                              "name": "panic"
+                            }
+                          },
+                          "args": [
+                            {
+                              "Identifier": {
+                                "name": "e"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Defer": {
+              "block": {
+                "statements": [
+                  {
+                    "Expr": {
+                      "expr": {
+                        "Free": {
+                          "expr": {
+                            "Identifier": {
+                              "name": "buf"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Let": {
+              "pattern": {
+                "Payload": {
+                  "pat": {
+                    "DotAccess": {
+                      "target": null,
+                      "field": {
+                        "name": "Ok"
+                      }
+                    }
+                  },
+                  "payload": "n"
+                }
+              },
+              "value": {
+                "Call": {
+                  "func": {
+                    "Identifier": {
+                      "name": "write"
+                    }
+                  },
+                  "args": [
+                    {
+                      "Identifier": {
+                        "name": "f"
+                      }
+                    },
+                    {
+                      "Identifier": {
+                        "name": "buf"
+                      }
+                    }
+                  ]
+                }
+              },
+              "or_binding": {
+                "name": "e"
+              },
+              "except": {
+                "statements": [
+                  {
+                    "Return": {
+                      "value": {
+                        "Call": {
+                          "func": {
+                            "DotAccess": {
+                              "target": null,
+                              "field": {
+                                "name": "WriteErr"
+                              }
+                            }
+                          },
+                          "args": [
+                            {
+                              "Identifier": {
+                                "name": "e"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "Return": {
+              "value": {
+                "DotAccess": {
+                  "target": null,
+                  "field": {
+                    "name": "Ok"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+]
