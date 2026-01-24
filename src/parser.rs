@@ -1,29 +1,14 @@
 pub mod declaration;
 pub mod expression;
 pub mod lexer;
-pub mod parselets;
 pub mod pattern;
 pub mod statement;
 pub mod types;
 
-use crate::ast::{BinaryOp, Decl, Expr, UnaryOp};
-use crate::parser::parselets::{
-    BlockParselet, InfixPatternParselet, InfixStmtParselet, PrefixDeclParselet,
-    PrefixPatternParselet,
-};
+use crate::ast::Decl;
+
+use declaration::DeclParser;
 use lexer::{Lexer, Token, TokenKind};
-use parselets::{
-    AssignParselet, BinaryOperatorParselet, BoolLiteralParselet, CallParselet, ConstDeclParselet,
-    DeferParselet, DotAccessParselet, FloatLiteralParselet, GroupParselet, IdentifierParselet,
-    IdentifierPatternParselet, IfParselet, IndexParselet, InferedVariantParselet,
-    InfixDotPatternParselet, InfixExprParselet, IntLiteralParselet, LetParselet,
-    LiteralPatternParselet, MatchParselet, MetaTypeParselet, ModDeclParselet, ModPatternParselet,
-    ModuleAccessParselet, PayloadPatternParselet, Precedence, PrefixDotPatternParselet,
-    PrefixExprParselet, PrefixStmtParselet, ReturnParselet, StringLiteralParselet,
-    TypeDeclParselet, TypePatternParselet, UnaryOperatorParselet, UseDeclParselet,
-};
-use std::collections::HashMap;
-use std::rc::Rc;
 
 /// Parse error type for the parser core.
 #[derive(Debug, Clone)]
@@ -54,350 +39,34 @@ impl ParseError {
 /// with lookahead and simple parselet registration. The parselet registries
 /// are intentionally simple (Vec-based) to avoid requiring `TokenKind: Hash`.
 pub struct Parser {
-    lexer: Lexer,
-    // small read buffer for lookahead
-    read: Vec<Token>,
-
-    // prefix and infix expression parselets
-    prefix_expr_parselets: HashMap<TokenKind, Rc<dyn PrefixExprParselet>>,
-    infix_expr_parselets: HashMap<TokenKind, Rc<dyn InfixExprParselet>>,
-
-    // prefix and infix statement parselets
-    prefix_stmt_parselets: HashMap<TokenKind, Rc<dyn PrefixStmtParselet>>,
-    infix_stmt_parselets: HashMap<TokenKind, Rc<dyn InfixStmtParselet>>,
-
-    // prefix and infix pattern match parselets
-    prefix_pattern_parselets: HashMap<TokenKind, Rc<dyn PrefixPatternParselet>>,
-    infix_pattern_parselets: HashMap<TokenKind, Rc<dyn InfixPatternParselet>>,
-
-    // top-level declaration parselets
-    prefix_decl_parselets: HashMap<TokenKind, Rc<dyn PrefixDeclParselet>>,
+    source: String,
+    decl_parser: DeclParser,
 }
 
 impl Parser {
-    /// Create a new parser from a lexer
-    pub fn new(lexer: Lexer) -> Self {
-        let mut parser = Parser {
-            lexer,
-            read: Vec::new(),
-            prefix_expr_parselets: HashMap::new(),
-            infix_expr_parselets: HashMap::new(),
-            prefix_stmt_parselets: HashMap::new(),
-            infix_stmt_parselets: HashMap::new(),
-            prefix_pattern_parselets: HashMap::new(),
-            infix_pattern_parselets: HashMap::new(),
-            prefix_decl_parselets: HashMap::new(),
-        };
-
-        // Register all prefix parselets
-        parser.register_expr_prefix(TokenKind::Int, Rc::new(IntLiteralParselet));
-        parser.register_expr_prefix(TokenKind::Float, Rc::new(FloatLiteralParselet));
-        parser.register_expr_prefix(TokenKind::Str, Rc::new(StringLiteralParselet));
-        parser.register_expr_prefix(TokenKind::TrueLiteral, Rc::new(BoolLiteralParselet));
-        parser.register_expr_prefix(TokenKind::FalseLiteral, Rc::new(BoolLiteralParselet));
-        parser.register_expr_prefix(TokenKind::Identifier, Rc::new(IdentifierParselet));
-        parser.register_expr_prefix(
-            TokenKind::Minus,
-            Rc::new(UnaryOperatorParselet {
-                operator: UnaryOp::Negate,
-            }),
-        );
-        parser.register_expr_prefix(
-            TokenKind::Plus,
-            Rc::new(UnaryOperatorParselet {
-                operator: UnaryOp::Positive,
-            }),
-        );
-        parser.register_expr_prefix(
-            TokenKind::Bang,
-            Rc::new(UnaryOperatorParselet {
-                operator: UnaryOp::Not,
-            }),
-        );
-        parser.register_expr_prefix(
-            TokenKind::Star,
-            Rc::new(UnaryOperatorParselet {
-                operator: UnaryOp::Dereference,
-            }),
-        );
-        parser.register_expr_prefix(
-            TokenKind::And,
-            Rc::new(UnaryOperatorParselet {
-                operator: UnaryOp::AddressOf,
-            }),
-        );
-        parser.register_expr_prefix(TokenKind::OpenParen, Rc::new(GroupParselet));
-        parser.register_expr_prefix(TokenKind::Dot, Rc::new(InferedVariantParselet));
-        parser.register_expr_prefix(TokenKind::At, Rc::new(MetaTypeParselet));
-
-        // Register infix parselets for binary operators
-        parser.register_expr_infix(
-            TokenKind::Plus,
-            Rc::new(BinaryOperatorParselet {
-                operator: BinaryOp::Add,
-                precedence: Precedence::Addition,
-            }),
-        );
-        parser.register_expr_infix(
-            TokenKind::Minus,
-            Rc::new(BinaryOperatorParselet {
-                operator: BinaryOp::Subtract,
-                precedence: Precedence::Addition,
-            }),
-        );
-        parser.register_expr_infix(
-            TokenKind::Star,
-            Rc::new(BinaryOperatorParselet {
-                operator: BinaryOp::Multiply,
-                precedence: Precedence::Multiplication,
-            }),
-        );
-        parser.register_expr_infix(
-            TokenKind::Slash,
-            Rc::new(BinaryOperatorParselet {
-                operator: BinaryOp::Divide,
-                precedence: Precedence::Multiplication,
-            }),
-        );
-        parser.register_expr_infix(
-            TokenKind::Percent,
-            Rc::new(BinaryOperatorParselet {
-                operator: BinaryOp::Modulo,
-                precedence: Precedence::Multiplication,
-            }),
-        );
-        parser.register_expr_infix(
-            TokenKind::EqualEqual,
-            Rc::new(BinaryOperatorParselet {
-                operator: BinaryOp::Equal,
-                precedence: Precedence::Equality,
-            }),
-        );
-        parser.register_expr_infix(
-            TokenKind::NotEqual,
-            Rc::new(BinaryOperatorParselet {
-                operator: BinaryOp::NotEqual,
-                precedence: Precedence::Equality,
-            }),
-        );
-        parser.register_expr_infix(
-            TokenKind::LessThan,
-            Rc::new(BinaryOperatorParselet {
-                operator: BinaryOp::LessThan,
-                precedence: Precedence::Comparison,
-            }),
-        );
-        parser.register_expr_infix(
-            TokenKind::GreaterThan,
-            Rc::new(BinaryOperatorParselet {
-                operator: BinaryOp::GreaterThan,
-                precedence: Precedence::Comparison,
-            }),
-        );
-        parser.register_expr_infix(
-            TokenKind::LessOrEqual,
-            Rc::new(BinaryOperatorParselet {
-                operator: BinaryOp::LessThanOrEqual,
-                precedence: Precedence::Comparison,
-            }),
-        );
-        parser.register_expr_infix(
-            TokenKind::GreaterOrEqual,
-            Rc::new(BinaryOperatorParselet {
-                operator: BinaryOp::GreaterThanOrEqual,
-                precedence: Precedence::Comparison,
-            }),
-        );
-        parser.register_expr_infix(
-            TokenKind::AndAnd,
-            Rc::new(BinaryOperatorParselet {
-                operator: BinaryOp::LogicalAnd,
-                precedence: Precedence::LogicalAnd,
-            }),
-        );
-        parser.register_expr_infix(
-            TokenKind::PipePipe,
-            Rc::new(BinaryOperatorParselet {
-                operator: BinaryOp::LogicalOr,
-                precedence: Precedence::LogicalOr,
-            }),
-        );
-        parser.register_expr_infix(
-            TokenKind::And,
-            Rc::new(BinaryOperatorParselet {
-                operator: BinaryOp::BitwiseAnd,
-                precedence: Precedence::BitwiseAnd,
-            }),
-        );
-        parser.register_expr_infix(
-            TokenKind::Pipe,
-            Rc::new(BinaryOperatorParselet {
-                operator: BinaryOp::BitwiseOr,
-                precedence: Precedence::BitwiseOr,
-            }),
-        );
-        parser.register_expr_infix(
-            TokenKind::Caret,
-            Rc::new(BinaryOperatorParselet {
-                operator: BinaryOp::BitwiseXor,
-                precedence: Precedence::BitwiseXor,
-            }),
-        );
-        parser.register_expr_infix(TokenKind::OpenParen, Rc::new(CallParselet));
-        parser.register_expr_infix(TokenKind::OpenSquare, Rc::new(IndexParselet));
-        parser.register_expr_infix(TokenKind::Dot, Rc::new(DotAccessParselet));
-        parser.register_expr_infix(TokenKind::ColonColon, Rc::new(ModuleAccessParselet));
-
-        // Register prefix statement parselets
-        parser.register_stmt_prefix(TokenKind::LetKeyword, Rc::new(LetParselet));
-        parser.register_stmt_prefix(TokenKind::ReturnKeyword, Rc::new(ReturnParselet));
-        parser.register_stmt_prefix(TokenKind::DeferKeyword, Rc::new(DeferParselet));
-        parser.register_stmt_prefix(TokenKind::OpenBrace, Rc::new(BlockParselet));
-        parser.register_stmt_prefix(TokenKind::IfKeyword, Rc::new(IfParselet));
-        // parser.register_stmt_prefix(TokenKind::TryKeyword, Rc::new(TryParselet));
-        parser.register_stmt_prefix(TokenKind::MatchKeyword, Rc::new(MatchParselet));
-
-        // Register infix statement parselets
-        parser.register_stmt_infix(TokenKind::Equal, Rc::new(AssignParselet));
-
-        // Register prefix declaration parselets
-        parser.register_decl_prefix(
-            TokenKind::FnKeyword,
-            Rc::new(parselets::FunctionDeclParselet),
-        );
-        parser.register_decl_prefix(TokenKind::TypeKeyword, Rc::new(TypeDeclParselet));
-        parser.register_decl_prefix(TokenKind::ConstKeyword, Rc::new(ConstDeclParselet));
-        parser.register_decl_prefix(TokenKind::UseKeyword, Rc::new(UseDeclParselet));
-        parser.register_decl_prefix(TokenKind::ModKeyword, Rc::new(ModDeclParselet));
-
-        // Register prefix pattern parselets
-        parser.register_pattern_prefix(TokenKind::Identifier, Rc::new(IdentifierPatternParselet));
-        parser.register_pattern_prefix(TokenKind::Dot, Rc::new(PrefixDotPatternParselet));
-        parser.register_pattern_prefix(TokenKind::Star, Rc::new(TypePatternParselet));
-        parser.register_pattern_prefix(TokenKind::OpenSquare, Rc::new(TypePatternParselet));
-        parser.register_pattern_prefix(TokenKind::TrueLiteral, Rc::new(LiteralPatternParselet));
-        parser.register_pattern_prefix(TokenKind::FalseLiteral, Rc::new(LiteralPatternParselet));
-        parser.register_pattern_prefix(TokenKind::Int, Rc::new(LiteralPatternParselet));
-        parser.register_pattern_prefix(TokenKind::Float, Rc::new(LiteralPatternParselet));
-        parser.register_pattern_prefix(TokenKind::Str, Rc::new(LiteralPatternParselet));
-
-        // Register infix pattern parselets
-        parser.register_pattern_infix(TokenKind::Dot, Rc::new(InfixDotPatternParselet));
-        parser.register_pattern_infix(TokenKind::ColonColon, Rc::new(ModPatternParselet));
-        parser.register_pattern_infix(TokenKind::OpenParen, Rc::new(PayloadPatternParselet));
-
-        parser
-    }
-
-    /// Returns true if the given token is a valid prefix for a parselet
-    pub fn is_expression_prefix(&self, token_kind: &TokenKind) -> bool {
-        self.prefix_expr_parselets.contains_key(token_kind)
-    }
-
-    /// Ensure we have at least `distance + 1` tokens buffered and return a reference
-    /// to the token at `distance` (0-based).
-    pub fn lookahead(&mut self, distance: usize) -> Result<&Token, ParseError> {
-        while self.read.len() <= distance {
-            match self.lexer.next_token() {
-                Ok(tok) => self.read.push(tok),
-                Err(e) => return Err(ParseError::Custom(format!("Lexer error: {}", e))),
-            }
+    /// Create a new parser for a piece of source code
+    pub fn new(source: String) -> Self {
+        Parser {
+            source,
+            decl_parser: DeclParser::new(),
         }
-        Ok(&self.read[distance])
-    }
-
-    /// Consume and return the next token.
-    pub fn consume(&mut self) -> Result<Token, ParseError> {
-        // ensure at least one token
-        self.lookahead(0)?;
-        Ok(self.read.remove(0))
-    }
-
-    /// Match current token kind against expected; if matches consume and return true.
-    pub fn match_token(&mut self, kind: TokenKind) -> Result<bool, ParseError> {
-        let tk = self.lookahead(0)?;
-        if tk.kind == kind {
-            self.consume()?;
-            Ok(true)
-        } else {
-            Ok(false)
-        }
-    }
-
-    /// Register a expr prefix parselet for a token kind.
-    pub fn register_expr_prefix(&mut self, kind: TokenKind, parselet: Rc<dyn PrefixExprParselet>) {
-        self.prefix_expr_parselets.insert(kind, parselet);
-    }
-
-    /// Register an expr infix parselet for a token kind.
-    pub fn register_expr_infix(&mut self, kind: TokenKind, parselet: Rc<dyn InfixExprParselet>) {
-        self.infix_expr_parselets.insert(kind, parselet);
-    }
-
-    /// Register a stmt prefix parser for a token kind.
-    pub fn register_stmt_prefix(&mut self, kind: TokenKind, parselet: Rc<dyn PrefixStmtParselet>) {
-        self.prefix_stmt_parselets.insert(kind, parselet);
-    }
-
-    /// Register an infix stmt parselet for a token kind.
-    pub fn register_stmt_infix(&mut self, kind: TokenKind, parselets: Rc<dyn InfixStmtParselet>) {
-        self.infix_stmt_parselets.insert(kind, parselets);
-    }
-
-    /// Register a prefix pattern parselet for a token kind.
-    pub fn register_pattern_prefix(
-        &mut self,
-        kind: TokenKind,
-        parselets: Rc<dyn PrefixPatternParselet>,
-    ) {
-        self.prefix_pattern_parselets.insert(kind, parselets);
-    }
-
-    /// Register a infix pattern parselet for a token kind.
-    pub fn register_pattern_infix(
-        &mut self,
-        kind: TokenKind,
-        parselets: Rc<dyn InfixPatternParselet>,
-    ) {
-        self.infix_pattern_parselets.insert(kind, parselets);
-    }
-
-    /// Register a prefix decl parselet for a token kind.
-    pub fn register_decl_prefix(&mut self, kind: TokenKind, parselet: Rc<dyn PrefixDeclParselet>) {
-        self.prefix_decl_parselets.insert(kind, parselet);
-    }
-
-    /// Parse an expression, starting with minimum precedence.
-    /// This is the public API for expression parsing.
-    pub fn parse_expression(&mut self) -> Result<Expr, ParseError> {
-        expression::parse_expression(self, Precedence::Base)
     }
 
     /// Parse a complete Manta program, returning a list of top-level declarations.
-    pub fn parse_program(&mut self) -> Result<Vec<Decl>, ParseError> {
+    pub fn parse_program(&self) -> Result<Vec<Decl>, ParseError> {
         let mut declarations = vec![];
+        let mut lexer = Lexer::new(&self.source);
 
         loop {
-            let token_kind = self.lookahead(0)?.kind;
+            let token_kind = lexer.peek().kind;
             if token_kind == TokenKind::Eof {
                 break;
             }
-            let decl = declaration::parse_declaration(self)?;
+            let decl = self.decl_parser.parse(&mut lexer)?;
             declarations.push(decl);
         }
 
         Ok(declarations)
-    }
-
-    /// Get the precedence of a token kind
-    fn get_precedence(&self, kind: &TokenKind) -> Result<Precedence, ParseError> {
-        match self.infix_expr_parselets.get(kind) {
-            Some(parselet) => Ok(parselet.precedence()),
-            None => Err(ParseError::Custom(format!(
-                "Unknown token precedence for kind: {:?}",
-                kind
-            ))),
-        }
     }
 }
 
@@ -408,77 +77,6 @@ mod tests {
     use pretty_assertions::assert_eq;
     use std::fs;
     use std::path::Path;
-
-    #[test]
-    fn lookahead_and_consume_basic() {
-        let input = "42";
-        let lexer = Lexer::new(input);
-        let mut parser = Parser::new(lexer);
-
-        let token0 = parser.lookahead(0).unwrap();
-        assert_eq!(token0.kind, TokenKind::Int);
-
-        let consumed = parser.consume().unwrap();
-        assert_eq!(consumed.kind, TokenKind::Int);
-    }
-
-    #[test]
-    fn lookahead_multiple() {
-        let input = "42 + 3.14";
-        let lexer = Lexer::new(input);
-        let mut parser = Parser::new(lexer);
-
-        let token0 = parser.lookahead(0).unwrap();
-        assert_eq!(token0.kind, TokenKind::Int);
-
-        let token1 = parser.lookahead(1).unwrap();
-        assert_eq!(token1.kind, TokenKind::Plus);
-
-        let token2 = parser.lookahead(2).unwrap();
-        assert_eq!(token2.kind, TokenKind::Float);
-    }
-
-    #[test]
-    fn match_token_success() {
-        let input = "42";
-        let lexer = Lexer::new(input);
-        let mut parser = Parser::new(lexer);
-
-        let matched = parser.match_token(TokenKind::Int).unwrap();
-        assert!(matched);
-
-        let semicolon_or_next = parser.lookahead(0).unwrap();
-        assert_eq!(semicolon_or_next.kind, TokenKind::Semicolon);
-    }
-
-    #[test]
-    fn match_token_failure() {
-        let input = "42";
-        let lexer = Lexer::new(input);
-        let mut parser = Parser::new(lexer);
-
-        let matched = parser.match_token(TokenKind::Str).unwrap();
-        assert!(!matched);
-
-        let token = parser.lookahead(0).unwrap();
-        assert_eq!(token.kind, TokenKind::Int);
-    }
-
-    #[test]
-    fn parse_expression_no_prefix_parselet() {
-        let input = "|";
-        let lexer = Lexer::new(input);
-        let mut parser = Parser::new(lexer);
-
-        let result = parser.parse_expression();
-        assert!(result.is_err());
-        match result.unwrap_err() {
-            ParseError::UnexpectedToken(_, msg) => {
-                assert!(msg.contains("No prefix parselet"));
-            }
-            _ => panic!("Expected UnexpectedToken error"),
-        }
-    }
 
     #[test]
     fn parse_file_tests() {
@@ -527,9 +125,7 @@ mod tests {
             Err(_) => format!("Failed to read {}", path.display()),
         };
 
-        let lexer = Lexer::new(&source);
-        let mut parser = Parser::new(lexer);
-
+        let parser = Parser::new(source);
         let ast: Result<Vec<Decl>, ParseError> = parser.parse_program();
 
         let ast = match ast {

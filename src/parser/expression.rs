@@ -1,63 +1,299 @@
-use super::Precedence;
-use crate::ast::Expr;
-use crate::parser::lexer::TokenKind;
-use crate::parser::{ParseError, Parser};
+mod binary_operator;
+mod call;
+mod dot_access;
+mod group;
+mod identifier;
+mod index;
+mod literal;
+mod meta_type;
+mod module_access;
+mod unary_operator;
 
-/// Parse an expression with a minimum precedence level.
-/// This implements the Pratt parser algorithm.
-pub fn parse_expression(
-    parser: &mut Parser,
-    min_precedence: Precedence,
-) -> Result<Expr, ParseError> {
-    let token = parser.consume()?;
+use std::collections::HashMap;
+use std::rc::Rc;
 
-    let prefix_opt = parser.prefix_expr_parselets.get(&token.kind);
-    if prefix_opt.is_none() {
-        return Err(ParseError::UnexpectedToken(
-            token.clone(),
-            format!("No prefix parselet for token kind: {:?}", token.kind),
-        ));
-    };
+use crate::ast::{BinaryOp, Expr, UnaryOp};
+use crate::parser::ParseError;
+use crate::parser::lexer::{Lexer, Token, TokenKind};
 
-    let prefix = prefix_opt.unwrap().clone();
-    let mut left = prefix.parse(parser, token)?;
+use binary_operator::BinaryOperatorParselet;
+use call::CallParselet;
+use dot_access::{InfixDotAccessParselet, PrefixDotAccessParselet};
+use group::GroupParselet;
+use identifier::IdentifierParselet;
+use index::IndexParselet;
+use literal::LiteralParselet;
+use meta_type::MetaTypeParselet;
+use module_access::ModuleAccessParselet;
+use unary_operator::UnaryOperatorParselet;
 
-    // Loop while the next token's precedence is higher than or equal to min_precedence
-    loop {
-        let next_token = parser.lookahead(0)?.clone();
-        if next_token.kind == TokenKind::Eof || next_token.kind == TokenKind::Semicolon {
-            break;
+/// Trait for prefix expression parselets.
+pub trait PrefixExprParselet {
+    /// Parse a prefix expression given the consumed token.
+    fn parse(
+        &self,
+        parser: &ExprParser,
+        lexer: &mut Lexer,
+        token: Token,
+    ) -> Result<Expr, ParseError>;
+}
+
+/// Trait for infix expression parselets.
+pub trait InfixExprParselet {
+    /// Parse an infix expression with `left` already parsed and the consumed token.
+    fn parse(
+        &self,
+        parser: &ExprParser,
+        lexer: &mut Lexer,
+        left: Expr,
+        token: Token,
+    ) -> Result<Expr, ParseError>;
+
+    /// Precedence of this infix operator.
+    fn precedence(&self) -> Precedence;
+}
+
+// Operator precedence levels.
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+pub enum Precedence {
+    Base,
+    LogicalOr,
+    LogicalAnd,
+    BitwiseOr,
+    BitwiseXor,
+    BitwiseAnd,
+    Equality,
+    Comparison,
+    Addition,
+    Multiplication,
+    Exponentiation,
+    Prefix,
+    Call,
+}
+
+pub struct ExprParser {
+    prefix_parselets: HashMap<TokenKind, Rc<dyn PrefixExprParselet>>,
+    infix_parselets: HashMap<TokenKind, Rc<dyn InfixExprParselet>>,
+}
+
+impl ExprParser {
+    pub fn new() -> Self {
+        let mut prefix_parselets: HashMap<TokenKind, Rc<dyn PrefixExprParselet>> = HashMap::new();
+        prefix_parselets.insert(TokenKind::Int, Rc::new(LiteralParselet));
+        prefix_parselets.insert(TokenKind::Float, Rc::new(LiteralParselet));
+        prefix_parselets.insert(TokenKind::Str, Rc::new(LiteralParselet));
+        prefix_parselets.insert(TokenKind::TrueLiteral, Rc::new(LiteralParselet));
+        prefix_parselets.insert(TokenKind::FalseLiteral, Rc::new(LiteralParselet));
+        prefix_parselets.insert(TokenKind::Identifier, Rc::new(IdentifierParselet));
+        prefix_parselets.insert(TokenKind::OpenParen, Rc::new(GroupParselet));
+        prefix_parselets.insert(TokenKind::Dot, Rc::new(PrefixDotAccessParselet));
+        prefix_parselets.insert(TokenKind::At, Rc::new(MetaTypeParselet));
+        prefix_parselets.insert(
+            TokenKind::Minus,
+            Rc::new(UnaryOperatorParselet {
+                operator: UnaryOp::Negate,
+            }),
+        );
+        prefix_parselets.insert(
+            TokenKind::Plus,
+            Rc::new(UnaryOperatorParselet {
+                operator: UnaryOp::Positive,
+            }),
+        );
+        prefix_parselets.insert(
+            TokenKind::Bang,
+            Rc::new(UnaryOperatorParselet {
+                operator: UnaryOp::Not,
+            }),
+        );
+        prefix_parselets.insert(
+            TokenKind::Star,
+            Rc::new(UnaryOperatorParselet {
+                operator: UnaryOp::Dereference,
+            }),
+        );
+        prefix_parselets.insert(
+            TokenKind::And,
+            Rc::new(UnaryOperatorParselet {
+                operator: UnaryOp::AddressOf,
+            }),
+        );
+
+        let mut infix_parselets: HashMap<TokenKind, Rc<dyn InfixExprParselet>> = HashMap::new();
+        infix_parselets.insert(
+            TokenKind::Plus,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::Add,
+                precedence: Precedence::Addition,
+            }),
+        );
+        infix_parselets.insert(
+            TokenKind::Minus,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::Subtract,
+                precedence: Precedence::Addition,
+            }),
+        );
+        infix_parselets.insert(
+            TokenKind::Star,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::Multiply,
+                precedence: Precedence::Multiplication,
+            }),
+        );
+        infix_parselets.insert(
+            TokenKind::Slash,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::Divide,
+                precedence: Precedence::Multiplication,
+            }),
+        );
+        infix_parselets.insert(
+            TokenKind::Percent,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::Modulo,
+                precedence: Precedence::Multiplication,
+            }),
+        );
+        infix_parselets.insert(
+            TokenKind::EqualEqual,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::Equal,
+                precedence: Precedence::Equality,
+            }),
+        );
+        infix_parselets.insert(
+            TokenKind::NotEqual,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::NotEqual,
+                precedence: Precedence::Equality,
+            }),
+        );
+        infix_parselets.insert(
+            TokenKind::LessThan,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::LessThan,
+                precedence: Precedence::Comparison,
+            }),
+        );
+        infix_parselets.insert(
+            TokenKind::GreaterThan,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::GreaterThan,
+                precedence: Precedence::Comparison,
+            }),
+        );
+        infix_parselets.insert(
+            TokenKind::LessOrEqual,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::LessThanOrEqual,
+                precedence: Precedence::Comparison,
+            }),
+        );
+        infix_parselets.insert(
+            TokenKind::GreaterOrEqual,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::GreaterThanOrEqual,
+                precedence: Precedence::Comparison,
+            }),
+        );
+        infix_parselets.insert(
+            TokenKind::AndAnd,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::LogicalAnd,
+                precedence: Precedence::LogicalAnd,
+            }),
+        );
+        infix_parselets.insert(
+            TokenKind::PipePipe,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::LogicalOr,
+                precedence: Precedence::LogicalOr,
+            }),
+        );
+        infix_parselets.insert(
+            TokenKind::And,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::BitwiseAnd,
+                precedence: Precedence::BitwiseAnd,
+            }),
+        );
+        infix_parselets.insert(
+            TokenKind::Pipe,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::BitwiseOr,
+                precedence: Precedence::BitwiseOr,
+            }),
+        );
+        infix_parselets.insert(
+            TokenKind::Caret,
+            Rc::new(BinaryOperatorParselet {
+                operator: BinaryOp::BitwiseXor,
+                precedence: Precedence::BitwiseXor,
+            }),
+        );
+        infix_parselets.insert(TokenKind::OpenParen, Rc::new(CallParselet));
+        infix_parselets.insert(TokenKind::OpenSquare, Rc::new(IndexParselet));
+        infix_parselets.insert(TokenKind::Dot, Rc::new(InfixDotAccessParselet));
+        infix_parselets.insert(TokenKind::ColonColon, Rc::new(ModuleAccessParselet));
+
+        ExprParser {
+            prefix_parselets,
+            infix_parselets,
         }
-
-        let next_precedence = parser.get_precedence(&next_token.kind);
-        if next_precedence.is_err() {
-            break;
-        }
-        let next_precedence = next_precedence.unwrap();
-
-        if next_precedence <= min_precedence {
-            break;
-        }
-
-        let token = parser.consume()?;
-        let infix_opt = parser.infix_expr_parselets.get(&token.kind);
-        if infix_opt.is_none() {
-            break;
-        }
-        let infix = infix_opt.unwrap().clone();
-
-        left = infix.parse(parser, left, token)?;
     }
 
-    Ok(left)
+    /// Parse an expression with a minimum precedence level.
+    /// This implements the Pratt parser algorithm.
+    pub fn parse(&self, lexer: &mut Lexer, min_precedence: Precedence) -> Result<Expr, ParseError> {
+        let token = lexer.next_token();
+
+        let prefix_opt = self.prefix_parselets.get(&token.kind);
+        if prefix_opt.is_none() {
+            return Err(ParseError::UnexpectedToken(
+                token,
+                "No prefix parselet for token kind".to_string(),
+            ));
+        };
+
+        let prefix = prefix_opt.unwrap().clone();
+        let mut left = prefix.parse(self, lexer, token)?;
+
+        // Loop while the next token's precedence is higher than or equal to min_precedence
+        loop {
+            let token = lexer.peek();
+            if token.kind == TokenKind::Eof || token.kind == TokenKind::Semicolon {
+                break;
+            }
+
+            let infix_parselet = self.infix_parselets.get(&token.kind);
+            if infix_parselet.is_none() {
+                break;
+            }
+            let infix_parselet = infix_parselet.unwrap();
+
+            if infix_parselet.precedence() <= min_precedence {
+                break;
+            }
+
+            let token = lexer.next_token();
+            left = infix_parselet.parse(self, lexer, left, token)?;
+        }
+
+        Ok(left)
+    }
+
+    pub fn is_expression_prefix(&self, token: Token) -> bool {
+        self.prefix_parselets.contains_key(&token.kind)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::ast::{
-        ArrayType, BinaryExpr, BinaryOp, CallExpr, DotAccessExpr, Expr, FreeExpr, IdentifierExpr,
-        IndexExpr, MetaTypeExpr, NewExpr, TypeSpec, UnaryExpr, UnaryOp,
+        AllocExpr, ArrayType, BinaryExpr, BinaryOp, CallExpr, DotAccessExpr, Expr, FreeExpr,
+        IdentifierExpr, IndexExpr, MetaTypeExpr, TypeSpec, UnaryExpr, UnaryOp,
     };
     use crate::parser::lexer::Lexer;
     use pretty_assertions::assert_eq;
@@ -67,10 +303,10 @@ mod tests {
             $(
                 #[test]
                 fn $case() {
-                    let lexer = Lexer::new($input);
-                    let mut parser = Parser::new(lexer);
+                    let mut lexer = Lexer::new($input);
+                    let parser = ExprParser::new();
 
-                    let expr = parse_expression(&mut parser, Precedence::Base).unwrap();
+                    let expr = parser.parse(&mut lexer, Precedence::Base).unwrap();
                     match expr {
                         $want_var => $want_value,
                         _ => panic!("Expected {:?} => {{ {:?} }}, got {:?}", stringify!($want_var), stringify!($want_value), expr),
@@ -81,14 +317,39 @@ mod tests {
     }
 
     test_parse_expressions!(
+        parse_expression_max_int {
+            input: "9223372036854775807",
+            want_var: Expr::IntLiteral(9223372036854775807),
+            want_value: (),
+        },
+        parse_expression_float {
+            input: "3.45",
+            want_var: Expr::FloatLiteral(3.45),
+            want_value: (),
+        },
+        parse_expression_complex_float {
+            input: "1.23e4",
+            want_var: Expr::FloatLiteral(12300.0),
+            want_value: (),
+        },
+        parse_expression_true {
+            input: "true",
+            want_var: Expr::BoolLiteral(true),
+            want_value: (),
+        },
+        parse_expression_false {
+            input: "false",
+            want_var: Expr::BoolLiteral(false),
+            want_value: (),
+        },
+        parse_expression_empty_string {
+            input: r#""""#,
+            want_var: Expr::StringLiteral(s),
+            want_value: assert_eq!(s, ""),
+        },
         parse_expression_int_literal {
             input: "42",
             want_var: Expr::IntLiteral(42),
-            want_value: (),
-        },
-        parse_expression_float_literal {
-            input: "3.45",
-            want_var: Expr::FloatLiteral(3.45),
             want_value: (),
         },
         parse_expression_string_literal {
@@ -594,9 +855,9 @@ mod tests {
                     target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                         name: "person".to_string(),
                     }))),
-                    field: Box::new(IdentifierExpr {
+                    field: IdentifierExpr {
                         name: "name".to_string(),
-                    }),
+                    },
                 }
             ),
         },
@@ -610,13 +871,13 @@ mod tests {
                         target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                             name: "company".to_string(),
                         }))),
-                        field: Box::new(IdentifierExpr {
+                        field: IdentifierExpr {
                             name: "ceo".to_string(),
-                        }),
+                        },
                     }))),
-                    field: Box::new(IdentifierExpr {
+                    field: IdentifierExpr {
                         name: "name".to_string(),
-                    }),
+                    },
                 },
             ),
         },
@@ -632,9 +893,9 @@ mod tests {
                         })),
                         index: Box::new(Expr::IntLiteral(0)),
                     }))),
-                    field: Box::new(IdentifierExpr {
+                    field: IdentifierExpr {
                         name: "email".to_string(),
-                    }),
+                    },
                 },
             ),
         },
@@ -649,84 +910,97 @@ mod tests {
                             target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                                 name: "config".to_string(),
                             }))),
-                            field: Box::new(IdentifierExpr {
+                            field: IdentifierExpr {
                                 name: "getDatabase".to_string(),
-                            }),
+                            },
                         })),
                         args: vec![],
                     }))),
-                    field: Box::new(IdentifierExpr {
+                    field: IdentifierExpr {
                         name: "host".to_string(),
-                    }),
+                    },
                 },
             ),
         },
         parse_expression_call_new {
-            input: "new(i32)",
-            want_var: Expr::New(expr),
+            input: "alloc(@i32)",
+            want_var: Expr::Alloc(expr),
             want_value: assert_eq!(
                 expr,
-                NewExpr {
-                    type_spec: TypeSpec::Int32,
-                    len: None,
-                    cap: None,
+                AllocExpr {
+                    meta_type: Box::new(Expr::MetaType(MetaTypeExpr {
+                        type_spec: TypeSpec::Int32,
+                    })),
+                    options: vec![],
                 }
             ),
         },
         parse_expression_call_new_slice {
-            input: "new([]f64, 10)",
-            want_var: Expr::New(expr),
+            input: "alloc(@[]f64, .Len(10))",
+            want_var: Expr::Alloc(expr),
             want_value: assert_eq!(
                 expr,
-                NewExpr {
-                    type_spec: TypeSpec::Slice(Box::new(TypeSpec::Float64)),
-                    len: Some(Box::new(Expr::IntLiteral(10))),
-                    cap: None,
+                AllocExpr {
+                    meta_type: Box::new(Expr::MetaType(MetaTypeExpr {
+                        type_spec: TypeSpec::Slice(Box::new(TypeSpec::Float64)),
+                    })),
+                    options: vec![Expr::Call(CallExpr {
+                        func: Box::new(Expr::DotAccess(DotAccessExpr {
+                            target: None,
+                            field: IdentifierExpr {
+                                name: "Len".to_string()
+                            },
+                        })),
+                        args: vec![Expr::IntLiteral(10)],
+                    })],
                 }
             ),
         },
         parse_expression_call_new_slice_with_cap {
-            input: "new([ ] bool, 10, 20)",
-            want_var: Expr::New(new_expr),
-            want_value: {
-                match new_expr.type_spec {
-                    TypeSpec::Slice(t) => assert_eq!(*t, TypeSpec::Bool),
-                    _ => panic!(
-                        "Expected TypeSpec::Slice(TypeSpec::Bool), but got {:?}",
-                        new_expr.type_spec
-                    ),
-                }
-                match new_expr.len {
-                    Some(len_expr) => match *len_expr {
-                        Expr::IntLiteral(10) => (),
-                        _ => panic!("Expected len to be IntLiteral(10)"),
-                    },
-                    None => panic!("Expected len to be Some"),
-                }
-                match new_expr.cap {
-                    Some(cap_expr) => match *cap_expr {
-                        Expr::IntLiteral(20) => (),
-                        _ => panic!("Expected cap to be IntLiteral(20)"),
-                    },
-                    None => panic!("Expected cap to be Some"),
-                }
-            },
+            input: "alloc(@[ ] bool, .Cap(15), .NoInit)",
+            want_var: Expr::Alloc(expr),
+            want_value: assert_eq!(
+                expr,
+                AllocExpr {
+                    meta_type: Box::new(Expr::MetaType(MetaTypeExpr {
+                        type_spec: TypeSpec::Slice(Box::new(TypeSpec::Bool)),
+                    })),
+                    options: vec![
+                        Expr::Call(CallExpr {
+                            func: Box::new(Expr::DotAccess(DotAccessExpr {
+                                target: None,
+                                field: IdentifierExpr {
+                                    name: "Cap".to_string()
+                                },
+                            })),
+                            args: vec![Expr::IntLiteral(15)],
+                        }),
+                        Expr::DotAccess(DotAccessExpr {
+                            target: None,
+                            field: IdentifierExpr {
+                                name: "NoInit".to_string(),
+                            },
+                        })
+                    ],
+                },
+            ),
         },
         parse_expression_call_new_method {
-            input: "new(i32).method()",
+            input: "alloc(@i32).method()",
             want_var: Expr::Call(expr),
             want_value: assert_eq!(
                 expr,
                 CallExpr {
                     func: Box::new(Expr::DotAccess(DotAccessExpr {
-                        target: Some(Box::new(Expr::New(NewExpr {
-                            type_spec: TypeSpec::Int32,
-                            len: None,
-                            cap: None,
+                        target: Some(Box::new(Expr::Alloc(AllocExpr {
+                            meta_type: Box::new(Expr::MetaType(MetaTypeExpr {
+                                type_spec: TypeSpec::Int32,
+                            })),
+                            options: vec![],
                         }))),
-                        field: Box::new(IdentifierExpr {
+                        field: IdentifierExpr {
                             name: "method".to_string(),
-                        }),
+                        },
                     })),
                     args: vec![],
                 }
@@ -755,13 +1029,13 @@ mod tests {
                             target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                                 name: "data".to_string(),
                             }))),
-                            field: Box::new(IdentifierExpr {
+                            field: IdentifierExpr {
                                 name: "buffer".to_string(),
-                            }),
+                            },
                         }))),
-                        field: Box::new(IdentifierExpr {
+                        field: IdentifierExpr {
                             name: "ptr".to_string(),
-                        }),
+                        },
                     })),
                 }
             ),
@@ -773,9 +1047,9 @@ mod tests {
                 expr,
                 DotAccessExpr {
                     target: None,
-                    field: Box::new(IdentifierExpr {
+                    field: IdentifierExpr {
                         name: "Ok".to_string(),
-                    }),
+                    },
                 },
             ),
         },
@@ -791,9 +1065,9 @@ mod tests {
                     operator: BinaryOp::Equal,
                     right: Box::new(Expr::DotAccess(DotAccessExpr {
                         target: None,
-                        field: Box::new(IdentifierExpr {
+                        field: IdentifierExpr {
                             name: "Err".to_string(),
-                        }),
+                        },
                     })),
                 },
             ),

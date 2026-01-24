@@ -1,67 +1,119 @@
+mod dot_pattern;
+mod identifier_pattern;
+mod literal_pattern;
+mod mod_pattern;
+mod payload_pattern;
+mod type_pattern;
+
+use std::collections::HashMap;
+use std::rc::Rc;
+
 use crate::ast::Pattern;
-use crate::parser::lexer::TokenKind;
-use crate::parser::{ParseError, Parser};
+use crate::parser::ParseError;
+use crate::parser::lexer::Lexer;
+use crate::parser::lexer::{Token, TokenKind};
 
-// parse manta patterns
-//
-// Example `mod::Enum.Variant`
-// Example `mod::Enum.Variant(ident)`
-// Example `mod::Type`
-// Example `mod::Type(ident)`
-//
-// Example `Enum.Variant`
-// Example `Enum.Variant(ident)`
-//
-// Example `.Variant`
-// Example `.Variant(ident)`
-//
-// Example `Type`
-// Example `Type(ident)`
-//
-// Example `literal`
-// Example `_`
-// Example `identifier`
-pub fn parse_pattern(parser: &mut Parser) -> Result<Pattern, ParseError> {
-    let token = parser.consume()?;
+use dot_pattern::{InfixDotPatternParselet, PrefixDotPatternParselet};
+use identifier_pattern::IdentifierPatternParselet;
+use literal_pattern::LiteralPatternParselet;
+use mod_pattern::ModPatternParselet;
+use payload_pattern::PayloadPatternParselet;
+use type_pattern::TypePatternParselet;
 
-    let parselet = parser.prefix_pattern_parselets.get(&token.kind);
-    if parselet.is_none() {
-        return Err(ParseError::UnexpectedToken(
-            token,
-            "invalid pattern prefix".to_string(),
-        ));
+/// Trait for prefix pattern parselets
+pub trait PrefixPatternParselet {
+    fn parse(&self, lexer: &mut Lexer, token: Token) -> Result<Pattern, ParseError>;
+}
+
+/// Trait for infix pattern parselets.
+pub trait InfixPatternParselet {
+    fn parse(
+        &self,
+        parser: &PatternParser,
+        lexer: &mut Lexer,
+        left: Pattern,
+        token: Token,
+    ) -> Result<Pattern, ParseError>;
+}
+
+/// PatternParser parses manta patterns
+///
+/// Example `mod::Enum.Variant`
+/// Example `.Variant(ident)`
+/// Example `Type(ident)`
+/// Example `literal`
+/// Example `_`
+pub struct PatternParser {
+    prefix_parselets: HashMap<TokenKind, Rc<dyn PrefixPatternParselet>>,
+    infix_parselets: HashMap<TokenKind, Rc<dyn InfixPatternParselet>>,
+}
+
+impl PatternParser {
+    pub fn new() -> Self {
+        let mut prefix_parselets: HashMap<TokenKind, Rc<dyn PrefixPatternParselet>>;
+        prefix_parselets = HashMap::new();
+        prefix_parselets.insert(TokenKind::Identifier, Rc::new(IdentifierPatternParselet));
+        prefix_parselets.insert(TokenKind::Dot, Rc::new(PrefixDotPatternParselet));
+        prefix_parselets.insert(TokenKind::Star, Rc::new(TypePatternParselet));
+        prefix_parselets.insert(TokenKind::OpenSquare, Rc::new(TypePatternParselet));
+        prefix_parselets.insert(TokenKind::TrueLiteral, Rc::new(LiteralPatternParselet));
+        prefix_parselets.insert(TokenKind::FalseLiteral, Rc::new(LiteralPatternParselet));
+        prefix_parselets.insert(TokenKind::Int, Rc::new(LiteralPatternParselet));
+        prefix_parselets.insert(TokenKind::Float, Rc::new(LiteralPatternParselet));
+        prefix_parselets.insert(TokenKind::Str, Rc::new(LiteralPatternParselet));
+
+        let mut infix_parselets: HashMap<TokenKind, Rc<dyn InfixPatternParselet>> = HashMap::new();
+        infix_parselets.insert(TokenKind::Dot, Rc::new(InfixDotPatternParselet));
+        infix_parselets.insert(TokenKind::ColonColon, Rc::new(ModPatternParselet));
+        infix_parselets.insert(TokenKind::OpenParen, Rc::new(PayloadPatternParselet));
+
+        PatternParser {
+            prefix_parselets,
+            infix_parselets,
+        }
     }
 
-    let prefix = parselet.unwrap().clone();
-    let mut left = prefix.parse(parser, token)?;
+    pub fn parse(&self, lexer: &mut Lexer) -> Result<Pattern, ParseError> {
+        let token = lexer.next_token();
 
-    loop {
-        match parser.lookahead(0)?.kind {
-            TokenKind::OpenBrace | TokenKind::Equal => break,
-            _ => (),
-        };
-
-        let next_token = parser.consume()?;
-
-        let parselet = parser.infix_pattern_parselets.get(&next_token.kind);
+        let parselet = self.prefix_parselets.get(&token.kind);
         if parselet.is_none() {
             return Err(ParseError::UnexpectedToken(
-                next_token.clone(),
-                "invalid infix pattern".to_string(),
+                token,
+                "invalid pattern prefix".to_string(),
             ));
         }
 
-        let infix = parselet.unwrap().clone();
-        left = infix.parse(parser, left, next_token)?;
-    }
+        let prefix = parselet.unwrap().clone();
+        let mut left = prefix.parse(lexer, token)?;
 
-    Ok(left)
+        loop {
+            let token = lexer.peek();
+            match token.kind {
+                TokenKind::OpenBrace | TokenKind::Equal => break,
+                _ => (),
+            };
+
+            let parselet = self.infix_parselets.get(&token.kind);
+            if let Some(parselet) = parselet {
+                let token = lexer.next_token();
+                left = parselet.parse(self, lexer, left, token)?;
+            } else {
+                return Err(ParseError::UnexpectedToken(
+                    token,
+                    "invalid infix pattern".to_string(),
+                ));
+            }
+        }
+
+        Ok(left)
+    }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::ast::{IdentifierPat, Pattern, PayloadPat};
+    use crate::ast::{ArrayType, DotAccessPat, IdentifierPat, Pattern, PayloadPat, TypeSpec};
     use crate::parser::lexer::Lexer;
     use pretty_assertions::assert_eq;
 
@@ -70,9 +122,9 @@ mod test {
             $(
                 #[test]
                 fn $case() {
-                    let lexer = Lexer::new($input);
-                    let mut parser = Parser::new(lexer);
-                    let pattern = parse_pattern(&mut parser).unwrap();
+                    let parser = PatternParser::new();
+                    let mut lexer = Lexer::new($input);
+                    let pattern = parser.parse(&mut lexer).unwrap();
                     assert_eq!(pattern, $want)
                 }
             )*
@@ -80,37 +132,37 @@ mod test {
     }
 
     test_parse_patterns!(
-        test_parse_pattern_int_literal {
+        parse_expression_pattern_int_literal {
             input: "42 {",
             want: Pattern::IntLiteral(42),
         },
-        test_parse_pattern_string_literal {
-            input: r###""hello" {"###,
+        parse_expression_pattern_string_literal {
+            input: r#""hello" {"#,
             want: Pattern::StringLiteral("hello".to_string()),
         },
-        test_parse_pattern_float_literal {
+        parse_expression_pattern_float_literal {
             input: "3.45 {",
             want: Pattern::FloatLiteral(3.45),
         },
-        test_parse_pattern_true_literal {
+        parse_expression_pattern_true_literal {
             input: "true {",
             want: Pattern::BoolLiteral(true),
         },
-        test_parse_pattern_false_literal {
+        parse_expression_pattern_false_literal {
             input: "false {",
             want: Pattern::BoolLiteral(false),
         },
-        test_parse_pattern_default {
+        parse_expression_pattern_default {
             input: "_ =",
             want: Pattern::Default,
         },
-        test_parse_pattern_identifier {
+        parse_expression_pattern_identifier {
             input: "my_var =",
             want: Pattern::Identifier(IdentifierPat {
                 name: "my_var".to_string()
             }),
         },
-        test_parse_pattern_type_match {
+        parse_expression_pattern_type_match {
             input: "f32(f) =",
             want: Pattern::Payload(PayloadPat {
                 pat: Box::new(Pattern::Identifier(IdentifierPat {
@@ -119,13 +171,99 @@ mod test {
                 payload: "f".to_string(),
             }),
         },
+        parse_expression_pointer {
+            input: "*foo =",
+            want: Pattern::TypeSpec(TypeSpec::Pointer(Box::new(TypeSpec::Named {
+                module: None,
+                name: "foo".to_string(),
+            }))),
+        },
+        parse_expression_double_pointer {
+            input: "**bar {",
+            want: Pattern::TypeSpec(TypeSpec::Pointer(Box::new(TypeSpec::Pointer(Box::new(
+                TypeSpec::Named {
+                    module: None,
+                    name: "bar".to_string(),
+                }
+            ))))),
+        },
+        parse_expression_slice {
+            input: "[]Vec2 =",
+            want: Pattern::TypeSpec(TypeSpec::Slice(Box::new(TypeSpec::Named {
+                module: None,
+                name: "Vec2".to_string(),
+            }))),
+        },
+        parse_expression_3d_array {
+            input: "[10][11][12]bool =",
+            want: Pattern::TypeSpec(TypeSpec::Array(ArrayType {
+                size: 10,
+                type_spec: Box::new(TypeSpec::Array(ArrayType {
+                    size: 11,
+                    type_spec: Box::new(TypeSpec::Array(ArrayType {
+                        size: 12,
+                        type_spec: Box::new(TypeSpec::Bool),
+                    })),
+                })),
+            }),),
+        },
+        parse_expression_array_pointer_slice_pointer {
+            input: "[3]*[]*pet::Dog =",
+            want: Pattern::TypeSpec(TypeSpec::Array(ArrayType {
+                size: 3,
+                type_spec: Box::new(TypeSpec::Pointer(Box::new(TypeSpec::Slice(Box::new(
+                    TypeSpec::Pointer(Box::new(TypeSpec::Named {
+                        module: Some("pet".to_string()),
+                        name: "Dog".to_string(),
+                    }))
+                ))))),
+            }),),
+        },
+        parse_expression_simple_identifier {
+            input: "foo {",
+            want: Pattern::Identifier(IdentifierPat {
+                name: "foo".to_string()
+            }),
+        },
+        parse_expression_variable_name {
+            input: "my_variable {",
+            want: Pattern::Identifier(IdentifierPat {
+                name: "my_variable".to_string()
+            }),
+        },
+        parse_expression_identifier_with_numbers {
+            input: "var123 {",
+            want: Pattern::Identifier(IdentifierPat {
+                name: "var123".to_string()
+            }),
+        },
+        parse_expression_dot_inferred_variant {
+            input: ".Ok =",
+            want: Pattern::DotAccess(DotAccessPat {
+                target: None,
+                field: IdentifierPat {
+                    name: "Ok".to_string()
+                },
+            }),
+        },
+        parse_expression_dot_variant {
+            input: "Ret.Ok {",
+            want: Pattern::DotAccess(DotAccessPat {
+                target: Some(Box::new(Pattern::Identifier(IdentifierPat {
+                    name: "Ret".to_string()
+                }))),
+                field: IdentifierPat {
+                    name: "Ok".to_string()
+                },
+            },),
+        },
     );
 
     #[test]
-    fn test_parse_pattern_invalid() {
-        let lexer = Lexer::new("+ ");
-        let mut parser = Parser::new(lexer);
-        let result = parse_pattern(&mut parser);
+    fn parse_expression_pattern_invalid() {
+        let mut lexer = Lexer::new("+ ");
+        let parser = PatternParser::new();
+        let result = parser.parse(&mut lexer);
         assert!(result.is_err());
     }
 }

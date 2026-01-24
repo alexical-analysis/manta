@@ -181,21 +181,15 @@
                 }
               },
               "value": {
-                "Call": {
-                  "func": {
-                    "Identifier": {
-                      "name": "alloc"
-                    }
-                  },
-                  "args": [
-                    {
-                      "MetaType": {
-                        "type_spec": {
-                          "Slice": "UInt8"
-                        }
+                "Alloc": {
+                  "meta_type": {
+                    "MetaType": {
+                      "type_spec": {
+                        "Slice": "UInt8"
                       }
                     }
-                  ]
+                  },
+                  "options": []
                 }
               },
               "or_binding": {

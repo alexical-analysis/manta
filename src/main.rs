@@ -1,7 +1,5 @@
 mod ast;
 mod parser;
-#[macro_use]
-mod test_macros;
 
 use clap::{Parser, Subcommand};
 use std::error::Error;

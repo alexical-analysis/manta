@@ -1,98 +1,186 @@
-use crate::ast::{BlockStmt, ExprStmt, Stmt};
-use crate::parser::lexer::TokenKind;
-use crate::parser::{ParseError, Parser};
+mod assign_statement;
+mod block_statement;
+mod defer_statement;
+mod if_statement;
+mod let_statement;
+mod match_statement;
+mod return_statement;
 
-/// Parse manta statements
-pub fn parse_statement(parser: &mut Parser) -> Result<Stmt, ParseError> {
-    // need to peek here because we don't know if this is an expression or a statement yet
-    let token = parser.lookahead(0)?;
-    let token_kind = token.kind;
+use std::collections::HashMap;
+use std::rc::Rc;
 
-    let parselet = parser.prefix_stmt_parselets.get(&token_kind);
-    if let Some(parselet) = parselet {
-        let parselet = parselet.clone();
-        let token = parser.consume()?;
-        let stmt = parselet.parse(parser, token)?;
+use crate::ast::{BlockStmt, Expr, ExprStmt, Pattern, Stmt};
+use crate::parser::ParseError;
+use crate::parser::expression::{ExprParser, Precedence};
+use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::pattern::PatternParser;
 
-        // Consume trailing semicolon for prefix statements
-        let matched = parser.match_token(TokenKind::Semicolon)?;
-        if !matched {
-            return Err(ParseError::UnexpectedToken(
-                parser.lookahead(0)?.clone(),
-                "missing ';'".to_string(),
-            ));
-        }
+use assign_statement::AssignParselet;
+use block_statement::BlockParselet;
+use defer_statement::DeferParselet;
+use if_statement::IfParselet;
+use let_statement::LetParselet;
+use match_statement::MatchParselet;
+use return_statement::ReturnParselet;
 
-        return Ok(stmt);
-    };
-
-    // if we failed to match a statment, parse this as expression instead
-    let expr = parser.parse_expression()?;
-
-    let token = parser.lookahead(0)?;
-    let token_kind = token.kind;
-
-    // check if this expression is actually the left hand side of a statement
-    let parselet = parser.infix_stmt_parselets.get(&token_kind);
-    if let Some(parselet) = parselet {
-        let parselet = parselet.clone();
-        let token = parser.consume()?;
-        let stmt = parselet.parse(parser, expr, token)?;
-
-        let matched = parser.match_token(TokenKind::Semicolon)?;
-        if !matched {
-            return Err(ParseError::UnexpectedToken(
-                parser.lookahead(0)?.clone(),
-                "missing ';'".to_string(),
-            ));
-        }
-
-        Ok(stmt)
-    } else {
-        let matched = parser.match_token(TokenKind::Semicolon)?;
-        if !matched {
-            return Err(ParseError::UnexpectedToken(
-                parser.lookahead(0)?.clone(),
-                "missing ';'".to_string(),
-            ));
-        }
-
-        Ok(Stmt::Expr(ExprStmt { expr }))
-    }
+/// Trait for prefix statement parselets.
+pub trait PrefixStmtParselet {
+    /// Parse a prefix statement given the consumed token.
+    fn parse(
+        &self,
+        parser: &StmtParser,
+        lexer: &mut Lexer,
+        token: Token,
+    ) -> Result<Stmt, ParseError>;
 }
 
-pub fn parse_block(parser: &mut Parser) -> Result<BlockStmt, ParseError> {
-    let mut statements = vec![];
+/// Trait for infix statement parselets.
+pub trait InfixStmtParselet {
+    /// Parse an infix statement with `left` already parsed and the consumed token.
+    fn parse(
+        &self,
+        parser: &StmtParser,
+        lexer: &mut Lexer,
+        left: Expr,
+        token: Token,
+    ) -> Result<Stmt, ParseError>;
+}
 
-    loop {
-        let matched = parser.match_token(TokenKind::CloseBrace)?;
-        if matched {
-            break;
+pub struct StmtParser {
+    expr_parser: ExprParser,
+    pattern_parser: PatternParser,
+    prefix_parselets: HashMap<TokenKind, Rc<dyn PrefixStmtParselet>>,
+    infix_parselets: HashMap<TokenKind, Rc<dyn InfixStmtParselet>>,
+}
+
+impl StmtParser {
+    pub fn new() -> Self {
+        let mut prefix_parselets: HashMap<TokenKind, Rc<dyn PrefixStmtParselet>> = HashMap::new();
+        prefix_parselets.insert(TokenKind::LetKeyword, Rc::new(LetParselet));
+        prefix_parselets.insert(TokenKind::ReturnKeyword, Rc::new(ReturnParselet));
+        prefix_parselets.insert(TokenKind::DeferKeyword, Rc::new(DeferParselet));
+        prefix_parselets.insert(TokenKind::OpenBrace, Rc::new(BlockParselet));
+        prefix_parselets.insert(TokenKind::IfKeyword, Rc::new(IfParselet));
+        prefix_parselets.insert(TokenKind::MatchKeyword, Rc::new(MatchParselet));
+
+        let mut infix_parselets: HashMap<TokenKind, Rc<dyn InfixStmtParselet>> = HashMap::new();
+        infix_parselets.insert(TokenKind::Equal, Rc::new(AssignParselet));
+
+        let expr_parser = ExprParser::new();
+        let pattern_parser = PatternParser::new();
+
+        StmtParser {
+            expr_parser,
+            pattern_parser,
+            prefix_parselets,
+            infix_parselets,
         }
-
-        let eof_token = parser.lookahead(0)?;
-        if eof_token.kind == TokenKind::Eof {
-            return Err(ParseError::UnexpectedToken(
-                eof_token.clone(),
-                "missing closing '}' in block".to_string(),
-            ));
-        }
-
-        let statement = parse_statement(parser)?;
-        statements.push(statement);
     }
 
-    Ok(BlockStmt { statements })
+    /// Parse manta statements
+    pub fn parse(&self, lexer: &mut Lexer) -> Result<Stmt, ParseError> {
+        // need to peek here because we don't know if this is an expression or a statement yet
+        let token = lexer.peek();
+
+        let parselet = self.prefix_parselets.get(&token.kind);
+        if let Some(parselet) = parselet {
+            let parselet = parselet.clone();
+            let token = lexer.next_token();
+            let stmt = parselet.parse(self, lexer, token)?;
+
+            // Consume trailing semicolon for prefix statements
+            let next = lexer.next_token();
+            if next.kind != TokenKind::Semicolon {
+                return Err(ParseError::UnexpectedToken(
+                    token,
+                    "missing ';'".to_string(),
+                ));
+            }
+
+            return Ok(stmt);
+        };
+
+        // if we failed to match a statment, parse this as expression instead
+        let expr = self.expr_parser.parse(lexer, Precedence::Base)?;
+
+        let token = lexer.peek();
+
+        // check if this expression is actually the left hand side of a statement
+        let parselet = self.infix_parselets.get(&token.kind);
+        match parselet {
+            Some(parselet) => {
+                let parselet = parselet.clone();
+                let token = lexer.next_token();
+                let stmt = parselet.parse(self, lexer, expr, token)?;
+
+                let next = lexer.next_token();
+                if next.kind != TokenKind::Semicolon {
+                    return Err(ParseError::UnexpectedToken(
+                        token,
+                        "missing ';'".to_string(),
+                    ));
+                }
+
+                Ok(stmt)
+            }
+            None => {
+                let next = lexer.next_token();
+                if next.kind != TokenKind::Semicolon {
+                    return Err(ParseError::UnexpectedToken(next, "missing ';'".to_string()));
+                }
+
+                Ok(Stmt::Expr(ExprStmt { expr }))
+            }
+        }
+    }
+
+    pub fn parse_block(&self, lexer: &mut Lexer) -> Result<BlockStmt, ParseError> {
+        let mut statements = vec![];
+
+        loop {
+            let next = lexer.peek();
+            match next.kind {
+                TokenKind::CloseBrace => {
+                    lexer.next_token();
+                    break;
+                }
+                TokenKind::Eof => {
+                    return Err(ParseError::UnexpectedToken(
+                        next,
+                        "missing closing '}' in block".to_string(),
+                    ));
+                }
+                _ => {
+                    let stmt = self.parse(lexer)?;
+                    statements.push(stmt);
+                }
+            };
+        }
+
+        Ok(BlockStmt { statements })
+    }
+
+    pub fn parse_expression(&self, lexer: &mut Lexer) -> Result<Expr, ParseError> {
+        self.expr_parser.parse(lexer, Precedence::Base)
+    }
+
+    pub fn parse_pattern(&self, lexer: &mut Lexer) -> Result<Pattern, ParseError> {
+        self.pattern_parser.parse(lexer)
+    }
+
+    pub fn is_expression_prefix(&self, token: Token) -> bool {
+        self.expr_parser.is_expression_prefix(token)
+    }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
     use crate::ast::{
-        AssignStmt, BinaryExpr, BinaryOp, BlockStmt, CallExpr, DeferStmt, DotAccessExpr,
-        DotAccessPat, EnumVariantPat, Expr, FreeExpr, IdentifierExpr, IdentifierPat, IfStmt,
-        IndexExpr, LetStmt, MatchArm, MatchStmt, ModuleAccesPat, ModuleAccessExpr, NewExpr,
-        Pattern, PayloadPat, ReturnStmt, Stmt, TypeSpec, UnaryExpr, UnaryOp,
+        AllocExpr, AssignStmt, BinaryExpr, BinaryOp, BlockStmt, CallExpr, DeferStmt, DotAccessExpr,
+        DotAccessPat, Expr, FreeExpr, IdentifierExpr, IdentifierPat, IfStmt, IndexExpr, LetStmt,
+        MatchArm, MatchStmt, MetaTypeExpr, ModuleAccessExpr, Pattern, PayloadPat, ReturnStmt, Stmt,
+        TypeSpec, UnaryExpr, UnaryOp,
     };
     use crate::parser::lexer::Lexer;
     use pretty_assertions::assert_eq;
@@ -102,10 +190,10 @@ mod test {
             $(
                 #[test]
                 fn $case() {
-                    let lexer = Lexer::new($input);
-                    let mut parser = Parser::new(lexer);
+                    let mut lexer = Lexer::new($input);
+                    let parser = StmtParser::new();
 
-                    let stmt = parse_statement(&mut parser).unwrap();
+                    let stmt = parser.parse(&mut lexer).unwrap();
                     match stmt {
                         $want_var => $want_value,
                         _ => panic!("Expected {} => {}, but got {:?}", stringify!($want_var), stringify!($want_value), stmt),
@@ -214,9 +302,9 @@ mod test {
                                 target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                                     name: "builder".to_string(),
                                 }))),
-                                field: Box::new(IdentifierExpr {
+                                field: IdentifierExpr {
                                     name: "string".to_string()
-                                }),
+                                },
                             })),
                             args: vec![Expr::BoolLiteral(true)],
                         })),
@@ -254,7 +342,7 @@ mod test {
             ),
         },
         parse_stmt_defer_multi {
-            input: "defer {\nprint(\"done:\", err)\nnew(i32)\n}",
+            input: "defer {\nprint(\"done:\", err)\nalloc(@i32)\n}",
             want_var: Stmt::Defer(stmt),
             want_value: assert_eq!(
                 stmt,
@@ -275,23 +363,24 @@ mod test {
                                 })
                             }),
                             Stmt::Expr(ExprStmt {
-                                expr: Expr::New(NewExpr {
-                                    type_spec: TypeSpec::Int32,
-                                    len: None,
-                                    cap: None,
+                                expr: Expr::Alloc(AllocExpr {
+                                    meta_type: Box::new(Expr::MetaType(MetaTypeExpr {
+                                        type_spec: TypeSpec::Int32,
+                                    })),
+                                    options: vec![],
                                 })
-                            })
-                        ]
-                    }
-                }
+                            }),
+                        ],
+                    },
+                },
             ),
         },
         parse_stmt_block {
-            input: r###"{
+            input: r#"{
     let a = 10
     let .Ok(b) = maybe_int(42) !
     let c = a + b
-}"###,
+}"#,
             want_var: Stmt::Block(stmt),
             want_value: assert_eq!(
                 stmt,
@@ -321,9 +410,9 @@ mod test {
                                 })),
                                 args: vec![Expr::IntLiteral(42)],
                             }),
-                            or_binding: Some(Box::new(IdentifierExpr {
+                            or_binding: Some(IdentifierExpr {
                                 name: "e".to_string()
-                            })),
+                            }),
                             except: Some(BlockStmt {
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
@@ -400,9 +489,9 @@ mod test {
                             target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                                 name: "person".to_string()
                             }))),
-                            field: Box::new(IdentifierExpr {
+                            field: IdentifierExpr {
                                 name: "name".to_string()
-                            }),
+                            },
                         })),
                         args: vec![
                             Expr::Identifier(IdentifierExpr {
@@ -440,9 +529,9 @@ mod test {
             ),
         },
         parse_stmt_if {
-            input: r###"if true {
+            input: r#"if true {
     print("ok")
-}"###,
+}"#,
             want_var: Stmt::If(stmt),
             want_value: assert_eq!(
                 stmt,
@@ -463,11 +552,11 @@ mod test {
             ),
         },
         parse_stmt_if_else {
-            input: r###"if a < 13 {
+            input: r#"if a < 13 {
     print("ok")
 } else {
     a = 10 + number(3.45)
-}"###,
+}"#,
             want_var: Stmt::If(stmt),
             want_value: assert_eq!(
                 stmt,
@@ -517,9 +606,9 @@ mod test {
                 ReturnStmt {
                     value: Some(Expr::DotAccess(DotAccessExpr {
                         target: None,
-                        field: Box::new(IdentifierExpr {
+                        field: IdentifierExpr {
                             name: "Ok".to_string(),
-                        }),
+                        },
                     })),
                 }
             ),
@@ -542,9 +631,9 @@ mod test {
                         })),
                         args: vec![],
                     }),
-                    or_binding: Some(Box::new(IdentifierExpr {
+                    or_binding: Some(IdentifierExpr {
                         name: "e".to_string()
-                    })),
+                    }),
                     except: Some(BlockStmt {
                         statements: vec![Stmt::Expr(ExprStmt {
                             expr: Expr::Call(CallExpr {
@@ -561,9 +650,9 @@ mod test {
             ),
         },
         parse_stmt_try_simple_catch {
-            input: r###"let Ret.Valid(v) = validate("data") or {
+            input: r#"let Ret.Valid(v) = validate("data") or {
     print("invalid!")
-}"###,
+}"#,
             want_var: Stmt::Let(stmt),
             want_value: assert_eq!(
                 stmt,
@@ -600,10 +689,10 @@ mod test {
             ),
         },
         parse_stmt_try_catch_binding {
-            input: r###"let .Err = build_item(name, false) or(i) {
+            input: r#"let .Err = build_item(name, false) or(i) {
     print("built item")
     return i
-}"###,
+}"#,
             want_var: Stmt::Let(stmt),
             want_value: assert_eq!(
                 stmt,
@@ -625,9 +714,9 @@ mod test {
                             Expr::BoolLiteral(false),
                         ],
                     }),
-                    or_binding: Some(Box::new(IdentifierExpr {
+                    or_binding: Some(IdentifierExpr {
                         name: "i".to_string()
-                    })),
+                    }),
                     except: Some(BlockStmt {
                         statements: vec![
                             Stmt::Expr(ExprStmt {
@@ -669,17 +758,17 @@ mod test {
                         })),
                         args: vec![],
                     }),
-                    or_binding: Some(Box::new(IdentifierExpr {
+                    or_binding: Some(IdentifierExpr {
                         name: "e".to_string()
-                    })),
+                    }),
                     except: Some(BlockStmt {
                         statements: vec![Stmt::Return(ReturnStmt {
                             value: Some(Expr::Call(CallExpr {
                                 func: Box::new(Expr::DotAccess(DotAccessExpr {
                                     target: None,
-                                    field: Box::new(IdentifierExpr {
+                                    field: IdentifierExpr {
                                         name: "Err".to_string()
-                                    })
+                                    }
                                 })),
                                 args: vec![Expr::Identifier(IdentifierExpr {
                                     name: "e".to_string()
@@ -691,10 +780,10 @@ mod test {
             ),
         },
         parse_stmt_match {
-            input: r###"match x {
+            input: r#"match x {
     .Some(v) { print(v) }
     .None { print("none") }
-}"###,
+}"#,
             want_var: Stmt::Match(stmt),
             want_value: assert_eq!(
                 stmt,
@@ -749,11 +838,11 @@ mod test {
             ),
         },
         parse_stmt_match_mixed_patterns {
-            input: r###"match result {
+            input: r#"match result {
     .Success(val) { print(val) }
     .Warning(msg) { print(msg) }
     .Failed { print("error") }
-}"###,
+}"#,
             want_var: Stmt::Match(stmt),
             want_value: assert_eq!(
                 stmt,
@@ -831,10 +920,10 @@ mod test {
             ),
         },
         parse_stmt_match_empty_payload {
-            input: r###"match signal {
+            input: r#"match signal {
     .Ready { print("go") }
     .Idle(ts) { print("idle since", ts) }
-}"###,
+}"#,
             want_var: Stmt::Match(stmt),
             want_value: assert_eq!(
                 stmt,
@@ -898,9 +987,9 @@ mod test {
                 stmt,
                 ExprStmt {
                     expr: Expr::ModuleAccess(ModuleAccessExpr {
-                        module: Box::new(IdentifierExpr {
+                        module: IdentifierExpr {
                             name: "fmt".to_string(),
-                        }),
+                        },
                         expr: Box::new(Expr::Identifier(IdentifierExpr {
                             name: "println".to_string(),
                         })),
@@ -915,9 +1004,9 @@ mod test {
                 stmt,
                 ExprStmt {
                     expr: Expr::ModuleAccess(ModuleAccessExpr {
-                        module: Box::new(IdentifierExpr {
+                        module: IdentifierExpr {
                             name: "fmt".to_string(),
-                        }),
+                        },
                         expr: Box::new(Expr::Call(CallExpr {
                             func: Box::new(Expr::Identifier(IdentifierExpr {
                                 name: "println".to_string(),
@@ -935,9 +1024,9 @@ mod test {
                 stmt,
                 ExprStmt {
                     expr: Expr::ModuleAccess(ModuleAccessExpr {
-                        module: Box::new(IdentifierExpr {
+                        module: IdentifierExpr {
                             name: "math".to_string(),
-                        }),
+                        },
                         expr: Box::new(Expr::Identifier(IdentifierExpr {
                             name: "vec3".to_string(),
                         })),

@@ -1,41 +1,101 @@
-use crate::ast::Decl;
-use crate::parser::TokenKind;
-use crate::parser::{ParseError, Parser};
+mod const_decl;
+mod function_declaration;
+mod mod_declaration;
+mod type_decl;
+mod use_decl;
+mod var_decl;
 
-/// Parse a top level declration for a manta program.
-pub fn parse_declaration(parser: &mut Parser) -> Result<Decl, ParseError> {
-    let token = parser.consume()?;
+use std::collections::HashMap;
+use std::rc::Rc;
 
-    let prefix_opt = parser.prefix_decl_parselets.get(&token.kind);
-    if prefix_opt.is_none() {
-        return Err(ParseError::UnexpectedToken(
-            token.clone(),
-            format!("Unexpected token at top level: {:?}", token.kind),
-        ));
+use crate::ast::{BlockStmt, Decl, Expr};
+use crate::parser::ParseError;
+use crate::parser::statement::StmtParser;
+use crate::parser::{Lexer, Token, TokenKind};
+
+use const_decl::ConstDeclParselet;
+use function_declaration::FunctionDeclParselet;
+use mod_declaration::ModDeclParselet;
+use type_decl::TypeDeclParselet;
+use use_decl::UseDeclParselet;
+use var_decl::VarDeclParselet;
+
+/// Trait for top-level declaration parselets.
+pub trait DeclParselet {
+    /// Parse a top-level declaration given the consumed token.
+    fn parse(
+        &self,
+        parser: &DeclParser,
+        lexer: &mut Lexer,
+        token: Token,
+    ) -> Result<Decl, ParseError>;
+}
+
+pub struct DeclParser {
+    statement_parser: StmtParser,
+    parselets: HashMap<TokenKind, Rc<dyn DeclParselet>>,
+}
+
+impl DeclParser {
+    pub fn new() -> Self {
+        let mut parselets: HashMap<TokenKind, Rc<dyn DeclParselet>> = HashMap::new();
+        parselets.insert(TokenKind::FnKeyword, Rc::new(FunctionDeclParselet));
+        parselets.insert(TokenKind::TypeKeyword, Rc::new(TypeDeclParselet));
+        parselets.insert(TokenKind::ConstKeyword, Rc::new(ConstDeclParselet));
+        parselets.insert(TokenKind::VarKeyword, Rc::new(VarDeclParselet));
+        parselets.insert(TokenKind::UseKeyword, Rc::new(UseDeclParselet));
+        parselets.insert(TokenKind::ModKeyword, Rc::new(ModDeclParselet));
+
+        let statement_parser = StmtParser::new();
+        DeclParser {
+            parselets,
+            statement_parser,
+        }
     }
 
-    let prefix = prefix_opt.unwrap().clone();
-    let decl = prefix.parse(parser, token)?;
+    /// Parse a top level declration for a manta program.
+    pub fn parse(&self, lexer: &mut Lexer) -> Result<Decl, ParseError> {
+        let token = lexer.next_token();
 
-    // expect a semicolon after declarations
-    let matched = parser.match_token(TokenKind::Semicolon)?;
-    if !matched {
-        return Err(ParseError::UnexpectedToken(
-            parser.lookahead(0)?.clone(),
-            format!("Missing semicolon, got {:?}", parser.lookahead(0),),
-        ));
+        let prefix_opt = self.parselets.get(&token.kind);
+        if prefix_opt.is_none() {
+            return Err(ParseError::UnexpectedToken(
+                token,
+                format!("Unexpected token at top level: {:?}", token.kind),
+            ));
+        }
+
+        let prefix = prefix_opt.unwrap().clone();
+        let decl = prefix.parse(self, lexer, token)?;
+
+        // expect a semicolon after declarations
+        let token = lexer.next_token();
+        if token.kind != TokenKind::Semicolon {
+            Err(ParseError::UnexpectedToken(
+                token,
+                "Missing semicolon".to_string(),
+            ))
+        } else {
+            Ok(decl)
+        }
     }
 
-    Ok(decl)
+    pub fn parse_expression(&self, lexer: &mut Lexer) -> Result<Expr, ParseError> {
+        self.statement_parser.parse_expression(lexer)
+    }
+
+    pub fn parse_block(&self, lexer: &mut Lexer) -> Result<BlockStmt, ParseError> {
+        self.statement_parser.parse_block(lexer)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::ast::{
-        BinaryExpr, BinaryOp, BlockStmt, CallExpr, ConstDecl, EnumType, EnumVariant, Expr,
-        ExprStmt, FunctionDecl, IdentifierExpr, IfStmt, NewExpr, Parameter, ReturnStmt, Stmt,
-        StructField, StructType, TypeDecl, TypeSpec, UseDecl,
+        AllocExpr, BinaryExpr, BinaryOp, BlockStmt, CallExpr, ConstDecl, EnumType, EnumVariant,
+        Expr, ExprStmt, FunctionDecl, IdentifierExpr, IfStmt, MetaTypeExpr, Parameter, ReturnStmt,
+        Stmt, StructField, StructType, TypeDecl, TypeSpec, UseDecl,
     };
     use crate::parser::lexer::Lexer;
     use pretty_assertions::assert_eq;
@@ -45,10 +105,10 @@ mod tests {
             $(
                 #[test]
                 fn $case() {
-                    let lexer = Lexer::new($input);
-                    let mut parser = Parser::new(lexer);
+                    let mut lexer = Lexer::new($input);
+                    let parser = DeclParser::new();
 
-                    let decl = parse_declaration(&mut parser).unwrap();
+                    let decl = parser.parse(&mut lexer).unwrap();
                     match decl {
                         $want_var => $want_value,
                         _ => panic!("Expected {} => {}, but got {:?}", stringify!($want_var), stringify!($want_value), decl)
@@ -237,22 +297,26 @@ mod tests {
             ),
         },
         parse_decl_pointer_return_type {
-            input: r#"fn alloc() *i32 {
-                return new(i32)
+            input: r#"fn my_alloc() unsafe::ptr {
+                return alloc(@i32)
             }"#,
             want_var: Decl::Function(decl),
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
-                    name: "alloc".to_string(),
+                    name: "my_alloc".to_string(),
                     params: vec![],
-                    return_type: Some(TypeSpec::Pointer(Box::new(TypeSpec::Int32))),
+                    return_type: Some(TypeSpec::Named {
+                        module: Some("unsafe".to_string()),
+                        name: "ptr".to_string(),
+                    }),
                     body: BlockStmt {
                         statements: vec![Stmt::Return(ReturnStmt {
-                            value: Some(Expr::New(NewExpr {
-                                type_spec: TypeSpec::Int32,
-                                len: None,
-                                cap: None
+                            value: Some(Expr::Alloc(AllocExpr {
+                                meta_type: Box::new(Expr::MetaType(MetaTypeExpr {
+                                    type_spec: TypeSpec::Int32,
+                                })),
+                                options: vec![],
                             })),
                         })],
                     },
@@ -313,10 +377,10 @@ mod tests {
             ),
         },
         parse_decl_enum {
-            input: r###"type Result enum {
+            input: r#"type Result enum {
     Ok(m::MyType)
     Error
-}"###,
+}"#,
             want_var: Decl::Type(decl),
             want_value: assert_eq!(
                 decl,
@@ -370,13 +434,13 @@ mod tests {
             ),
         },
         parse_decl_empty_struct {
-            input: "type None struct{}",
+            input: "type Empty struct{}",
             want_var: Decl::Type(decl),
             want_value: assert_eq!(
                 decl,
                 TypeDecl {
                     name: IdentifierExpr {
-                        name: "None".to_string(),
+                        name: "Empty".to_string(),
                     },
                     type_spec: TypeSpec::Struct(StructType { fields: vec![] }),
                 },
@@ -405,7 +469,7 @@ mod tests {
             ),
         },
         parse_decl_const_expression {
-            input: "const DOUBLE = 5 + 5",
+            input: "const DOUBLE = 5 + 15",
             want_var: Decl::Const(decl),
             want_value: assert_eq!(
                 decl,
@@ -414,7 +478,7 @@ mod tests {
                     value: Expr::Binary(BinaryExpr {
                         left: Box::new(Expr::IntLiteral(5)),
                         operator: BinaryOp::Add,
-                        right: Box::new(Expr::IntLiteral(5)),
+                        right: Box::new(Expr::IntLiteral(15)),
                     }),
                 },
             ),

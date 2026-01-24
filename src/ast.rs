@@ -6,6 +6,7 @@ pub enum Decl {
     Function(FunctionDecl),
     Type(TypeDecl),
     Const(ConstDecl),
+    Var(VarDecl),
     Use(UseDecl),
     Mod(ModDecl),
 }
@@ -47,6 +48,18 @@ pub struct Parameter {
 /// ```
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ConstDecl {
+    pub name: String,
+    pub value: Expr,
+}
+
+/// Var declaration
+///
+/// Example:
+/// ```manta
+/// var status = "Ok"
+/// ```
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct VarDecl {
     pub name: String,
     pub value: Expr,
 }
@@ -169,7 +182,7 @@ pub enum Stmt {
 pub struct LetStmt {
     pub pattern: Pattern,
     pub value: Expr,
-    pub or_binding: Option<Box<IdentifierExpr>>,
+    pub or_binding: Option<IdentifierExpr>,
     pub except: Option<BlockStmt>,
 }
 
@@ -277,8 +290,11 @@ pub enum Expr {
     // Other expressions
     Assignment(AssignmentExpr),
 
-    // Indexing and field access
+    // Indexing for an expression
     Index(IndexExpr),
+
+    // Range expressions like 1:3
+    Range(RangeExpr),
 
     // Accessing a field for a struct or enum
     DotAccess(DotAccessExpr),
@@ -290,7 +306,7 @@ pub enum Expr {
     MetaType(MetaTypeExpr),
 
     // Memory operations
-    New(NewExpr),
+    Alloc(AllocExpr),
     Free(FreeExpr),
 
     // Type casting expressions
@@ -365,15 +381,21 @@ pub struct IndexExpr {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct RangeExpr {
+    pub start: Box<Expr>,
+    pub end: Box<Expr>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct DotAccessExpr {
     // this is an option because this can be infered in some contexts
     pub target: Option<Box<Expr>>,
-    pub field: Box<IdentifierExpr>,
+    pub field: IdentifierExpr,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ModuleAccessExpr {
-    pub module: Box<IdentifierExpr>,
+    pub module: IdentifierExpr,
     pub expr: Box<Expr>,
 }
 
@@ -390,12 +412,10 @@ pub struct CastExpr {
     target_type: TypeSpec,
 }
 
-/// Valid allocation expressions include new(T), new([N]T), new([]T, len) etc.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct NewExpr {
-    pub type_spec: TypeSpec,
-    pub len: Option<Box<Expr>>,
-    pub cap: Option<Box<Expr>>,
+pub struct AllocExpr {
+    pub meta_type: Box<Expr>,
+    pub options: Vec<Expr>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

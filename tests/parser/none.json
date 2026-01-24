@@ -83,19 +83,13 @@
                         }
                       },
                       "value": {
-                        "Call": {
-                          "func": {
-                            "Identifier": {
-                              "name": "alloc"
+                        "Alloc": {
+                          "meta_type": {
+                            "MetaType": {
+                              "type_spec": "Int32"
                             }
                           },
-                          "args": [
-                            {
-                              "MetaType": {
-                                "type_spec": "Int32"
-                              }
-                            }
-                          ]
+                          "options": []
                         }
                       },
                       "or_binding": {
