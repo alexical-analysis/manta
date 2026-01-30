@@ -278,7 +278,6 @@ pub enum Expr {
 
     // Identifiers and references
     Identifier(IdentifierExpr),
-    EnumConstructor(EnumConstructorExpr),
 
     // Operations
     Binary(BinaryExpr),
@@ -316,14 +315,6 @@ pub enum Expr {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct IdentifierExpr {
     pub name: String,
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct EnumConstructorExpr {
-    // TODO: should these be IdentifierExpr?
-    type_name: Option<String>,
-    variant: String,
-    payload: Option<Box<Expr>>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
