@@ -3,21 +3,37 @@ use serde::{Deserialize, Serialize};
 // High-level Intermediate Representation (HIR)
 // This is a desugared, simplified version of the AST with a single node type.
 // It removes syntactic sugar and represents all code uniformly as a tree of nodes.
-//
+
+/// NodeID is the unique identifier for a gien node in the HIR tree
 type NodeID = usize;
 
+/// NodeStore contains all the nodes for a given tree as well as tracking the tree roots
 pub struct NodeStore {
     nodes: Vec<Node>,
+    roots: Vec<NodeID>,
 }
 
 impl NodeStore {
+    /// Create a new NodeStore
     pub fn new() -> Self {
-        NodeStore { nodes: vec![] }
+        NodeStore {
+            nodes: vec![],
+            roots: vec![],
+        }
     }
 
+    /// Add node adds a new node ot the store and returns its unique NodeID
     pub fn add_node(&mut self, node: Node) -> NodeID {
         self.nodes.push(node);
         self.nodes.len() - 1
+    }
+
+    /// Adds a root node to the store and returns its unique NodeID
+    pub fn add_root_node(&mut self, node: Node) -> NodeID {
+        self.nodes.push(node);
+        let id = self.nodes.len() - 1;
+        self.roots.push(id);
+        id
     }
 }
 
@@ -250,4 +266,216 @@ pub enum UnaryOp {
     Positive,
     Dereference,
     AddressOf,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new_store_is_empty() {
+        let store = NodeStore::new();
+        assert_eq!(store.nodes.len(), 0);
+        assert_eq!(store.roots.len(), 0);
+    }
+
+    #[test]
+    fn test_add_node_returns_correct_id() {
+        let mut store = NodeStore::new();
+        let node = Node::NilLiteral;
+        let id = store.add_node(node);
+        assert_eq!(id, 0);
+    }
+
+    #[test]
+    fn test_add_multiple_nodes() {
+        let mut store = NodeStore::new();
+        let id1 = store.add_node(Node::NilLiteral);
+        let id2 = store.add_node(Node::BoolLiteral(true));
+        let id3 = store.add_node(Node::IntLiteral(42));
+
+        assert_eq!(id1, 0);
+        assert_eq!(id2, 1);
+        assert_eq!(id3, 2);
+        assert_eq!(store.nodes.len(), 3);
+    }
+
+    #[test]
+    fn test_add_node_does_not_add_to_roots() {
+        let mut store = NodeStore::new();
+        store.add_node(Node::NilLiteral);
+        assert_eq!(store.roots.len(), 0);
+    }
+
+    #[test]
+    fn test_add_root_node_returns_correct_id() {
+        let mut store = NodeStore::new();
+        let node = Node::NilLiteral;
+        let id = store.add_root_node(node);
+        assert_eq!(id, 0);
+    }
+
+    #[test]
+    fn test_add_root_node_adds_to_roots() {
+        let mut store = NodeStore::new();
+        let id = store.add_root_node(Node::BoolLiteral(true));
+        assert_eq!(store.roots.len(), 1);
+        assert_eq!(store.roots[0], id);
+    }
+
+    #[test]
+    fn test_add_multiple_root_nodes() {
+        let mut store = NodeStore::new();
+        let id1 = store.add_root_node(Node::IntLiteral(1));
+        let id2 = store.add_root_node(Node::IntLiteral(2));
+        let id3 = store.add_root_node(Node::IntLiteral(3));
+
+        assert_eq!(store.roots.len(), 3);
+        assert_eq!(store.roots[0], id1);
+        assert_eq!(store.roots[1], id2);
+        assert_eq!(store.roots[2], id3);
+    }
+
+    #[test]
+    fn test_mix_nodes_and_root_nodes() {
+        let mut store = NodeStore::new();
+        let regular_id = store.add_node(Node::NilLiteral);
+        let root_id = store.add_root_node(Node::BoolLiteral(true));
+        let another_regular = store.add_node(Node::IntLiteral(42));
+
+        assert_eq!(store.nodes.len(), 3);
+        assert_eq!(store.roots.len(), 1);
+        assert_eq!(store.roots[0], root_id);
+        assert_ne!(regular_id, root_id);
+        assert_ne!(another_regular, root_id);
+    }
+
+    #[test]
+    fn test_add_int_literal() {
+        let mut store = NodeStore::new();
+        let id = store.add_node(Node::IntLiteral(100));
+        assert_eq!(store.nodes[id], Node::IntLiteral(100));
+    }
+
+    #[test]
+    fn test_add_float_literal() {
+        let mut store = NodeStore::new();
+        let id = store.add_node(Node::FloatLiteral(3.45));
+        assert_eq!(store.nodes[id], Node::FloatLiteral(3.45));
+    }
+
+    #[test]
+    fn test_add_string_literal() {
+        let mut store = NodeStore::new();
+        let id = store.add_node(Node::StringLiteral("hello".to_string()));
+        assert_eq!(store.nodes[id], Node::StringLiteral("hello".to_string()));
+    }
+
+    #[test]
+    fn test_add_bool_literal() {
+        let mut store = NodeStore::new();
+        let id_true = store.add_node(Node::BoolLiteral(true));
+        let id_false = store.add_node(Node::BoolLiteral(false));
+
+        assert_eq!(store.nodes[id_true], Node::BoolLiteral(true));
+        assert_eq!(store.nodes[id_false], Node::BoolLiteral(false));
+    }
+
+    #[test]
+    fn test_add_identifier() {
+        let mut store = NodeStore::new();
+        let id = store.add_node(Node::Identifier("x".to_string()));
+        assert_eq!(store.nodes[id], Node::Identifier("x".to_string()));
+    }
+
+    #[test]
+    fn test_add_block_node() {
+        let mut store = NodeStore::new();
+        let id = store.add_node(Node::Block {
+            statements: vec![0, 1, 2],
+        });
+        assert_eq!(
+            store.nodes[id],
+            Node::Block {
+                statements: vec![0, 1, 2],
+            }
+        );
+    }
+
+    #[test]
+    fn test_add_binary_operation() {
+        let mut store = NodeStore::new();
+        let id = store.add_node(Node::Binary {
+            left: 0,
+            operator: BinaryOp::Add,
+            right: 1,
+        });
+        assert_eq!(
+            store.nodes[id],
+            Node::Binary {
+                left: 0,
+                operator: BinaryOp::Add,
+                right: 1,
+            }
+        );
+    }
+
+    #[test]
+    fn test_add_unary_operation() {
+        let mut store = NodeStore::new();
+        let id = store.add_node(Node::Unary {
+            operator: UnaryOp::Negate,
+            operand: 0,
+        });
+        assert_eq!(
+            store.nodes[id],
+            Node::Unary {
+                operator: UnaryOp::Negate,
+                operand: 0,
+            }
+        );
+    }
+
+    #[test]
+    fn test_add_function_declaration() {
+        let mut store = NodeStore::new();
+        let id = store.add_node(Node::FunctionDecl {
+            name: "foo".to_string(),
+            params: vec![],
+            return_type: TypeSpec::Int32,
+            body: 0,
+        });
+        if let Node::FunctionDecl { name, .. } = &store.nodes[id] {
+            assert_eq!(name, "foo");
+        } else {
+            panic!("Expected FunctionDecl");
+        }
+    }
+
+    #[test]
+    fn test_sequential_ids_are_unique() {
+        let mut store = NodeStore::new();
+        let mut ids = Vec::new();
+        for i in 0..10 {
+            let id = store.add_node(Node::IntLiteral(i as i64));
+            ids.push(id);
+        }
+
+        // All IDs should be unique
+        for i in 0..ids.len() {
+            for j in i + 1..ids.len() {
+                assert_ne!(ids[i], ids[j]);
+            }
+        }
+    }
+
+    #[test]
+    fn test_add_many_root_nodes() {
+        let mut store = NodeStore::new();
+        for i in 0..20 {
+            store.add_root_node(Node::IntLiteral(i as i64));
+        }
+        assert_eq!(store.roots.len(), 20);
+        assert_eq!(store.nodes.len(), 20);
+    }
 }
