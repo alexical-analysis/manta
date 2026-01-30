@@ -1,5 +1,7 @@
 mod ast;
+mod hir;
 mod parser;
+mod str_store;
 
 use clap::{Parser, Subcommand};
 use std::error::Error;
