@@ -1,341 +1,341 @@
-[
-  {
-    "Mod": {
-      "name": 1
-    }
-  },
-  {
-    "Use": {
-      "modules": [
-        5,
-        6
-      ]
-    }
-  },
-  {
-    "Type": {
-      "name": {
-        "name": 9
-      },
-      "type_spec": {
-        "Enum": {
-          "variants": [
-            {
-              "name": 12,
-              "payload": "Int32"
-            },
-            {
-              "name": 14,
-              "payload": "Int32"
-            }
-          ]
-        }
+{
+  "decls": [
+    {
+      "Mod": {
+        "name": 1
       }
-    }
-  },
-  {
-    "Function": {
-      "name": 17,
-      "params": [
-        {
-          "name": 18,
-          "type_spec": {
-            "Named": {
-              "module": null,
-              "name": 9
-            }
+    },
+    {
+      "Use": {
+        "modules": [
+          5,
+          6
+        ]
+      }
+    },
+    {
+      "Type": {
+        "name": 9,
+        "type_spec": {
+          "Enum": {
+            "variants": [
+              {
+                "name": 12,
+                "payload": "Int32"
+              },
+              {
+                "name": 14,
+                "payload": "Int32"
+              }
+            ]
           }
         }
-      ],
-      "return_type": "Int32",
-      "body": {
-        "statements": [
+      }
+    },
+    {
+      "Function": {
+        "name": 17,
+        "params": [
           {
-            "Match": {
-              "target": {
-                "Identifier": {
-                  "name": 18
-                }
-              },
-              "arms": [
-                {
-                  "pattern": {
-                    "Payload": {
-                      "pat": {
-                        "DotAccess": {
-                          "target": null,
-                          "field": {
-                            "name": 12
+            "name": 18,
+            "type_spec": {
+              "Named": {
+                "module": null,
+                "name": 9
+              }
+            }
+          }
+        ],
+        "return_type": "Int32",
+        "body": {
+          "statements": [
+            {
+              "Match": {
+                "target": {
+                  "Identifier": {
+                    "name": 18
+                  }
+                },
+                "arms": [
+                  {
+                    "pattern": {
+                      "Payload": {
+                        "pat": {
+                          "DotAccess": {
+                            "target": null,
+                            "field": {
+                              "name": 12
+                            }
                           }
-                        }
-                      },
-                      "payload": 21
-                    }
-                  },
-                  "body": {
-                    "statements": [
-                      {
-                        "Return": {
-                          "value": {
-                            "Binary": {
-                              "left": {
-                                "Binary": {
-                                  "left": {
-                                    "DotAccess": {
-                                      "target": {
-                                        "Identifier": {
-                                          "name": 5
+                        },
+                        "payload": 21
+                      }
+                    },
+                    "body": {
+                      "statements": [
+                        {
+                          "Return": {
+                            "value": {
+                              "Binary": {
+                                "left": {
+                                  "Binary": {
+                                    "left": {
+                                      "DotAccess": {
+                                        "target": {
+                                          "Identifier": {
+                                            "name": 5
+                                          }
+                                        },
+                                        "field": {
+                                          "name": 23
                                         }
-                                      },
-                                      "field": {
-                                        "name": 23
+                                      }
+                                    },
+                                    "operator": "Multiply",
+                                    "right": {
+                                      "Identifier": {
+                                        "name": 21
                                       }
                                     }
-                                  },
-                                  "operator": "Multiply",
-                                  "right": {
-                                    "Identifier": {
-                                      "name": 21
-                                    }
                                   }
-                                }
-                              },
-                              "operator": "Multiply",
-                              "right": {
-                                "Identifier": {
-                                  "name": 21
+                                },
+                                "operator": "Multiply",
+                                "right": {
+                                  "Identifier": {
+                                    "name": 21
+                                  }
                                 }
                               }
                             }
                           }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "pattern": {
+                      "Payload": {
+                        "pat": {
+                          "DotAccess": {
+                            "target": null,
+                            "field": {
+                              "name": 14
+                            }
+                          }
+                        },
+                        "payload": 18
+                      }
+                    },
+                    "body": {
+                      "statements": [
+                        {
+                          "Return": {
+                            "value": {
+                              "Binary": {
+                                "left": {
+                                  "Identifier": {
+                                    "name": 18
+                                  }
+                                },
+                                "operator": "Multiply",
+                                "right": {
+                                  "Identifier": {
+                                    "name": 18
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "Function": {
+        "name": 1,
+        "params": [],
+        "return_type": null,
+        "body": {
+          "statements": [
+            {
+              "Let": {
+                "pattern": {
+                  "Identifier": {
+                    "name": 27
+                  }
+                },
+                "value": {
+                  "Call": {
+                    "func": {
+                      "DotAccess": {
+                        "target": {
+                          "Identifier": {
+                            "name": 9
+                          }
+                        },
+                        "field": {
+                          "name": 14
+                        }
+                      }
+                    },
+                    "args": [
+                      {
+                        "IntLiteral": 10
+                      }
+                    ]
+                  }
+                },
+                "except": "None"
+              }
+            },
+            {
+              "Let": {
+                "pattern": {
+                  "Identifier": {
+                    "name": 30
+                  }
+                },
+                "value": {
+                  "Call": {
+                    "func": {
+                      "Identifier": {
+                        "name": 17
+                      }
+                    },
+                    "args": [
+                      {
+                        "Identifier": {
+                          "name": 27
                         }
                       }
                     ]
                   }
                 },
-                {
-                  "pattern": {
-                    "Payload": {
-                      "pat": {
-                        "DotAccess": {
-                          "target": null,
-                          "field": {
-                            "name": 14
+                "except": "None"
+              }
+            },
+            {
+              "Expr": {
+                "expr": {
+                  "ModuleAccess": {
+                    "module": {
+                      "name": 6
+                    },
+                    "expr": {
+                      "Call": {
+                        "func": {
+                          "Identifier": {
+                            "name": 32
                           }
-                        }
-                      },
-                      "payload": 18
-                    }
-                  },
-                  "body": {
-                    "statements": [
-                      {
-                        "Return": {
-                          "value": {
-                            "Binary": {
-                              "left": {
-                                "Identifier": {
-                                  "name": 18
-                                }
-                              },
-                              "operator": "Multiply",
-                              "right": {
-                                "Identifier": {
-                                  "name": 18
-                                }
-                              }
+                        },
+                        "args": [
+                          {
+                            "Identifier": {
+                              "name": 30
                             }
                           }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "Let": {
+                "pattern": {
+                  "Payload": {
+                    "pat": {
+                      "Identifier": {
+                        "name": 9
+                      }
+                    },
+                    "payload": 33
+                  }
+                },
+                "value": {
+                  "Call": {
+                    "func": {
+                      "DotAccess": {
+                        "target": null,
+                        "field": {
+                          "name": 12
+                        }
+                      }
+                    },
+                    "args": [
+                      {
+                        "IntLiteral": 3
+                      }
+                    ]
+                  }
+                },
+                "except": "None"
+              }
+            },
+            {
+              "Let": {
+                "pattern": {
+                  "Identifier": {
+                    "name": 35
+                  }
+                },
+                "value": {
+                  "Call": {
+                    "func": {
+                      "Identifier": {
+                        "name": 17
+                      }
+                    },
+                    "args": [
+                      {
+                        "Identifier": {
+                          "name": 33
                         }
                       }
                     ]
                   }
-                }
-              ]
-            }
-          }
-        ]
-      }
-    }
-  },
-  {
-    "Function": {
-      "name": 1,
-      "params": [],
-      "return_type": null,
-      "body": {
-        "statements": [
-          {
-            "Let": {
-              "pattern": {
-                "Identifier": {
-                  "name": 27
-                }
-              },
-              "value": {
-                "Call": {
-                  "func": {
-                    "DotAccess": {
-                      "target": {
-                        "Identifier": {
-                          "name": 9
-                        }
-                      },
-                      "field": {
-                        "name": 14
-                      }
-                    }
-                  },
-                  "args": [
-                    {
-                      "IntLiteral": 10
-                    }
-                  ]
-                }
-              },
-              "except": "None"
-            }
-          },
-          {
-            "Let": {
-              "pattern": {
-                "Identifier": {
-                  "name": 30
-                }
-              },
-              "value": {
-                "Call": {
-                  "func": {
-                    "Identifier": {
-                      "name": 17
-                    }
-                  },
-                  "args": [
-                    {
-                      "Identifier": {
-                        "name": 27
-                      }
-                    }
-                  ]
-                }
-              },
-              "except": "None"
-            }
-          },
-          {
-            "Expr": {
-              "expr": {
-                "ModuleAccess": {
-                  "module": {
-                    "name": 6
-                  },
-                  "expr": {
-                    "Call": {
-                      "func": {
-                        "Identifier": {
-                          "name": 32
-                        }
-                      },
-                      "args": [
-                        {
+                },
+                "except": "None"
+              }
+            },
+            {
+              "Expr": {
+                "expr": {
+                  "ModuleAccess": {
+                    "module": {
+                      "name": 6
+                    },
+                    "expr": {
+                      "Call": {
+                        "func": {
                           "Identifier": {
-                            "name": 30
+                            "name": 32
                           }
-                        }
-                      ]
+                        },
+                        "args": [
+                          {
+                            "Identifier": {
+                              "name": 33
+                            }
+                          }
+                        ]
+                      }
                     }
                   }
                 }
               }
             }
-          },
-          {
-            "Let": {
-              "pattern": {
-                "Payload": {
-                  "pat": {
-                    "Identifier": {
-                      "name": 9
-                    }
-                  },
-                  "payload": 33
-                }
-              },
-              "value": {
-                "Call": {
-                  "func": {
-                    "DotAccess": {
-                      "target": null,
-                      "field": {
-                        "name": 12
-                      }
-                    }
-                  },
-                  "args": [
-                    {
-                      "IntLiteral": 3
-                    }
-                  ]
-                }
-              },
-              "except": "None"
-            }
-          },
-          {
-            "Let": {
-              "pattern": {
-                "Identifier": {
-                  "name": 35
-                }
-              },
-              "value": {
-                "Call": {
-                  "func": {
-                    "Identifier": {
-                      "name": 17
-                    }
-                  },
-                  "args": [
-                    {
-                      "Identifier": {
-                        "name": 33
-                      }
-                    }
-                  ]
-                }
-              },
-              "except": "None"
-            }
-          },
-          {
-            "Expr": {
-              "expr": {
-                "ModuleAccess": {
-                  "module": {
-                    "name": 6
-                  },
-                  "expr": {
-                    "Call": {
-                      "func": {
-                        "Identifier": {
-                          "name": 32
-                        }
-                      },
-                      "args": [
-                        {
-                          "Identifier": {
-                            "name": 33
-                          }
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          }
-        ]
+          ]
+        }
       }
     }
-  }
-]
+  ]
+}

@@ -2,6 +2,49 @@ use serde::{Deserialize, Serialize};
 
 use crate::str_store::StrID;
 
+/// A module in a manta program
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Module {
+    decls: Vec<Decl>,
+}
+
+impl Module {
+    pub fn new(decls: Vec<Decl>) -> Self {
+        Module { decls }
+    }
+}
+
+impl<'a> IntoIterator for &'a Module {
+    type Item = &'a Decl;
+    type IntoIter = ModuleIter<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        ModuleIter {
+            module: self,
+            idx: 0,
+        }
+    }
+}
+
+pub struct ModuleIter<'a> {
+    module: &'a Module,
+    idx: usize,
+}
+
+impl<'a> Iterator for ModuleIter<'a> {
+    type Item = &'a Decl;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.module.decls.get(self.idx) {
+            Some(decl) => {
+                self.idx += 1;
+                Some(decl)
+            }
+            None => None,
+        }
+    }
+}
+
 /// Top-level declarations in a Manta program
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum Decl {
@@ -31,7 +74,7 @@ pub struct FunctionDecl {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct TypeDecl {
-    pub name: IdentifierExpr,
+    pub name: StrID,
     pub type_spec: TypeSpec,
 }
 
@@ -90,7 +133,7 @@ pub struct ModDecl {
 }
 
 /// Type specification
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum TypeSpec {
     Int32,
     Int16,
@@ -228,7 +271,7 @@ pub struct MatchArm {
     pub body: BlockStmt,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Pattern {
     IntLiteral(i64),
     StringLiteral(StrID),
@@ -241,41 +284,41 @@ pub enum Pattern {
     ModuleAccess(ModuleAccesPat),
     DotAccess(DotAccessPat),
 
+    // TODO: should this just wrap a StrID?
     Identifier(IdentifierPat),
     Default, // the _ pattern
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ModuleAccesPat {
     pub module: Box<IdentifierPat>,
     pub pat: Box<Pattern>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DotAccessPat {
     pub target: Option<Box<Pattern>>,
     pub field: IdentifierPat,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PayloadPat {
     pub pat: Box<Pattern>,
     pub payload: StrID,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EnumVariantPat {
     pub type_name: Option<StrID>,
     pub name: StrID,
     pub payload_binding: Option<StrID>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct IdentifierPat {
     pub name: StrID,
 }
 
-/// Expressions
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum Expr {
     // Literals
@@ -283,7 +326,6 @@ pub enum Expr {
     FloatLiteral(f64),
     StringLiteral(StrID),
     BoolLiteral(bool),
-    NilLiteral,
 
     // Identifiers and references
     Identifier(IdentifierExpr),
@@ -294,9 +336,6 @@ pub enum Expr {
 
     // Function call
     Call(CallExpr),
-
-    // Other expressions
-    Assignment(AssignmentExpr),
 
     // Indexing for an expression
     Index(IndexExpr),
@@ -316,9 +355,6 @@ pub enum Expr {
     // Memory operations
     Alloc(AllocExpr),
     Free(FreeExpr),
-
-    // Type casting expressions
-    Cast(CastExpr),
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -397,13 +433,6 @@ pub struct DotAccessExpr {
 pub struct ModuleAccessExpr {
     pub module: IdentifierExpr,
     pub expr: Box<Expr>,
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct AssignmentExpr {
-    // target is any l-value expression (identifier, deref, index, field access)
-    pub target: Box<Expr>,
-    pub value: Box<Expr>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

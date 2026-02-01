@@ -93,12 +93,12 @@ pub struct Lexer<'a> {
     done: bool,
     prev_kind: TokenKind,
     next: Token,
-    str_store: &'a mut StrStore<'a>,
+    str_store: &'a mut StrStore,
 }
 
 impl<'a> Lexer<'a> {
     /// Create a new lexer from source text.
-    pub fn new(source: &'a str, str_store: &'a mut StrStore<'a>) -> Self {
+    pub fn new(source: &'a str, str_store: &'a mut StrStore) -> Self {
         let mut lexer = Lexer {
             source,
             pos: 0,
@@ -592,8 +592,8 @@ mod tests {
             Err(_) => panic!("Failed to read {}", path.display()),
         };
 
-        let mut store = StrStore::new();
-        let mut lexer = Lexer::new(&source, &mut store);
+        let mut str_store = StrStore::new();
+        let mut lexer = Lexer::new(&source, &mut str_store);
         let mut tokens = vec![];
         loop {
             let token = lexer.peek();
@@ -644,8 +644,8 @@ mod tests {
                 #[test]
                 fn $case() {
                     let source = $input;
-                    let mut store = StrStore::new();
-                    let mut lexer = Lexer::new(source, &mut store);
+                    let mut str_store = StrStore::new();
+                    let mut lexer = Lexer::new(source, &mut str_store);
                     let mut toks = vec![];
                     loop {
                         let token = lexer.peek();

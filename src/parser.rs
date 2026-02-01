@@ -5,7 +5,7 @@ pub mod pattern;
 pub mod statement;
 pub mod types;
 
-use crate::ast::Decl;
+use crate::ast::{Decl, Module};
 use crate::str_store::StrStore;
 
 use declaration::DeclParser;
@@ -53,11 +53,10 @@ impl Parser {
         }
     }
 
-    /// Parse a complete Manta program, returning a list of top-level declarations.
-    pub fn parse_program(&self) -> Result<Vec<Decl>, ParseError> {
+    /// Parse a Manta module
+    pub fn parse_module<'a>(&self, str_store: &mut StrStore) -> Result<Module, ParseError> {
         let mut declarations = vec![];
-        let mut str_store = StrStore::new();
-        let mut lexer = Lexer::new(&self.source, &mut str_store);
+        let mut lexer = Lexer::new(&self.source, str_store);
 
         loop {
             let token_kind = lexer.peek().kind;
@@ -68,14 +67,13 @@ impl Parser {
             declarations.push(decl);
         }
 
-        Ok(declarations)
+        Ok(Module::new(declarations))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast::Decl;
     use pretty_assertions::assert_eq;
     use std::fs;
     use std::path::Path;
@@ -127,8 +125,9 @@ mod tests {
             Err(_) => format!("Failed to read {}", path.display()),
         };
 
+        let mut str_store = StrStore::new();
         let parser = Parser::new(source);
-        let ast: Result<Vec<Decl>, ParseError> = parser.parse_program();
+        let ast = parser.parse_module(&mut str_store);
 
         let ast = match ast {
             Ok(a) => a,

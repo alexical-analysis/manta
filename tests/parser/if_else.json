@@ -1,165 +1,167 @@
-[
-  {
-    "Mod": {
-      "name": 1
-    }
-  },
-  {
-    "Use": {
-      "modules": [
-        5
-      ]
-    }
-  },
-  {
-    "Function": {
-      "name": 1,
-      "params": [],
-      "return_type": null,
-      "body": {
-        "statements": [
-          {
-            "Let": {
-              "pattern": {
-                "Identifier": {
-                  "name": 10
-                }
-              },
-              "value": {
-                "BoolLiteral": true
-              },
-              "except": "None"
-            }
-          },
-          {
-            "If": {
-              "check": {
-                "Identifier": {
-                  "name": 10
-                }
-              },
-              "success": {
-                "statements": [
-                  {
-                    "Expr": {
-                      "expr": {
-                        "ModuleAccess": {
-                          "module": {
-                            "name": 5
-                          },
-                          "expr": {
-                            "Call": {
-                              "func": {
-                                "Identifier": {
-                                  "name": 15
-                                }
-                              },
-                              "args": [
-                                {
-                                  "StringLiteral": 16
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
-              },
-              "fail": null
-            }
-          },
-          {
-            "Let": {
-              "pattern": {
-                "Identifier": {
-                  "name": 18
-                }
-              },
-              "value": {
-                "IntLiteral": 9
-              },
-              "except": "None"
-            }
-          },
-          {
-            "If": {
-              "check": {
-                "Binary": {
-                  "left": {
-                    "Identifier": {
-                      "name": 18
-                    }
-                  },
-                  "operator": "GreaterThan",
-                  "right": {
-                    "IntLiteral": 10
-                  }
-                }
-              },
-              "success": {
-                "statements": [
-                  {
-                    "Expr": {
-                      "expr": {
-                        "ModuleAccess": {
-                          "module": {
-                            "name": 5
-                          },
-                          "expr": {
-                            "Call": {
-                              "func": {
-                                "Identifier": {
-                                  "name": 15
-                                }
-                              },
-                              "args": [
-                                {
-                                  "StringLiteral": 22
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
-              },
-              "fail": {
-                "statements": [
-                  {
-                    "Expr": {
-                      "expr": {
-                        "ModuleAccess": {
-                          "module": {
-                            "name": 5
-                          },
-                          "expr": {
-                            "Call": {
-                              "func": {
-                                "Identifier": {
-                                  "name": 15
-                                }
-                              },
-                              "args": [
-                                {
-                                  "StringLiteral": 16
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          }
+{
+  "decls": [
+    {
+      "Mod": {
+        "name": 1
+      }
+    },
+    {
+      "Use": {
+        "modules": [
+          5
         ]
       }
+    },
+    {
+      "Function": {
+        "name": 1,
+        "params": [],
+        "return_type": null,
+        "body": {
+          "statements": [
+            {
+              "Let": {
+                "pattern": {
+                  "Identifier": {
+                    "name": 10
+                  }
+                },
+                "value": {
+                  "BoolLiteral": true
+                },
+                "except": "None"
+              }
+            },
+            {
+              "If": {
+                "check": {
+                  "Identifier": {
+                    "name": 10
+                  }
+                },
+                "success": {
+                  "statements": [
+                    {
+                      "Expr": {
+                        "expr": {
+                          "ModuleAccess": {
+                            "module": {
+                              "name": 5
+                            },
+                            "expr": {
+                              "Call": {
+                                "func": {
+                                  "Identifier": {
+                                    "name": 15
+                                  }
+                                },
+                                "args": [
+                                  {
+                                    "StringLiteral": 16
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "fail": null
+              }
+            },
+            {
+              "Let": {
+                "pattern": {
+                  "Identifier": {
+                    "name": 18
+                  }
+                },
+                "value": {
+                  "IntLiteral": 9
+                },
+                "except": "None"
+              }
+            },
+            {
+              "If": {
+                "check": {
+                  "Binary": {
+                    "left": {
+                      "Identifier": {
+                        "name": 18
+                      }
+                    },
+                    "operator": "GreaterThan",
+                    "right": {
+                      "IntLiteral": 10
+                    }
+                  }
+                },
+                "success": {
+                  "statements": [
+                    {
+                      "Expr": {
+                        "expr": {
+                          "ModuleAccess": {
+                            "module": {
+                              "name": 5
+                            },
+                            "expr": {
+                              "Call": {
+                                "func": {
+                                  "Identifier": {
+                                    "name": 15
+                                  }
+                                },
+                                "args": [
+                                  {
+                                    "StringLiteral": 22
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "fail": {
+                  "statements": [
+                    {
+                      "Expr": {
+                        "expr": {
+                          "ModuleAccess": {
+                            "module": {
+                              "name": 5
+                            },
+                            "expr": {
+                              "Call": {
+                                "func": {
+                                  "Identifier": {
+                                    "name": 15
+                                  }
+                                },
+                                "args": [
+                                  {
+                                    "StringLiteral": 16
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
     }
-  }
-]
+  ]
+}

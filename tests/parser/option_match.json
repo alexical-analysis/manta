@@ -1,264 +1,264 @@
-[
-  {
-    "Mod": {
-      "name": 1
-    }
-  },
-  {
-    "Use": {
-      "modules": [
-        5
-      ]
-    }
-  },
-  {
-    "Type": {
-      "name": {
-        "name": 8
-      },
-      "type_spec": {
-        "Enum": {
-          "variants": [
+{
+  "decls": [
+    {
+      "Mod": {
+        "name": 1
+      }
+    },
+    {
+      "Use": {
+        "modules": [
+          5
+        ]
+      }
+    },
+    {
+      "Type": {
+        "name": 8,
+        "type_spec": {
+          "Enum": {
+            "variants": [
+              {
+                "name": 11,
+                "payload": "Int32"
+              },
+              {
+                "name": 13,
+                "payload": null
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "Function": {
+        "name": 16,
+        "params": [
+          {
+            "name": 17,
+            "type_spec": "Int32"
+          },
+          {
+            "name": 19,
+            "type_spec": "Int32"
+          }
+        ],
+        "return_type": {
+          "Named": {
+            "module": null,
+            "name": 8
+          }
+        },
+        "body": {
+          "statements": [
             {
-              "name": 11,
-              "payload": "Int32"
+              "If": {
+                "check": {
+                  "Binary": {
+                    "left": {
+                      "Identifier": {
+                        "name": 19
+                      }
+                    },
+                    "operator": "Equal",
+                    "right": {
+                      "IntLiteral": 0
+                    }
+                  }
+                },
+                "success": {
+                  "statements": [
+                    {
+                      "Return": {
+                        "value": {
+                          "DotAccess": {
+                            "target": null,
+                            "field": {
+                              "name": 13
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "fail": null
+              }
             },
             {
-              "name": 13,
-              "payload": null
+              "Return": {
+                "value": {
+                  "Call": {
+                    "func": {
+                      "DotAccess": {
+                        "target": null,
+                        "field": {
+                          "name": 11
+                        }
+                      }
+                    },
+                    "args": [
+                      {
+                        "Binary": {
+                          "left": {
+                            "Identifier": {
+                              "name": 17
+                            }
+                          },
+                          "operator": "Divide",
+                          "right": {
+                            "Identifier": {
+                              "name": 19
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "Function": {
+        "name": 1,
+        "params": [],
+        "return_type": null,
+        "body": {
+          "statements": [
+            {
+              "Let": {
+                "pattern": {
+                  "Identifier": {
+                    "name": 27
+                  }
+                },
+                "value": {
+                  "Call": {
+                    "func": {
+                      "Identifier": {
+                        "name": 16
+                      }
+                    },
+                    "args": [
+                      {
+                        "IntLiteral": 10
+                      },
+                      {
+                        "IntLiteral": 2
+                      }
+                    ]
+                  }
+                },
+                "except": "None"
+              }
+            },
+            {
+              "Match": {
+                "target": {
+                  "Identifier": {
+                    "name": 27
+                  }
+                },
+                "arms": [
+                  {
+                    "pattern": {
+                      "Payload": {
+                        "pat": {
+                          "DotAccess": {
+                            "target": null,
+                            "field": {
+                              "name": 11
+                            }
+                          }
+                        },
+                        "payload": 32
+                      }
+                    },
+                    "body": {
+                      "statements": [
+                        {
+                          "Expr": {
+                            "expr": {
+                              "ModuleAccess": {
+                                "module": {
+                                  "name": 5
+                                },
+                                "expr": {
+                                  "Call": {
+                                    "func": {
+                                      "Identifier": {
+                                        "name": 34
+                                      }
+                                    },
+                                    "args": [
+                                      {
+                                        "StringLiteral": 35
+                                      },
+                                      {
+                                        "Identifier": {
+                                          "name": 32
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "pattern": {
+                      "DotAccess": {
+                        "target": null,
+                        "field": {
+                          "name": 13
+                        }
+                      }
+                    },
+                    "body": {
+                      "statements": [
+                        {
+                          "Expr": {
+                            "expr": {
+                              "ModuleAccess": {
+                                "module": {
+                                  "name": 5
+                                },
+                                "expr": {
+                                  "Call": {
+                                    "func": {
+                                      "Identifier": {
+                                        "name": 34
+                                      }
+                                    },
+                                    "args": [
+                                      {
+                                        "StringLiteral": 37
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           ]
         }
       }
     }
-  },
-  {
-    "Function": {
-      "name": 16,
-      "params": [
-        {
-          "name": 17,
-          "type_spec": "Int32"
-        },
-        {
-          "name": 19,
-          "type_spec": "Int32"
-        }
-      ],
-      "return_type": {
-        "Named": {
-          "module": null,
-          "name": 8
-        }
-      },
-      "body": {
-        "statements": [
-          {
-            "If": {
-              "check": {
-                "Binary": {
-                  "left": {
-                    "Identifier": {
-                      "name": 19
-                    }
-                  },
-                  "operator": "Equal",
-                  "right": {
-                    "IntLiteral": 0
-                  }
-                }
-              },
-              "success": {
-                "statements": [
-                  {
-                    "Return": {
-                      "value": {
-                        "DotAccess": {
-                          "target": null,
-                          "field": {
-                            "name": 13
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
-              },
-              "fail": null
-            }
-          },
-          {
-            "Return": {
-              "value": {
-                "Call": {
-                  "func": {
-                    "DotAccess": {
-                      "target": null,
-                      "field": {
-                        "name": 11
-                      }
-                    }
-                  },
-                  "args": [
-                    {
-                      "Binary": {
-                        "left": {
-                          "Identifier": {
-                            "name": 17
-                          }
-                        },
-                        "operator": "Divide",
-                        "right": {
-                          "Identifier": {
-                            "name": 19
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        ]
-      }
-    }
-  },
-  {
-    "Function": {
-      "name": 1,
-      "params": [],
-      "return_type": null,
-      "body": {
-        "statements": [
-          {
-            "Let": {
-              "pattern": {
-                "Identifier": {
-                  "name": 27
-                }
-              },
-              "value": {
-                "Call": {
-                  "func": {
-                    "Identifier": {
-                      "name": 16
-                    }
-                  },
-                  "args": [
-                    {
-                      "IntLiteral": 10
-                    },
-                    {
-                      "IntLiteral": 2
-                    }
-                  ]
-                }
-              },
-              "except": "None"
-            }
-          },
-          {
-            "Match": {
-              "target": {
-                "Identifier": {
-                  "name": 27
-                }
-              },
-              "arms": [
-                {
-                  "pattern": {
-                    "Payload": {
-                      "pat": {
-                        "DotAccess": {
-                          "target": null,
-                          "field": {
-                            "name": 11
-                          }
-                        }
-                      },
-                      "payload": 32
-                    }
-                  },
-                  "body": {
-                    "statements": [
-                      {
-                        "Expr": {
-                          "expr": {
-                            "ModuleAccess": {
-                              "module": {
-                                "name": 5
-                              },
-                              "expr": {
-                                "Call": {
-                                  "func": {
-                                    "Identifier": {
-                                      "name": 34
-                                    }
-                                  },
-                                  "args": [
-                                    {
-                                      "StringLiteral": 35
-                                    },
-                                    {
-                                      "Identifier": {
-                                        "name": 32
-                                      }
-                                    }
-                                  ]
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "pattern": {
-                    "DotAccess": {
-                      "target": null,
-                      "field": {
-                        "name": 13
-                      }
-                    }
-                  },
-                  "body": {
-                    "statements": [
-                      {
-                        "Expr": {
-                          "expr": {
-                            "ModuleAccess": {
-                              "module": {
-                                "name": 5
-                              },
-                              "expr": {
-                                "Call": {
-                                  "func": {
-                                    "Identifier": {
-                                      "name": 34
-                                    }
-                                  },
-                                  "args": [
-                                    {
-                                      "StringLiteral": 37
-                                    }
-                                  ]
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          }
-        ]
-      }
-    }
-  }
-]
+  ]
+}

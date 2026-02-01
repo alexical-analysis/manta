@@ -14,6 +14,7 @@ use crate::parser::ParseError;
 use crate::parser::expression::{ExprParser, Precedence};
 use crate::parser::lexer::{Lexer, Token, TokenKind};
 use crate::parser::pattern::PatternParser;
+use crate::str_store::{self, StrStore};
 
 use assign_statement::AssignParselet;
 use block_statement::BlockParselet;

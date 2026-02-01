@@ -59,7 +59,7 @@ fn parse_enum(lexer: &mut Lexer, name: Token) -> Result<Decl, ParseError> {
     }
 
     Ok(Decl::Type(TypeDecl {
-        name: IdentifierExpr { name },
+        name,
         type_spec: TypeSpec::Enum(EnumType { variants }),
     }))
 }
@@ -161,7 +161,7 @@ fn parse_struct(lexer: &mut Lexer, name: Token) -> Result<Decl, ParseError> {
     }
 
     Ok(Decl::Type(TypeDecl {
-        name: IdentifierExpr { name },
+        name,
         type_spec: TypeSpec::Struct(StructType { fields }),
     }))
 }

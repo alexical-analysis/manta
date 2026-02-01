@@ -19,16 +19,21 @@ pub type StrID = usize;
 /// let id2 = store.get_id("hello"); // Returns the same ID without storing "hello" twice
 /// assert_eq!(id1, id2);
 /// ```
-pub struct StrStore<'a> {
+pub struct StrStore {
+    // TODO: I'd like to not copy every string twice like this but ownership is such a headach
+    // right now that i'm going to leave this as is.
+    // I probably need to rething this type but I do think that the StrStore should own the source
+    // code bytes
+    //
     /// Map from string slices to their unique identifiers
-    strings: HashMap<&'a str, StrID>,
+    strings: HashMap<String, StrID>,
     /// Sequential list of strings for reverse lookup (index = StrID)
-    reverse_strings: Vec<&'a str>,
+    reverse_strings: Vec<String>,
     /// Counter for generating the next unique ID
     next_id: usize,
 }
 
-impl<'a> StrStore<'a> {
+impl StrStore {
     /// Creates a new empty string store.
     pub fn new() -> Self {
         StrStore {
@@ -42,7 +47,7 @@ impl<'a> StrStore<'a> {
     ///
     /// If the string has been seen before, returns its existing ID.
     /// Otherwise, assigns a new unique ID to this string and stores it.
-    pub fn get_id(&mut self, s: &'a str) -> StrID {
+    pub fn get_id(&mut self, s: &str) -> StrID {
         match self.strings.get(s) {
             // String already interned, return its existing ID
             Some(id) => *id,
@@ -50,16 +55,24 @@ impl<'a> StrStore<'a> {
             None => {
                 let id = self.next_id;
                 self.next_id += 1;
-                self.strings.insert(s, id);
-                self.reverse_strings.push(s);
+                self.strings.insert(s.to_string(), id);
+                self.reverse_strings.push(s.to_string());
                 id
             }
         }
     }
 
     /// Look up the string for a given ID. Returns None if ID not found.
-    pub fn get_string(&self, id: StrID) -> Option<&'a str> {
-        self.reverse_strings.get(id).copied()
+    pub fn get_string(&self, id: StrID) -> Option<&String> {
+        self.reverse_strings.get(id)
+    }
+
+    /// get the StrID for the string if it has been added previously.
+    pub fn find_id(&self, s: &str) -> Option<StrID> {
+        match self.strings.get(s) {
+            Some(id) => Some(*id),
+            None => None,
+        }
     }
 }
 
@@ -72,6 +85,18 @@ mod tests {
         let mut store = StrStore::new();
         let id = store.get_id("hello");
         assert_eq!(id, 0);
+    }
+
+    fn test_find_string() {
+        let mut store = StrStore::new();
+        store.get_id("hello");
+        store.get_id("goodbye");
+        if store.find_id("hello").is_none() {
+            panic!("hello should be in the store");
+        }
+        if store.find_id("world").is_some() {
+            panic!("world should not be in the store");
+        }
     }
 
     #[test]

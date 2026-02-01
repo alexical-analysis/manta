@@ -343,7 +343,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 TypeDecl {
-                    name: IdentifierExpr { name: 1 },
+                    name: 1,
                     type_spec: TypeSpec::Struct(StructType {
                         fields: vec![
                             StructField {
@@ -368,7 +368,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 TypeDecl {
-                    name: IdentifierExpr { name: 1 },
+                    name: 1,
                     type_spec: TypeSpec::Enum(EnumType {
                         variants: vec![
                             EnumVariant {
@@ -393,7 +393,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 TypeDecl {
-                    name: IdentifierExpr { name: 1 },
+                    name: 1,
                     type_spec: TypeSpec::Enum(EnumType {
                         variants: vec![
                             EnumVariant {
@@ -418,7 +418,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 TypeDecl {
-                    name: IdentifierExpr { name: 1 },
+                    name: 1,
                     type_spec: TypeSpec::Struct(StructType { fields: vec![] }),
                 },
             ),
