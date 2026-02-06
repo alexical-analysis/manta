@@ -620,10 +620,7 @@ impl Noder {
                     operand: expr_id,
                 })
             }
-            // TODO: this could be a payload on an enum expression. We need to check for that
             Expr::Call(expr) => {
-                // TODO: check the func type, if the node is an EnumConstructor then we need to
-                // update the payload instead of treating it like a call
                 let func_id = self.node_expr(sym_table, node_tree, &expr.func);
 
                 let mut args = vec![];
@@ -632,10 +629,23 @@ impl Noder {
                     args.push(param_id);
                 }
 
-                node_tree.add_node(Node::Call {
-                    func: func_id,
-                    args,
-                })
+                // if the function was an enum constructor when we actually need to update the enum
+                // to contain a payload and return the EnumConstructor itself rather than creating
+                // and returning the ID for the function call.
+                let mut func_node = node_tree.get_mut_node(func_id).unwrap();
+                if let Node::EnumConstructor { payload: p, .. } = &mut func_node {
+                    if args.len() != 1 {
+                        panic!("enum constructors can only contain a single paramater")
+                    }
+
+                    *p = Some(*args.first().unwrap());
+                    func_id
+                } else {
+                    node_tree.add_node(Node::Call {
+                        func: func_id,
+                        args,
+                    })
+                }
             }
             Expr::Index(expr) => {
                 let target_id = self.node_expr(sym_table, node_tree, &expr.target);

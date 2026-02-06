@@ -52,6 +52,14 @@ impl NodeTree {
         self.roots.push(id);
         id
     }
+
+    pub fn get_node(&self, node_id: NodeID) -> Option<&Node> {
+        self.nodes.get(node_id)
+    }
+
+    pub fn get_mut_node(&mut self, node_id: NodeID) -> Option<&mut Node> {
+        self.nodes.get_mut(node_id)
+    }
 }
 
 /// A single node type that can represent any construct in the HIR
