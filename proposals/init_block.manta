@@ -1,0 +1,101 @@
+// There are two generall strategies to do object construction in a language that I see
+// The first is using an `init` style method were you get an `uninitalized` self and then fill in the fields
+// This is popular in object oriented languages with classes.
+//
+// The second the the `Go`/`Rust` style where you provide a `new` function that operates like a factory.
+// You pass in the paramaters and the function creates a new type from scratch.
+//
+// The benefits of the second type is that it's more flexible and you don't have a weird half initalized `self` 
+// variable hanging around.
+//
+// given these tradeoffs Manta uses the second approach.
+// However there is one major down side the manta attempts to correct with this function factor method.
+// In `Go` especially it can be easy to miss the `NewMyType` function and create a type with default
+// values instead (So `MyType{}` vs `NewMyType()`). This can lead to cases where a value is technically
+// initalized because of Go's defalut values, but it isn't actually in a valid state.
+// 
+// The complier can help here however, it needs to know what functions are factory functions for a given type.
+// This is demonstrated below
+
+mod main
+
+type MaybeInt enum {
+    Some(i64)
+    None
+}
+
+type IntNode struct {
+    data i64
+    next MaybeInt 
+}
+
+// this is a new block and indicates that all functions declared here are `new` 
+// functions for the `IntNode` type. 
+//
+// An important thing to keep in mind is that
+// including a `new` block for a type will disable the normal {} init strategy.
+// so simple types may want to ommit it.
+//
+// If a type REALLY needs to have the option to both {} init a struct AND a New function
+// for specific use cases, developers can just omit the `new` section
+new IntNode [
+
+// a couple things to note about this section of code
+// 1: it's deliniated by square braces, not curly braces. Braces in manta ALWAYS denote some kind of scope
+//    so using them here would be confusing. Instead the square braces hint that this is a section of
+//    related code but not a scope
+// 2: by default, the functions and types in this block are NOT indented. Again, this is a hint
+//    to the user that these functions and types are not part of a nested scope but are in fact
+//    part of the outr scope
+
+// Functions here are like normal functions and can 
+fn new_int_node(data i64) IntNode {
+    // while the literal syntax is disabled outside the `new` block it's legal in here
+    IntNode { data: data, next: None }
+}
+
+// types can be declared in the new block as well though they are not scoped to
+// the block in any way
+type NewErrIntNode enum {
+    Ok(IntNode)
+    ErrNoInt
+}
+
+// Multiple `new` functions can be declared here an the don't even need to 
+// return an IntNode type directly.
+fn new_err_int_node(data MaybeInt) NewErrIntNode {
+    match data {
+        .Some(i) { 
+            let ret = IntNode{ data: i, next: None}
+            return .Ok(ret)
+        },
+        .None { return .ErrNoInt },
+    }
+}
+]
+
+// a simple vector 2 type for linear algebra
+type Vec2 struct {
+    x f64
+    y f64
+}
+
+fn main() {
+    // the Vec2 type dosen't need a `new` function because it's easy to create and there
+    // really aren't any invalid states that need to be worried about
+    let _v2 = Vec2{x: 10, y: 20}
+
+    // these are valid ways to construct an IntNode, notice that the functions
+    // are still part of the module and don't need to be accesed like static methods
+    let _node = new_int_node(10)
+    // also notice that the NewErrIntNode type is accessable from the `main` module just like the functions.
+    let NewErrIntNode.Ok(_node) = new_err_int_node(.Some(20)) !
+
+    // These are not allowed and will cause a complier error.
+    // This is because there is a `new` block so users of the type must.
+    // construct the type using a function from the `new` block.
+    let _node = IntNode{ data: 30 }
+    let _node = IntNode{ data: 30, next: None}
+    let _node = IntNode{ next: None }
+}
+
