@@ -4,8 +4,11 @@ use (
     "fmt"
 )
 
+// TODO: replace with fmt::println when modules are fully supported
+fn fmt_println(s str) {}
+
 fn main() {
-    fmt::println("testing")
+    fmt_println("testing")
 }
 
 use (

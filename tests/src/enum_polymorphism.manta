@@ -6,6 +6,12 @@ use (
     "fmt"
 )
 
+// TODO: replace with math::PI once modules are supported
+const MATH_PI = 3.14
+
+// TODO: replace with fmt::println once modules are supported
+fn fmt_println(i i32) {}
+
 // Shape is an enum for different types of geometric shapes
 type Shape enum {
     Circle(i32)
@@ -16,7 +22,7 @@ type Shape enum {
 fn area(s Shape) i32 {
     // match requires that you to handle all the shape variants
     match s {
-        .Circle(r) { return math.PI * r * r }
+        .Circle(r) { return MATH_PI * r * r }
         .Square(s) { return s * s }
     }
 }
@@ -24,9 +30,9 @@ fn area(s Shape) i32 {
 fn main() {
     let square = Shape.Square(10)
     let square_area = area(square)
-    fmt::println(square_area)
+    fmt_println(square_area)
 
     let Shape(circle) = .Circle(3)
     let circle_area = area(circle)
-    fmt::println(circle)
+    fmt_println(circle_area)
 }

@@ -46,107 +46,142 @@
   },
   {
     "kind": "FnKeyword",
-    "source_id": 29,
+    "source_id": 97,
     "lexeme_id": 7
   },
   {
     "kind": "Identifier",
-    "source_id": 32,
-    "lexeme_id": 1
-  },
-  {
-    "kind": "OpenParen",
-    "source_id": 36,
-    "lexeme_id": 4
-  },
-  {
-    "kind": "CloseParen",
-    "source_id": 37,
-    "lexeme_id": 6
-  },
-  {
-    "kind": "OpenBrace",
-    "source_id": 39,
+    "source_id": 100,
     "lexeme_id": 8
   },
   {
-    "kind": "Identifier",
-    "source_id": 45,
-    "lexeme_id": 5
+    "kind": "OpenParen",
+    "source_id": 111,
+    "lexeme_id": 4
   },
   {
-    "kind": "ColonColon",
-    "source_id": 48,
+    "kind": "Identifier",
+    "source_id": 112,
     "lexeme_id": 9
   },
   {
     "kind": "Identifier",
-    "source_id": 50,
+    "source_id": 114,
+    "lexeme_id": 18446744073709551604
+  },
+  {
+    "kind": "CloseParen",
+    "source_id": 117,
+    "lexeme_id": 6
+  },
+  {
+    "kind": "OpenBrace",
+    "source_id": 119,
     "lexeme_id": 10
   },
   {
+    "kind": "CloseBrace",
+    "source_id": 120,
+    "lexeme_id": 11
+  },
+  {
+    "kind": "Semicolon",
+    "source_id": 121,
+    "lexeme_id": 2
+  },
+  {
+    "kind": "FnKeyword",
+    "source_id": 123,
+    "lexeme_id": 7
+  },
+  {
+    "kind": "Identifier",
+    "source_id": 126,
+    "lexeme_id": 1
+  },
+  {
     "kind": "OpenParen",
-    "source_id": 57,
+    "source_id": 130,
+    "lexeme_id": 4
+  },
+  {
+    "kind": "CloseParen",
+    "source_id": 131,
+    "lexeme_id": 6
+  },
+  {
+    "kind": "OpenBrace",
+    "source_id": 133,
+    "lexeme_id": 10
+  },
+  {
+    "kind": "Identifier",
+    "source_id": 139,
+    "lexeme_id": 8
+  },
+  {
+    "kind": "OpenParen",
+    "source_id": 150,
     "lexeme_id": 4
   },
   {
     "kind": "Str",
-    "source_id": 58,
-    "lexeme_id": 11
+    "source_id": 151,
+    "lexeme_id": 12
   },
   {
     "kind": "CloseParen",
-    "source_id": 67,
+    "source_id": 160,
     "lexeme_id": 6
   },
   {
     "kind": "Semicolon",
-    "source_id": 68,
+    "source_id": 161,
     "lexeme_id": 2
   },
   {
     "kind": "CloseBrace",
-    "source_id": 69,
-    "lexeme_id": 12
+    "source_id": 162,
+    "lexeme_id": 11
   },
   {
     "kind": "Semicolon",
-    "source_id": 70,
+    "source_id": 163,
     "lexeme_id": 2
   },
   {
     "kind": "UseKeyword",
-    "source_id": 72,
+    "source_id": 165,
     "lexeme_id": 3
   },
   {
     "kind": "OpenParen",
-    "source_id": 76,
+    "source_id": 169,
     "lexeme_id": 4
   },
   {
     "kind": "Str",
-    "source_id": 82,
+    "source_id": 175,
     "lexeme_id": 13
   },
   {
     "kind": "Semicolon",
-    "source_id": 88,
+    "source_id": 181,
     "lexeme_id": 2
   },
   {
     "kind": "CloseParen",
-    "source_id": 89,
+    "source_id": 182,
     "lexeme_id": 6
   },
   {
     "kind": "Semicolon",
-    "source_id": 90,
+    "source_id": 183,
     "lexeme_id": 2
   },
   {
     "kind": "Eof",
-    "source_id": 91,
+    "source_id": 184,
     "lexeme_id": 14
   }
 ]

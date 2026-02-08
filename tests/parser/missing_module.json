@@ -1,6 +1,6 @@
 {
   "name": 18446744073709551615,
-  "modules": [],
+  "using_modules": [],
   "errors": [
     {
       "Custom": [
@@ -24,6 +24,21 @@
     {
       "Function": {
         "name": 6,
+        "params": [
+          {
+            "name": 7,
+            "type_spec": "String"
+          }
+        ],
+        "return_type": null,
+        "body": {
+          "statements": []
+        }
+      }
+    },
+    {
+      "Function": {
+        "name": 10,
         "params": [],
         "return_type": null,
         "body": {
@@ -31,24 +46,17 @@
             {
               "Expr": {
                 "expr": {
-                  "ModuleAccess": {
-                    "module": {
-                      "name": 2
-                    },
-                    "expr": {
-                      "Call": {
-                        "func": {
-                          "Identifier": {
-                            "name": 9
-                          }
-                        },
-                        "args": [
-                          {
-                            "StringLiteral": 10
-                          }
-                        ]
+                  "Call": {
+                    "func": {
+                      "Identifier": {
+                        "name": 6
                       }
-                    }
+                    },
+                    "args": [
+                      {
+                        "StringLiteral": 11
+                      }
+                    ]
                   }
                 }
               }
@@ -57,5 +65,119 @@
         }
       }
     }
-  ]
+  ],
+  "sym_table": {
+    "scopes": [
+      {
+        "parent": null,
+        "bindings": [
+          {
+            "name": 18446744073709551614,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551613,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551612,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551611,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551610,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551609,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551608,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551607,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551606,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551605,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551603,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551604,
+            "binding_type": "StructType",
+            "used": true
+          },
+          {
+            "name": 6,
+            "binding_type": "FuncType",
+            "used": true
+          },
+          {
+            "name": 10,
+            "binding_type": "FuncType",
+            "used": false
+          }
+        ],
+        "children": [
+          1,
+          3
+        ]
+      },
+      {
+        "parent": 0,
+        "bindings": [
+          {
+            "name": 7,
+            "binding_type": "Value",
+            "used": false
+          }
+        ],
+        "children": [
+          2
+        ]
+      },
+      {
+        "parent": 1,
+        "bindings": [],
+        "children": []
+      },
+      {
+        "parent": 0,
+        "bindings": [],
+        "children": [
+          4
+        ]
+      },
+      {
+        "parent": 3,
+        "bindings": [],
+        "children": []
+      }
+    ],
+    "current_scope": 0
+  }
 }

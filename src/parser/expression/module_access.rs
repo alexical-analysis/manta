@@ -22,7 +22,7 @@ impl InfixExprParselet for ModuleAccessParselet {
                 let expr = parser.parse(lexer, Precedence::Base)?;
 
                 Ok(Expr::ModuleAccess(ModuleAccessExpr {
-                    module: left,
+                    module: left.name,
                     expr: Box::new(expr),
                 }))
             }

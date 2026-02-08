@@ -1,0 +1,22 @@
+mod main
+
+use (
+    "fmt"
+)
+
+fn fmt_println(i i64) {}
+
+fn main() {
+    let i = 42
+    let j = 2701
+
+    let p = &i
+    fmt_println(*p)
+    *p = 21
+    fmt_println(i)
+
+    p = &j
+    *p = *p / 37
+    fmt_println(j)
+}
+

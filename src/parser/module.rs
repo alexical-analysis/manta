@@ -1,0 +1,654 @@
+use serde::{Deserialize, Serialize};
+
+use crate::ast::{BlockStmt, Decl, Expr, LetExcept, Pattern, Stmt, TypeSpec};
+use crate::parser::ParseError;
+use crate::parser::lexer::{Token, TokenKind};
+use crate::str_store::{self, StrID};
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+enum BindingType {
+    EnumType,
+    StructType,
+    FuncType,
+    UnitType,
+    Value,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Binding {
+    name: StrID,
+    binding_type: BindingType,
+    used: bool,
+}
+
+type ScopeID = usize;
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Scope {
+    parent: Option<ScopeID>,
+    bindings: Vec<Binding>,
+    children: Vec<ScopeID>,
+}
+
+impl Scope {
+    fn new(parent: ScopeID) -> Scope {
+        Scope {
+            parent: Some(parent),
+            bindings: vec![],
+            children: vec![],
+        }
+    }
+
+    fn new_root() -> Scope {
+        let mut bindings = vec![];
+        let builtin_types = vec![
+            str_store::U8,
+            str_store::U16,
+            str_store::U32,
+            str_store::U64,
+            str_store::I8,
+            str_store::I16,
+            str_store::I32,
+            str_store::I64,
+            str_store::F32,
+            str_store::F64,
+            str_store::BOOL,
+        ];
+
+        for t in builtin_types {
+            bindings.push(Binding {
+                name: t,
+                binding_type: BindingType::UnitType,
+                used: true, // don't warn on unused builtin types
+            })
+        }
+
+        bindings.push(Binding {
+            name: str_store::STR,
+            binding_type: BindingType::StructType,
+            used: true, // don't warn if we don't use the str type
+        });
+
+        Scope {
+            parent: None,
+            children: vec![],
+            bindings,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct SymTable {
+    scopes: Vec<Scope>,
+    current_scope: ScopeID,
+}
+
+impl SymTable {
+    fn new() -> SymTable {
+        SymTable {
+            // TODO: Should we use a SlotMap?
+            scopes: vec![Scope::new_root()],
+            current_scope: 0,
+        }
+    }
+
+    fn get_current_scope(&self) -> &Scope {
+        match self.scopes.get(self.current_scope) {
+            Some(s) => s,
+            None => panic!("sym table has no current scope"),
+        }
+    }
+
+    fn get_current_scope_mut(&mut self) -> &mut Scope {
+        match self.scopes.get_mut(self.current_scope) {
+            Some(s) => s,
+            None => panic!("sym table has no current scope"),
+        }
+    }
+
+    fn open_scope(&mut self) {
+        let new_scope = Scope::new(self.current_scope);
+        let new_scope_id = self.scopes.len();
+        self.scopes.push(new_scope);
+
+        let current_scope = self.get_current_scope_mut();
+        current_scope.children.push(new_scope_id);
+
+        self.current_scope = new_scope_id
+    }
+
+    fn close_scope(&mut self) {
+        let current_scope = self.get_current_scope();
+        match current_scope.parent {
+            Some(p) => self.current_scope = p,
+            None => panic!("can not close the root scope"),
+        }
+    }
+
+    fn add_binding(&mut self, b: Binding) {
+        let current_scope = self.get_current_scope_mut();
+        current_scope.bindings.push(b);
+    }
+
+    fn find_binding(&mut self, name: StrID) -> Option<&mut Binding> {
+        let mut scope_id = Some(self.current_scope);
+
+        while let Some(id) = scope_id {
+            let binding_index = self
+                .scopes
+                .get(id)
+                .expect("invalid scope id")
+                .bindings
+                .iter()
+                .position(|b| b.name == name);
+
+            if let Some(idx) = binding_index {
+                // Step 2: Now that the search borrow is over,
+                // perform the mutable lookup and return immediately.
+                return Some(&mut self.scopes.get_mut(id).unwrap().bindings[idx]);
+            }
+
+            // Move to parent
+            scope_id = self.scopes.get(id).unwrap().parent;
+        }
+
+        None
+    }
+}
+
+/// A module in a manta program
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Module {
+    name: StrID,
+    using_modules: Vec<StrID>,
+    errors: Vec<ParseError>,
+    decls: Vec<Decl>,
+    sym_table: SymTable,
+}
+
+impl Module {
+    pub fn new(mut errors: Vec<ParseError>, decls: Vec<Decl>) -> Self {
+        let (name, mut mod_errors) = Self::get_module(&decls);
+        errors.append(&mut mod_errors);
+
+        let (using_modules, mut use_errors) = Self::get_using(&decls);
+        errors.append(&mut use_errors);
+
+        let sym_table = Self::build_sym_table(&mut errors, &decls);
+
+        Module {
+            name,
+            using_modules,
+            errors,
+            decls,
+            sym_table,
+        }
+    }
+
+    pub fn get_errors(&self) -> &Vec<ParseError> {
+        &self.errors
+    }
+
+    fn get_module(decls: &[Decl]) -> (StrID, Vec<ParseError>) {
+        let mut module_name = str_store::NIL;
+        let mut errors = vec![];
+        for (i, decl) in decls.iter().enumerate() {
+            if let Decl::Mod(module) = decl {
+                if i == 0 {
+                    module_name = module.name
+                } else {
+                    errors.push(ParseError::Custom(
+                        // TODO: need to get the actual tokens here
+                        Token {
+                            kind: TokenKind::Identifier,
+                            source_id: 0,
+                            lexeme_id: 0,
+                        },
+                        "only a single module name is allowed per file".to_string(),
+                    ));
+                }
+            }
+        }
+
+        (module_name, errors)
+    }
+
+    fn get_using(decls: &[Decl]) -> (Vec<StrID>, Vec<ParseError>) {
+        let mut using_modules = vec![];
+        let mut errors = vec![];
+        for (i, decl) in decls.iter().enumerate() {
+            if let Decl::Use(using) = decl {
+                match i {
+                    1 => using_modules = using.modules.clone(),
+                    0 => {
+                        errors.push(ParseError::Custom(
+                            // TODO: get the real token for this
+                            Token {
+                                kind: TokenKind::Identifier,
+                                source_id: 0,
+                                lexeme_id: 0,
+                            },
+                            "first declaration in a file must be the module name".to_string(),
+                        ));
+                    }
+                    _ => {
+                        errors.push(ParseError::Custom(
+                        // TODO: get the real token for this
+                        Token {
+                            kind: TokenKind::Identifier,
+                            source_id: 0,
+                            lexeme_id: 0,
+                        },
+                        "only a single import section allowed per file, and it must be right below the module name".to_string(),
+                    ));
+                    }
+                }
+            };
+        }
+
+        (using_modules, errors)
+    }
+
+    fn build_sym_table(errors: &mut Vec<ParseError>, decls: &[Decl]) -> SymTable {
+        let mut sym_table = SymTable::new();
+        for decl in decls {
+            match decl {
+                Decl::Function(decl) => {
+                    sym_table.add_binding(Binding {
+                        name: decl.name,
+                        binding_type: BindingType::FuncType,
+                        used: false,
+                    });
+
+                    if let Some(type_spec) = &decl.return_type {
+                        Self::build_sym_table_type_spec(errors, &mut sym_table, type_spec);
+                    }
+
+                    sym_table.open_scope();
+
+                    for param in &decl.params {
+                        sym_table.add_binding(Binding {
+                            name: param.name,
+                            binding_type: BindingType::Value,
+                            used: false,
+                        });
+                    }
+
+                    Self::build_sym_table_block(errors, &mut sym_table, &decl.body);
+
+                    sym_table.close_scope();
+                }
+                Decl::Type(decl) => match &decl.type_spec {
+                    TypeSpec::Named { module, name } => {
+                        if let Some(_module) = module {
+                            // TODO: modules are not yet supported just skip things for now
+                            continue;
+                        }
+
+                        let binding_type = match sym_table.find_binding(*name) {
+                            Some(b) => {
+                                b.used = true;
+                                b.binding_type
+                            }
+                            None => panic!("unknown type (return this error)"),
+                        };
+
+                        sym_table.add_binding(Binding {
+                            name: decl.name,
+                            binding_type,
+                            used: false,
+                        });
+                    }
+                    TypeSpec::Pointer(p) => {
+                        sym_table.add_binding(Binding {
+                            name: decl.name,
+                            binding_type: BindingType::UnitType,
+                            used: false,
+                        });
+
+                        Self::build_sym_table_type_spec(errors, &mut sym_table, p);
+                    }
+                    TypeSpec::Slice(s) => {
+                        sym_table.add_binding(Binding {
+                            name: decl.name,
+                            binding_type: BindingType::StructType,
+                            used: false,
+                        });
+
+                        Self::build_sym_table_type_spec(errors, &mut sym_table, s);
+                    }
+                    TypeSpec::Array(a) => {
+                        sym_table.add_binding(Binding {
+                            name: decl.name,
+                            binding_type: BindingType::UnitType,
+                            used: false,
+                        });
+
+                        Self::build_sym_table_type_spec(errors, &mut sym_table, &a.type_spec);
+                    }
+                    TypeSpec::Struct(s) => {
+                        sym_table.add_binding(Binding {
+                            name: decl.name,
+                            binding_type: BindingType::StructType,
+                            used: false,
+                        });
+
+                        for field in &s.fields {
+                            Self::build_sym_table_type_spec(
+                                errors,
+                                &mut sym_table,
+                                &field.type_spec,
+                            );
+                        }
+                    }
+                    TypeSpec::Enum(e) => {
+                        sym_table.add_binding(Binding {
+                            name: decl.name,
+                            binding_type: BindingType::EnumType,
+                            used: false,
+                        });
+
+                        for variant in &e.variants {
+                            if let Some(payload) = &variant.payload {
+                                Self::build_sym_table_type_spec(errors, &mut sym_table, payload);
+                            }
+                        }
+                    }
+                    TypeSpec::String => {
+                        sym_table.add_binding(Binding {
+                            name: decl.name,
+                            binding_type: BindingType::StructType,
+                            used: false,
+                        });
+                    }
+                    _ => {
+                        sym_table.add_binding(Binding {
+                            name: decl.name,
+                            binding_type: BindingType::UnitType,
+                            used: false,
+                        });
+                    }
+                },
+                Decl::Const(decl) => {
+                    sym_table.add_binding(Binding {
+                        name: decl.name,
+                        binding_type: BindingType::Value,
+                        used: false,
+                    });
+                }
+                Decl::Var(decl) => {
+                    sym_table.add_binding(Binding {
+                        name: decl.name,
+                        binding_type: BindingType::Value,
+                        used: false,
+                    });
+                }
+                Decl::Use(_) => { /* nothing to do */ }
+                Decl::Mod(_) => { /* nothing to do */ }
+                Decl::Invalid => { /* nothing to do */ }
+            }
+        }
+
+        sym_table
+    }
+
+    fn build_sym_table_block(
+        errors: &mut Vec<ParseError>,
+        sym_table: &mut SymTable,
+        block: &BlockStmt,
+    ) {
+        sym_table.open_scope();
+
+        for stmt in &block.statements {
+            Self::build_sym_table_stmt(errors, sym_table, stmt);
+        }
+
+        sym_table.close_scope();
+    }
+
+    fn build_sym_table_stmt(errors: &mut Vec<ParseError>, sym_table: &mut SymTable, stmt: &Stmt) {
+        match stmt {
+            Stmt::Let(stmt) => {
+                if let Pattern::Payload(pat) = &stmt.pattern {
+                    sym_table.add_binding(Binding {
+                        name: pat.payload,
+                        binding_type: BindingType::Value,
+                        used: false,
+                    })
+                }
+
+                if let Pattern::Identifier(ident) = &stmt.pattern {
+                    sym_table.add_binding(Binding {
+                        name: ident.name,
+                        binding_type: BindingType::Value,
+                        used: false,
+                    })
+                }
+
+                match &stmt.except {
+                    LetExcept::Or { binding, body } => {
+                        sym_table.open_scope();
+
+                        if let Some(binding) = binding {
+                            sym_table.add_binding(Binding {
+                                name: *binding,
+                                binding_type: BindingType::Value,
+                                used: false,
+                            });
+                        }
+
+                        Self::build_sym_table_block(errors, sym_table, body);
+
+                        sym_table.close_scope();
+                    }
+                    LetExcept::Wrap(expr) => {
+                        Self::build_sym_table_expr(errors, sym_table, expr);
+                    }
+                    LetExcept::Panic => {}
+                    LetExcept::None => {}
+                }
+            }
+            Stmt::Assign(stmt) => {
+                Self::build_sym_table_expr(errors, sym_table, &stmt.lvalue);
+                Self::build_sym_table_expr(errors, sym_table, &stmt.rvalue);
+            }
+            Stmt::Expr(stmt) => {
+                Self::build_sym_table_expr(errors, sym_table, &stmt.expr);
+            }
+            Stmt::Return(stmt) => {
+                if let Some(value) = &stmt.value {
+                    Self::build_sym_table_expr(errors, sym_table, value);
+                }
+            }
+            Stmt::Defer(stmt) => {
+                Self::build_sym_table_block(errors, sym_table, &stmt.block);
+            }
+            Stmt::Match(stmt) => {
+                Self::build_sym_table_expr(errors, sym_table, &stmt.target);
+
+                for arm in &stmt.arms {
+                    sym_table.open_scope();
+
+                    if let Pattern::Payload(pat) = &arm.pattern {
+                        sym_table.add_binding(Binding {
+                            name: pat.payload,
+                            binding_type: BindingType::Value,
+                            used: false,
+                        });
+                    }
+
+                    Self::build_sym_table_block(errors, sym_table, &arm.body);
+
+                    sym_table.open_scope();
+                }
+            }
+            Stmt::Block(stmt) => {
+                Self::build_sym_table_block(errors, sym_table, stmt);
+            }
+            Stmt::If(stmt) => {
+                Self::build_sym_table_expr(errors, sym_table, &stmt.check);
+                Self::build_sym_table_block(errors, sym_table, &stmt.success);
+                if let Some(fail) = &stmt.fail {
+                    Self::build_sym_table_block(errors, sym_table, fail);
+                }
+            }
+        }
+    }
+
+    fn build_sym_table_expr(errors: &mut Vec<ParseError>, sym_table: &mut SymTable, expr: &Expr) {
+        match expr {
+            Expr::IntLiteral(_) => { /* nothing to do */ }
+            Expr::FloatLiteral(_) => { /* nothing to do */ }
+            Expr::StringLiteral(_) => { /* nothing to do */ }
+            Expr::BoolLiteral(_) => { /* nothing to do */ }
+            Expr::Identifier(expr) => match sym_table.find_binding(expr.name) {
+                Some(b) => b.used = true,
+                None => errors.push(ParseError::Custom(
+                    Token {
+                        kind: TokenKind::Identifier,
+                        source_id: 0,
+                        lexeme_id: 0,
+                    },
+                    "use of unknown identifier".to_string(),
+                )),
+            },
+            Expr::Binary(expr) => {
+                Self::build_sym_table_expr(errors, sym_table, &expr.left);
+                Self::build_sym_table_expr(errors, sym_table, &expr.right);
+            }
+            Expr::Unary(expr) => {
+                Self::build_sym_table_expr(errors, sym_table, &expr.operand);
+            }
+            Expr::Call(expr) => {
+                Self::build_sym_table_expr(errors, sym_table, &expr.func);
+                for arg in &expr.args {
+                    Self::build_sym_table_expr(errors, sym_table, arg);
+                }
+            }
+            Expr::Index(expr) => {
+                Self::build_sym_table_expr(errors, sym_table, &expr.target);
+                Self::build_sym_table_expr(errors, sym_table, &expr.index);
+            }
+            Expr::Range(expr) => {
+                Self::build_sym_table_expr(errors, sym_table, &expr.start);
+                Self::build_sym_table_expr(errors, sym_table, &expr.end);
+            }
+            Expr::DotAccess(expr) => {
+                if let Some(target) = &expr.target {
+                    Self::build_sym_table_expr(errors, sym_table, target);
+                }
+            }
+            Expr::ModuleAccess(_expr) => {
+                errors.push(ParseError::Custom(
+                    // TODO: use the actual token here
+                    Token {
+                        kind: TokenKind::Identifier,
+                        source_id: 0,
+                        lexeme_id: 0,
+                    },
+                    "modules are not yet supported".to_string(),
+                ));
+            }
+            Expr::MetaType(expr) => {
+                Self::build_sym_table_type_spec(errors, sym_table, &expr.type_spec);
+            }
+            Expr::Alloc(expr) => {
+                Self::build_sym_table_expr(errors, sym_table, &expr.meta_type);
+                for opts in &expr.options {
+                    Self::build_sym_table_expr(errors, sym_table, opts);
+                }
+            }
+            Expr::Free(expr) => {
+                Self::build_sym_table_expr(errors, sym_table, &expr.expr);
+            }
+        }
+    }
+
+    fn build_sym_table_type_spec(
+        errors: &mut Vec<ParseError>,
+        sym_table: &mut SymTable,
+        type_spec: &TypeSpec,
+    ) {
+        match type_spec {
+            TypeSpec::Named { module, name } => {
+                if let Some(_module) = module {
+                    // TODO: modules are not yet supported just skip things for now
+                    errors.push(ParseError::Custom(
+                        Token {
+                            kind: TokenKind::Identifier,
+                            source_id: 0,
+                            lexeme_id: 0,
+                        },
+                        "modules are not yet supported".to_string(),
+                    ));
+                    return;
+                }
+
+                match sym_table.find_binding(*name) {
+                    Some(b) => b.used = true,
+                    None => errors.push(ParseError::Custom(
+                        Token {
+                            kind: TokenKind::Identifier,
+                            source_id: 0,
+                            lexeme_id: 0,
+                        },
+                        "use of unknown type".to_string(),
+                    )),
+                }
+            }
+            TypeSpec::Pointer(ts) => {
+                Self::build_sym_table_type_spec(errors, sym_table, ts);
+            }
+            TypeSpec::Slice(ts) => {
+                Self::build_sym_table_type_spec(errors, sym_table, ts);
+            }
+            TypeSpec::Array(ts) => {
+                Self::build_sym_table_type_spec(errors, sym_table, &ts.type_spec);
+            }
+            TypeSpec::Struct(ts) => {
+                for field in &ts.fields {
+                    Self::build_sym_table_type_spec(errors, sym_table, &field.type_spec);
+                }
+            }
+            TypeSpec::Enum(ts) => {
+                for variant in &ts.variants {
+                    if let Some(payload) = &variant.payload {
+                        Self::build_sym_table_type_spec(errors, sym_table, payload);
+                    }
+                }
+            }
+            _ => { /* nothing to do */ }
+        }
+    }
+}
+
+impl<'a> IntoIterator for &'a Module {
+    type Item = &'a Decl;
+    type IntoIter = ModuleIter<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        ModuleIter {
+            module: self,
+            idx: 0,
+        }
+    }
+}
+
+pub struct ModuleIter<'a> {
+    module: &'a Module,
+    idx: usize,
+}
+
+impl<'a> Iterator for ModuleIter<'a> {
+    type Item = &'a Decl;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.module.decls.get(self.idx) {
+            Some(decl) => {
+                self.idx += 1;
+                Some(decl)
+            }
+            None => None,
+        }
+    }
+}

@@ -1,9 +1,10 @@
 use std::ops::Deref;
 
 use crate::ast::{
-    BlockStmt, Decl, Expr, IdentifierPat, LetExcept, LetStmt, Module, Pattern, Stmt, TypeSpec,
+    BlockStmt, Decl, Expr, IdentifierPat, LetExcept, LetStmt, Pattern, Stmt, TypeSpec,
 };
 use crate::hir::{Node, NodeID, NodeTree};
+use crate::parser::module::Module;
 use crate::str_store::{self, StrID};
 
 struct Binding {
@@ -540,7 +541,7 @@ impl Noder {
             _ => return None,
         };
 
-        let variant = dot_expr.field.name;
+        let variant = dot_expr.field;
         let target = match &dot_expr.target {
             Some(target) => target,
             // TODO: how do we check this more carfully, we need to fill in the type hole first
@@ -667,7 +668,7 @@ impl Noder {
                             let target_id = Self::node_expr(sym_table, node_tree, target);
                             return node_tree.add_node(Node::FieldAccess {
                                 target: Some(target_id),
-                                field: expr.field.name,
+                                field: expr.field,
                             });
                         }
 
@@ -677,7 +678,7 @@ impl Noder {
                                 let target_id = Self::node_expr(sym_table, node_tree, target);
                                 return node_tree.add_node(Node::EnumConstructor {
                                     target: Some(target_id),
-                                    variant: expr.field.name,
+                                    variant: expr.field,
                                     payload: None,
                                 });
                             };
@@ -689,14 +690,14 @@ impl Noder {
                         let target_id = Self::node_expr(sym_table, node_tree, target);
                         node_tree.add_node(Node::FieldAccess {
                             target: Some(target_id),
-                            field: expr.field.name,
+                            field: expr.field,
                         })
                     }
                 },
                 // if there's no target it must be and enum
                 None => node_tree.add_node(Node::EnumConstructor {
                     target: None,
-                    variant: expr.field.name,
+                    variant: expr.field,
                     payload: None,
                 }),
             },

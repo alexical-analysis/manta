@@ -3,19 +3,26 @@ mod main
 
 use (
     "fmt"
-    "mem"
+    "unsafe"
 )
+
+// TODO: replace with unsafe::ptr when modules are fully supported
+type UnsafePtr struct {}
+
+// TODO: replace with fmt::println when modules are fully supported
+fn fmt_println_ptr(p *i32) {}
+fn fmt_println(s str) {}
 
 type MaybeAlloc enum {
     Ok(*i32)
     DidNotAlloc
-    AllocFailed(mem::Alloc)
+    AllocFailed(UnsafePtr)
 }
 
 // maybe_alloc allocates memory for an i32 if cond is true
 fn maybe_alloc(cond bool) MaybeAlloc {
     if cond {
-        let i32(p) = alloc(@i32) wrap .AllocFailed
+        let i32(p) = alloc(@i32) .AllocFailed
         *p = 42
         return .Ok(p)
     }
@@ -25,7 +32,7 @@ fn maybe_alloc(cond bool) MaybeAlloc {
 
 fn main() {
     match maybe_alloc(false) {
-        .Ok(p) { fmt::println(*p) }
-        .DidNotAlloc { fmt::println("no allocation") }
+        .Ok(p) { fmt_println_ptr(*p) }
+        .DidNotAlloc { fmt_println("no allocation") }
     }
 }

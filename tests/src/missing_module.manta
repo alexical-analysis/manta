@@ -2,6 +2,9 @@ use (
     "fmt"
 )
 
+// TODO: replace with fmt::println when modules are fully supported
+fn fmt_println(s str) {}
+
 fn main() {
-    fmt::println("this will have errors")
+    fmt_println("this will have errors")
 }

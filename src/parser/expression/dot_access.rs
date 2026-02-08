@@ -1,4 +1,4 @@
-use crate::ast::{DotAccessExpr, Expr, IdentifierExpr};
+use crate::ast::{DotAccessExpr, Expr};
 use crate::parser::ParseError;
 use crate::parser::expression::{ExprParser, InfixExprParselet, Precedence, PrefixExprParselet};
 use crate::parser::lexer::{Lexer, Token, TokenKind};
@@ -29,7 +29,7 @@ impl InfixExprParselet for InfixDotAccessParselet {
 
         Ok(Expr::DotAccess(DotAccessExpr {
             target: Some(Box::new(left)),
-            field: IdentifierExpr { name },
+            field: name,
         }))
     }
 
@@ -63,7 +63,7 @@ impl PrefixExprParselet for PrefixDotAccessParselet {
 
         Ok(Expr::DotAccess(DotAccessExpr {
             target: None,
-            field: IdentifierExpr { name },
+            field: name,
         }))
     }
 }

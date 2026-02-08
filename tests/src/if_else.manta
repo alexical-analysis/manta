@@ -5,20 +5,23 @@ use (
     "fmt"
 )
 
+// TODO: replace with fmt::println once modules are supported
+fn fmt_println(s str) {}
+
 // test if our if statments work
 fn main() {
     let check_this = true
 
     if check_this {
-        fmt::println("yes")
+        fmt_println("yes")
     }
 
     let nine = 9
 
     if nine > 10 {
-        fmt::println("no")
+        fmt_println("no")
     } else {
-        fmt::println("yes")
+        fmt_println("yes")
     }
 }
 

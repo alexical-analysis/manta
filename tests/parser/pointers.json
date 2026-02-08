@@ -23,7 +23,7 @@
         "params": [
           {
             "name": 9,
-            "type_spec": "String"
+            "type_spec": "Int64"
           }
         ],
         "return_type": null,
@@ -43,118 +43,178 @@
               "Let": {
                 "pattern": {
                   "Identifier": {
-                    "name": 13
+                    "name": 9
                   }
                 },
                 "value": {
-                  "BoolLiteral": true
+                  "IntLiteral": 42
                 },
                 "except": "None"
-              }
-            },
-            {
-              "If": {
-                "check": {
-                  "Identifier": {
-                    "name": 13
-                  }
-                },
-                "success": {
-                  "statements": [
-                    {
-                      "Expr": {
-                        "expr": {
-                          "Call": {
-                            "func": {
-                              "Identifier": {
-                                "name": 8
-                              }
-                            },
-                            "args": [
-                              {
-                                "StringLiteral": 17
-                              }
-                            ]
-                          }
-                        }
-                      }
-                    }
-                  ]
-                },
-                "fail": null
               }
             },
             {
               "Let": {
                 "pattern": {
                   "Identifier": {
-                    "name": 18
+                    "name": 15
                   }
                 },
                 "value": {
-                  "IntLiteral": 9
+                  "IntLiteral": 2701
                 },
                 "except": "None"
               }
             },
             {
-              "If": {
-                "check": {
-                  "Binary": {
-                    "left": {
+              "Let": {
+                "pattern": {
+                  "Identifier": {
+                    "name": 17
+                  }
+                },
+                "value": {
+                  "Unary": {
+                    "operator": "AddressOf",
+                    "operand": {
                       "Identifier": {
-                        "name": 18
+                        "name": 9
                       }
-                    },
-                    "operator": "GreaterThan",
-                    "right": {
-                      "IntLiteral": 10
                     }
                   }
                 },
-                "success": {
-                  "statements": [
-                    {
-                      "Expr": {
-                        "expr": {
-                          "Call": {
-                            "func": {
-                              "Identifier": {
-                                "name": 8
-                              }
-                            },
-                            "args": [
-                              {
-                                "StringLiteral": 22
-                              }
-                            ]
+                "except": "None"
+              }
+            },
+            {
+              "Expr": {
+                "expr": {
+                  "Call": {
+                    "func": {
+                      "Identifier": {
+                        "name": 8
+                      }
+                    },
+                    "args": [
+                      {
+                        "Unary": {
+                          "operator": "Dereference",
+                          "operand": {
+                            "Identifier": {
+                              "name": 17
+                            }
                           }
                         }
                       }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "Assign": {
+                "lvalue": {
+                  "Unary": {
+                    "operator": "Dereference",
+                    "operand": {
+                      "Identifier": {
+                        "name": 17
+                      }
                     }
-                  ]
+                  }
                 },
-                "fail": {
-                  "statements": [
-                    {
-                      "Expr": {
-                        "expr": {
-                          "Call": {
-                            "func": {
-                              "Identifier": {
-                                "name": 8
-                              }
-                            },
-                            "args": [
-                              {
-                                "StringLiteral": 17
-                              }
-                            ]
+                "rvalue": {
+                  "IntLiteral": 21
+                }
+              }
+            },
+            {
+              "Expr": {
+                "expr": {
+                  "Call": {
+                    "func": {
+                      "Identifier": {
+                        "name": 8
+                      }
+                    },
+                    "args": [
+                      {
+                        "Identifier": {
+                          "name": 9
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "Assign": {
+                "lvalue": {
+                  "Identifier": {
+                    "name": 17
+                  }
+                },
+                "rvalue": {
+                  "Unary": {
+                    "operator": "AddressOf",
+                    "operand": {
+                      "Identifier": {
+                        "name": 15
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "Assign": {
+                "lvalue": {
+                  "Unary": {
+                    "operator": "Dereference",
+                    "operand": {
+                      "Identifier": {
+                        "name": 17
+                      }
+                    }
+                  }
+                },
+                "rvalue": {
+                  "Binary": {
+                    "left": {
+                      "Unary": {
+                        "operator": "Dereference",
+                        "operand": {
+                          "Identifier": {
+                            "name": 17
                           }
                         }
                       }
+                    },
+                    "operator": "Divide",
+                    "right": {
+                      "IntLiteral": 37
                     }
-                  ]
+                  }
+                }
+              }
+            },
+            {
+              "Expr": {
+                "expr": {
+                  "Call": {
+                    "func": {
+                      "Identifier": {
+                        "name": 8
+                      }
+                    },
+                    "args": [
+                      {
+                        "Identifier": {
+                          "name": 15
+                        }
+                      }
+                    ]
+                  }
                 }
               }
             }
@@ -273,35 +333,21 @@
         "parent": 3,
         "bindings": [
           {
-            "name": 13,
+            "name": 9,
             "binding_type": "Value",
             "used": true
           },
           {
-            "name": 18,
+            "name": 15,
+            "binding_type": "Value",
+            "used": true
+          },
+          {
+            "name": 17,
             "binding_type": "Value",
             "used": true
           }
         ],
-        "children": [
-          5,
-          6,
-          7
-        ]
-      },
-      {
-        "parent": 4,
-        "bindings": [],
-        "children": []
-      },
-      {
-        "parent": 4,
-        "bindings": [],
-        "children": []
-      },
-      {
-        "parent": 4,
-        "bindings": [],
         "children": []
       }
     ],

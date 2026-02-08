@@ -101,7 +101,7 @@ impl PrefixStmtParselet for LetParselet {
             })),
             _ => Err(ParseError::UnexpectedToken(
                 next,
-                format!("invalid token after let expr {:?}", next),
+                "invalid token after let expr".to_string(),
             )),
         }
     }

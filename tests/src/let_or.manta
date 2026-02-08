@@ -7,29 +7,60 @@ use (
     "fmt"
 )
 
+// TODO: replace with os::File when modules are fully supported
+type File struct {}
+
+// TODO: replace with os::Open when modules are fully supported
+type OSOpen enum {
+    Ok(File)
+    NotImpemented
+}
+
+// TODO: replace with os::open when modules are fully supported
+fn os_open(path str) OSOpen {
+    return .NotImpemented
+}
+
+// TODO: replace with os::open when modules are fully supported
+fn os_close(f File) {}
+
+// TODO: replace with io::ReadToString when modules are fully supported
+type IOReadToString enum {
+    Ok(str)
+    NotImpemented
+}
+
+// TODO: replace with io::read_to_string when modules are fully supported
+fn io_read_to_string(f File) IOReadToString {
+    return .NotImpemented
+}
+
+// TODO: replace with fmt::println when modules are fully supported
+fn fmt_println(s str) {}
+
 // ReadFile is the return type for the read_file function
 type ReadFile enum {
     Ok(str)
-    OpenErr(os::Open)
-    ReadErr(io::ReadToString)
+    OpenErr(OSOpen)
+    ReadErr(IOReadToString)
 }
 
 // read_file reads the file at the given path
 fn read_file(path str) ReadFile {
-    let .Ok(f) = os::open(path) wrap .OpenErr
-    defer { os::close(f) }
+    let .Ok(f) = os_open(path) wrap .OpenErr
+    defer { os_close(f) }
 
-    let .Ok(s) = io::read_to_string(f) wrap .ReadErr
+    let .Ok(s) = io_read_to_string(f) wrap .ReadErr
     return .Ok(s)
 }
 
 // entry point for the program
 fn main() {
     let .Ok(content) = read_file("/tmp/x.txt") or(e) {
-        fmt::printfln("read failed: ", e)
+        fmt_println("read failed")
         return
     }
-    fmt::println(content)
+    fmt_println(content)
 
     // a try can become a simple panic if it has a trailing !
     let .Ok(content) = read_file("/tmp/missing.txt") !

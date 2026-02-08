@@ -1,67 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::parser::ParseError;
 use crate::str_store::StrID;
-
-/// A module in a manta program
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct Module {
-    name: StrID,
-    modules: Vec<StrID>,
-    errors: Vec<ParseError>,
-    decls: Vec<Decl>,
-}
-
-impl Module {
-    pub fn new(
-        name: StrID,
-        modules: Vec<StrID>,
-        errors: Vec<ParseError>,
-        decls: Vec<Decl>,
-    ) -> Self {
-        Module {
-            name,
-            modules,
-            errors,
-            decls,
-        }
-    }
-
-    pub fn get_errors(&self) -> &Vec<ParseError> {
-        &self.errors
-    }
-}
-
-impl<'a> IntoIterator for &'a Module {
-    type Item = &'a Decl;
-    type IntoIter = ModuleIter<'a>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        ModuleIter {
-            module: self,
-            idx: 0,
-        }
-    }
-}
-
-pub struct ModuleIter<'a> {
-    module: &'a Module,
-    idx: usize,
-}
-
-impl<'a> Iterator for ModuleIter<'a> {
-    type Item = &'a Decl;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.module.decls.get(self.idx) {
-            Some(decl) => {
-                self.idx += 1;
-                Some(decl)
-            }
-            None => None,
-        }
-    }
-}
 
 /// Top-level declarations in a Manta program
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -445,12 +384,12 @@ pub struct RangeExpr {
 pub struct DotAccessExpr {
     // this is an option because this can be infered in some contexts
     pub target: Option<Box<Expr>>,
-    pub field: IdentifierExpr,
+    pub field: StrID,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ModuleAccessExpr {
-    pub module: IdentifierExpr,
+    pub module: StrID,
     pub expr: Box<Expr>,
 }
 

@@ -1,6 +1,6 @@
 {
   "name": 1,
-  "modules": [
+  "using_modules": [
     5
   ],
   "errors": [],
@@ -18,17 +18,32 @@
       }
     },
     {
-      "Type": {
+      "Function": {
         "name": 8,
+        "params": [
+          {
+            "name": 9,
+            "type_spec": "String"
+          }
+        ],
+        "return_type": null,
+        "body": {
+          "statements": []
+        }
+      }
+    },
+    {
+      "Type": {
+        "name": 13,
         "type_spec": {
           "Enum": {
             "variants": [
               {
-                "name": 11,
+                "name": 15,
                 "payload": "Int32"
               },
               {
-                "name": 12,
+                "name": 16,
                 "payload": null
               }
             ]
@@ -38,21 +53,21 @@
     },
     {
       "Function": {
-        "name": 15,
+        "name": 17,
         "params": [
           {
-            "name": 16,
+            "name": 18,
             "type_spec": "Int32"
           },
           {
-            "name": 18,
+            "name": 20,
             "type_spec": "Int32"
           }
         ],
         "return_type": {
           "Named": {
             "module": null,
-            "name": 8
+            "name": 13
           }
         },
         "body": {
@@ -63,7 +78,7 @@
                   "Binary": {
                     "left": {
                       "Identifier": {
-                        "name": 18
+                        "name": 20
                       }
                     },
                     "operator": "Equal",
@@ -79,9 +94,7 @@
                         "value": {
                           "DotAccess": {
                             "target": null,
-                            "field": {
-                              "name": 12
-                            }
+                            "field": 16
                           }
                         }
                       }
@@ -98,9 +111,7 @@
                     "func": {
                       "DotAccess": {
                         "target": null,
-                        "field": {
-                          "name": 11
-                        }
+                        "field": 15
                       }
                     },
                     "args": [
@@ -108,13 +119,13 @@
                         "Binary": {
                           "left": {
                             "Identifier": {
-                              "name": 16
+                              "name": 18
                             }
                           },
                           "operator": "Divide",
                           "right": {
                             "Identifier": {
-                              "name": 18
+                              "name": 20
                             }
                           }
                         }
@@ -139,14 +150,14 @@
               "Let": {
                 "pattern": {
                   "Identifier": {
-                    "name": 26
+                    "name": 28
                   }
                 },
                 "value": {
                   "Call": {
                     "func": {
                       "Identifier": {
-                        "name": 15
+                        "name": 17
                       }
                     },
                     "args": [
@@ -166,7 +177,7 @@
               "Match": {
                 "target": {
                   "Identifier": {
-                    "name": 26
+                    "name": 28
                   }
                 },
                 "arms": [
@@ -177,11 +188,11 @@
                           "DotAccess": {
                             "target": null,
                             "field": {
-                              "name": 11
+                              "name": 15
                             }
                           }
                         },
-                        "payload": 31
+                        "payload": 33
                       }
                     },
                     "body": {
@@ -189,29 +200,22 @@
                         {
                           "Expr": {
                             "expr": {
-                              "ModuleAccess": {
-                                "module": {
-                                  "name": 5
-                                },
-                                "expr": {
-                                  "Call": {
-                                    "func": {
-                                      "Identifier": {
-                                        "name": 33
-                                      }
-                                    },
-                                    "args": [
-                                      {
-                                        "StringLiteral": 34
-                                      },
-                                      {
-                                        "Identifier": {
-                                          "name": 31
-                                        }
-                                      }
-                                    ]
+                              "Call": {
+                                "func": {
+                                  "Identifier": {
+                                    "name": 8
                                   }
-                                }
+                                },
+                                "args": [
+                                  {
+                                    "StringLiteral": 34
+                                  },
+                                  {
+                                    "Identifier": {
+                                      "name": 33
+                                    }
+                                  }
+                                ]
                               }
                             }
                           }
@@ -224,7 +228,7 @@
                       "DotAccess": {
                         "target": null,
                         "field": {
-                          "name": 12
+                          "name": 16
                         }
                       }
                     },
@@ -233,24 +237,17 @@
                         {
                           "Expr": {
                             "expr": {
-                              "ModuleAccess": {
-                                "module": {
-                                  "name": 5
-                                },
-                                "expr": {
-                                  "Call": {
-                                    "func": {
-                                      "Identifier": {
-                                        "name": 33
-                                      }
-                                    },
-                                    "args": [
-                                      {
-                                        "StringLiteral": 36
-                                      }
-                                    ]
+                              "Call": {
+                                "func": {
+                                  "Identifier": {
+                                    "name": 8
                                   }
-                                }
+                                },
+                                "args": [
+                                  {
+                                    "StringLiteral": 36
+                                  }
+                                ]
                               }
                             }
                           }
@@ -265,5 +262,212 @@
         }
       }
     }
-  ]
+  ],
+  "sym_table": {
+    "scopes": [
+      {
+        "parent": null,
+        "bindings": [
+          {
+            "name": 18446744073709551614,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551613,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551612,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551611,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551610,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551609,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551608,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551607,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551606,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551605,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551603,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551604,
+            "binding_type": "StructType",
+            "used": true
+          },
+          {
+            "name": 8,
+            "binding_type": "FuncType",
+            "used": true
+          },
+          {
+            "name": 13,
+            "binding_type": "EnumType",
+            "used": true
+          },
+          {
+            "name": 17,
+            "binding_type": "FuncType",
+            "used": false
+          },
+          {
+            "name": 1,
+            "binding_type": "FuncType",
+            "used": false
+          }
+        ],
+        "children": [
+          1,
+          3,
+          6
+        ]
+      },
+      {
+        "parent": 0,
+        "bindings": [
+          {
+            "name": 9,
+            "binding_type": "Value",
+            "used": false
+          }
+        ],
+        "children": [
+          2
+        ]
+      },
+      {
+        "parent": 1,
+        "bindings": [],
+        "children": []
+      },
+      {
+        "parent": 0,
+        "bindings": [
+          {
+            "name": 18,
+            "binding_type": "Value",
+            "used": true
+          },
+          {
+            "name": 20,
+            "binding_type": "Value",
+            "used": true
+          }
+        ],
+        "children": [
+          4
+        ]
+      },
+      {
+        "parent": 3,
+        "bindings": [],
+        "children": [
+          5
+        ]
+      },
+      {
+        "parent": 4,
+        "bindings": [],
+        "children": []
+      },
+      {
+        "parent": 0,
+        "bindings": [],
+        "children": [
+          7
+        ]
+      },
+      {
+        "parent": 6,
+        "bindings": [
+          {
+            "name": 28,
+            "binding_type": "Value",
+            "used": true
+          }
+        ],
+        "children": [
+          8
+        ]
+      },
+      {
+        "parent": 7,
+        "bindings": [
+          {
+            "name": 33,
+            "binding_type": "Value",
+            "used": true
+          }
+        ],
+        "children": [
+          9,
+          10
+        ]
+      },
+      {
+        "parent": 8,
+        "bindings": [],
+        "children": []
+      },
+      {
+        "parent": 8,
+        "bindings": [],
+        "children": [
+          11
+        ]
+      },
+      {
+        "parent": 10,
+        "bindings": [],
+        "children": [
+          12,
+          13
+        ]
+      },
+      {
+        "parent": 11,
+        "bindings": [],
+        "children": []
+      },
+      {
+        "parent": 11,
+        "bindings": [],
+        "children": []
+      }
+    ],
+    "current_scope": 10
+  }
 }

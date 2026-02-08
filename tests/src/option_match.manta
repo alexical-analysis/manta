@@ -5,6 +5,9 @@ use (
     "fmt"
 )
 
+// TODO: replace with fmt::println when modules are fully supported
+fn fmt_println(s str) {}
+
 // Div is the return type for the div function
 type Div enum {
     Ok(i32)
@@ -22,7 +25,7 @@ fn div(a, b i32) Div {
 fn main() {
     let r = div(10, 2)
     match r {
-        .Ok(v) { fmt::println("result: ", v) }
-        .DivByZero { fmt::println("can not divide by zero") }
+        .Ok(v) { fmt_println("result: ", v) }
+        .DivByZero { fmt_println("can not divide by zero") }
     }
 }

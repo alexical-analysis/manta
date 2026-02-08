@@ -5,17 +5,45 @@ use (
     "os"
 )
 
+// TODO: replace with os::File when modules are fully supported
+type File struct {}
+
+// TODO: replace with os::Open when modules are fully supported
+type OSOpen enum {
+    Ok(File)
+    Err
+}
+
+// TODO: replace os::open when modules are fully supported
+fn os_open(path str) OSOpen {
+    return .Err
+}
+
+// TODO: replace os::close when modules are fully supported
+fn os_close(f File) {}
+
+// TODO: replace with os::Write when modules are fully supported
+type OSWrite enum {
+    Ok(u64)
+    Err
+}
+
+// TODO: replace with os::write when modules are fully supported
+fn os_write(f File, buf []u8) {
+    return .Err
+}
+
 // WriteAndCleanup is the return type for the write_and_cleanup function
 type WriteAndCleanup enum {
     Ok
-    OpenErr(os::Open)
-    WriteErr(os::Write)
+    OpenErr(OSOpen)
+    WriteErr(OSWrite)
 }
 
 // write_and_cleanup writes the contents of the file at the given path to a temporary buffer
 fn write_and_cleanup(path str) WriteAndCleanup {
-    let .Ok(f) = os::open(path) wrap .OpenErr
-    defer { os::close(f) }
+    let .Ok(f) = os_open(path) wrap .OpenErr
+    defer { os_close(f) }
 
     let []u8(buf) = alloc(@[]u8) !
     defer { free(buf) }

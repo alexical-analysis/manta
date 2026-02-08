@@ -711,6 +711,20 @@ mod tests {
                 },
             ),
         },
+        parse_expression_call_with_deref {
+            input: "fmt_println(*p)",
+            want_var: Expr::Call(expr),
+            want_value: assert_eq!(
+                expr,
+                CallExpr {
+                    func: Box::new(Expr::Identifier(IdentifierExpr { name: 0 })),
+                    args: vec![Expr::Unary(UnaryExpr {
+                        operator: UnaryOp::Dereference,
+                        operand: Box::new(Expr::Identifier(IdentifierExpr { name: 3 })),
+                    })],
+                }
+            ),
+        },
         parse_expression_call_with_args {
             input: "sum(1, b, 3)",
             want_var: Expr::Call(expr),
@@ -790,7 +804,7 @@ mod tests {
                 expr,
                 DotAccessExpr {
                     target: Some(Box::new(Expr::Identifier(IdentifierExpr { name: 0 }))),
-                    field: IdentifierExpr { name: 2 },
+                    field: 2,
                 }
             ),
         },
@@ -802,9 +816,9 @@ mod tests {
                 DotAccessExpr {
                     target: Some(Box::new(Expr::DotAccess(DotAccessExpr {
                         target: Some(Box::new(Expr::Identifier(IdentifierExpr { name: 0 }))),
-                        field: IdentifierExpr { name: 2 },
+                        field: 2,
                     }))),
-                    field: IdentifierExpr { name: 3 },
+                    field: 3,
                 },
             ),
         },
@@ -818,7 +832,7 @@ mod tests {
                         target: Box::new(Expr::Identifier(IdentifierExpr { name: 0 })),
                         index: Box::new(Expr::IntLiteral(0)),
                     }))),
-                    field: IdentifierExpr { name: 5 },
+                    field: 5,
                 },
             ),
         },
@@ -831,11 +845,11 @@ mod tests {
                     target: Some(Box::new(Expr::Call(CallExpr {
                         func: Box::new(Expr::DotAccess(DotAccessExpr {
                             target: Some(Box::new(Expr::Identifier(IdentifierExpr { name: 0 }))),
-                            field: IdentifierExpr { name: 2 },
+                            field: 2,
                         })),
                         args: vec![],
                     }))),
-                    field: IdentifierExpr { name: 5 },
+                    field: 5,
                 },
             ),
         },
@@ -864,7 +878,7 @@ mod tests {
                     options: vec![Expr::Call(CallExpr {
                         func: Box::new(Expr::DotAccess(DotAccessExpr {
                             target: None,
-                            field: IdentifierExpr { name: 7 },
+                            field: 7,
                         })),
                         args: vec![Expr::IntLiteral(10)],
                     })],
@@ -884,13 +898,13 @@ mod tests {
                         Expr::Call(CallExpr {
                             func: Box::new(Expr::DotAccess(DotAccessExpr {
                                 target: None,
-                                field: IdentifierExpr { name: 7 },
+                                field: 7,
                             })),
                             args: vec![Expr::IntLiteral(15)],
                         }),
                         Expr::DotAccess(DotAccessExpr {
                             target: None,
-                            field: IdentifierExpr { name: 10 },
+                            field: 10,
                         })
                     ],
                 },
@@ -909,7 +923,7 @@ mod tests {
                             })),
                             options: vec![],
                         }))),
-                        field: IdentifierExpr { name: 5 },
+                        field: 5,
                     })),
                     args: vec![],
                 }
@@ -934,9 +948,9 @@ mod tests {
                     expr: Box::new(Expr::DotAccess(DotAccessExpr {
                         target: Some(Box::new(Expr::DotAccess(DotAccessExpr {
                             target: Some(Box::new(Expr::Identifier(IdentifierExpr { name: 2 }))),
-                            field: IdentifierExpr { name: 4 },
+                            field: 4,
                         }))),
-                        field: IdentifierExpr { name: 5 },
+                        field: 5,
                     })),
                 }
             ),
@@ -948,7 +962,7 @@ mod tests {
                 expr,
                 DotAccessExpr {
                     target: None,
-                    field: IdentifierExpr { name: 1 },
+                    field: 1,
                 },
             ),
         },
@@ -962,7 +976,7 @@ mod tests {
                     operator: BinaryOp::Equal,
                     right: Box::new(Expr::DotAccess(DotAccessExpr {
                         target: None,
-                        field: IdentifierExpr { name: 3 },
+                        field: 3,
                     })),
                 },
             ),
