@@ -26,7 +26,7 @@ impl PrefixStmtParselet for IfParselet {
             ));
         }
 
-        let success = parser.parse_block(lexer)?;
+        let success = parser.parse_block(lexer, token)?;
 
         let next = lexer.peek();
         let fail = if next.kind == TokenKind::ElseKeyword {
@@ -38,7 +38,7 @@ impl PrefixStmtParselet for IfParselet {
                     "Expected '{' after else keyword".to_string(),
                 ));
             }
-            let block = parser.parse_block(lexer)?;
+            let block = parser.parse_block(lexer, open)?;
             Some(block)
         } else {
             None

@@ -134,7 +134,7 @@ impl StmtParser {
         }
     }
 
-    pub fn parse_block(&self, lexer: &mut Lexer) -> Result<BlockStmt, ParseError> {
+    pub fn parse_block(&self, lexer: &mut Lexer, token: Token) -> Result<BlockStmt, ParseError> {
         let mut statements = vec![];
 
         loop {
@@ -157,7 +157,7 @@ impl StmtParser {
             };
         }
 
-        Ok(BlockStmt { statements })
+        Ok(BlockStmt { token, statements })
     }
 
     pub fn parse_expression(&self, lexer: &mut Lexer) -> Result<Expr, ParseError> {
@@ -307,7 +307,14 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 DeferStmt {
-                    block: BlockStmt { statements: vec![] }
+                    block: BlockStmt {
+                        token: Token {
+                            kind: TokenKind::OpenBrace,
+                            source_id: 6,
+                            lexeme_id: 1,
+                        },
+                        statements: vec![]
+                    }
                 }
             ),
         },
@@ -318,6 +325,11 @@ mod test {
                 stmt,
                 DeferStmt {
                     block: BlockStmt {
+                        token: Token {
+                            kind: TokenKind::OpenBrace,
+                            source_id: 6,
+                            lexeme_id: 1,
+                        },
                         statements: vec![Stmt::Expr(ExprStmt {
                             expr: Expr::Free(FreeExpr {
                                 expr: Box::new(Expr::Identifier(IdentifierExpr { name: 4 })),
@@ -334,6 +346,11 @@ mod test {
                 stmt,
                 DeferStmt {
                     block: BlockStmt {
+                        token: Token {
+                            kind: TokenKind::OpenBrace,
+                            source_id: 6,
+                            lexeme_id: 1,
+                        },
                         statements: vec![
                             Stmt::Expr(ExprStmt {
                                 expr: Expr::Call(CallExpr {
@@ -367,6 +384,11 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 BlockStmt {
+                    token: Token {
+                        kind: TokenKind::OpenBrace,
+                        source_id: 0,
+                        lexeme_id: 0
+                    },
                     statements: vec![
                         Stmt::Let(LetStmt {
                             pattern: Pattern::Identifier(IdentifierPat { name: 2 }),
@@ -476,6 +498,11 @@ mod test {
                 IfStmt {
                     check: Box::new(Expr::BoolLiteral(true)),
                     success: BlockStmt {
+                        token: Token {
+                            kind: TokenKind::OpenBrace,
+                            source_id: 8,
+                            lexeme_id: 2,
+                        },
                         statements: vec![Stmt::Expr(ExprStmt {
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr { name: 3 })),
@@ -503,6 +530,11 @@ mod test {
                         right: Box::new(Expr::IntLiteral(13)),
                     })),
                     success: BlockStmt {
+                        token: Token {
+                            kind: TokenKind::OpenBrace,
+                            source_id: 10,
+                            lexeme_id: 4,
+                        },
                         statements: vec![Stmt::Expr(ExprStmt {
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr { name: 5 })),
@@ -511,6 +543,11 @@ mod test {
                         })],
                     },
                     fail: Some(BlockStmt {
+                        token: Token {
+                            kind: TokenKind::OpenBrace,
+                            source_id: 35,
+                            lexeme_id: 4
+                        },
                         statements: vec![Stmt::Assign(AssignStmt {
                             lvalue: Expr::Identifier(IdentifierExpr { name: 1 }),
                             rvalue: Expr::Binary(BinaryExpr {
@@ -594,6 +631,11 @@ mod test {
                     except: LetExcept::Or {
                         binding: None,
                         body: BlockStmt {
+                            token: Token {
+                                kind: TokenKind::OpenBrace,
+                                source_id: 39,
+                                lexeme_id: 11,
+                            },
                             statements: vec![Stmt::Expr(ExprStmt {
                                 expr: Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr { name: 12 })),
@@ -628,6 +670,11 @@ mod test {
                     except: LetExcept::Or {
                         binding: Some(11),
                         body: BlockStmt {
+                            token: Token {
+                                kind: TokenKind::OpenBrace,
+                                source_id: 41,
+                                lexeme_id: 12,
+                            },
                             statements: vec![
                                 Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
@@ -690,6 +737,11 @@ mod test {
                                 payload: 6,
                             }),
                             body: BlockStmt {
+                                token: Token {
+                                    kind: TokenKind::OpenBrace,
+                                    source_id: 23,
+                                    lexeme_id: 2,
+                                },
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -706,6 +758,11 @@ mod test {
                                 field: IdentifierPat { name: 12 },
                             }),
                             body: BlockStmt {
+                                token: Token {
+                                    kind: TokenKind::OpenBrace,
+                                    source_id: 46,
+                                    lexeme_id: 2,
+                                },
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -741,6 +798,11 @@ mod test {
                                 payload: 6
                             }),
                             body: BlockStmt {
+                                token: Token {
+                                    kind: TokenKind::OpenBrace,
+                                    source_id: 33,
+                                    lexeme_id: 2,
+                                },
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -760,6 +822,11 @@ mod test {
                                 payload: 13
                             }),
                             body: BlockStmt {
+                                token: Token {
+                                    kind: TokenKind::OpenBrace,
+                                    source_id: 66,
+                                    lexeme_id: 2,
+                                },
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -776,6 +843,11 @@ mod test {
                                 field: IdentifierPat { name: 14 },
                             }),
                             body: BlockStmt {
+                                token: Token {
+                                    kind: TokenKind::OpenBrace,
+                                    source_id: 93,
+                                    lexeme_id: 2,
+                                },
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -807,6 +879,11 @@ mod test {
                                 field: IdentifierPat { name: 4 },
                             }),
                             body: BlockStmt {
+                                token: Token {
+                                    kind: TokenKind::OpenBrace,
+                                    source_id: 26,
+                                    lexeme_id: 2
+                                },
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -826,6 +903,11 @@ mod test {
                                 payload: 13
                             }),
                             body: BlockStmt {
+                                token: Token {
+                                    kind: TokenKind::OpenBrace,
+                                    source_id: 56,
+                                    lexeme_id: 2
+                                },
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {

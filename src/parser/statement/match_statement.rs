@@ -50,7 +50,7 @@ impl PrefixStmtParselet for MatchParselet {
                 ));
             }
 
-            let body = parser.parse_block(lexer)?;
+            let body = parser.parse_block(lexer, token)?;
 
             let token = lexer.next_token();
             if token.kind != TokenKind::Semicolon {

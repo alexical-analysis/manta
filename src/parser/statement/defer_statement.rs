@@ -23,7 +23,7 @@ impl PrefixStmtParselet for DeferParselet {
             ));
         }
 
-        let block = parser.parse_block(lexer)?;
+        let block = parser.parse_block(lexer, token)?;
 
         Ok(Stmt::Defer(DeferStmt { block }))
     }

@@ -30,6 +30,11 @@
     },
     {
       "Function": {
+        "token": {
+          "kind": "FnKeyword",
+          "source_id": 97,
+          "lexeme_id": 7
+        },
         "name": 8,
         "params": [
           {
@@ -39,16 +44,31 @@
         ],
         "return_type": null,
         "body": {
+          "token": {
+            "kind": "OpenBrace",
+            "source_id": 119,
+            "lexeme_id": 10
+          },
           "statements": []
         }
       }
     },
     {
       "Function": {
+        "token": {
+          "kind": "FnKeyword",
+          "source_id": 123,
+          "lexeme_id": 7
+        },
         "name": 1,
         "params": [],
         "return_type": null,
         "body": {
+          "token": {
+            "kind": "OpenBrace",
+            "source_id": 133,
+            "lexeme_id": 10
+          },
           "statements": [
             {
               "Expr": {

@@ -14,23 +14,23 @@ impl DeclParselet for FunctionDeclParselet {
         &self,
         parser: &DeclParser,
         lexer: &mut Lexer,
-        _token: Token,
+        token: Token,
     ) -> Result<Decl, ParseError> {
-        let token = lexer.next_token();
-        if token.kind != TokenKind::Identifier {
+        let next = lexer.next_token();
+        if next.kind != TokenKind::Identifier {
             return Err(ParseError::UnexpectedToken(
-                token,
+                next,
                 "Expected function name".to_string(),
             ));
         }
 
-        let name = token.lexeme_id;
+        let name = next.lexeme_id;
 
         // Expect opening paren
-        let token = lexer.next_token();
-        if token.kind != TokenKind::OpenParen {
+        let next = lexer.next_token();
+        if next.kind != TokenKind::OpenParen {
             return Err(ParseError::UnexpectedToken(
-                token,
+                next,
                 "Expected '(' after function name".to_string(),
             ));
         }
@@ -39,10 +39,10 @@ impl DeclParselet for FunctionDeclParselet {
         let params = parse_parameters(lexer)?;
 
         // Expect closing paren
-        let token = lexer.next_token();
-        if token.kind != TokenKind::CloseParen {
+        let next = lexer.next_token();
+        if next.kind != TokenKind::CloseParen {
             return Err(ParseError::UnexpectedToken(
-                token,
+                next,
                 "Expected ')' after parameters".to_string(),
             ));
         }
@@ -51,22 +51,23 @@ impl DeclParselet for FunctionDeclParselet {
         let return_type = if lexer.peek().kind == TokenKind::OpenBrace {
             None
         } else {
-            let token = lexer.next_token();
-            Some(types::parse_type(lexer, token)?)
+            let next = lexer.next_token();
+            Some(types::parse_type(lexer, next)?)
         };
 
         // Parse function body
-        let token = lexer.next_token();
-        if token.kind != TokenKind::OpenBrace {
+        let next = lexer.next_token();
+        if next.kind != TokenKind::OpenBrace {
             return Err(ParseError::UnexpectedToken(
-                token,
+                next,
                 "Expected '{' before function body".to_string(),
             ));
         }
 
-        let body = parser.parse_block(lexer)?;
+        let body = parser.parse_block(lexer, next)?;
 
         Ok(Decl::Function(FunctionDecl {
+            token,
             name,
             params,
             return_type,

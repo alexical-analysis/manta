@@ -65,7 +65,7 @@ impl PrefixStmtParselet for LetParselet {
                     ));
                 }
 
-                let body = parser.parse_block(lexer)?;
+                let body = parser.parse_block(lexer, token)?;
                 let except = LetExcept::Or { binding, body };
 
                 Ok(Stmt::Let(LetStmt {

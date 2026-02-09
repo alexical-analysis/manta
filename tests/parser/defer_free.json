@@ -53,6 +53,11 @@
     },
     {
       "Function": {
+        "token": {
+          "kind": "FnKeyword",
+          "source_id": 308,
+          "lexeme_id": 16
+        },
         "name": 17,
         "params": [
           {
@@ -67,6 +72,11 @@
           }
         },
         "body": {
+          "token": {
+            "kind": "OpenBrace",
+            "source_id": 336,
+            "lexeme_id": 10
+          },
           "statements": [
             {
               "Return": {
@@ -84,6 +94,11 @@
     },
     {
       "Function": {
+        "token": {
+          "kind": "FnKeyword",
+          "source_id": 417,
+          "lexeme_id": 16
+        },
         "name": 21,
         "params": [
           {
@@ -98,6 +113,11 @@
         ],
         "return_type": null,
         "body": {
+          "token": {
+            "kind": "OpenBrace",
+            "source_id": 437,
+            "lexeme_id": 10
+          },
           "statements": []
         }
       }
@@ -123,6 +143,11 @@
     },
     {
       "Function": {
+        "token": {
+          "kind": "FnKeyword",
+          "source_id": 614,
+          "lexeme_id": 16
+        },
         "name": 24,
         "params": [
           {
@@ -143,6 +168,11 @@
         ],
         "return_type": null,
         "body": {
+          "token": {
+            "kind": "OpenBrace",
+            "source_id": 644,
+            "lexeme_id": 10
+          },
           "statements": [
             {
               "Return": {
@@ -193,6 +223,11 @@
     },
     {
       "Function": {
+        "token": {
+          "kind": "FnKeyword",
+          "source_id": 911,
+          "lexeme_id": 16
+        },
         "name": 32,
         "params": [
           {
@@ -207,6 +242,11 @@
           }
         },
         "body": {
+          "token": {
+            "kind": "OpenBrace",
+            "source_id": 958,
+            "lexeme_id": 10
+          },
           "statements": [
             {
               "Let": {
@@ -252,6 +292,11 @@
             {
               "Defer": {
                 "block": {
+                  "token": {
+                    "kind": "OpenBrace",
+                    "source_id": 1015,
+                    "lexeme_id": 10
+                  },
                   "statements": [
                     {
                       "Expr": {
@@ -307,6 +352,11 @@
             {
               "Defer": {
                 "block": {
+                  "token": {
+                    "kind": "OpenBrace",
+                    "source_id": 1077,
+                    "lexeme_id": 10
+                  },
                   "statements": [
                     {
                       "Expr": {

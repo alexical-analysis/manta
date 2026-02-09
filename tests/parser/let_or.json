@@ -57,6 +57,11 @@
     },
     {
       "Function": {
+        "token": {
+          "kind": "FnKeyword",
+          "source_id": 341,
+          "lexeme_id": 18
+        },
         "name": 19,
         "params": [
           {
@@ -71,6 +76,11 @@
           }
         },
         "body": {
+          "token": {
+            "kind": "OpenBrace",
+            "source_id": 369,
+            "lexeme_id": 12
+          },
           "statements": [
             {
               "Return": {
@@ -88,6 +98,11 @@
     },
     {
       "Function": {
+        "token": {
+          "kind": "FnKeyword",
+          "source_id": 464,
+          "lexeme_id": 18
+        },
         "name": 23,
         "params": [
           {
@@ -102,6 +117,11 @@
         ],
         "return_type": null,
         "body": {
+          "token": {
+            "kind": "OpenBrace",
+            "source_id": 484,
+            "lexeme_id": 12
+          },
           "statements": []
         }
       }
@@ -127,6 +147,11 @@
     },
     {
       "Function": {
+        "token": {
+          "kind": "FnKeyword",
+          "source_id": 694,
+          "lexeme_id": 18
+        },
         "name": 26,
         "params": [
           {
@@ -146,6 +171,11 @@
           }
         },
         "body": {
+          "token": {
+            "kind": "OpenBrace",
+            "source_id": 738,
+            "lexeme_id": 12
+          },
           "statements": [
             {
               "Return": {
@@ -163,6 +193,11 @@
     },
     {
       "Function": {
+        "token": {
+          "kind": "FnKeyword",
+          "source_id": 837,
+          "lexeme_id": 18
+        },
         "name": 27,
         "params": [
           {
@@ -172,6 +207,11 @@
         ],
         "return_type": null,
         "body": {
+          "token": {
+            "kind": "OpenBrace",
+            "source_id": 859,
+            "lexeme_id": 12
+          },
           "statements": []
         }
       }
@@ -211,6 +251,11 @@
     },
     {
       "Function": {
+        "token": {
+          "kind": "FnKeyword",
+          "source_id": 1051,
+          "lexeme_id": 18
+        },
         "name": 32,
         "params": [
           {
@@ -225,6 +270,11 @@
           }
         },
         "body": {
+          "token": {
+            "kind": "OpenBrace",
+            "source_id": 1083,
+            "lexeme_id": 12
+          },
           "statements": [
             {
               "Let": {
@@ -270,6 +320,11 @@
             {
               "Defer": {
                 "block": {
+                  "token": {
+                    "kind": "OpenBrace",
+                    "source_id": 1140,
+                    "lexeme_id": 12
+                  },
                   "statements": [
                     {
                       "Expr": {
@@ -363,10 +418,20 @@
     },
     {
       "Function": {
+        "token": {
+          "kind": "FnKeyword",
+          "source_id": 1261,
+          "lexeme_id": 18
+        },
         "name": 1,
         "params": [],
         "return_type": null,
         "body": {
+          "token": {
+            "kind": "OpenBrace",
+            "source_id": 1271,
+            "lexeme_id": 12
+          },
           "statements": [
             {
               "Let": {
@@ -401,6 +466,11 @@
                   "Or": {
                     "binding": 41,
                     "body": {
+                      "token": {
+                        "kind": "OpenBrace",
+                        "source_id": 1326,
+                        "lexeme_id": 12
+                      },
                       "statements": [
                         {
                           "Expr": {

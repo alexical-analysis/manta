@@ -13,9 +13,9 @@ impl PrefixStmtParselet for BlockParselet {
         &self,
         parser: &StmtParser,
         lexer: &mut Lexer,
-        _token: Token,
+        token: Token,
     ) -> Result<Stmt, ParseError> {
-        let block = parser.parse_block(lexer)?;
+        let block = parser.parse_block(lexer, token)?;
 
         Ok(Stmt::Block(block))
     }

@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::parser::lexer::Token;
 use crate::str_store::StrID;
 
 /// Top-level declarations in a Manta program
@@ -24,6 +25,7 @@ pub enum Decl {
 /// ```
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct FunctionDecl {
+    pub token: Token,
     pub name: StrID,
     pub params: Vec<Parameter>,
     pub return_type: Option<TypeSpec>,
@@ -155,6 +157,7 @@ pub struct EnumVariant {
 /// A block of statements
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct BlockStmt {
+    pub token: Token,
     pub statements: Vec<Stmt>,
 }
 
