@@ -167,26 +167,32 @@ impl Noder {
 
     fn node_let(&mut self, node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> NodeID {
         let mut arms = vec![];
-        let empty_body = node_tree.add_node(Node::Block { statements: vec![] });
+        let value_id = Self::node_expr(node_tree, module, &stmt.value);
+
         if let Pattern::Payload(pat) = &stmt.pattern {
             let type_spec = match pat.pat.deref() {
                 Pattern::TypeSpec(ts) => Some(ts.clone()),
                 _ => None,
             };
 
-            node_tree.add_node(Node::VarDecl {
+            let var_id = node_tree.add_node(Node::VarDecl {
                 name: pat.payload,
                 type_spec,
             });
 
+            let assign_id = node_tree.add_node(Node::Assign {
+                target: var_id,
+                // TODO: what do I assign here...
+                value: 0,
+            });
+
             let pat_id = node_tree.add_node(Node::MatchArm {
                 pattern: stmt.pattern.clone(),
-                body: empty_body,
+                body: assign_id,
             });
             arms.push(pat_id);
-
-            todo!("update the symbol table with the new binding");
         } else {
+            let empty_body = node_tree.add_node(Node::Block { statements: vec![] });
             let pat_id = node_tree.add_node(Node::MatchArm {
                 pattern: stmt.pattern.clone(),
                 body: empty_body,
@@ -198,7 +204,6 @@ impl Noder {
             LetExcept::Or { binding, body, .. } => {
                 let body_id = self.node_block(node_tree, module, body);
 
-                // TODO: need to update the sym_table for the match body here.
                 match *binding {
                     Some(b) => node_tree.add_node(Node::MatchArm {
                         // TODO: sould we simplify this pattern to a Default and then
@@ -218,17 +223,16 @@ impl Noder {
                     panic!("not a valid target for a let wrap statement")
                 }
 
-                // TODO: need to wrap this in a block
                 let body_id = node_tree.add_node(Node::Return { value: enum_id });
+                let block_id = node_tree.add_node(Node::Block {
+                    statements: vec![body_id],
+                });
 
-                // TODO: need to update the sym_table for the match body.
-                // also body should be a block instead of just a regular expression so that
-                // the sym_table works correctly. We don't want to bind values to outer scopes
                 node_tree.add_node(Node::MatchArm {
                     pattern: Pattern::Identifier(IdentifierPat {
                         name: str_store::WRAP,
                     }),
-                    body: body_id,
+                    body: block_id,
                 })
             }
             LetExcept::Panic => {
@@ -268,17 +272,10 @@ impl Noder {
 
         arms.push(default_id);
 
-        let value_id = Self::node_expr(node_tree, module, &stmt.value);
         node_tree.add_node(Node::Match {
             target: value_id,
             arms,
-        });
-
-        // TODO: we're generating two new nodes here, how do we return both?
-        // maybe a seq node? It can't be a block because the var delc needs to be in the parent scope
-        // and sticking everything in a block will keep that from escpaing
-        // seq nodes would be pretty easy to flatten in an checking pass...
-        todo!()
+        })
     }
 
     /// convert an abitrary expression into a wrap node for the `let .Ok = expr wrap .Err` syntax
