@@ -1,0 +1,302 @@
+{
+  "nodes": [
+    {
+      "VarDecl": {
+        "name": 9,
+        "type_spec": "Int64"
+      }
+    },
+    {
+      "Block": {
+        "statements": []
+      }
+    },
+    {
+      "FunctionDecl": {
+        "name": 8,
+        "params": [
+          0
+        ],
+        "return_type": null,
+        "body": 1
+      }
+    },
+    {
+      "IntLiteral": 42
+    },
+    {
+      "Block": {
+        "statements": []
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": {
+          "Identifier": {
+            "name": 9
+          }
+        },
+        "body": 4
+      }
+    },
+    {
+      "Identifier": 18446744073709551601
+    },
+    {
+      "Call": {
+        "func": 6,
+        "args": []
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": "Default",
+        "body": 7
+      }
+    },
+    {
+      "Match": {
+        "target": 3,
+        "arms": [
+          5,
+          8
+        ]
+      }
+    },
+    {
+      "IntLiteral": 2701
+    },
+    {
+      "Block": {
+        "statements": []
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": {
+          "Identifier": {
+            "name": 15
+          }
+        },
+        "body": 11
+      }
+    },
+    {
+      "Identifier": 18446744073709551601
+    },
+    {
+      "Call": {
+        "func": 13,
+        "args": []
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": "Default",
+        "body": 14
+      }
+    },
+    {
+      "Match": {
+        "target": 10,
+        "arms": [
+          12,
+          15
+        ]
+      }
+    },
+    {
+      "Identifier": 9
+    },
+    {
+      "Unary": {
+        "operator": "AddressOf",
+        "operand": 17
+      }
+    },
+    {
+      "Block": {
+        "statements": []
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": {
+          "Identifier": {
+            "name": 17
+          }
+        },
+        "body": 19
+      }
+    },
+    {
+      "Identifier": 18446744073709551601
+    },
+    {
+      "Call": {
+        "func": 21,
+        "args": []
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": "Default",
+        "body": 22
+      }
+    },
+    {
+      "Match": {
+        "target": 18,
+        "arms": [
+          20,
+          23
+        ]
+      }
+    },
+    {
+      "Identifier": 8
+    },
+    {
+      "Identifier": 17
+    },
+    {
+      "Unary": {
+        "operator": "Dereference",
+        "operand": 26
+      }
+    },
+    {
+      "Call": {
+        "func": 25,
+        "args": [
+          27
+        ]
+      }
+    },
+    {
+      "Identifier": 17
+    },
+    {
+      "Unary": {
+        "operator": "Dereference",
+        "operand": 29
+      }
+    },
+    {
+      "IntLiteral": 21
+    },
+    {
+      "Assign": {
+        "target": 30,
+        "value": 31
+      }
+    },
+    {
+      "Identifier": 8
+    },
+    {
+      "Identifier": 9
+    },
+    {
+      "Call": {
+        "func": 33,
+        "args": [
+          34
+        ]
+      }
+    },
+    {
+      "Identifier": 17
+    },
+    {
+      "Identifier": 15
+    },
+    {
+      "Unary": {
+        "operator": "AddressOf",
+        "operand": 37
+      }
+    },
+    {
+      "Assign": {
+        "target": 36,
+        "value": 38
+      }
+    },
+    {
+      "Identifier": 17
+    },
+    {
+      "Unary": {
+        "operator": "Dereference",
+        "operand": 40
+      }
+    },
+    {
+      "Identifier": 17
+    },
+    {
+      "Unary": {
+        "operator": "Dereference",
+        "operand": 42
+      }
+    },
+    {
+      "IntLiteral": 37
+    },
+    {
+      "Binary": {
+        "left": 43,
+        "operator": "Divide",
+        "right": 44
+      }
+    },
+    {
+      "Assign": {
+        "target": 41,
+        "value": 45
+      }
+    },
+    {
+      "Identifier": 8
+    },
+    {
+      "Identifier": 15
+    },
+    {
+      "Call": {
+        "func": 47,
+        "args": [
+          48
+        ]
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          9,
+          16,
+          24,
+          28,
+          32,
+          35,
+          39,
+          46,
+          49
+        ]
+      }
+    },
+    {
+      "FunctionDecl": {
+        "name": 1,
+        "params": [],
+        "return_type": null,
+        "body": 50
+      }
+    }
+  ],
+  "roots": [
+    2,
+    51
+  ]
+}

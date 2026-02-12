@@ -343,9 +343,9 @@ impl Noder {
             Expr::StringLiteral(expr) => node_tree.add_node(Node::StringLiteral(*expr)),
             Expr::BoolLiteral(expr) => node_tree.add_node(Node::BoolLiteral(*expr)),
             Expr::Identifier(expr) => {
-                let scope_id = module
-                    .get_scope_id(expr.token.source_id)
-                    .expect("could not get scope for identifier");
+                let scope_id = module.get_scope_id(expr.token.source_id).expect(
+                    format!("could not get scope for identifier {:?}", expr.token).as_str(),
+                );
                 match module.find_binding(scope_id, expr.name) {
                     // make sure this binding exists before we dereference it
                     // TODO: should I check type information here?
@@ -479,6 +479,98 @@ impl Noder {
                 let ptr_id = Self::node_expr(node_tree, module, &expr.expr);
                 node_tree.add_node(Node::Free { expr: ptr_id })
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use pretty_assertions::assert_eq;
+    use std::fs;
+    use std::path::Path;
+
+    #[test]
+    fn noder_file_tests() {
+        let test_dir = Path::new("tests/src");
+        let noder_dir = Path::new("tests/noder");
+
+        if !test_dir.exists() {
+            panic!(
+                "Test directory does not exist. Please create a '{:?}' with test .manta files.",
+                test_dir
+            );
+        }
+
+        let entries = fs::read_dir(test_dir).expect("Failed to read tests/src directory");
+
+        for entry in entries {
+            assert_file_eq(entry, test_dir, noder_dir);
+        }
+    }
+
+    fn assert_file_eq(
+        entry: Result<std::fs::DirEntry, std::io::Error>,
+        test_dir: &Path,
+        noder_dir: &Path,
+    ) {
+        let entry = match entry {
+            Ok(dir) => dir,
+            Err(_) => panic!("Failed to read entry in '{:?}' directory", test_dir),
+        };
+
+        let path = entry.path();
+        let ext = path.extension().expect("Failed to get file extension");
+        if ext != "manta" {
+            return;
+        }
+
+        let file_name = path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("unknown");
+
+        println!("file_name {:?}", file_name);
+        let source = match fs::read_to_string(&path) {
+            Ok(s) => s,
+            Err(_) => panic!("Failed to read {}", path.display()),
+        };
+
+        let mut str_store = crate::str_store::StrStore::new();
+        let parser = crate::parser::Parser::new(source);
+        let module = parser.parse_module(&mut str_store);
+
+        let mut noder = Noder::new();
+        let node_tree = noder.node(module);
+
+        let json_output =
+            serde_json::to_string_pretty(&node_tree).expect("Failed to serialize NodeTree to JSON");
+
+        let noder_file = noder_dir.join(format!("{}.json", file_name));
+
+        if noder_file.exists() {
+            let expected_json = match fs::read_to_string(&noder_file) {
+                Ok(s) => s,
+                Err(_) => panic!("Failed to read {}", noder_file.display()),
+            };
+
+            assert_eq!(
+                json_output, expected_json,
+                "Noder output mismatch for {}",
+                file_name
+            );
+        } else {
+            fs::create_dir_all(noder_dir).expect("Failed to create noder test directory");
+
+            match fs::write(&noder_file, &json_output) {
+                Ok(_) => (),
+                Err(_) => panic!("Failed to write noder output to {:?}", noder_file),
+            };
+
+            panic!(
+                "Generated new noder output file: {:?}. Please verify its correctness.",
+                noder_file
+            );
         }
     }
 }

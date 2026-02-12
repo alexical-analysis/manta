@@ -461,6 +461,8 @@ impl Module {
                     })
                 }
 
+                Self::build_sym_table_expr(errors, sym_table, &stmt.value);
+
                 match &stmt.except {
                     LetExcept::Or {
                         token,

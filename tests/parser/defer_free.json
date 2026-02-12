@@ -422,9 +422,9 @@
                         "token": {
                           "kind": "Identifier",
                           "source_id": 1109,
-                          "lexeme_id": 43
+                          "lexeme_id": 24
                         },
-                        "name": 43
+                        "name": 24
                       }
                     },
                     "args": [
@@ -432,7 +432,7 @@
                         "Identifier": {
                           "token": {
                             "kind": "Identifier",
-                            "source_id": 1115,
+                            "source_id": 1118,
                             "lexeme_id": 22
                           },
                           "name": 22
@@ -442,7 +442,7 @@
                         "Identifier": {
                           "token": {
                             "kind": "Identifier",
-                            "source_id": 1118,
+                            "source_id": 1121,
                             "lexeme_id": 26
                           },
                           "name": 26
@@ -554,7 +554,7 @@
           {
             "name": 17,
             "binding_type": "FuncType",
-            "used": false
+            "used": true
           },
           {
             "name": 21,
@@ -569,7 +569,7 @@
           {
             "name": 24,
             "binding_type": "FuncType",
-            "used": false
+            "used": true
           },
           {
             "name": 29,
@@ -636,7 +636,7 @@
           {
             "name": 18,
             "binding_type": "Value",
-            "used": false
+            "used": true
           }
         ]
       },
@@ -679,11 +679,16 @@
       "644": 6,
       "911": 7,
       "958": 8,
+      "977": 8,
+      "985": 8,
       "1015": 9,
       "1017": 9,
       "1026": 9,
       "1077": 10,
-      "1084": 10
+      "1084": 10,
+      "1109": 8,
+      "1118": 8,
+      "1121": 8
     }
   }
 }

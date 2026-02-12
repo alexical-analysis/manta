@@ -1,0 +1,665 @@
+{
+  "nodes": [
+    {
+      "TypeDecl": {
+        "name": 10,
+        "type_spec": {
+          "Struct": {
+            "fields": []
+          }
+        }
+      }
+    },
+    {
+      "TypeDecl": {
+        "name": 14,
+        "type_spec": {
+          "Enum": {
+            "variants": [
+              {
+                "name": 16,
+                "payload": {
+                  "Named": {
+                    "module": null,
+                    "name": 10
+                  }
+                }
+              },
+              {
+                "name": 17,
+                "payload": null
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "VarDecl": {
+        "name": 20,
+        "type_spec": "String"
+      }
+    },
+    {
+      "EnumConstructor": {
+        "target": null,
+        "variant": 17,
+        "payload": null
+      }
+    },
+    {
+      "Return": {
+        "value": 3
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          4
+        ]
+      }
+    },
+    {
+      "FunctionDecl": {
+        "name": 19,
+        "params": [
+          2
+        ],
+        "return_type": {
+          "Named": {
+            "module": null,
+            "name": 14
+          }
+        },
+        "body": 5
+      }
+    },
+    {
+      "VarDecl": {
+        "name": 24,
+        "type_spec": {
+          "Named": {
+            "module": null,
+            "name": 10
+          }
+        }
+      }
+    },
+    {
+      "Block": {
+        "statements": []
+      }
+    },
+    {
+      "FunctionDecl": {
+        "name": 23,
+        "params": [
+          7
+        ],
+        "return_type": null,
+        "body": 8
+      }
+    },
+    {
+      "TypeDecl": {
+        "name": 25,
+        "type_spec": {
+          "Enum": {
+            "variants": [
+              {
+                "name": 16,
+                "payload": "String"
+              },
+              {
+                "name": 17,
+                "payload": null
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "VarDecl": {
+        "name": 24,
+        "type_spec": {
+          "Named": {
+            "module": null,
+            "name": 10
+          }
+        }
+      }
+    },
+    {
+      "EnumConstructor": {
+        "target": null,
+        "variant": 17,
+        "payload": null
+      }
+    },
+    {
+      "Return": {
+        "value": 12
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          13
+        ]
+      }
+    },
+    {
+      "FunctionDecl": {
+        "name": 26,
+        "params": [
+          11
+        ],
+        "return_type": {
+          "Named": {
+            "module": null,
+            "name": 25
+          }
+        },
+        "body": 14
+      }
+    },
+    {
+      "VarDecl": {
+        "name": 28,
+        "type_spec": "String"
+      }
+    },
+    {
+      "Block": {
+        "statements": []
+      }
+    },
+    {
+      "FunctionDecl": {
+        "name": 27,
+        "params": [
+          16
+        ],
+        "return_type": null,
+        "body": 17
+      }
+    },
+    {
+      "TypeDecl": {
+        "name": 29,
+        "type_spec": {
+          "Enum": {
+            "variants": [
+              {
+                "name": 16,
+                "payload": "String"
+              },
+              {
+                "name": 30,
+                "payload": {
+                  "Named": {
+                    "module": null,
+                    "name": 14
+                  }
+                }
+              },
+              {
+                "name": 31,
+                "payload": {
+                  "Named": {
+                    "module": null,
+                    "name": 25
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "VarDecl": {
+        "name": 20,
+        "type_spec": "String"
+      }
+    },
+    {
+      "Identifier": 19
+    },
+    {
+      "Identifier": 20
+    },
+    {
+      "Call": {
+        "func": 21,
+        "args": [
+          22
+        ]
+      }
+    },
+    {
+      "VarDecl": {
+        "name": 24,
+        "type_spec": null
+      }
+    },
+    {
+      "Assign": {
+        "target": 24,
+        "value": 0
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": {
+          "Payload": {
+            "pat": {
+              "DotAccess": {
+                "target": null,
+                "field": {
+                  "name": 16
+                }
+              }
+            },
+            "payload": 24
+          }
+        },
+        "body": 25
+      }
+    },
+    {
+      "Identifier": 18446744073709551602
+    },
+    {
+      "EnumConstructor": {
+        "target": null,
+        "variant": 30,
+        "payload": 27
+      }
+    },
+    {
+      "Return": {
+        "value": 28
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          29
+        ]
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": {
+          "Identifier": {
+            "name": 18446744073709551602
+          }
+        },
+        "body": 30
+      }
+    },
+    {
+      "Match": {
+        "target": 23,
+        "arms": [
+          26,
+          31
+        ]
+      }
+    },
+    {
+      "Identifier": 23
+    },
+    {
+      "Identifier": 24
+    },
+    {
+      "Call": {
+        "func": 33,
+        "args": [
+          34
+        ]
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          35
+        ]
+      }
+    },
+    {
+      "Defer": {
+        "block": 36
+      }
+    },
+    {
+      "Identifier": 26
+    },
+    {
+      "Identifier": 24
+    },
+    {
+      "Call": {
+        "func": 38,
+        "args": [
+          39
+        ]
+      }
+    },
+    {
+      "VarDecl": {
+        "name": 28,
+        "type_spec": null
+      }
+    },
+    {
+      "Assign": {
+        "target": 41,
+        "value": 0
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": {
+          "Payload": {
+            "pat": {
+              "DotAccess": {
+                "target": null,
+                "field": {
+                  "name": 16
+                }
+              }
+            },
+            "payload": 28
+          }
+        },
+        "body": 42
+      }
+    },
+    {
+      "Identifier": 18446744073709551602
+    },
+    {
+      "EnumConstructor": {
+        "target": null,
+        "variant": 31,
+        "payload": 44
+      }
+    },
+    {
+      "Return": {
+        "value": 45
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          46
+        ]
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": {
+          "Identifier": {
+            "name": 18446744073709551602
+          }
+        },
+        "body": 47
+      }
+    },
+    {
+      "Match": {
+        "target": 40,
+        "arms": [
+          43,
+          48
+        ]
+      }
+    },
+    {
+      "EnumConstructor": {
+        "target": null,
+        "variant": 16,
+        "payload": 51
+      }
+    },
+    {
+      "Identifier": 28
+    },
+    {
+      "Return": {
+        "value": 50
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          32,
+          37,
+          49,
+          52
+        ]
+      }
+    },
+    {
+      "FunctionDecl": {
+        "name": 32,
+        "params": [
+          20
+        ],
+        "return_type": {
+          "Named": {
+            "module": null,
+            "name": 29
+          }
+        },
+        "body": 53
+      }
+    },
+    {
+      "Identifier": 32
+    },
+    {
+      "StringLiteral": 39
+    },
+    {
+      "Call": {
+        "func": 55,
+        "args": [
+          56
+        ]
+      }
+    },
+    {
+      "VarDecl": {
+        "name": 38,
+        "type_spec": null
+      }
+    },
+    {
+      "Assign": {
+        "target": 58,
+        "value": 0
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": {
+          "Payload": {
+            "pat": {
+              "DotAccess": {
+                "target": null,
+                "field": {
+                  "name": 16
+                }
+              }
+            },
+            "payload": 38
+          }
+        },
+        "body": 59
+      }
+    },
+    {
+      "Identifier": 27
+    },
+    {
+      "StringLiteral": 42
+    },
+    {
+      "Call": {
+        "func": 61,
+        "args": [
+          62
+        ]
+      }
+    },
+    {
+      "Return": {
+        "value": null
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          63,
+          64
+        ]
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": {
+          "Identifier": {
+            "name": 41
+          }
+        },
+        "body": 65
+      }
+    },
+    {
+      "Match": {
+        "target": 57,
+        "arms": [
+          60,
+          66
+        ]
+      }
+    },
+    {
+      "Identifier": 27
+    },
+    {
+      "Identifier": 38
+    },
+    {
+      "Call": {
+        "func": 68,
+        "args": [
+          69
+        ]
+      }
+    },
+    {
+      "Identifier": 32
+    },
+    {
+      "StringLiteral": 43
+    },
+    {
+      "Call": {
+        "func": 71,
+        "args": [
+          72
+        ]
+      }
+    },
+    {
+      "VarDecl": {
+        "name": 38,
+        "type_spec": null
+      }
+    },
+    {
+      "Assign": {
+        "target": 74,
+        "value": 0
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": {
+          "Payload": {
+            "pat": {
+              "DotAccess": {
+                "target": null,
+                "field": {
+                  "name": 16
+                }
+              }
+            },
+            "payload": 38
+          }
+        },
+        "body": 75
+      }
+    },
+    {
+      "Identifier": 18446744073709551601
+    },
+    {
+      "Call": {
+        "func": 77,
+        "args": []
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": "Default",
+        "body": 78
+      }
+    },
+    {
+      "Match": {
+        "target": 73,
+        "arms": [
+          76,
+          79
+        ]
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          67,
+          70,
+          80
+        ]
+      }
+    },
+    {
+      "FunctionDecl": {
+        "name": 1,
+        "params": [],
+        "return_type": null,
+        "body": 81
+      }
+    }
+  ],
+  "roots": [
+    0,
+    1,
+    6,
+    9,
+    10,
+    15,
+    18,
+    19,
+    54,
+    82
+  ]
+}

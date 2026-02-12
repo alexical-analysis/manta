@@ -1,0 +1,312 @@
+{
+  "nodes": [
+    {
+      "VarDecl": {
+        "name": 9,
+        "type_spec": "String"
+      }
+    },
+    {
+      "Block": {
+        "statements": []
+      }
+    },
+    {
+      "FunctionDecl": {
+        "name": 8,
+        "params": [
+          0
+        ],
+        "return_type": null,
+        "body": 1
+      }
+    },
+    {
+      "TypeDecl": {
+        "name": 13,
+        "type_spec": {
+          "Enum": {
+            "variants": [
+              {
+                "name": 15,
+                "payload": "Int32"
+              },
+              {
+                "name": 16,
+                "payload": null
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "VarDecl": {
+        "name": 18,
+        "type_spec": "Int32"
+      }
+    },
+    {
+      "VarDecl": {
+        "name": 20,
+        "type_spec": "Int32"
+      }
+    },
+    {
+      "Identifier": 20
+    },
+    {
+      "IntLiteral": 0
+    },
+    {
+      "Binary": {
+        "left": 6,
+        "operator": "Equal",
+        "right": 7
+      }
+    },
+    {
+      "EnumConstructor": {
+        "target": null,
+        "variant": 16,
+        "payload": null
+      }
+    },
+    {
+      "Return": {
+        "value": 9
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          10
+        ]
+      }
+    },
+    {
+      "If": {
+        "condition": 8,
+        "then_block": 11,
+        "else_block": null
+      }
+    },
+    {
+      "EnumConstructor": {
+        "target": null,
+        "variant": 15,
+        "payload": 16
+      }
+    },
+    {
+      "Identifier": 18
+    },
+    {
+      "Identifier": 20
+    },
+    {
+      "Binary": {
+        "left": 14,
+        "operator": "Divide",
+        "right": 15
+      }
+    },
+    {
+      "Return": {
+        "value": 13
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          12,
+          17
+        ]
+      }
+    },
+    {
+      "FunctionDecl": {
+        "name": 17,
+        "params": [
+          4,
+          5
+        ],
+        "return_type": {
+          "Named": {
+            "module": null,
+            "name": 13
+          }
+        },
+        "body": 18
+      }
+    },
+    {
+      "Identifier": 17
+    },
+    {
+      "IntLiteral": 10
+    },
+    {
+      "IntLiteral": 2
+    },
+    {
+      "Call": {
+        "func": 20,
+        "args": [
+          21,
+          22
+        ]
+      }
+    },
+    {
+      "Block": {
+        "statements": []
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": {
+          "Identifier": {
+            "name": 28
+          }
+        },
+        "body": 24
+      }
+    },
+    {
+      "Identifier": 18446744073709551601
+    },
+    {
+      "Call": {
+        "func": 26,
+        "args": []
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": "Default",
+        "body": 27
+      }
+    },
+    {
+      "Match": {
+        "target": 23,
+        "arms": [
+          25,
+          28
+        ]
+      }
+    },
+    {
+      "Identifier": 28
+    },
+    {
+      "Identifier": 8
+    },
+    {
+      "StringLiteral": 34
+    },
+    {
+      "Identifier": 33
+    },
+    {
+      "Call": {
+        "func": 31,
+        "args": [
+          32,
+          33
+        ]
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          34
+        ]
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": {
+          "Payload": {
+            "pat": {
+              "DotAccess": {
+                "target": null,
+                "field": {
+                  "name": 15
+                }
+              }
+            },
+            "payload": 33
+          }
+        },
+        "body": 35
+      }
+    },
+    {
+      "Identifier": 8
+    },
+    {
+      "StringLiteral": 36
+    },
+    {
+      "Call": {
+        "func": 37,
+        "args": [
+          38
+        ]
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          39
+        ]
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": {
+          "DotAccess": {
+            "target": null,
+            "field": {
+              "name": 16
+            }
+          }
+        },
+        "body": 40
+      }
+    },
+    {
+      "Match": {
+        "target": 30,
+        "arms": [
+          36,
+          41
+        ]
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          29,
+          42
+        ]
+      }
+    },
+    {
+      "FunctionDecl": {
+        "name": 1,
+        "params": [],
+        "return_type": null,
+        "body": 43
+      }
+    }
+  ],
+  "roots": [
+    2,
+    3,
+    19,
+    44
+  ]
+}

@@ -545,12 +545,12 @@
           {
             "name": 18,
             "binding_type": "EnumType",
-            "used": false
+            "used": true
           },
           {
             "name": 22,
             "binding_type": "FuncType",
-            "used": false
+            "used": true
           },
           {
             "name": 1,
@@ -625,7 +625,7 @@
           {
             "name": 31,
             "binding_type": "Value",
-            "used": false
+            "used": true
           },
           {
             "name": 33,
@@ -635,7 +635,7 @@
           {
             "name": 34,
             "binding_type": "Value",
-            "used": false
+            "used": true
           },
           {
             "name": 36,
@@ -663,8 +663,13 @@
       "572": 8,
       "585": 9,
       "595": 10,
+      "614": 10,
+      "653": 10,
+      "658": 10,
       "670": 10,
       "682": 10,
+      "753": 10,
+      "758": 10,
       "770": 10,
       "782": 10
     }

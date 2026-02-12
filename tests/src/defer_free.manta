@@ -48,6 +48,6 @@ fn write_and_cleanup(path str) WriteAndCleanup {
     let []u8(buf) = alloc(@[]u8) !
     defer { free(buf) }
 
-    let .Ok(n) = write(f, buf) wrap .WriteErr
+    let .Ok(n) = os_write(f, buf) wrap .WriteErr
     return .Ok
 }

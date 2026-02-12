@@ -1,0 +1,224 @@
+{
+  "nodes": [
+    {
+      "VarDecl": {
+        "name": 9,
+        "type_spec": "String"
+      }
+    },
+    {
+      "Block": {
+        "statements": []
+      }
+    },
+    {
+      "FunctionDecl": {
+        "name": 8,
+        "params": [
+          0
+        ],
+        "return_type": null,
+        "body": 1
+      }
+    },
+    {
+      "BoolLiteral": true
+    },
+    {
+      "Block": {
+        "statements": []
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": {
+          "Identifier": {
+            "name": 13
+          }
+        },
+        "body": 4
+      }
+    },
+    {
+      "Identifier": 18446744073709551601
+    },
+    {
+      "Call": {
+        "func": 6,
+        "args": []
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": "Default",
+        "body": 7
+      }
+    },
+    {
+      "Match": {
+        "target": 3,
+        "arms": [
+          5,
+          8
+        ]
+      }
+    },
+    {
+      "Identifier": 13
+    },
+    {
+      "Identifier": 8
+    },
+    {
+      "StringLiteral": 17
+    },
+    {
+      "Call": {
+        "func": 11,
+        "args": [
+          12
+        ]
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          13
+        ]
+      }
+    },
+    {
+      "If": {
+        "condition": 10,
+        "then_block": 14,
+        "else_block": null
+      }
+    },
+    {
+      "IntLiteral": 9
+    },
+    {
+      "Block": {
+        "statements": []
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": {
+          "Identifier": {
+            "name": 18
+          }
+        },
+        "body": 17
+      }
+    },
+    {
+      "Identifier": 18446744073709551601
+    },
+    {
+      "Call": {
+        "func": 19,
+        "args": []
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": "Default",
+        "body": 20
+      }
+    },
+    {
+      "Match": {
+        "target": 16,
+        "arms": [
+          18,
+          21
+        ]
+      }
+    },
+    {
+      "Identifier": 18
+    },
+    {
+      "IntLiteral": 10
+    },
+    {
+      "Binary": {
+        "left": 23,
+        "operator": "GreaterThan",
+        "right": 24
+      }
+    },
+    {
+      "Identifier": 8
+    },
+    {
+      "StringLiteral": 22
+    },
+    {
+      "Call": {
+        "func": 26,
+        "args": [
+          27
+        ]
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          28
+        ]
+      }
+    },
+    {
+      "Identifier": 8
+    },
+    {
+      "StringLiteral": 17
+    },
+    {
+      "Call": {
+        "func": 30,
+        "args": [
+          31
+        ]
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          32
+        ]
+      }
+    },
+    {
+      "If": {
+        "condition": 25,
+        "then_block": 29,
+        "else_block": 33
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          9,
+          15,
+          22,
+          34
+        ]
+      }
+    },
+    {
+      "FunctionDecl": {
+        "name": 1,
+        "params": [],
+        "return_type": null,
+        "body": 35
+      }
+    }
+  ],
+  "roots": [
+    2,
+    36
+  ]
+}

@@ -11,6 +11,7 @@ use crate::str_store::StrID;
 pub type NodeID = usize;
 
 /// NodeTree contains all the nodes for a given tree as well as tracking the tree roots
+#[derive(Serialize, Deserialize)]
 pub struct NodeTree {
     nodes: Vec<Node>,
     roots: Vec<NodeID>,
