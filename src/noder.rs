@@ -172,7 +172,14 @@ impl Noder {
         if let Pattern::Payload(pat) = &stmt.pattern {
             let type_spec = match pat.pat.deref() {
                 Pattern::TypeSpec(ts) => Some(ts.clone()),
-                _ => None,
+                _ => {
+                    // TODO: we actually need to handle all the different cases here. For example
+                    // if the pattern is a dot expression we need to look type information and the
+                    // variant to figure out what the identifer type should actually be
+                    // also, a lot of these should actually be errors like
+                    // let 10(v) = 10 is not a valid pattern that we want to support
+                    None
+                }
             };
 
             let var_id = node_tree.add_node(Node::VarDecl {
@@ -180,10 +187,10 @@ impl Noder {
                 type_spec,
             });
 
+            let ident_id = node_tree.add_node(Node::Identifier(pat.payload));
             let assign_id = node_tree.add_node(Node::Assign {
                 target: var_id,
-                // TODO: what do I assign here...
-                value: 0,
+                value: ident_id,
             });
 
             let pat_id = node_tree.add_node(Node::MatchArm {
@@ -343,9 +350,9 @@ impl Noder {
             Expr::StringLiteral(expr) => node_tree.add_node(Node::StringLiteral(*expr)),
             Expr::BoolLiteral(expr) => node_tree.add_node(Node::BoolLiteral(*expr)),
             Expr::Identifier(expr) => {
-                let scope_id = module.get_scope_id(expr.token.source_id).expect(
-                    format!("could not get scope for identifier {:?}", expr.token).as_str(),
-                );
+                let scope_id = module
+                    .get_scope_id(expr.token.source_id)
+                    .expect("could not get scope for identifier");
                 match module.find_binding(scope_id, expr.name) {
                     // make sure this binding exists before we dereference it
                     // TODO: should I check type information here?
@@ -530,7 +537,6 @@ mod tests {
             .and_then(|s| s.to_str())
             .unwrap_or("unknown");
 
-        println!("file_name {:?}", file_name);
         let source = match fs::read_to_string(&path) {
             Ok(s) => s,
             Err(_) => panic!("Failed to read {}", path.display()),
