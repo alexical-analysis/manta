@@ -117,9 +117,12 @@
       }
     },
     {
+      "Identifier": 15
+    },
+    {
       "Assign": {
         "target": 13,
-        "value": 0
+        "value": 14
       }
     },
     {
@@ -134,7 +137,7 @@
             "payload": 15
           }
         },
-        "body": 14
+        "body": 15
       }
     },
     {
@@ -142,22 +145,22 @@
     },
     {
       "Call": {
-        "func": 16,
+        "func": 17,
         "args": []
       }
     },
     {
       "MatchArm": {
         "pattern": "Default",
-        "body": 17
+        "body": 18
       }
     },
     {
       "Match": {
         "target": 12,
         "arms": [
-          15,
-          18
+          16,
+          19
         ]
       }
     },
@@ -167,7 +170,7 @@
     {
       "Unary": {
         "operator": "Dereference",
-        "operand": 20
+        "operand": 21
       }
     },
     {
@@ -175,15 +178,15 @@
     },
     {
       "Assign": {
-        "target": 21,
-        "value": 22
+        "target": 22,
+        "value": 23
       }
     },
     {
       "EnumConstructor": {
         "target": null,
         "variant": 21,
-        "payload": 25
+        "payload": 26
       }
     },
     {
@@ -191,22 +194,22 @@
     },
     {
       "Return": {
-        "value": 24
+        "value": 25
       }
     },
     {
       "Block": {
         "statements": [
-          19,
-          23,
-          26
+          20,
+          24,
+          27
         ]
       }
     },
     {
       "If": {
         "condition": 9,
-        "then_block": 27,
+        "then_block": 28,
         "else_block": null
       }
     },
@@ -219,14 +222,14 @@
     },
     {
       "Return": {
-        "value": 29
+        "value": 30
       }
     },
     {
       "Block": {
         "statements": [
-          28,
-          30
+          29,
+          31
         ]
       }
     },
@@ -242,7 +245,7 @@
             "name": 19
           }
         },
-        "body": 31
+        "body": 32
       }
     },
     {
@@ -253,9 +256,9 @@
     },
     {
       "Call": {
-        "func": 33,
+        "func": 34,
         "args": [
-          34
+          35
         ]
       }
     },
@@ -268,21 +271,21 @@
     {
       "Unary": {
         "operator": "Dereference",
-        "operand": 37
+        "operand": 38
       }
     },
     {
       "Call": {
-        "func": 36,
+        "func": 37,
         "args": [
-          38
+          39
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          39
+          40
         ]
       }
     },
@@ -301,7 +304,7 @@
             "payload": 15
           }
         },
-        "body": 40
+        "body": 41
       }
     },
     {
@@ -312,16 +315,16 @@
     },
     {
       "Call": {
-        "func": 42,
+        "func": 43,
         "args": [
-          43
+          44
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          44
+          45
         ]
       }
     },
@@ -335,22 +338,22 @@
             }
           }
         },
-        "body": 45
+        "body": 46
       }
     },
     {
       "Match": {
-        "target": 35,
+        "target": 36,
         "arms": [
-          41,
-          46
+          42,
+          47
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          47
+          48
         ]
       }
     },
@@ -359,7 +362,7 @@
         "name": 1,
         "params": [],
         "return_type": null,
-        "body": 48
+        "body": 49
       }
     }
   ],
@@ -368,7 +371,7 @@
     3,
     6,
     7,
-    32,
-    49
+    33,
+    50
   ]
 }

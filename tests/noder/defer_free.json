@@ -228,9 +228,12 @@
       }
     },
     {
+      "Identifier": 22
+    },
+    {
       "Assign": {
         "target": 22,
-        "value": 0
+        "value": 23
       }
     },
     {
@@ -248,7 +251,7 @@
             "payload": 22
           }
         },
-        "body": 23
+        "body": 24
       }
     },
     {
@@ -258,18 +261,18 @@
       "EnumConstructor": {
         "target": null,
         "variant": 30,
-        "payload": 25
+        "payload": 26
       }
     },
     {
       "Return": {
-        "value": 26
+        "value": 27
       }
     },
     {
       "Block": {
         "statements": [
-          27
+          28
         ]
       }
     },
@@ -280,15 +283,15 @@
             "name": 18446744073709551602
           }
         },
-        "body": 28
+        "body": 29
       }
     },
     {
       "Match": {
         "target": 21,
         "arms": [
-          24,
-          29
+          25,
+          30
         ]
       }
     },
@@ -300,22 +303,22 @@
     },
     {
       "Call": {
-        "func": 31,
+        "func": 32,
         "args": [
-          32
+          33
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          33
+          34
         ]
       }
     },
     {
       "Defer": {
-        "block": 34
+        "block": 35
       }
     },
     {
@@ -327,7 +330,7 @@
     },
     {
       "Alloc": {
-        "meta_type": 36,
+        "meta_type": 37,
         "options": []
       }
     },
@@ -340,9 +343,12 @@
       }
     },
     {
+      "Identifier": 26
+    },
+    {
       "Assign": {
-        "target": 38,
-        "value": 0
+        "target": 39,
+        "value": 40
       }
     },
     {
@@ -357,7 +363,7 @@
             "payload": 26
           }
         },
-        "body": 39
+        "body": 41
       }
     },
     {
@@ -365,22 +371,22 @@
     },
     {
       "Call": {
-        "func": 41,
+        "func": 43,
         "args": []
       }
     },
     {
       "MatchArm": {
         "pattern": "Default",
-        "body": 42
+        "body": 44
       }
     },
     {
       "Match": {
-        "target": 37,
+        "target": 38,
         "arms": [
-          40,
-          43
+          42,
+          45
         ]
       }
     },
@@ -389,19 +395,19 @@
     },
     {
       "Free": {
-        "expr": 45
+        "expr": 47
       }
     },
     {
       "Block": {
         "statements": [
-          46
+          48
         ]
       }
     },
     {
       "Defer": {
-        "block": 47
+        "block": 49
       }
     },
     {
@@ -415,10 +421,10 @@
     },
     {
       "Call": {
-        "func": 49,
+        "func": 51,
         "args": [
-          50,
-          51
+          52,
+          53
         ]
       }
     },
@@ -429,9 +435,12 @@
       }
     },
     {
+      "Identifier": 42
+    },
+    {
       "Assign": {
-        "target": 53,
-        "value": 0
+        "target": 55,
+        "value": 56
       }
     },
     {
@@ -449,7 +458,7 @@
             "payload": 42
           }
         },
-        "body": 54
+        "body": 57
       }
     },
     {
@@ -459,18 +468,18 @@
       "EnumConstructor": {
         "target": null,
         "variant": 31,
-        "payload": 56
+        "payload": 59
       }
     },
     {
       "Return": {
-        "value": 57
+        "value": 60
       }
     },
     {
       "Block": {
         "statements": [
-          58
+          61
         ]
       }
     },
@@ -481,15 +490,15 @@
             "name": 18446744073709551602
           }
         },
-        "body": 59
+        "body": 62
       }
     },
     {
       "Match": {
-        "target": 52,
+        "target": 54,
         "arms": [
-          55,
-          60
+          58,
+          63
         ]
       }
     },
@@ -502,18 +511,18 @@
     },
     {
       "Return": {
-        "value": 62
+        "value": 65
       }
     },
     {
       "Block": {
         "statements": [
-          30,
-          35,
-          44,
-          48,
-          61,
-          63
+          31,
+          36,
+          46,
+          50,
+          64,
+          66
         ]
       }
     },
@@ -529,7 +538,7 @@
             "name": 29
           }
         },
-        "body": 64
+        "body": 67
       }
     }
   ],
@@ -541,6 +550,6 @@
     10,
     16,
     17,
-    65
+    68
   ]
 }
