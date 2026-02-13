@@ -1,0 +1,152 @@
+let_assignment:
+
+// this is the input for the test
+let a = true
+
+expect:
+{
+  "name": 18446744073709551615,
+  "using_modules": [],
+  "errors": [
+    {
+      "UnexpectedToken": [
+        {
+          "kind": "Semicolon",
+          "source_id": 0,
+          "lexeme_id": 0
+        },
+        "Unexpected token at top level: Semicolon"
+      ]
+    },
+    {
+      "UnexpectedToken": [
+        {
+          "kind": "LetKeyword",
+          "source_id": 35,
+          "lexeme_id": 1
+        },
+        "Unexpected token at top level: LetKeyword"
+      ]
+    },
+    {
+      "UnexpectedToken": [
+        {
+          "kind": "Identifier",
+          "source_id": 39,
+          "lexeme_id": 2
+        },
+        "Unexpected token at top level: Identifier"
+      ]
+    },
+    {
+      "UnexpectedToken": [
+        {
+          "kind": "Equal",
+          "source_id": 41,
+          "lexeme_id": 3
+        },
+        "Unexpected token at top level: Equal"
+      ]
+    },
+    {
+      "UnexpectedToken": [
+        {
+          "kind": "TrueLiteral",
+          "source_id": 43,
+          "lexeme_id": 4
+        },
+        "Unexpected token at top level: TrueLiteral"
+      ]
+    },
+    {
+      "UnexpectedToken": [
+        {
+          "kind": "Semicolon",
+          "source_id": 47,
+          "lexeme_id": 0
+        },
+        "Unexpected token at top level: Semicolon"
+      ]
+    }
+  ],
+  "decls": [
+    "Invalid",
+    "Invalid",
+    "Invalid",
+    "Invalid",
+    "Invalid",
+    "Invalid"
+  ],
+  "sym_table": {
+    "scopes": [
+      {
+        "parent": null,
+        "bindings": [
+          {
+            "name": 18446744073709551614,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551613,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551612,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551611,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551610,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551609,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551608,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551607,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551606,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551605,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551603,
+            "binding_type": "UnitType",
+            "used": true
+          },
+          {
+            "name": 18446744073709551604,
+            "binding_type": "StructType",
+            "used": true
+          }
+        ]
+      }
+    ],
+    "current_scope": 0,
+    "scope_map": {}
+  }
+}
+
