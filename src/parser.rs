@@ -189,7 +189,8 @@ mod tests {
 
         for (name, input, expect) in &cases {
             let mut str_store = StrStore::new();
-            let parser = Parser::new(input.clone());
+            let wrapped_input = format!("fn main() {{\n{}\n}}", input);
+            let parser = Parser::new(wrapped_input);
             let ast = parser.parse_module(&mut str_store);
             let json_output =
                 serde_json::to_string_pretty(&ast).expect("Failed to serialize AST to JSON");
@@ -216,7 +217,8 @@ mod tests {
                 }
                 rebuilt.push_str("expect:\n");
                 let mut str_store = StrStore::new();
-                let parser = Parser::new(input.clone());
+                let wrapped_input = format!("fn main {{\n{}\n}}", input);
+                let parser = Parser::new(wrapped_input);
                 let ast = parser.parse_module(&mut str_store);
                 let json_output =
                     serde_json::to_string_pretty(&ast).expect("Failed to serialize AST to JSON");
