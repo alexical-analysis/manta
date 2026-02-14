@@ -3,23 +3,29 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
 
-fn sanitize_ident(s: &str) -> String {
-    let mut out = String::new();
+fn is_valid_ident(s: &str) -> bool {
     for c in s.chars() {
         if c.is_ascii_alphanumeric() {
-            out.push(c);
-        } else {
-            out.push('_');
+            continue;
         }
+        if c == '_' {
+            continue;
+        }
+
+        return false;
     }
-    out
+
+    true
 }
 
 fn write_tests_for_files(files: &Vec<(String, String)>, prefix: &str) -> String {
     let mut out = String::new();
     for (file_name, stem) in files {
-        let ident = sanitize_ident(stem);
-        let fn_name = format!("test_{}_{}", prefix, ident);
+        if !is_valid_ident(stem) {
+            panic!("invalid test name {}", stem)
+        }
+
+        let fn_name = format!("test_{}_{}", prefix, stem);
         out.push_str(&format!(
             "#[test]\nfn {}() {{\n    let path = std::path::Path::new(\"tests/src/{}\");\n    let dir = std::path::Path::new(\"tests/{}\");\n    assert_file_path_eq(path, dir);\n}}\n\n",
             fn_name, file_name, prefix

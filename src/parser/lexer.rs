@@ -544,7 +544,7 @@ fn is_ident_continue(ch: char) -> bool {
 mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
-    use std::fs::{self, DirEntry};
+    use std::fs;
     use std::path::Path;
 
     fn assert_file_path_eq(path: &Path, lex_dir: &Path) {
@@ -559,7 +559,7 @@ mod tests {
             .and_then(|s| s.to_str())
             .unwrap_or("unknown");
 
-        let source = match fs::read_to_string(&path) {
+        let source = match fs::read_to_string(path) {
             Ok(s) => s,
             Err(_) => panic!("Failed to read {}", path.display()),
         };

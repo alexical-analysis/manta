@@ -78,7 +78,7 @@ mod tests {
     use std::fs;
     use std::path::Path;
 
-    fn assert_file_path_eq(path: &std::path::Path, parser_dir: &std::path::Path) {
+    fn assert_file_path_eq(path: &std::path::Path, parser_dir: &Path) {
         let ext = path.extension().expect("Failed to get file extension");
         if ext != "manta" {
             // Skip over non-manta files
@@ -90,7 +90,7 @@ mod tests {
             .and_then(|s| s.to_str())
             .unwrap_or("unknown");
 
-        let source = match fs::read_to_string(&path) {
+        let source = match fs::read_to_string(path) {
             Ok(s) => s,
             Err(_) => format!("Failed to read {}", path.display()),
         };
