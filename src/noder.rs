@@ -552,4 +552,70 @@ mod tests {
     }
 
     include!(concat!(env!("OUT_DIR"), "/generated_noder_tests.rs"));
+
+    macro_rules! test_noder {
+        ( $( $case:ident { decl: $decl:expr, expected: $expected:expr } ),* $(,)? ) => {
+            $(
+                #[test]
+                fn $case() {
+                    // Build module from provided declaration
+                    let decl = $decl;
+                    let module = Module::new(vec![], vec![decl]);
+
+                    let mut noder = Noder::new();
+                    let node_tree = noder.node(module);
+
+                    // Evaluate the provided expression to obtain the expected NodeTree
+                    let expected = $expected;
+
+                    let actual_json = serde_json::to_string_pretty(&node_tree).unwrap();
+                    let expected_json = serde_json::to_string_pretty(&expected).unwrap();
+                    assert_eq!(actual_json, expected_json);
+                }
+            )*
+        }
+    }
+
+    // Table-driven tests for noder: each case provides an AST snippet and an expression
+    // that returns the expected NodeTree.
+    test_noder!(
+        node_const_decl_int_literal {
+            decl: Decl::Const(crate::ast::ConstDecl {
+                name: 1,
+                value: Expr::IntLiteral(42)
+            }),
+            expected: {
+                let mut e = NodeTree::new();
+                let decl_id = e.add_root_node(Node::VarDecl {
+                    name: 1,
+                    type_spec: None,
+                });
+                let value_id = e.add_node(Node::IntLiteral(42));
+                e.add_node(Node::Assign {
+                    target: decl_id,
+                    value: value_id,
+                });
+                e
+            }
+        },
+        node_var_decl_string_literal {
+            decl: Decl::Var(crate::ast::VarDecl {
+                name: 2,
+                value: Expr::StringLiteral(3)
+            }),
+            expected: {
+                let mut e = NodeTree::new();
+                let decl_id = e.add_root_node(Node::VarDecl {
+                    name: 2,
+                    type_spec: None,
+                });
+                let value_id = e.add_node(Node::StringLiteral(3));
+                e.add_node(Node::Assign {
+                    target: decl_id,
+                    value: value_id,
+                });
+                e
+            }
+        },
+    );
 }
