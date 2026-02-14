@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
-use crate::ast::{BlockStmt, Decl, Expr, IdentifierPat, LetExcept, LetStmt, Pattern, Stmt};
-use crate::hir::{Node, NodeID, NodeTree};
+use crate::ast::{BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Stmt};
+use crate::hir::{Node, NodeID, NodeTree, PatternNode};
 use crate::parser::module::{BindingType, Module};
 use crate::str_store;
 
@@ -132,10 +132,11 @@ impl Noder {
                 let target_id = Self::node_expr(node_tree, module, &stmt.target);
                 let mut arms = vec![];
                 for arm in &stmt.arms {
+                    let pat_id = Self::node_pattern(node_tree, &arm.pattern);
                     let block_id = self.node_block(node_tree, module, &arm.body);
 
                     let arm_id = node_tree.add_node(Node::MatchArm {
-                        pattern: arm.pattern.clone(),
+                        pattern: pat_id,
                         body: block_id,
                     });
 
@@ -162,6 +163,55 @@ impl Noder {
                     else_block: fail_id,
                 })
             }
+        }
+    }
+
+    fn node_pattern(node_tree: &mut NodeTree, pattern: &Pattern) -> NodeID {
+        match pattern {
+            Pattern::IntLiteral(pat) => {
+                node_tree.add_node(Node::Pattern(PatternNode::IntLiteral(*pat)))
+            }
+            Pattern::StringLiteral(pat) => {
+                node_tree.add_node(Node::Pattern(PatternNode::StringLiteral(*pat)))
+            }
+            Pattern::BoolLiteral(pat) => {
+                node_tree.add_node(Node::Pattern(PatternNode::BoolLiteral(*pat)))
+            }
+            Pattern::FloatLiteral(pat) => {
+                node_tree.add_node(Node::Pattern(PatternNode::FloatLiteral(*pat)))
+            }
+            Pattern::TypeSpec(pat) => {
+                node_tree.add_node(Node::Pattern(PatternNode::TypeSpec(pat.clone())))
+            }
+            Pattern::Payload(pat) => {
+                let pat_id = Self::node_pattern(node_tree, &pat.pat);
+                node_tree.add_node(Node::Pattern(PatternNode::Payload {
+                    pat: pat_id,
+                    payload: pat.payload,
+                }))
+            }
+            Pattern::ModuleAccess(pat) => {
+                let pat_id = Self::node_pattern(node_tree, &pat.pat);
+                node_tree.add_node(Node::Pattern(PatternNode::ModuleAccess {
+                    module: pat.module.name,
+                    pat: pat_id,
+                }))
+            }
+            Pattern::DotAccess(pat) => {
+                let target_id = pat
+                    .target
+                    .clone()
+                    .map(|t| Self::node_pattern(node_tree, &t));
+
+                node_tree.add_node(Node::Pattern(PatternNode::DotAccess {
+                    target: target_id,
+                    field: pat.field.name,
+                }))
+            }
+            Pattern::Identifier(pat) => {
+                node_tree.add_node(Node::Pattern(PatternNode::Identifier(pat.name)))
+            }
+            Pattern::Default => node_tree.add_node(Node::Pattern(PatternNode::Default)),
         }
     }
 
@@ -193,18 +243,20 @@ impl Noder {
                 value: ident_id,
             });
 
-            let pat_id = node_tree.add_node(Node::MatchArm {
-                pattern: stmt.pattern.clone(),
+            let pat_id = Self::node_pattern(node_tree, &stmt.pattern);
+            let arm_id = node_tree.add_node(Node::MatchArm {
+                pattern: pat_id,
                 body: assign_id,
             });
-            arms.push(pat_id);
+            arms.push(arm_id);
         } else {
+            let pat_id = Self::node_pattern(node_tree, &stmt.pattern);
             let empty_body = node_tree.add_node(Node::Block { statements: vec![] });
-            let pat_id = node_tree.add_node(Node::MatchArm {
-                pattern: stmt.pattern.clone(),
+            let arm_id = node_tree.add_node(Node::MatchArm {
+                pattern: pat_id,
                 body: empty_body,
             });
-            arms.push(pat_id)
+            arms.push(arm_id)
         };
 
         let default_id = match &stmt.except {
@@ -212,16 +264,20 @@ impl Noder {
                 let body_id = self.node_block(node_tree, module, body);
 
                 match *binding {
-                    Some(b) => node_tree.add_node(Node::MatchArm {
-                        // TODO: sould we simplify this pattern to a Default and then
-                        // a var decl. That's what we do for function params...
-                        pattern: Pattern::Identifier(IdentifierPat { name: b }),
-                        body: body_id,
-                    }),
-                    None => node_tree.add_node(Node::MatchArm {
-                        pattern: Pattern::Default,
-                        body: body_id,
-                    }),
+                    Some(b) => {
+                        let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Identifier(b)));
+                        node_tree.add_node(Node::MatchArm {
+                            pattern: pat_id,
+                            body: body_id,
+                        })
+                    }
+                    None => {
+                        let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Default));
+                        node_tree.add_node(Node::MatchArm {
+                            pattern: pat_id,
+                            body: body_id,
+                        })
+                    }
                 }
             }
             LetExcept::Wrap(expr) => {
@@ -235,10 +291,10 @@ impl Noder {
                     statements: vec![body_id],
                 });
 
+                let pat_id =
+                    node_tree.add_node(Node::Pattern(PatternNode::Identifier(str_store::WRAP)));
                 node_tree.add_node(Node::MatchArm {
-                    pattern: Pattern::Identifier(IdentifierPat {
-                        name: str_store::WRAP,
-                    }),
+                    pattern: pat_id,
                     body: block_id,
                 })
             }
@@ -251,8 +307,9 @@ impl Noder {
                     args: vec![],
                 });
 
+                let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Default));
                 node_tree.add_node(Node::MatchArm {
-                    pattern: Pattern::Default,
+                    pattern: pat_id,
                     body: body_id,
                 })
             }
@@ -270,8 +327,9 @@ impl Noder {
                     args: vec![],
                 });
 
+                let pattern_id = node_tree.add_node(Node::Pattern(PatternNode::Default));
                 node_tree.add_node(Node::MatchArm {
-                    pattern: Pattern::Default,
+                    pattern: pattern_id,
                     body: body_id,
                 })
             }

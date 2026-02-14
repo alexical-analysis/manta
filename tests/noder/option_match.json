@@ -159,18 +159,19 @@
       }
     },
     {
+      "Pattern": {
+        "Identifier": 28
+      }
+    },
+    {
       "Block": {
         "statements": []
       }
     },
     {
       "MatchArm": {
-        "pattern": {
-          "Identifier": {
-            "name": 28
-          }
-        },
-        "body": 24
+        "pattern": 24,
+        "body": 25
       }
     },
     {
@@ -178,27 +179,46 @@
     },
     {
       "Call": {
-        "func": 26,
+        "func": 27,
         "args": []
       }
     },
     {
+      "Pattern": "Default"
+    },
+    {
       "MatchArm": {
-        "pattern": "Default",
-        "body": 27
+        "pattern": 29,
+        "body": 28
       }
     },
     {
       "Match": {
         "target": 23,
         "arms": [
-          25,
-          28
+          26,
+          30
         ]
       }
     },
     {
       "Identifier": 28
+    },
+    {
+      "Pattern": {
+        "DotAccess": {
+          "target": null,
+          "field": 15
+        }
+      }
+    },
+    {
+      "Pattern": {
+        "Payload": {
+          "pat": 33,
+          "payload": 33
+        }
+      }
     },
     {
       "Identifier": 8
@@ -211,36 +231,32 @@
     },
     {
       "Call": {
-        "func": 31,
+        "func": 35,
         "args": [
-          32,
-          33
+          36,
+          37
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          34
+          38
         ]
       }
     },
     {
       "MatchArm": {
-        "pattern": {
-          "Payload": {
-            "pat": {
-              "DotAccess": {
-                "target": null,
-                "field": {
-                  "name": 15
-                }
-              }
-            },
-            "payload": 33
-          }
-        },
-        "body": 35
+        "pattern": 34,
+        "body": 39
+      }
+    },
+    {
+      "Pattern": {
+        "DotAccess": {
+          "target": null,
+          "field": 16
+        }
       }
     },
     {
@@ -251,46 +267,39 @@
     },
     {
       "Call": {
-        "func": 37,
+        "func": 42,
         "args": [
-          38
+          43
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          39
+          44
         ]
       }
     },
     {
       "MatchArm": {
-        "pattern": {
-          "DotAccess": {
-            "target": null,
-            "field": {
-              "name": 16
-            }
-          }
-        },
-        "body": 40
+        "pattern": 41,
+        "body": 45
       }
     },
     {
       "Match": {
-        "target": 30,
+        "target": 32,
         "arms": [
-          36,
-          41
+          40,
+          46
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          29,
-          42
+          31,
+          47
         ]
       }
     },
@@ -299,7 +308,7 @@
         "name": 1,
         "params": [],
         "return_type": null,
-        "body": 43
+        "body": 48
       }
     }
   ],
@@ -307,6 +316,6 @@
     2,
     3,
     19,
-    44
+    49
   ]
 }
