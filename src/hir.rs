@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::ast::{BinaryOp, Pattern, TypeSpec, UnaryOp};
+use crate::ast::{BinaryOp, TypeSpec, UnaryOp};
 use crate::str_store::StrID;
 
 // High-level Intermediate Representation (HIR)
@@ -105,8 +105,8 @@ pub enum Node {
     // TODO: should this be a node or just a type that match contains?
     // They can't really appear on their own..
     MatchArm {
-        pattern: Pattern,
-        body: NodeID, // Always a Block
+        pattern: NodeID, // Always a Pattern node
+        body: NodeID,    // Always a Block
     },
 
     // Expressions
@@ -176,6 +176,34 @@ pub enum Node {
         expr: NodeID,
         target_type: TypeSpec,
     },
+
+    Pattern(PatternNode),
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum PatternNode {
+    IntLiteral(i64),
+    StringLiteral(StrID),
+    BoolLiteral(bool),
+    FloatLiteral(f64),
+
+    TypeSpec(TypeSpec),
+
+    Payload {
+        pat: NodeID, // Always a Pattern node
+        payload: StrID,
+    },
+    ModuleAccess {
+        module: StrID,
+        pat: NodeID, // Always a Pattern Node
+    },
+    DotAccess {
+        target: Option<NodeID>, // Always a Pattern node
+        field: StrID,
+    },
+
+    Identifier(StrID),
+    Default, // the _ pattern
 }
 
 #[cfg(test)]

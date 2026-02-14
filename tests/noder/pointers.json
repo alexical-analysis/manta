@@ -25,18 +25,19 @@
       "IntLiteral": 42
     },
     {
+      "Pattern": {
+        "Identifier": 9
+      }
+    },
+    {
       "Block": {
         "statements": []
       }
     },
     {
       "MatchArm": {
-        "pattern": {
-          "Identifier": {
-            "name": 9
-          }
-        },
-        "body": 4
+        "pattern": 4,
+        "body": 5
       }
     },
     {
@@ -44,22 +45,25 @@
     },
     {
       "Call": {
-        "func": 6,
+        "func": 7,
         "args": []
       }
     },
     {
+      "Pattern": "Default"
+    },
+    {
       "MatchArm": {
-        "pattern": "Default",
-        "body": 7
+        "pattern": 9,
+        "body": 8
       }
     },
     {
       "Match": {
         "target": 3,
         "arms": [
-          5,
-          8
+          6,
+          10
         ]
       }
     },
@@ -67,18 +71,19 @@
       "IntLiteral": 2701
     },
     {
+      "Pattern": {
+        "Identifier": 15
+      }
+    },
+    {
       "Block": {
         "statements": []
       }
     },
     {
       "MatchArm": {
-        "pattern": {
-          "Identifier": {
-            "name": 15
-          }
-        },
-        "body": 11
+        "pattern": 13,
+        "body": 14
       }
     },
     {
@@ -86,22 +91,25 @@
     },
     {
       "Call": {
-        "func": 13,
+        "func": 16,
         "args": []
       }
     },
     {
+      "Pattern": "Default"
+    },
+    {
       "MatchArm": {
-        "pattern": "Default",
-        "body": 14
+        "pattern": 18,
+        "body": 17
       }
     },
     {
       "Match": {
-        "target": 10,
+        "target": 12,
         "arms": [
-          12,
-          15
+          15,
+          19
         ]
       }
     },
@@ -111,7 +119,12 @@
     {
       "Unary": {
         "operator": "AddressOf",
-        "operand": 17
+        "operand": 21
+      }
+    },
+    {
+      "Pattern": {
+        "Identifier": 17
       }
     },
     {
@@ -121,12 +134,8 @@
     },
     {
       "MatchArm": {
-        "pattern": {
-          "Identifier": {
-            "name": 17
-          }
-        },
-        "body": 19
+        "pattern": 23,
+        "body": 24
       }
     },
     {
@@ -134,22 +143,25 @@
     },
     {
       "Call": {
-        "func": 21,
+        "func": 26,
         "args": []
       }
     },
     {
+      "Pattern": "Default"
+    },
+    {
       "MatchArm": {
-        "pattern": "Default",
-        "body": 22
+        "pattern": 28,
+        "body": 27
       }
     },
     {
       "Match": {
-        "target": 18,
+        "target": 22,
         "arms": [
-          20,
-          23
+          25,
+          29
         ]
       }
     },
@@ -162,14 +174,14 @@
     {
       "Unary": {
         "operator": "Dereference",
-        "operand": 26
+        "operand": 32
       }
     },
     {
       "Call": {
-        "func": 25,
+        "func": 31,
         "args": [
-          27
+          33
         ]
       }
     },
@@ -179,7 +191,7 @@
     {
       "Unary": {
         "operator": "Dereference",
-        "operand": 29
+        "operand": 35
       }
     },
     {
@@ -187,8 +199,8 @@
     },
     {
       "Assign": {
-        "target": 30,
-        "value": 31
+        "target": 36,
+        "value": 37
       }
     },
     {
@@ -199,9 +211,9 @@
     },
     {
       "Call": {
-        "func": 33,
+        "func": 39,
         "args": [
-          34
+          40
         ]
       }
     },
@@ -214,13 +226,13 @@
     {
       "Unary": {
         "operator": "AddressOf",
-        "operand": 37
+        "operand": 43
       }
     },
     {
       "Assign": {
-        "target": 36,
-        "value": 38
+        "target": 42,
+        "value": 44
       }
     },
     {
@@ -229,7 +241,7 @@
     {
       "Unary": {
         "operator": "Dereference",
-        "operand": 40
+        "operand": 46
       }
     },
     {
@@ -238,7 +250,7 @@
     {
       "Unary": {
         "operator": "Dereference",
-        "operand": 42
+        "operand": 48
       }
     },
     {
@@ -246,15 +258,15 @@
     },
     {
       "Binary": {
-        "left": 43,
+        "left": 49,
         "operator": "Divide",
-        "right": 44
+        "right": 50
       }
     },
     {
       "Assign": {
-        "target": 41,
-        "value": 45
+        "target": 47,
+        "value": 51
       }
     },
     {
@@ -265,24 +277,24 @@
     },
     {
       "Call": {
-        "func": 47,
+        "func": 53,
         "args": [
-          48
+          54
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          9,
-          16,
-          24,
-          28,
-          32,
-          35,
-          39,
-          46,
-          49
+          11,
+          20,
+          30,
+          34,
+          38,
+          41,
+          45,
+          52,
+          55
         ]
       }
     },
@@ -291,12 +303,12 @@
         "name": 1,
         "params": [],
         "return_type": null,
-        "body": 50
+        "body": 56
       }
     }
   ],
   "roots": [
     2,
-    51
+    57
   ]
 }

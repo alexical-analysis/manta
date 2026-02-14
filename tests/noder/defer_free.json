@@ -237,20 +237,24 @@
       }
     },
     {
+      "Pattern": {
+        "DotAccess": {
+          "target": null,
+          "field": 14
+        }
+      }
+    },
+    {
+      "Pattern": {
+        "Payload": {
+          "pat": 25,
+          "payload": 22
+        }
+      }
+    },
+    {
       "MatchArm": {
-        "pattern": {
-          "Payload": {
-            "pat": {
-              "DotAccess": {
-                "target": null,
-                "field": {
-                  "name": 14
-                }
-              }
-            },
-            "payload": 22
-          }
-        },
+        "pattern": 26,
         "body": 24
       }
     },
@@ -261,37 +265,38 @@
       "EnumConstructor": {
         "target": null,
         "variant": 30,
-        "payload": 26
+        "payload": 28
       }
     },
     {
       "Return": {
-        "value": 27
+        "value": 29
       }
     },
     {
       "Block": {
         "statements": [
-          28
+          30
         ]
       }
     },
     {
+      "Pattern": {
+        "Identifier": 18446744073709551602
+      }
+    },
+    {
       "MatchArm": {
-        "pattern": {
-          "Identifier": {
-            "name": 18446744073709551602
-          }
-        },
-        "body": 29
+        "pattern": 32,
+        "body": 31
       }
     },
     {
       "Match": {
         "target": 21,
         "arms": [
-          25,
-          30
+          27,
+          33
         ]
       }
     },
@@ -303,22 +308,22 @@
     },
     {
       "Call": {
-        "func": 32,
+        "func": 35,
         "args": [
-          33
+          36
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          34
+          37
         ]
       }
     },
     {
       "Defer": {
-        "block": 35
+        "block": 38
       }
     },
     {
@@ -330,7 +335,7 @@
     },
     {
       "Alloc": {
-        "meta_type": 37,
+        "meta_type": 40,
         "options": []
       }
     },
@@ -347,23 +352,29 @@
     },
     {
       "Assign": {
-        "target": 39,
-        "value": 40
+        "target": 42,
+        "value": 43
+      }
+    },
+    {
+      "Pattern": {
+        "TypeSpec": {
+          "Slice": "UInt8"
+        }
+      }
+    },
+    {
+      "Pattern": {
+        "Payload": {
+          "pat": 45,
+          "payload": 26
+        }
       }
     },
     {
       "MatchArm": {
-        "pattern": {
-          "Payload": {
-            "pat": {
-              "TypeSpec": {
-                "Slice": "UInt8"
-              }
-            },
-            "payload": 26
-          }
-        },
-        "body": 41
+        "pattern": 46,
+        "body": 44
       }
     },
     {
@@ -371,22 +382,25 @@
     },
     {
       "Call": {
-        "func": 43,
+        "func": 48,
         "args": []
       }
     },
     {
+      "Pattern": "Default"
+    },
+    {
       "MatchArm": {
-        "pattern": "Default",
-        "body": 44
+        "pattern": 50,
+        "body": 49
       }
     },
     {
       "Match": {
-        "target": 38,
+        "target": 41,
         "arms": [
-          42,
-          45
+          47,
+          51
         ]
       }
     },
@@ -395,19 +409,19 @@
     },
     {
       "Free": {
-        "expr": 47
+        "expr": 53
       }
     },
     {
       "Block": {
         "statements": [
-          48
+          54
         ]
       }
     },
     {
       "Defer": {
-        "block": 49
+        "block": 55
       }
     },
     {
@@ -421,10 +435,10 @@
     },
     {
       "Call": {
-        "func": 51,
+        "func": 57,
         "args": [
-          52,
-          53
+          58,
+          59
         ]
       }
     },
@@ -439,26 +453,30 @@
     },
     {
       "Assign": {
-        "target": 55,
-        "value": 56
+        "target": 61,
+        "value": 62
+      }
+    },
+    {
+      "Pattern": {
+        "DotAccess": {
+          "target": null,
+          "field": 14
+        }
+      }
+    },
+    {
+      "Pattern": {
+        "Payload": {
+          "pat": 64,
+          "payload": 42
+        }
       }
     },
     {
       "MatchArm": {
-        "pattern": {
-          "Payload": {
-            "pat": {
-              "DotAccess": {
-                "target": null,
-                "field": {
-                  "name": 14
-                }
-              }
-            },
-            "payload": 42
-          }
-        },
-        "body": 57
+        "pattern": 65,
+        "body": 63
       }
     },
     {
@@ -468,37 +486,38 @@
       "EnumConstructor": {
         "target": null,
         "variant": 31,
-        "payload": 59
+        "payload": 67
       }
     },
     {
       "Return": {
-        "value": 60
+        "value": 68
       }
     },
     {
       "Block": {
         "statements": [
-          61
+          69
         ]
       }
     },
     {
+      "Pattern": {
+        "Identifier": 18446744073709551602
+      }
+    },
+    {
       "MatchArm": {
-        "pattern": {
-          "Identifier": {
-            "name": 18446744073709551602
-          }
-        },
-        "body": 62
+        "pattern": 71,
+        "body": 70
       }
     },
     {
       "Match": {
-        "target": 54,
+        "target": 60,
         "arms": [
-          58,
-          63
+          66,
+          72
         ]
       }
     },
@@ -511,18 +530,18 @@
     },
     {
       "Return": {
-        "value": 65
+        "value": 74
       }
     },
     {
       "Block": {
         "statements": [
-          31,
-          36,
-          46,
-          50,
-          64,
-          66
+          34,
+          39,
+          52,
+          56,
+          73,
+          75
         ]
       }
     },
@@ -538,7 +557,7 @@
             "name": 29
           }
         },
-        "body": 67
+        "body": 76
       }
     }
   ],
@@ -550,6 +569,6 @@
     10,
     16,
     17,
-    68
+    77
   ]
 }
