@@ -7,7 +7,7 @@ use crate::parser::module::{BindingType, Module};
 use crate::str_store;
 
 struct TypeMap {
-    node_ids: Vec<NodeID>,
+    node_ids: Vec<Option<NodeID>>,
     types: Vec<TypeSpec>,
 }
 
@@ -21,11 +21,12 @@ impl TypeMap {
 
     fn add_type(&mut self, node_id: NodeID, type_spec: TypeSpec) {
         match self.node_ids.get_mut(node_id) {
-            Some(i) => *i = self.types.len(),
+            Some(t) => *t = Some(self.types.len()),
             None => {
                 // we use resize here in case we add two nodes that are more than a single index apart.
                 // e.g. add_type(1, t) and then add_type(10, t)
-                self.node_ids.resize(node_id, self.types.len());
+                self.node_ids.resize(node_id + 1, None);
+                self.node_ids[node_id] = Some(self.types.len());
             }
         }
 
@@ -34,8 +35,13 @@ impl TypeMap {
 
     fn get_type(&self, node_id: NodeID) -> Option<&TypeSpec> {
         match self.node_ids.get(node_id) {
-            Some(i) => self.types.get(*i),
-            None => None,
+            // This is double nested because the node_id might not point to a valid slot in the
+            // node_ids vector AND, it may also point to a valid slot that was not actually
+            // initalized to a type spec. This is the tradeoff we make to avoid hashing to make the
+            // jump. Since node_ids are contiguous and most nodes will have some type spec
+            // associated with them, this tradeoff seems appropriate.
+            Some(Some(i)) => self.types.get(*i),
+            _ => None,
         }
     }
 }
@@ -593,6 +599,32 @@ mod tests {
     use pretty_assertions::assert_eq;
     use std::fs;
     use std::path::Path;
+
+    #[test]
+    fn typemap_new_get_none() {
+        let tm = TypeMap::new();
+        assert_eq!(tm.get_type(0), None);
+        assert_eq!(tm.get_type(10), None);
+    }
+
+    #[test]
+    fn typemap_add_and_get() {
+        let mut tm = TypeMap::new();
+        tm.add_type(0, TypeSpec::Int32);
+        assert_eq!(tm.get_type(0), Some(&TypeSpec::Int32));
+
+        tm.add_type(1, TypeSpec::Bool);
+        assert_eq!(tm.get_type(1), Some(&TypeSpec::Bool));
+        assert_eq!(tm.get_type(0), Some(&TypeSpec::Int32));
+    }
+
+    #[test]
+    fn typemap_sparse_indices() {
+        let mut tm = TypeMap::new();
+        tm.add_type(3, TypeSpec::String);
+        assert_eq!(tm.get_type(3), Some(&TypeSpec::String));
+        assert_eq!(tm.get_type(0), None);
+    }
 
     fn assert_file_path_eq(path: &std::path::Path, noder_dir: &Path) {
         let ext = path.extension().expect("Failed to get file extension");
