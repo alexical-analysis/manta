@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::ops::Deref;
 
 use crate::ast::{BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Stmt, TypeSpec};
@@ -73,10 +72,7 @@ impl Noder {
             Decl::Function(decl) => {
                 let mut params = vec![];
                 for param in &decl.params {
-                    let param_id = node_tree.add_node(Node::VarDecl {
-                        name: param.name,
-                        type_spec: Some(param.type_spec.clone()),
-                    });
+                    let param_id = node_tree.add_node(Node::VarDecl { name: param.name });
                     params.push(param_id);
                 }
 
@@ -85,23 +81,16 @@ impl Noder {
                 node_tree.add_root_node(Node::FunctionDecl {
                     name: decl.name,
                     params,
-                    return_type: decl.return_type.clone(),
                     body: body_id,
                 });
             }
             Decl::Type(decl) => {
                 // create the node
-                node_tree.add_root_node(Node::TypeDecl {
-                    name: decl.name,
-                    type_spec: decl.type_spec.clone(),
-                });
+                node_tree.add_root_node(Node::TypeDecl { name: decl.name });
             }
             Decl::Const(decl) => {
                 // create the nodes
-                let decl_id = node_tree.add_root_node(Node::VarDecl {
-                    name: decl.name,
-                    type_spec: None,
-                });
+                let decl_id = node_tree.add_root_node(Node::VarDecl { name: decl.name });
                 let value_node = Self::node_expr(node_tree, module, &decl.value);
                 node_tree.add_node(Node::Assign {
                     target: decl_id,
@@ -110,10 +99,7 @@ impl Noder {
             }
             Decl::Var(decl) => {
                 // create the nodes
-                let decl_id = node_tree.add_root_node(Node::VarDecl {
-                    name: decl.name,
-                    type_spec: None,
-                });
+                let decl_id = node_tree.add_root_node(Node::VarDecl { name: decl.name });
                 let value_node = Self::node_expr(node_tree, module, &decl.value);
                 node_tree.add_node(Node::Assign {
                     target: decl_id,
@@ -225,9 +211,7 @@ impl Noder {
             Pattern::FloatLiteral(pat) => {
                 node_tree.add_node(Node::Pattern(PatternNode::FloatLiteral(*pat)))
             }
-            Pattern::TypeSpec(pat) => {
-                node_tree.add_node(Node::Pattern(PatternNode::TypeSpec(pat.clone())))
-            }
+            Pattern::TypeSpec(_) => node_tree.add_node(Node::Pattern(PatternNode::TypeSpec)),
             Pattern::Payload(pat) => {
                 let pat_id = Self::node_pattern(node_tree, &pat.pat);
                 node_tree.add_node(Node::Pattern(PatternNode::Payload {
@@ -265,7 +249,7 @@ impl Noder {
         let value_id = Self::node_expr(node_tree, module, &stmt.value);
 
         if let Pattern::Payload(pat) = &stmt.pattern {
-            let type_spec = match pat.pat.deref() {
+            let _type_spec = match pat.pat.deref() {
                 Pattern::TypeSpec(ts) => Some(ts.clone()),
                 _ => {
                     // TODO: we actually need to handle all the different cases here. For example
@@ -277,10 +261,7 @@ impl Noder {
                 }
             };
 
-            let var_id = node_tree.add_node(Node::VarDecl {
-                name: pat.payload,
-                type_spec,
-            });
+            let var_id = node_tree.add_node(Node::VarDecl { name: pat.payload });
 
             let ident_id = node_tree.add_node(Node::Identifier(pat.payload));
             let assign_id = node_tree.add_node(Node::Assign {
@@ -569,9 +550,7 @@ impl Noder {
                 }),
             },
             Expr::ModuleAccess(_expr) => todo!("modules are not yet supported"),
-            Expr::MetaType(expr) => node_tree.add_node(Node::MetaType {
-                type_spec: expr.type_spec.clone(),
-            }),
+            Expr::MetaType(_expr) => node_tree.add_node(Node::MetaType),
             Expr::Alloc(expr) => {
                 let meta_id = Self::node_expr(node_tree, module, &expr.meta_type);
                 let mut options = vec![];
@@ -715,10 +694,7 @@ mod tests {
             }),
             expected: {
                 let mut e = NodeTree::new();
-                let decl_id = e.add_root_node(Node::VarDecl {
-                    name: 1,
-                    type_spec: None,
-                });
+                let decl_id = e.add_root_node(Node::VarDecl { name: 1 });
                 let value_id = e.add_node(Node::IntLiteral(42));
                 e.add_node(Node::Assign {
                     target: decl_id,
@@ -734,10 +710,7 @@ mod tests {
             }),
             expected: {
                 let mut e = NodeTree::new();
-                let decl_id = e.add_root_node(Node::VarDecl {
-                    name: 2,
-                    type_spec: None,
-                });
+                let decl_id = e.add_root_node(Node::VarDecl { name: 2 });
                 let value_id = e.add_node(Node::StringLiteral(3));
                 e.add_node(Node::Assign {
                     target: decl_id,
