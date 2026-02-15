@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::ast::{BinaryOp, TypeSpec, UnaryOp};
+use crate::ast::{BinaryOp, UnaryOp};
 use crate::str_store::StrID;
 
 // High-level Intermediate Representation (HIR)
@@ -57,12 +57,10 @@ pub enum Node {
         name: StrID,
         // params are just VarDecl nodes
         params: Vec<NodeID>,
-        return_type: Option<TypeSpec>,
         body: NodeID,
     },
     TypeDecl {
         name: StrID,
-        type_spec: TypeSpec,
     },
     UseDecl {
         modules: Vec<StrID>,
@@ -75,9 +73,6 @@ pub enum Node {
     },
     VarDecl {
         name: StrID,
-        // not all declarations are requried to explicitly include a type
-        // instead these types are infered
-        type_spec: Option<TypeSpec>,
         // no value here because HIR declares variables first and then
         // assigns a value in a later node
     },
@@ -159,9 +154,7 @@ pub enum Node {
         expr: NodeID,
     },
 
-    MetaType {
-        type_spec: TypeSpec,
-    },
+    MetaType,
 
     Alloc {
         meta_type: NodeID,
@@ -170,11 +163,6 @@ pub enum Node {
 
     Free {
         expr: NodeID,
-    },
-
-    Cast {
-        expr: NodeID,
-        target_type: TypeSpec,
     },
 
     Pattern(PatternNode),
@@ -187,7 +175,7 @@ pub enum PatternNode {
     BoolLiteral(bool),
     FloatLiteral(f64),
 
-    TypeSpec(TypeSpec),
+    TypeSpec,
 
     Payload {
         pat: NodeID, // Always a Pattern node
@@ -380,7 +368,6 @@ mod tests {
         let id = store.add_node(Node::FunctionDecl {
             name: 20,
             params: vec![],
-            return_type: Some(TypeSpec::Int32),
             body: 0,
         });
         if let Node::FunctionDecl { name, .. } = &store.nodes[id] {
