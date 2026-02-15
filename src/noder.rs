@@ -1,15 +1,54 @@
+use std::collections::HashMap;
 use std::ops::Deref;
 
-use crate::ast::{BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Stmt};
+use crate::ast::{BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Stmt, TypeSpec};
 use crate::hir::{Node, NodeID, NodeTree, PatternNode};
 use crate::parser::module::{BindingType, Module};
 use crate::str_store;
 
-pub struct Noder {}
+struct TypeMap {
+    node_ids: Vec<NodeID>,
+    types: Vec<TypeSpec>,
+}
+
+impl TypeMap {
+    fn new() -> Self {
+        TypeMap {
+            node_ids: vec![],
+            types: vec![],
+        }
+    }
+
+    fn add_type(&mut self, node_id: NodeID, type_spec: TypeSpec) {
+        match self.node_ids.get_mut(node_id) {
+            Some(i) => *i = self.types.len(),
+            None => {
+                // we use resize here in case we add two nodes that are more than a single index apart.
+                // e.g. add_type(1, t) and then add_type(10, t)
+                self.node_ids.resize(node_id, self.types.len());
+            }
+        }
+
+        self.types.push(type_spec)
+    }
+
+    fn get_type(&self, node_id: NodeID) -> Option<&TypeSpec> {
+        match self.node_ids.get(node_id) {
+            Some(i) => self.types.get(*i),
+            None => None,
+        }
+    }
+}
+
+pub struct Noder {
+    type_map: TypeMap,
+}
 
 impl Noder {
     pub fn new() -> Self {
-        Noder {}
+        Noder {
+            type_map: TypeMap::new(),
+        }
     }
 
     pub fn node(&mut self, module: Module) -> NodeTree {
