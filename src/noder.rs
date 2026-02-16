@@ -1,7 +1,5 @@
 use std::ops::Deref;
 
-use clap::builder::Str;
-
 use crate::ast::{
     BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Stmt, StructField, StructType, TypeSpec,
 };
