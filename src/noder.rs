@@ -128,8 +128,8 @@ impl Noder {
     ) -> NodeID {
         let mut stmt_ids = vec![];
         for stmt in &block.statements {
-            let stmt_id = self.node_stmt(node_tree, module, stmt);
-            stmt_ids.push(stmt_id);
+            let ids = self.node_stmt(node_tree, module, stmt);
+            stmt_ids.extend(ids);
         }
 
         node_tree.add_node(Node::Block {
@@ -137,7 +137,7 @@ impl Noder {
         })
     }
 
-    fn node_stmt(&mut self, node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> NodeID {
+    fn node_stmt(&mut self, node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<NodeID> {
         match stmt {
             Stmt::Let(stmt) => self.node_let(node_tree, module, stmt),
             Stmt::Assign(stmt) => {
@@ -146,12 +146,12 @@ impl Noder {
 
                 // TODO: should i check that l_id is an assignable node here or should that
                 // happen later when I do full type checking? (defaulting to later for now)
-                node_tree.add_node(Node::Assign {
+                vec![node_tree.add_node(Node::Assign {
                     target: l_id,
                     value: r_id,
-                })
+                })]
             }
-            Stmt::Expr(stmt) => self.node_expr(node_tree, module, &stmt.expr),
+            Stmt::Expr(stmt) => vec![self.node_expr(node_tree, module, &stmt.expr)],
             Stmt::Return(stmt) => {
                 let value = if let Some(v) = &stmt.value {
                     let value_id = self.node_expr(node_tree, module, v);
@@ -160,11 +160,11 @@ impl Noder {
                     None
                 };
 
-                node_tree.add_node(Node::Return { value })
+                vec![node_tree.add_node(Node::Return { value })]
             }
             Stmt::Defer(stmt) => {
                 let block_id = self.node_block(node_tree, module, &stmt.block);
-                node_tree.add_node(Node::Defer { block: block_id })
+                vec![node_tree.add_node(Node::Defer { block: block_id })]
             }
             Stmt::Match(stmt) => {
                 let target_id = self.node_expr(node_tree, module, &stmt.target);
@@ -181,12 +181,12 @@ impl Noder {
                     arms.push(arm_id);
                 }
 
-                node_tree.add_node(Node::Match {
+                vec![node_tree.add_node(Node::Match {
                     target: target_id,
                     arms,
-                })
+                })]
             }
-            Stmt::Block(stmt) => self.node_block(node_tree, module, stmt),
+            Stmt::Block(stmt) => vec![self.node_block(node_tree, module, stmt)],
             Stmt::If(stmt) => {
                 let check_id = self.node_expr(node_tree, module, &stmt.check);
                 let success_id = self.node_block(node_tree, module, &stmt.success);
@@ -195,11 +195,11 @@ impl Noder {
                     .as_ref()
                     .map(|fail| self.node_block(node_tree, module, fail));
 
-                node_tree.add_node(Node::If {
+                vec![node_tree.add_node(Node::If {
                     condition: check_id,
                     then_block: success_id,
                     else_block: fail_id,
-                })
+                })]
             }
         }
     }
@@ -251,46 +251,115 @@ impl Noder {
         }
     }
 
-    fn node_let(&mut self, node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> NodeID {
+    fn node_let(
+        &mut self,
+        node_tree: &mut NodeTree,
+        module: &Module,
+        stmt: &LetStmt,
+    ) -> Vec<NodeID> {
+        let mut nodes = vec![];
         let mut arms = vec![];
         let value_id = self.node_expr(node_tree, module, &stmt.value);
 
-        if let Pattern::Payload(pat) = &stmt.pattern {
-            let _type_spec = match pat.pat.deref() {
-                Pattern::TypeSpec(ts) => Some(ts.clone()),
-                _ => {
-                    // TODO: we actually need to handle all the different cases here. For example
-                    // if the pattern is a dot expression we need to look type information and the
-                    // variant to figure out what the identifer type should actually be
-                    // also, a lot of these should actually be errors like
-                    // let 10(v) = 10 is not a valid pattern that we want to support
-                    None
+        match &stmt.pattern {
+            Pattern::Identifier(ident) => {
+                //
+                // let ident = value
+                //
+                // becomes:
+                //
+                // decl ident
+                // ident = value
+
+                if stmt.except != LetExcept::None {
+                    panic!("identifier expressions can not have an except handle")
                 }
-            };
 
-            let var_id = node_tree.add_node(Node::VarDecl { name: pat.payload });
+                let var_id = node_tree.add_node(Node::VarDecl { name: ident.name });
+                nodes.push(var_id);
 
-            let ident_id = node_tree.add_node(Node::Identifier(pat.payload));
-            let assign_id = node_tree.add_node(Node::Assign {
-                target: var_id,
-                value: ident_id,
-            });
+                let assign_id = node_tree.add_node(Node::Assign {
+                    target: var_id,
+                    value: value_id,
+                });
+                nodes.push(assign_id);
 
-            let pat_id = Self::node_pattern(node_tree, &stmt.pattern);
-            let arm_id = node_tree.add_node(Node::MatchArm {
-                pattern: pat_id,
-                body: assign_id,
-            });
-            arms.push(arm_id);
-        } else {
-            let pat_id = Self::node_pattern(node_tree, &stmt.pattern);
-            let empty_body = node_tree.add_node(Node::Block { statements: vec![] });
-            let arm_id = node_tree.add_node(Node::MatchArm {
-                pattern: pat_id,
-                body: empty_body,
-            });
-            arms.push(arm_id)
-        };
+                return nodes;
+            }
+            Pattern::Payload(pat) => {
+                //
+                // let Pat(ident) = value or(e) { ... }
+                //
+                // becomes:
+                //
+                // decl ident
+                // match {
+                //     Pat(<inner let>) { ident = <inner let> }
+                //     e                { ... }
+                // }
+
+                let _type_spec = match pat.pat.deref() {
+                    Pattern::TypeSpec(ts) => Some(ts.clone()),
+                    _ => {
+                        // TODO: we actually need to handle all the different cases here. For example
+                        // if the pattern is a dot expression we need to look type information and the
+                        // variant to figure out what the identifer type should actually be
+                        // also, a lot of these should actually be errors like
+                        // let 10(v) = 10 is not a valid pattern that we want to support
+                        None
+                    }
+                };
+
+                // ouside variable declaration
+                let var_id = node_tree.add_node(Node::VarDecl { name: pat.payload });
+                nodes.push(var_id);
+
+                // rebuild the pattern
+                let inner_pat_id = Self::node_pattern(node_tree, &pat.pat);
+                let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Payload {
+                    pat: inner_pat_id,
+                    payload: str_store::INNERLET,
+                }));
+
+                // set up the inner assignment
+                let inner_let_id = node_tree.add_node(Node::Identifier(str_store::INNERLET));
+                let assign_id = node_tree.add_node(Node::Assign {
+                    target: var_id,
+                    value: inner_let_id,
+                });
+
+                // creat the match arm
+                let arm_id = node_tree.add_node(Node::MatchArm {
+                    pattern: pat_id,
+                    body: assign_id,
+                });
+
+                arms.push(arm_id);
+            }
+            _ => {
+                //
+                // let Pat = value or(e) { ... }
+                //
+                // becomes:
+                //
+                // match {
+                //     Pat { }
+                //     e   { ... }
+                // }
+
+                if stmt.except == LetExcept::None {
+                    panic!("let statement needs an exception handler")
+                }
+
+                let pat_id = Self::node_pattern(node_tree, &stmt.pattern);
+                let empty_body = node_tree.add_node(Node::Block { statements: vec![] });
+                let arm_id = node_tree.add_node(Node::MatchArm {
+                    pattern: pat_id,
+                    body: empty_body,
+                });
+                arms.push(arm_id)
+            }
+        }
 
         let default_id = match &stmt.except {
             LetExcept::Or { binding, body, .. } => {
@@ -298,6 +367,11 @@ impl Noder {
 
                 match *binding {
                     Some(b) => {
+                        // or(e) { ... }
+                        //
+                        // becomes:
+                        //
+                        // e { ... }
                         let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Identifier(b)));
                         node_tree.add_node(Node::MatchArm {
                             pattern: pat_id,
@@ -305,6 +379,11 @@ impl Noder {
                         })
                     }
                     None => {
+                        // or { ... }
+                        //
+                        // becomes:
+                        //
+                        // _ { ... }
                         let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Default));
                         node_tree.add_node(Node::MatchArm {
                             pattern: pat_id,
@@ -314,6 +393,11 @@ impl Noder {
                 }
             }
             LetExcept::Wrap(expr) => {
+                // wrap .Variant
+                //
+                // becomes:
+                //
+                // <wrap> { return .Variant(<wrap>) }
                 let enum_id = self.node_wrap_expr(node_tree, module, expr);
                 if enum_id.is_none() {
                     panic!("not a valid target for a let wrap statement")
@@ -332,6 +416,12 @@ impl Noder {
                 })
             }
             LetExcept::Panic => {
+                // !
+                //
+                // becomes:
+                //
+                // <panic> { panic(<panic>) }
+
                 // TODO: can we reuse this node mabye?
                 let panic_id = node_tree.add_node(Node::Identifier(str_store::PANIC));
                 // TODO: need to actually pass the results of the call to the panic
@@ -347,12 +437,9 @@ impl Noder {
                 })
             }
             LetExcept::None => {
-                // TODO: this is only leagl if the pattern can not
-                // fail to match we need to be able to varify this
-                // at compile time maybe just treat this as `unreachable`?
-                // right now we'll just panic...
+                // TODO: we need to check that this expression can not fail to match
+                // for now just panic if we hit this arm somehow
 
-                // TODO: can we reuse this node mabye?
                 let panic_id = node_tree.add_node(Node::Identifier(str_store::PANIC));
                 // TODO: need to actually pass the results of the call to the panic
                 let body_id = node_tree.add_node(Node::Call {
@@ -370,10 +457,13 @@ impl Noder {
 
         arms.push(default_id);
 
-        node_tree.add_node(Node::Match {
+        let match_id = node_tree.add_node(Node::Match {
             target: value_id,
             arms,
-        })
+        });
+        nodes.push(match_id);
+
+        nodes
     }
 
     /// convert an abitrary expression into a wrap node for the `let .Ok = expr wrap .Err` syntax
