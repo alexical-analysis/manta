@@ -82,12 +82,19 @@ fn constant_id_str(id: StrID) -> Option<&'static str> {
         F64 => Some("f64"),
         STR => Some("str"),
         BOOL => Some("bool"),
+
+        // keywords used throughout the complier
+        PANIC => Some("panic"),
+        SIZEOF => Some("size_of"),
+        ALIGNOF => Some("align_of"),
+        METAFLAGS => Some("flags"),
+
         // this is not a valid identifier so we can use it in the compiler
         // without worrying about conflicting with user identifiers
         WRAP => Some("<wrap>"),
+
         // Nil is also not a valid identifier
         NIL => Some("<nil>"),
-        PANIC => Some("panic"),
         _ => None,
     }
 }
