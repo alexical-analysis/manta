@@ -2,42 +2,17 @@
   "nodes": [
     {
       "TypeDecl": {
-        "name": 8,
-        "type_spec": {
-          "Struct": {
-            "fields": []
-          }
-        }
+        "name": 8
       }
     },
     {
       "TypeDecl": {
-        "name": 12,
-        "type_spec": {
-          "Enum": {
-            "variants": [
-              {
-                "name": 14,
-                "payload": {
-                  "Named": {
-                    "module": null,
-                    "name": 8
-                  }
-                }
-              },
-              {
-                "name": 15,
-                "payload": null
-              }
-            ]
-          }
-        }
+        "name": 12
       }
     },
     {
       "VarDecl": {
-        "name": 18,
-        "type_spec": "String"
+        "name": 18
       }
     },
     {
@@ -65,24 +40,12 @@
         "params": [
           2
         ],
-        "return_type": {
-          "Named": {
-            "module": null,
-            "name": 12
-          }
-        },
         "body": 5
       }
     },
     {
       "VarDecl": {
-        "name": 22,
-        "type_spec": {
-          "Named": {
-            "module": null,
-            "name": 8
-          }
-        }
+        "name": 22
       }
     },
     {
@@ -96,46 +59,22 @@
         "params": [
           7
         ],
-        "return_type": null,
         "body": 8
       }
     },
     {
       "TypeDecl": {
-        "name": 23,
-        "type_spec": {
-          "Enum": {
-            "variants": [
-              {
-                "name": 14,
-                "payload": "UInt64"
-              },
-              {
-                "name": 15,
-                "payload": null
-              }
-            ]
-          }
-        }
+        "name": 23
       }
     },
     {
       "VarDecl": {
-        "name": 22,
-        "type_spec": {
-          "Named": {
-            "module": null,
-            "name": 8
-          }
-        }
+        "name": 22
       }
     },
     {
       "VarDecl": {
-        "name": 26,
-        "type_spec": {
-          "Slice": "UInt8"
-        }
+        "name": 26
       }
     },
     {
@@ -164,47 +103,17 @@
           11,
           12
         ],
-        "return_type": null,
         "body": 15
       }
     },
     {
       "TypeDecl": {
-        "name": 29,
-        "type_spec": {
-          "Enum": {
-            "variants": [
-              {
-                "name": 14,
-                "payload": null
-              },
-              {
-                "name": 30,
-                "payload": {
-                  "Named": {
-                    "module": null,
-                    "name": 12
-                  }
-                }
-              },
-              {
-                "name": 31,
-                "payload": {
-                  "Named": {
-                    "module": null,
-                    "name": 23
-                  }
-                }
-              }
-            ]
-          }
-        }
+        "name": 29
       }
     },
     {
       "VarDecl": {
-        "name": 18,
-        "type_spec": "String"
+        "name": 18
       }
     },
     {
@@ -223,8 +132,7 @@
     },
     {
       "VarDecl": {
-        "name": 22,
-        "type_spec": null
+        "name": 22
       }
     },
     {
@@ -326,13 +234,7 @@
         "block": 38
       }
     },
-    {
-      "MetaType": {
-        "type_spec": {
-          "Slice": "UInt8"
-        }
-      }
-    },
+    "MetaType",
     {
       "Alloc": {
         "meta_type": 40,
@@ -341,10 +243,7 @@
     },
     {
       "VarDecl": {
-        "name": 26,
-        "type_spec": {
-          "Slice": "UInt8"
-        }
+        "name": 26
       }
     },
     {
@@ -357,11 +256,7 @@
       }
     },
     {
-      "Pattern": {
-        "TypeSpec": {
-          "Slice": "UInt8"
-        }
-      }
+      "Pattern": "TypeSpec"
     },
     {
       "Pattern": {
@@ -444,8 +339,7 @@
     },
     {
       "VarDecl": {
-        "name": 42,
-        "type_spec": null
+        "name": 42
       }
     },
     {
@@ -551,12 +445,6 @@
         "params": [
           18
         ],
-        "return_type": {
-          "Named": {
-            "module": null,
-            "name": 29
-          }
-        },
         "body": 76
       }
     }

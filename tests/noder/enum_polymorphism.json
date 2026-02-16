@@ -2,8 +2,7 @@
   "nodes": [
     {
       "VarDecl": {
-        "name": 9,
-        "type_spec": null
+        "name": 9
       }
     },
     {
@@ -17,8 +16,7 @@
     },
     {
       "VarDecl": {
-        "name": 14,
-        "type_spec": "Int32"
+        "name": 14
       }
     },
     {
@@ -32,38 +30,17 @@
         "params": [
           3
         ],
-        "return_type": null,
         "body": 4
       }
     },
     {
       "TypeDecl": {
-        "name": 18,
-        "type_spec": {
-          "Enum": {
-            "variants": [
-              {
-                "name": 20,
-                "payload": "Int32"
-              },
-              {
-                "name": 21,
-                "payload": "Int32"
-              }
-            ]
-          }
-        }
+        "name": 18
       }
     },
     {
       "VarDecl": {
-        "name": 23,
-        "type_spec": {
-          "Named": {
-            "module": null,
-            "name": 18
-          }
-        }
+        "name": 23
       }
     },
     {
@@ -195,7 +172,6 @@
         "params": [
           7
         ],
-        "return_type": "Int32",
         "body": 28
       }
     },
@@ -338,8 +314,7 @@
     },
     {
       "VarDecl": {
-        "name": 34,
-        "type_spec": null
+        "name": 34
       }
     },
     {
@@ -484,13 +459,13 @@
       "FunctionDecl": {
         "name": 1,
         "params": [],
-        "return_type": null,
         "body": 82
       }
     }
   ],
   "roots": [
     0,
+    2,
     5,
     6,
     29,

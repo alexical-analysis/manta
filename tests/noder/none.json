@@ -2,20 +2,12 @@
   "nodes": [
     {
       "TypeDecl": {
-        "name": 9,
-        "type_spec": {
-          "Struct": {
-            "fields": []
-          }
-        }
+        "name": 9
       }
     },
     {
       "VarDecl": {
-        "name": 15,
-        "type_spec": {
-          "Pointer": "Int32"
-        }
+        "name": 15
       }
     },
     {
@@ -29,14 +21,12 @@
         "params": [
           1
         ],
-        "return_type": null,
         "body": 2
       }
     },
     {
       "VarDecl": {
-        "name": 18,
-        "type_spec": "String"
+        "name": 18
       }
     },
     {
@@ -50,54 +40,23 @@
         "params": [
           4
         ],
-        "return_type": null,
         "body": 5
       }
     },
     {
       "TypeDecl": {
-        "name": 19,
-        "type_spec": {
-          "Enum": {
-            "variants": [
-              {
-                "name": 21,
-                "payload": {
-                  "Pointer": "Int32"
-                }
-              },
-              {
-                "name": 22,
-                "payload": null
-              },
-              {
-                "name": 23,
-                "payload": {
-                  "Named": {
-                    "module": null,
-                    "name": 9
-                  }
-                }
-              }
-            ]
-          }
-        }
+        "name": 19
       }
     },
     {
       "VarDecl": {
-        "name": 25,
-        "type_spec": "Bool"
+        "name": 25
       }
     },
     {
       "Identifier": 25
     },
-    {
-      "MetaType": {
-        "type_spec": "Int32"
-      }
-    },
+    "MetaType",
     {
       "Alloc": {
         "meta_type": 10,
@@ -112,8 +71,7 @@
     },
     {
       "VarDecl": {
-        "name": 15,
-        "type_spec": null
+        "name": 15
       }
     },
     {
@@ -246,12 +204,6 @@
         "params": [
           8
         ],
-        "return_type": {
-          "Named": {
-            "module": null,
-            "name": 19
-          }
-        },
         "body": 35
       }
     },
@@ -373,7 +325,6 @@
       "FunctionDecl": {
         "name": 1,
         "params": [],
-        "return_type": null,
         "body": 55
       }
     }

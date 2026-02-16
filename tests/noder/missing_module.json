@@ -2,8 +2,7 @@
   "nodes": [
     {
       "VarDecl": {
-        "name": 7,
-        "type_spec": "String"
+        "name": 7
       }
     },
     {
@@ -17,7 +16,6 @@
         "params": [
           0
         ],
-        "return_type": null,
         "body": 1
       }
     },
@@ -46,7 +44,6 @@
       "FunctionDecl": {
         "name": 10,
         "params": [],
-        "return_type": null,
         "body": 6
       }
     }

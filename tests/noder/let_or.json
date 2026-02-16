@@ -2,42 +2,17 @@
   "nodes": [
     {
       "TypeDecl": {
-        "name": 10,
-        "type_spec": {
-          "Struct": {
-            "fields": []
-          }
-        }
+        "name": 10
       }
     },
     {
       "TypeDecl": {
-        "name": 14,
-        "type_spec": {
-          "Enum": {
-            "variants": [
-              {
-                "name": 16,
-                "payload": {
-                  "Named": {
-                    "module": null,
-                    "name": 10
-                  }
-                }
-              },
-              {
-                "name": 17,
-                "payload": null
-              }
-            ]
-          }
-        }
+        "name": 14
       }
     },
     {
       "VarDecl": {
-        "name": 20,
-        "type_spec": "String"
+        "name": 20
       }
     },
     {
@@ -65,24 +40,12 @@
         "params": [
           2
         ],
-        "return_type": {
-          "Named": {
-            "module": null,
-            "name": 14
-          }
-        },
         "body": 5
       }
     },
     {
       "VarDecl": {
-        "name": 24,
-        "type_spec": {
-          "Named": {
-            "module": null,
-            "name": 10
-          }
-        }
+        "name": 24
       }
     },
     {
@@ -96,38 +59,17 @@
         "params": [
           7
         ],
-        "return_type": null,
         "body": 8
       }
     },
     {
       "TypeDecl": {
-        "name": 25,
-        "type_spec": {
-          "Enum": {
-            "variants": [
-              {
-                "name": 16,
-                "payload": "String"
-              },
-              {
-                "name": 17,
-                "payload": null
-              }
-            ]
-          }
-        }
+        "name": 25
       }
     },
     {
       "VarDecl": {
-        "name": 24,
-        "type_spec": {
-          "Named": {
-            "module": null,
-            "name": 10
-          }
-        }
+        "name": 24
       }
     },
     {
@@ -155,19 +97,12 @@
         "params": [
           11
         ],
-        "return_type": {
-          "Named": {
-            "module": null,
-            "name": 25
-          }
-        },
         "body": 14
       }
     },
     {
       "VarDecl": {
-        "name": 28,
-        "type_spec": "String"
+        "name": 28
       }
     },
     {
@@ -181,47 +116,17 @@
         "params": [
           16
         ],
-        "return_type": null,
         "body": 17
       }
     },
     {
       "TypeDecl": {
-        "name": 29,
-        "type_spec": {
-          "Enum": {
-            "variants": [
-              {
-                "name": 16,
-                "payload": "String"
-              },
-              {
-                "name": 30,
-                "payload": {
-                  "Named": {
-                    "module": null,
-                    "name": 14
-                  }
-                }
-              },
-              {
-                "name": 31,
-                "payload": {
-                  "Named": {
-                    "module": null,
-                    "name": 25
-                  }
-                }
-              }
-            ]
-          }
-        }
+        "name": 29
       }
     },
     {
       "VarDecl": {
-        "name": 20,
-        "type_spec": "String"
+        "name": 20
       }
     },
     {
@@ -240,8 +145,7 @@
     },
     {
       "VarDecl": {
-        "name": 24,
-        "type_spec": null
+        "name": 24
       }
     },
     {
@@ -359,8 +263,7 @@
     },
     {
       "VarDecl": {
-        "name": 28,
-        "type_spec": null
+        "name": 28
       }
     },
     {
@@ -467,12 +370,6 @@
         "params": [
           20
         ],
-        "return_type": {
-          "Named": {
-            "module": null,
-            "name": 29
-          }
-        },
         "body": 61
       }
     },
@@ -492,8 +389,7 @@
     },
     {
       "VarDecl": {
-        "name": 38,
-        "type_spec": null
+        "name": 38
       }
     },
     {
@@ -604,8 +500,7 @@
     },
     {
       "VarDecl": {
-        "name": 38,
-        "type_spec": null
+        "name": 38
       }
     },
     {
@@ -679,7 +574,6 @@
       "FunctionDecl": {
         "name": 1,
         "params": [],
-        "return_type": null,
         "body": 97
       }
     }
