@@ -110,7 +110,7 @@ impl Noder {
                 // create the nodes
                 let decl_id = node_tree.add_root_node(Node::VarDecl { name: decl.name });
                 let value_node = self.node_expr(node_tree, module, &decl.value);
-                node_tree.add_node(Node::Assign {
+                node_tree.add_root_node(Node::Assign {
                     target: decl_id,
                     value: value_node,
                 });
@@ -763,7 +763,7 @@ mod tests {
                 let mut e = NodeTree::new();
                 let decl_id = e.add_root_node(Node::VarDecl { name: 1 });
                 let value_id = e.add_node(Node::IntLiteral(42));
-                e.add_node(Node::Assign {
+                e.add_root_node(Node::Assign {
                     target: decl_id,
                     value: value_id,
                 });
@@ -779,7 +779,7 @@ mod tests {
                 let mut e = NodeTree::new();
                 let decl_id = e.add_root_node(Node::VarDecl { name: 2 });
                 let value_id = e.add_node(Node::StringLiteral(3));
-                e.add_node(Node::Assign {
+                e.add_root_node(Node::Assign {
                     target: decl_id,
                     value: value_id,
                 });
