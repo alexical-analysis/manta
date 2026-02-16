@@ -40,6 +40,8 @@ pub const SIZEOF: StrID = usize::MAX - 15;
 pub const ALIGNOF: StrID = usize::MAX - 16;
 pub const METAFLAGS: StrID = usize::MAX - 17;
 
+pub const INNERLET: StrID = usize::MAX - 18;
+
 fn constant_str_id(s: &str) -> Option<StrID> {
     match s {
         "u8" => Some(U8),
@@ -64,6 +66,7 @@ fn constant_str_id(s: &str) -> Option<StrID> {
         // this is not a valid identifier so we can use it in the compiler
         // without worrying about conflicting with user identifiers
         "<wrap>" => Some(WRAP),
+        "<inner let>" => Some(INNERLET),
         _ => None,
     }
 }
@@ -92,6 +95,7 @@ fn constant_id_str(id: StrID) -> Option<&'static str> {
         // this is not a valid identifier so we can use it in the compiler
         // without worrying about conflicting with user identifiers
         WRAP => Some("<wrap>"),
+        INNERLET => Some("<inner let>"),
 
         // Nil is also not a valid identifier
         NIL => Some("<nil>"),
