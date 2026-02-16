@@ -9,6 +9,11 @@ pub type StrID = usize;
 // Some key strings are hard coded as package constants these include type names
 // and internal string values
 // nil is is used to represent an empty StrID
+//
+// TODO: using usize here makes the tests platform dependent since on a 32-bit platform the
+// constant values will actually be different. Do we care that you won't be able to build/test the
+// complier on 32-bit systems? For now no, but what systems still in play use 32-bit architectures?
+// Is it just embedded systems?
 pub const NIL: StrID = usize::MAX;
 
 pub const U8: StrID = usize::MAX - 1;
@@ -30,6 +35,11 @@ pub const BOOL: StrID = usize::MAX - 12;
 pub const WRAP: StrID = usize::MAX - 13;
 pub const PANIC: StrID = usize::MAX - 14;
 
+// these are used for the internal meta struct for type information
+pub const SIZEOF: StrID = usize::MAX - 15;
+pub const ALIGNOF: StrID = usize::MAX - 16;
+pub const METAFLAGS: StrID = usize::MAX - 17;
+
 fn constant_str_id(s: &str) -> Option<StrID> {
     match s {
         "u8" => Some(U8),
@@ -44,10 +54,16 @@ fn constant_str_id(s: &str) -> Option<StrID> {
         "f64" => Some(F64),
         "str" => Some(STR),
         "bool" => Some(BOOL),
+
+        // keywords used throughout the complier
+        "panic" => Some(PANIC),
+        "size_of" => Some(SIZEOF),
+        "align_of" => Some(ALIGNOF),
+        "flags" => Some(METAFLAGS),
+
         // this is not a valid identifier so we can use it in the compiler
         // without worrying about conflicting with user identifiers
         "<wrap>" => Some(WRAP),
-        "panic" => Some(PANIC),
         _ => None,
     }
 }
@@ -69,8 +85,9 @@ fn constant_id_str(id: StrID) -> Option<&'static str> {
         // this is not a valid identifier so we can use it in the compiler
         // without worrying about conflicting with user identifiers
         WRAP => Some("<wrap>"),
-        PANIC => Some("panic"),
+        // Nil is also not a valid identifier
         NIL => Some("<nil>"),
+        PANIC => Some("panic"),
         _ => None,
     }
 }

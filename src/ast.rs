@@ -115,6 +115,8 @@ pub enum TypeSpec {
     Array(ArrayType),
     Struct(StructType),
     Enum(EnumType),
+    // UnsafePtr is the intermediary between types used by alloc
+    UnsafePtr,
 }
 
 /// MetaType

@@ -1,6 +1,10 @@
 use std::ops::Deref;
 
-use crate::ast::{BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Stmt, TypeSpec};
+use clap::builder::Str;
+
+use crate::ast::{
+    BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Stmt, StructField, StructType, TypeSpec,
+};
 use crate::hir::{Node, NodeID, NodeTree, PatternNode};
 use crate::parser::module::{BindingType, Module};
 use crate::str_store;
@@ -78,21 +82,26 @@ impl Noder {
 
                 let body_id = self.node_block(node_tree, module, &decl.body);
 
-                node_tree.add_root_node(Node::FunctionDecl {
+                let func_id = node_tree.add_root_node(Node::FunctionDecl {
                     name: decl.name,
                     params,
                     body: body_id,
                 });
+
+                if let Some(t) = decl.return_type.clone() {
+                    self.type_map.add_type(func_id, t);
+                };
             }
             Decl::Type(decl) => {
                 // create the node
-                node_tree.add_root_node(Node::TypeDecl { name: decl.name });
+                let decl_id = node_tree.add_root_node(Node::TypeDecl { name: decl.name });
+                self.type_map.add_type(decl_id, decl.type_spec.clone());
             }
             Decl::Const(decl) => {
                 // create the nodes
                 let decl_id = node_tree.add_root_node(Node::VarDecl { name: decl.name });
-                let value_node = Self::node_expr(node_tree, module, &decl.value);
-                node_tree.add_node(Node::Assign {
+                let value_node = self.node_expr(node_tree, module, &decl.value);
+                node_tree.add_root_node(Node::Assign {
                     target: decl_id,
                     value: value_node,
                 });
@@ -100,7 +109,7 @@ impl Noder {
             Decl::Var(decl) => {
                 // create the nodes
                 let decl_id = node_tree.add_root_node(Node::VarDecl { name: decl.name });
-                let value_node = Self::node_expr(node_tree, module, &decl.value);
+                let value_node = self.node_expr(node_tree, module, &decl.value);
                 node_tree.add_node(Node::Assign {
                     target: decl_id,
                     value: value_node,
@@ -134,8 +143,8 @@ impl Noder {
         match stmt {
             Stmt::Let(stmt) => self.node_let(node_tree, module, stmt),
             Stmt::Assign(stmt) => {
-                let l_id = Self::node_expr(node_tree, module, &stmt.lvalue);
-                let r_id = Self::node_expr(node_tree, module, &stmt.rvalue);
+                let l_id = self.node_expr(node_tree, module, &stmt.lvalue);
+                let r_id = self.node_expr(node_tree, module, &stmt.rvalue);
 
                 // TODO: should i check that l_id is an assignable node here or should that
                 // happen later when I do full type checking? (defaulting to later for now)
@@ -144,10 +153,10 @@ impl Noder {
                     value: r_id,
                 })
             }
-            Stmt::Expr(stmt) => Self::node_expr(node_tree, module, &stmt.expr),
+            Stmt::Expr(stmt) => self.node_expr(node_tree, module, &stmt.expr),
             Stmt::Return(stmt) => {
                 let value = if let Some(v) = &stmt.value {
-                    let value_id = Self::node_expr(node_tree, module, v);
+                    let value_id = self.node_expr(node_tree, module, v);
                     Some(value_id)
                 } else {
                     None
@@ -160,7 +169,7 @@ impl Noder {
                 node_tree.add_node(Node::Defer { block: block_id })
             }
             Stmt::Match(stmt) => {
-                let target_id = Self::node_expr(node_tree, module, &stmt.target);
+                let target_id = self.node_expr(node_tree, module, &stmt.target);
                 let mut arms = vec![];
                 for arm in &stmt.arms {
                     let pat_id = Self::node_pattern(node_tree, &arm.pattern);
@@ -181,7 +190,7 @@ impl Noder {
             }
             Stmt::Block(stmt) => self.node_block(node_tree, module, stmt),
             Stmt::If(stmt) => {
-                let check_id = Self::node_expr(node_tree, module, &stmt.check);
+                let check_id = self.node_expr(node_tree, module, &stmt.check);
                 let success_id = self.node_block(node_tree, module, &stmt.success);
                 let fail_id = stmt
                     .fail
@@ -246,7 +255,7 @@ impl Noder {
 
     fn node_let(&mut self, node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> NodeID {
         let mut arms = vec![];
-        let value_id = Self::node_expr(node_tree, module, &stmt.value);
+        let value_id = self.node_expr(node_tree, module, &stmt.value);
 
         if let Pattern::Payload(pat) = &stmt.pattern {
             let _type_spec = match pat.pat.deref() {
@@ -427,12 +436,34 @@ impl Noder {
         }
     }
 
-    fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
+    fn node_expr(&mut self, node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
         match expr {
-            Expr::IntLiteral(expr) => node_tree.add_node(Node::IntLiteral(*expr)),
-            Expr::FloatLiteral(expr) => node_tree.add_node(Node::FloatLiteral(*expr)),
-            Expr::StringLiteral(expr) => node_tree.add_node(Node::StringLiteral(*expr)),
-            Expr::BoolLiteral(expr) => node_tree.add_node(Node::BoolLiteral(*expr)),
+            Expr::IntLiteral(expr) => {
+                let node_id = node_tree.add_node(Node::IntLiteral(*expr));
+
+                // need to infer this type instead of just assuming it's an i64
+                self.type_map.add_type(node_id, TypeSpec::Int64);
+
+                node_id
+            }
+            Expr::FloatLiteral(expr) => {
+                let node_id = node_tree.add_node(Node::FloatLiteral(*expr));
+
+                // need to infer this type instead of just assuming it's an f64
+                self.type_map.add_type(node_id, TypeSpec::Float64);
+
+                node_id
+            }
+            Expr::StringLiteral(expr) => {
+                let node_id = node_tree.add_node(Node::StringLiteral(*expr));
+                self.type_map.add_type(node_id, TypeSpec::String);
+                node_id
+            }
+            Expr::BoolLiteral(expr) => {
+                let node_id = node_tree.add_node(Node::BoolLiteral(*expr));
+                self.type_map.add_type(node_id, TypeSpec::Bool);
+                node_id
+            }
             Expr::Identifier(expr) => {
                 let scope_id = module
                     .get_scope_id(expr.token.source_id)
@@ -445,8 +476,8 @@ impl Noder {
                 }
             }
             Expr::Binary(expr) => {
-                let left_id = Self::node_expr(node_tree, module, &expr.left);
-                let right_id = Self::node_expr(node_tree, module, &expr.right);
+                let left_id = self.node_expr(node_tree, module, &expr.left);
+                let right_id = self.node_expr(node_tree, module, &expr.right);
                 node_tree.add_node(Node::Binary {
                     left: left_id,
                     operator: expr.operator,
@@ -454,18 +485,18 @@ impl Noder {
                 })
             }
             Expr::Unary(expr) => {
-                let expr_id = Self::node_expr(node_tree, module, &expr.operand);
+                let expr_id = self.node_expr(node_tree, module, &expr.operand);
                 node_tree.add_node(Node::Unary {
                     operator: expr.operator,
                     operand: expr_id,
                 })
             }
             Expr::Call(expr) => {
-                let func_id = Self::node_expr(node_tree, module, &expr.func);
+                let func_id = self.node_expr(node_tree, module, &expr.func);
 
                 let mut args = vec![];
                 for arg in &expr.args {
-                    let param_id = Self::node_expr(node_tree, module, arg);
+                    let param_id = self.node_expr(node_tree, module, arg);
                     args.push(param_id);
                 }
 
@@ -488,8 +519,8 @@ impl Noder {
                 }
             }
             Expr::Index(expr) => {
-                let target_id = Self::node_expr(node_tree, module, &expr.target);
-                let idx_id = Self::node_expr(node_tree, module, &expr.index);
+                let target_id = self.node_expr(node_tree, module, &expr.target);
+                let idx_id = self.node_expr(node_tree, module, &expr.index);
 
                 node_tree.add_node(Node::Index {
                     target: target_id,
@@ -497,75 +528,111 @@ impl Noder {
                 })
             }
             Expr::Range(expr) => {
-                let start_id = Self::node_expr(node_tree, module, &expr.start);
-                let end_id = Self::node_expr(node_tree, module, &expr.end);
+                let start_id = self.node_expr(node_tree, module, &expr.start);
+                let end_id = self.node_expr(node_tree, module, &expr.end);
                 node_tree.add_node(Node::Range {
                     start: start_id,
                     end: end_id,
                 })
             }
-            // TODO: this is a rats nest of conditionals, we really should clean this up
-            // maybe it can use self.node_expr() and then check the node type after the fact
-            Expr::DotAccess(expr) => match &expr.target {
-                Some(target) => match target.deref() {
+            Expr::DotAccess(expr) => {
+                let target = match &expr.target {
+                    Some(t) => t,
+                    None => {
+                        // if there's no target it must be an enum
+                        return node_tree.add_node(Node::EnumConstructor {
+                            target: None,
+                            variant: expr.field,
+                            payload: None,
+                        });
+                    }
+                };
+
+                let target_id = self.node_expr(node_tree, module, target);
+
+                let binding = match target.deref() {
                     Expr::Identifier(ident) => {
                         let scope_id = module
                             .get_scope_id(ident.token.source_id)
                             .expect("could not find scope_id for identifier");
-                        let binding = module.find_binding(scope_id, ident.name);
-                        if let Some(b) = binding {
-                            if b.binding_type == BindingType::EnumType {
-                                let target_id = Self::node_expr(node_tree, module, target);
-                                return node_tree.add_node(Node::EnumConstructor {
-                                    target: Some(target_id),
-                                    variant: expr.field,
-                                    payload: None,
-                                });
-                            } else {
-                                // dot expressions that are not enum constructures must be field
-                                // access expressions instead
-                                let target_id = Self::node_expr(node_tree, module, target);
-                                return node_tree.add_node(Node::FieldAccess {
-                                    target: Some(target_id),
-                                    field: expr.field,
-                                });
-                            }
-                        }
-
-                        panic!("unknown identifier")
+                        module
+                            .find_binding(scope_id, ident.name)
+                            .expect("missing binding for already noded target")
                     }
                     _ => {
-                        let target_id = Self::node_expr(node_tree, module, target);
+                        // non-identifier targets can only be field access expressions
+                        return node_tree.add_node(Node::FieldAccess {
+                            target: Some(target_id),
+                            field: expr.field,
+                        });
+                    }
+                };
+
+                match binding.binding_type {
+                    BindingType::EnumType => node_tree.add_node(Node::EnumConstructor {
+                        target: Some(target_id),
+                        variant: expr.field,
+                        payload: None,
+                    }),
+                    _ => {
+                        // identifiers can still be field access expressions of the identifier is
+                        // not an enum type
                         node_tree.add_node(Node::FieldAccess {
                             target: Some(target_id),
                             field: expr.field,
                         })
                     }
-                },
-                // if there's no target it must be and enum
-                None => node_tree.add_node(Node::EnumConstructor {
-                    target: None,
-                    variant: expr.field,
-                    payload: None,
-                }),
-            },
+                }
+            }
             Expr::ModuleAccess(_expr) => todo!("modules are not yet supported"),
-            Expr::MetaType(_expr) => node_tree.add_node(Node::MetaType),
+            Expr::MetaType(_expr) => {
+                let node_id = node_tree.add_node(Node::MetaType);
+                self.type_map.add_type(
+                    node_id,
+                    // TODO: the meta type should probably live somewhere central since I don't
+                    // think this is the only place this will pop up.
+                    TypeSpec::Struct(StructType {
+                        fields: vec![
+                            // TODO: These should probably be USize types if I add that...
+                            StructField {
+                                name: str_store::SIZEOF,
+                                type_spec: TypeSpec::UInt64,
+                            },
+                            StructField {
+                                name: str_store::ALIGNOF,
+                                type_spec: TypeSpec::UInt64,
+                            },
+                            // this stores boolean information about the type like if it's a slice
+                            // hash-map or string etc.
+                            StructField {
+                                name: str_store::METAFLAGS,
+                                type_spec: TypeSpec::UInt64,
+                            },
+                        ],
+                    }),
+                );
+
+                node_id
+            }
             Expr::Alloc(expr) => {
-                let meta_id = Self::node_expr(node_tree, module, &expr.meta_type);
+                let meta_id = self.node_expr(node_tree, module, &expr.meta_type);
                 let mut options = vec![];
                 for opt in &expr.options {
-                    let opt_id = Self::node_expr(node_tree, module, opt);
+                    let opt_id = self.node_expr(node_tree, module, opt);
                     options.push(opt_id);
                 }
 
-                node_tree.add_node(Node::Alloc {
+                let node_id = node_tree.add_node(Node::Alloc {
                     meta_type: meta_id,
                     options,
-                })
+                });
+
+                self.type_map.add_type(node_id, TypeSpec::UnsafePtr);
+
+                node_id
             }
             Expr::Free(expr) => {
-                let ptr_id = Self::node_expr(node_tree, module, &expr.expr);
+                let ptr_id = self.node_expr(node_tree, module, &expr.expr);
                 node_tree.add_node(Node::Free { expr: ptr_id })
             }
         }
