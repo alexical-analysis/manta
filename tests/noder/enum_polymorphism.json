@@ -189,46 +189,14 @@
       "IntLiteral": 10
     },
     {
-      "Pattern": {
-        "Identifier": 31
+      "VarDecl": {
+        "name": 31
       }
     },
     {
-      "Block": {
-        "statements": []
-      }
-    },
-    {
-      "MatchArm": {
-        "pattern": 33,
-        "body": 34
-      }
-    },
-    {
-      "Identifier": 18446744073709551601
-    },
-    {
-      "Call": {
-        "func": 36,
-        "args": []
-      }
-    },
-    {
-      "Pattern": "Default"
-    },
-    {
-      "MatchArm": {
-        "pattern": 38,
-        "body": 37
-      }
-    },
-    {
-      "Match": {
-        "target": 31,
-        "arms": [
-          35,
-          39
-        ]
+      "Assign": {
+        "target": 33,
+        "value": 31
       }
     },
     {
@@ -239,53 +207,21 @@
     },
     {
       "Call": {
-        "func": 41,
+        "func": 35,
         "args": [
-          42
+          36
         ]
       }
     },
     {
-      "Pattern": {
-        "Identifier": 33
+      "VarDecl": {
+        "name": 33
       }
     },
     {
-      "Block": {
-        "statements": []
-      }
-    },
-    {
-      "MatchArm": {
-        "pattern": 44,
-        "body": 45
-      }
-    },
-    {
-      "Identifier": 18446744073709551601
-    },
-    {
-      "Call": {
-        "func": 47,
-        "args": []
-      }
-    },
-    {
-      "Pattern": "Default"
-    },
-    {
-      "MatchArm": {
-        "pattern": 49,
-        "body": 48
-      }
-    },
-    {
-      "Match": {
-        "target": 43,
-        "arms": [
-          46,
-          50
-        ]
+      "Assign": {
+        "target": 38,
+        "value": 37
       }
     },
     {
@@ -296,9 +232,9 @@
     },
     {
       "Call": {
-        "func": 52,
+        "func": 40,
         "args": [
-          53
+          41
         ]
       }
     },
@@ -306,7 +242,7 @@
       "EnumConstructor": {
         "target": null,
         "variant": 20,
-        "payload": 56
+        "payload": 44
       }
     },
     {
@@ -318,15 +254,6 @@
       }
     },
     {
-      "Identifier": 34
-    },
-    {
-      "Assign": {
-        "target": 57,
-        "value": 58
-      }
-    },
-    {
       "Pattern": {
         "Identifier": 18
       }
@@ -334,15 +261,24 @@
     {
       "Pattern": {
         "Payload": {
-          "pat": 60,
-          "payload": 34
+          "pat": 46,
+          "payload": 18446744073709551597
         }
       }
     },
     {
+      "Identifier": 18446744073709551597
+    },
+    {
+      "Assign": {
+        "target": 45,
+        "value": 48
+      }
+    },
+    {
       "MatchArm": {
-        "pattern": 61,
-        "body": 59
+        "pattern": 47,
+        "body": 49
       }
     },
     {
@@ -350,7 +286,7 @@
     },
     {
       "Call": {
-        "func": 63,
+        "func": 51,
         "args": []
       }
     },
@@ -359,16 +295,16 @@
     },
     {
       "MatchArm": {
-        "pattern": 65,
-        "body": 64
+        "pattern": 53,
+        "body": 52
       }
     },
     {
       "Match": {
-        "target": 55,
+        "target": 43,
         "arms": [
-          62,
-          66
+          50,
+          54
         ]
       }
     },
@@ -380,53 +316,21 @@
     },
     {
       "Call": {
-        "func": 68,
+        "func": 56,
         "args": [
-          69
+          57
         ]
       }
     },
     {
-      "Pattern": {
-        "Identifier": 36
+      "VarDecl": {
+        "name": 36
       }
     },
     {
-      "Block": {
-        "statements": []
-      }
-    },
-    {
-      "MatchArm": {
-        "pattern": 71,
-        "body": 72
-      }
-    },
-    {
-      "Identifier": 18446744073709551601
-    },
-    {
-      "Call": {
-        "func": 74,
-        "args": []
-      }
-    },
-    {
-      "Pattern": "Default"
-    },
-    {
-      "MatchArm": {
-        "pattern": 76,
-        "body": 75
-      }
-    },
-    {
-      "Match": {
-        "target": 70,
-        "arms": [
-          73,
-          77
-        ]
+      "Assign": {
+        "target": 59,
+        "value": 58
       }
     },
     {
@@ -437,21 +341,25 @@
     },
     {
       "Call": {
-        "func": 79,
+        "func": 61,
         "args": [
-          80
+          62
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          40,
-          51,
-          54,
-          67,
-          78,
-          81
+          33,
+          34,
+          38,
+          39,
+          42,
+          45,
+          55,
+          59,
+          60,
+          63
         ]
       }
     },
@@ -459,7 +367,7 @@
       "FunctionDecl": {
         "name": 1,
         "params": [],
-        "body": 82
+        "body": 64
       }
     }
   ],
@@ -469,6 +377,6 @@
     5,
     6,
     29,
-    83
+    65
   ]
 }

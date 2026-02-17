@@ -170,21 +170,23 @@
                           }
                         },
                         "value": {
-                          "DotAccess": {
-                            "target": {
-                              "Alloc": {
-                                "meta_type": {
-                                  "MetaType": {
-                                    "type_spec": "Int32"
-                                  }
-                                },
-                                "options": []
+                          "Alloc": {
+                            "meta_type": {
+                              "MetaType": {
+                                "type_spec": "Int32"
                               }
                             },
-                            "field": 23
+                            "options": []
                           }
                         },
-                        "except": "None"
+                        "except": {
+                          "Wrap": {
+                            "DotAccess": {
+                              "target": null,
+                              "field": 23
+                            }
+                          }
+                        }
                       }
                     },
                     {
@@ -196,7 +198,7 @@
                               "Identifier": {
                                 "token": {
                                   "kind": "Identifier",
-                                  "source_id": 531,
+                                  "source_id": 536,
                                   "lexeme_id": 15
                                 },
                                 "name": 15
@@ -224,7 +226,7 @@
                                 "Identifier": {
                                   "token": {
                                     "kind": "Identifier",
-                                    "source_id": 557,
+                                    "source_id": 562,
                                     "lexeme_id": 15
                                   },
                                   "name": 15
@@ -258,7 +260,7 @@
       "Function": {
         "token": {
           "kind": "FnKeyword",
-          "source_id": 598,
+          "source_id": 603,
           "lexeme_id": 13
         },
         "name": 1,
@@ -267,7 +269,7 @@
         "body": {
           "token": {
             "kind": "OpenBrace",
-            "source_id": 608,
+            "source_id": 613,
             "lexeme_id": 11
           },
           "statements": [
@@ -279,7 +281,7 @@
                       "Identifier": {
                         "token": {
                           "kind": "Identifier",
-                          "source_id": 620,
+                          "source_id": 625,
                           "lexeme_id": 24
                         },
                         "name": 24
@@ -296,8 +298,8 @@
                   {
                     "token": {
                       "kind": "Dot",
-                      "source_id": 649,
-                      "lexeme_id": 31
+                      "source_id": 654,
+                      "lexeme_id": 32
                     },
                     "pattern": {
                       "Payload": {
@@ -315,7 +317,7 @@
                     "body": {
                       "token": {
                         "kind": "OpenBrace",
-                        "source_id": 656,
+                        "source_id": 661,
                         "lexeme_id": 11
                       },
                       "statements": [
@@ -327,7 +329,7 @@
                                   "Identifier": {
                                     "token": {
                                       "kind": "Identifier",
-                                      "source_id": 658,
+                                      "source_id": 663,
                                       "lexeme_id": 14
                                     },
                                     "name": 14
@@ -341,7 +343,7 @@
                                         "Identifier": {
                                           "token": {
                                             "kind": "Identifier",
-                                            "source_id": 675,
+                                            "source_id": 680,
                                             "lexeme_id": 15
                                           },
                                           "name": 15
@@ -360,8 +362,8 @@
                   {
                     "token": {
                       "kind": "Dot",
-                      "source_id": 688,
-                      "lexeme_id": 31
+                      "source_id": 693,
+                      "lexeme_id": 32
                     },
                     "pattern": {
                       "DotAccess": {
@@ -374,7 +376,7 @@
                     "body": {
                       "token": {
                         "kind": "OpenBrace",
-                        "source_id": 701,
+                        "source_id": 706,
                         "lexeme_id": 11
                       },
                       "statements": [
@@ -386,7 +388,7 @@
                                   "Identifier": {
                                     "token": {
                                       "kind": "Identifier",
-                                      "source_id": 703,
+                                      "source_id": 708,
                                       "lexeme_id": 17
                                     },
                                     "name": 17
@@ -394,7 +396,7 @@
                                 },
                                 "args": [
                                   {
-                                    "StringLiteral": 37
+                                    "StringLiteral": 38
                                   }
                                 ]
                               }
@@ -602,18 +604,18 @@
       "460": 6,
       "469": 6,
       "474": 7,
-      "531": 7,
-      "557": 7,
-      "598": 8,
-      "608": 9,
-      "620": 9,
-      "649": 10,
-      "656": 11,
-      "658": 11,
-      "675": 11,
-      "688": 12,
-      "701": 13,
-      "703": 13
+      "536": 7,
+      "562": 7,
+      "603": 8,
+      "613": 9,
+      "625": 9,
+      "654": 10,
+      "661": 11,
+      "663": 11,
+      "680": 11,
+      "693": 12,
+      "706": 13,
+      "708": 13
     }
   }
 }

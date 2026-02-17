@@ -22,7 +22,7 @@ type MaybeAlloc enum {
 // maybe_alloc allocates memory for an i32 if cond is true
 fn maybe_alloc(cond bool) MaybeAlloc {
     if cond {
-        let i32(p) = alloc(@i32) .AllocFailed
+        let i32(p) = alloc(@i32) wrap .AllocFailed
         *p = 42
         return .Ok(p)
     }
