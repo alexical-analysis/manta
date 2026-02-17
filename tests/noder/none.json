@@ -64,23 +64,8 @@
       }
     },
     {
-      "FieldAccess": {
-        "target": 11,
-        "field": 23
-      }
-    },
-    {
       "VarDecl": {
         "name": 15
-      }
-    },
-    {
-      "Identifier": 15
-    },
-    {
-      "Assign": {
-        "target": 13,
-        "value": 14
       }
     },
     {
@@ -91,41 +76,65 @@
     {
       "Pattern": {
         "Payload": {
-          "pat": 16,
-          "payload": 15
+          "pat": 13,
+          "payload": 18446744073709551597
         }
       }
     },
     {
-      "MatchArm": {
-        "pattern": 17,
-        "body": 15
+      "Identifier": 18446744073709551597
+    },
+    {
+      "Assign": {
+        "target": 12,
+        "value": 15
       }
     },
     {
-      "Identifier": 18446744073709551601
-    },
-    {
-      "Call": {
-        "func": 19,
-        "args": []
+      "MatchArm": {
+        "pattern": 14,
+        "body": 16
       }
     },
     {
-      "Pattern": "Default"
+      "Identifier": 18446744073709551602
+    },
+    {
+      "EnumConstructor": {
+        "target": null,
+        "variant": 23,
+        "payload": 18
+      }
+    },
+    {
+      "Return": {
+        "value": 19
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          20
+        ]
+      }
+    },
+    {
+      "Pattern": {
+        "Identifier": 18446744073709551602
+      }
     },
     {
       "MatchArm": {
-        "pattern": 21,
-        "body": 20
+        "pattern": 22,
+        "body": 21
       }
     },
     {
       "Match": {
-        "target": 12,
+        "target": 11,
         "arms": [
-          18,
-          22
+          17,
+          23
         ]
       }
     },
@@ -135,7 +144,7 @@
     {
       "Unary": {
         "operator": "Dereference",
-        "operand": 24
+        "operand": 25
       }
     },
     {
@@ -143,15 +152,15 @@
     },
     {
       "Assign": {
-        "target": 25,
-        "value": 26
+        "target": 26,
+        "value": 27
       }
     },
     {
       "EnumConstructor": {
         "target": null,
         "variant": 21,
-        "payload": 29
+        "payload": 30
       }
     },
     {
@@ -159,22 +168,23 @@
     },
     {
       "Return": {
-        "value": 28
+        "value": 29
       }
     },
     {
       "Block": {
         "statements": [
-          23,
-          27,
-          30
+          12,
+          24,
+          28,
+          31
         ]
       }
     },
     {
       "If": {
         "condition": 9,
-        "then_block": 31,
+        "then_block": 32,
         "else_block": null
       }
     },
@@ -187,14 +197,14 @@
     },
     {
       "Return": {
-        "value": 33
+        "value": 34
       }
     },
     {
       "Block": {
         "statements": [
-          32,
-          34
+          33,
+          35
         ]
       }
     },
@@ -204,7 +214,7 @@
         "params": [
           8
         ],
-        "body": 35
+        "body": 36
       }
     },
     {
@@ -215,9 +225,9 @@
     },
     {
       "Call": {
-        "func": 37,
+        "func": 38,
         "args": [
-          38
+          39
         ]
       }
     },
@@ -232,7 +242,7 @@
     {
       "Pattern": {
         "Payload": {
-          "pat": 40,
+          "pat": 41,
           "payload": 15
         }
       }
@@ -246,28 +256,28 @@
     {
       "Unary": {
         "operator": "Dereference",
-        "operand": 43
+        "operand": 44
       }
     },
     {
       "Call": {
-        "func": 42,
+        "func": 43,
         "args": [
-          44
+          45
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          45
+          46
         ]
       }
     },
     {
       "MatchArm": {
-        "pattern": 41,
-        "body": 46
+        "pattern": 42,
+        "body": 47
       }
     },
     {
@@ -282,42 +292,42 @@
       "Identifier": 17
     },
     {
-      "StringLiteral": 37
+      "StringLiteral": 38
     },
     {
       "Call": {
-        "func": 49,
+        "func": 50,
         "args": [
-          50
-        ]
-      }
-    },
-    {
-      "Block": {
-        "statements": [
           51
         ]
       }
     },
     {
+      "Block": {
+        "statements": [
+          52
+        ]
+      }
+    },
+    {
       "MatchArm": {
-        "pattern": 48,
-        "body": 52
+        "pattern": 49,
+        "body": 53
       }
     },
     {
       "Match": {
-        "target": 39,
+        "target": 40,
         "arms": [
-          47,
-          53
+          48,
+          54
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          54
+          55
         ]
       }
     },
@@ -325,7 +335,7 @@
       "FunctionDecl": {
         "name": 1,
         "params": [],
-        "body": 55
+        "body": 56
       }
     }
   ],
@@ -334,7 +344,7 @@
     3,
     6,
     7,
-    36,
-    56
+    37,
+    57
   ]
 }

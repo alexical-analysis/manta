@@ -136,15 +136,6 @@
       }
     },
     {
-      "Identifier": 22
-    },
-    {
-      "Assign": {
-        "target": 22,
-        "value": 23
-      }
-    },
-    {
       "Pattern": {
         "DotAccess": {
           "target": null,
@@ -155,15 +146,24 @@
     {
       "Pattern": {
         "Payload": {
-          "pat": 25,
-          "payload": 22
+          "pat": 23,
+          "payload": 18446744073709551597
         }
       }
     },
     {
+      "Identifier": 18446744073709551597
+    },
+    {
+      "Assign": {
+        "target": 22,
+        "value": 25
+      }
+    },
+    {
       "MatchArm": {
-        "pattern": 26,
-        "body": 24
+        "pattern": 24,
+        "body": 26
       }
     },
     {
@@ -247,29 +247,29 @@
       }
     },
     {
-      "Identifier": 26
-    },
-    {
-      "Assign": {
-        "target": 42,
-        "value": 43
-      }
-    },
-    {
       "Pattern": "TypeSpec"
     },
     {
       "Pattern": {
         "Payload": {
-          "pat": 45,
-          "payload": 26
+          "pat": 43,
+          "payload": 18446744073709551597
         }
       }
     },
     {
+      "Identifier": 18446744073709551597
+    },
+    {
+      "Assign": {
+        "target": 42,
+        "value": 45
+      }
+    },
+    {
       "MatchArm": {
-        "pattern": 46,
-        "body": 44
+        "pattern": 44,
+        "body": 46
       }
     },
     {
@@ -343,15 +343,6 @@
       }
     },
     {
-      "Identifier": 42
-    },
-    {
-      "Assign": {
-        "target": 61,
-        "value": 62
-      }
-    },
-    {
       "Pattern": {
         "DotAccess": {
           "target": null,
@@ -362,15 +353,24 @@
     {
       "Pattern": {
         "Payload": {
-          "pat": 64,
-          "payload": 42
+          "pat": 62,
+          "payload": 18446744073709551597
         }
       }
     },
     {
+      "Identifier": 18446744073709551597
+    },
+    {
+      "Assign": {
+        "target": 61,
+        "value": 64
+      }
+    },
+    {
       "MatchArm": {
-        "pattern": 65,
-        "body": 63
+        "pattern": 63,
+        "body": 65
       }
     },
     {
@@ -430,10 +430,13 @@
     {
       "Block": {
         "statements": [
+          22,
           34,
           39,
+          42,
           52,
           56,
+          61,
           73,
           75
         ]

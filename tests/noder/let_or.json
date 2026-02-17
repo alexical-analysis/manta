@@ -149,15 +149,6 @@
       }
     },
     {
-      "Identifier": 24
-    },
-    {
-      "Assign": {
-        "target": 24,
-        "value": 25
-      }
-    },
-    {
       "Pattern": {
         "DotAccess": {
           "target": null,
@@ -168,15 +159,24 @@
     {
       "Pattern": {
         "Payload": {
-          "pat": 27,
-          "payload": 24
+          "pat": 25,
+          "payload": 18446744073709551597
         }
       }
     },
     {
+      "Identifier": 18446744073709551597
+    },
+    {
+      "Assign": {
+        "target": 24,
+        "value": 27
+      }
+    },
+    {
       "MatchArm": {
-        "pattern": 28,
-        "body": 26
+        "pattern": 26,
+        "body": 28
       }
     },
     {
@@ -267,15 +267,6 @@
       }
     },
     {
-      "Identifier": 28
-    },
-    {
-      "Assign": {
-        "target": 45,
-        "value": 46
-      }
-    },
-    {
       "Pattern": {
         "DotAccess": {
           "target": null,
@@ -286,15 +277,24 @@
     {
       "Pattern": {
         "Payload": {
-          "pat": 48,
-          "payload": 28
+          "pat": 46,
+          "payload": 18446744073709551597
         }
       }
     },
     {
+      "Identifier": 18446744073709551597
+    },
+    {
+      "Assign": {
+        "target": 45,
+        "value": 48
+      }
+    },
+    {
       "MatchArm": {
-        "pattern": 49,
-        "body": 47
+        "pattern": 47,
+        "body": 49
       }
     },
     {
@@ -357,8 +357,10 @@
     {
       "Block": {
         "statements": [
+          24,
           36,
           41,
+          45,
           57,
           60
         ]
@@ -393,15 +395,6 @@
       }
     },
     {
-      "Identifier": 38
-    },
-    {
-      "Assign": {
-        "target": 66,
-        "value": 67
-      }
-    },
-    {
       "Pattern": {
         "DotAccess": {
           "target": null,
@@ -412,15 +405,24 @@
     {
       "Pattern": {
         "Payload": {
-          "pat": 69,
-          "payload": 38
+          "pat": 67,
+          "payload": 18446744073709551597
         }
       }
     },
     {
+      "Identifier": 18446744073709551597
+    },
+    {
+      "Assign": {
+        "target": 66,
+        "value": 69
+      }
+    },
+    {
       "MatchArm": {
-        "pattern": 70,
-        "body": 68
+        "pattern": 68,
+        "body": 70
       }
     },
     {
@@ -504,15 +506,6 @@
       }
     },
     {
-      "Identifier": 38
-    },
-    {
-      "Assign": {
-        "target": 86,
-        "value": 87
-      }
-    },
-    {
       "Pattern": {
         "DotAccess": {
           "target": null,
@@ -523,15 +516,24 @@
     {
       "Pattern": {
         "Payload": {
-          "pat": 89,
-          "payload": 38
+          "pat": 87,
+          "payload": 18446744073709551597
         }
       }
     },
     {
+      "Identifier": 18446744073709551597
+    },
+    {
+      "Assign": {
+        "target": 86,
+        "value": 89
+      }
+    },
+    {
       "MatchArm": {
-        "pattern": 90,
-        "body": 88
+        "pattern": 88,
+        "body": 90
       }
     },
     {
@@ -564,8 +566,10 @@
     {
       "Block": {
         "statements": [
+          66,
           79,
           82,
+          86,
           96
         ]
       }

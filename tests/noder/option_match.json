@@ -135,46 +135,14 @@
       }
     },
     {
-      "Pattern": {
-        "Identifier": 28
+      "VarDecl": {
+        "name": 28
       }
     },
     {
-      "Block": {
-        "statements": []
-      }
-    },
-    {
-      "MatchArm": {
-        "pattern": 24,
-        "body": 25
-      }
-    },
-    {
-      "Identifier": 18446744073709551601
-    },
-    {
-      "Call": {
-        "func": 27,
-        "args": []
-      }
-    },
-    {
-      "Pattern": "Default"
-    },
-    {
-      "MatchArm": {
-        "pattern": 29,
-        "body": 28
-      }
-    },
-    {
-      "Match": {
-        "target": 23,
-        "arms": [
-          26,
-          30
-        ]
+      "Assign": {
+        "target": 24,
+        "value": 23
       }
     },
     {
@@ -191,7 +159,7 @@
     {
       "Pattern": {
         "Payload": {
-          "pat": 33,
+          "pat": 27,
           "payload": 33
         }
       }
@@ -207,24 +175,24 @@
     },
     {
       "Call": {
-        "func": 35,
+        "func": 29,
         "args": [
-          36,
-          37
+          30,
+          31
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          38
+          32
         ]
       }
     },
     {
       "MatchArm": {
-        "pattern": 34,
-        "body": 39
+        "pattern": 28,
+        "body": 33
       }
     },
     {
@@ -243,39 +211,40 @@
     },
     {
       "Call": {
-        "func": 42,
+        "func": 36,
         "args": [
-          43
+          37
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          44
+          38
         ]
       }
     },
     {
       "MatchArm": {
-        "pattern": 41,
-        "body": 45
+        "pattern": 35,
+        "body": 39
       }
     },
     {
       "Match": {
-        "target": 32,
+        "target": 26,
         "arms": [
-          40,
-          46
+          34,
+          40
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          31,
-          47
+          24,
+          25,
+          41
         ]
       }
     },
@@ -283,7 +252,7 @@
       "FunctionDecl": {
         "name": 1,
         "params": [],
-        "body": 48
+        "body": 42
       }
     }
   ],
@@ -291,6 +260,6 @@
     2,
     3,
     19,
-    49
+    43
   ]
 }

@@ -23,46 +23,14 @@
       "BoolLiteral": true
     },
     {
-      "Pattern": {
-        "Identifier": 13
+      "VarDecl": {
+        "name": 13
       }
     },
     {
-      "Block": {
-        "statements": []
-      }
-    },
-    {
-      "MatchArm": {
-        "pattern": 4,
-        "body": 5
-      }
-    },
-    {
-      "Identifier": 18446744073709551601
-    },
-    {
-      "Call": {
-        "func": 7,
-        "args": []
-      }
-    },
-    {
-      "Pattern": "Default"
-    },
-    {
-      "MatchArm": {
-        "pattern": 9,
-        "body": 8
-      }
-    },
-    {
-      "Match": {
-        "target": 3,
-        "arms": [
-          6,
-          10
-        ]
+      "Assign": {
+        "target": 4,
+        "value": 3
       }
     },
     {
@@ -76,23 +44,23 @@
     },
     {
       "Call": {
-        "func": 13,
+        "func": 7,
         "args": [
-          14
+          8
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          15
+          9
         ]
       }
     },
     {
       "If": {
-        "condition": 12,
-        "then_block": 16,
+        "condition": 6,
+        "then_block": 10,
         "else_block": null
       }
     },
@@ -100,46 +68,14 @@
       "IntLiteral": 9
     },
     {
-      "Pattern": {
-        "Identifier": 18
+      "VarDecl": {
+        "name": 18
       }
     },
     {
-      "Block": {
-        "statements": []
-      }
-    },
-    {
-      "MatchArm": {
-        "pattern": 19,
-        "body": 20
-      }
-    },
-    {
-      "Identifier": 18446744073709551601
-    },
-    {
-      "Call": {
-        "func": 22,
-        "args": []
-      }
-    },
-    {
-      "Pattern": "Default"
-    },
-    {
-      "MatchArm": {
-        "pattern": 24,
-        "body": 23
-      }
-    },
-    {
-      "Match": {
-        "target": 18,
-        "arms": [
-          21,
-          25
-        ]
+      "Assign": {
+        "target": 13,
+        "value": 12
       }
     },
     {
@@ -150,9 +86,9 @@
     },
     {
       "Binary": {
-        "left": 27,
+        "left": 15,
         "operator": "GreaterThan",
-        "right": 28
+        "right": 16
       }
     },
     {
@@ -163,16 +99,16 @@
     },
     {
       "Call": {
-        "func": 30,
+        "func": 18,
         "args": [
-          31
+          19
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          32
+          20
         ]
       }
     },
@@ -184,33 +120,35 @@
     },
     {
       "Call": {
-        "func": 34,
+        "func": 22,
         "args": [
-          35
+          23
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          36
+          24
         ]
       }
     },
     {
       "If": {
-        "condition": 29,
-        "then_block": 33,
-        "else_block": 37
+        "condition": 17,
+        "then_block": 21,
+        "else_block": 25
       }
     },
     {
       "Block": {
         "statements": [
+          4,
+          5,
           11,
-          17,
-          26,
-          38
+          13,
+          14,
+          26
         ]
       }
     },
@@ -218,12 +156,12 @@
       "FunctionDecl": {
         "name": 1,
         "params": [],
-        "body": 39
+        "body": 27
       }
     }
   ],
   "roots": [
     2,
-    40
+    28
   ]
 }

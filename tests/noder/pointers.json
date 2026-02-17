@@ -23,92 +23,28 @@
       "IntLiteral": 42
     },
     {
-      "Pattern": {
-        "Identifier": 9
+      "VarDecl": {
+        "name": 9
       }
     },
     {
-      "Block": {
-        "statements": []
-      }
-    },
-    {
-      "MatchArm": {
-        "pattern": 4,
-        "body": 5
-      }
-    },
-    {
-      "Identifier": 18446744073709551601
-    },
-    {
-      "Call": {
-        "func": 7,
-        "args": []
-      }
-    },
-    {
-      "Pattern": "Default"
-    },
-    {
-      "MatchArm": {
-        "pattern": 9,
-        "body": 8
-      }
-    },
-    {
-      "Match": {
-        "target": 3,
-        "arms": [
-          6,
-          10
-        ]
+      "Assign": {
+        "target": 4,
+        "value": 3
       }
     },
     {
       "IntLiteral": 2701
     },
     {
-      "Pattern": {
-        "Identifier": 15
+      "VarDecl": {
+        "name": 15
       }
     },
     {
-      "Block": {
-        "statements": []
-      }
-    },
-    {
-      "MatchArm": {
-        "pattern": 13,
-        "body": 14
-      }
-    },
-    {
-      "Identifier": 18446744073709551601
-    },
-    {
-      "Call": {
-        "func": 16,
-        "args": []
-      }
-    },
-    {
-      "Pattern": "Default"
-    },
-    {
-      "MatchArm": {
-        "pattern": 18,
-        "body": 17
-      }
-    },
-    {
-      "Match": {
-        "target": 12,
-        "arms": [
-          15,
-          19
-        ]
+      "Assign": {
+        "target": 7,
+        "value": 6
       }
     },
     {
@@ -117,50 +53,18 @@
     {
       "Unary": {
         "operator": "AddressOf",
-        "operand": 21
+        "operand": 9
       }
     },
     {
-      "Pattern": {
-        "Identifier": 17
+      "VarDecl": {
+        "name": 17
       }
     },
     {
-      "Block": {
-        "statements": []
-      }
-    },
-    {
-      "MatchArm": {
-        "pattern": 23,
-        "body": 24
-      }
-    },
-    {
-      "Identifier": 18446744073709551601
-    },
-    {
-      "Call": {
-        "func": 26,
-        "args": []
-      }
-    },
-    {
-      "Pattern": "Default"
-    },
-    {
-      "MatchArm": {
-        "pattern": 28,
-        "body": 27
-      }
-    },
-    {
-      "Match": {
-        "target": 22,
-        "arms": [
-          25,
-          29
-        ]
+      "Assign": {
+        "target": 11,
+        "value": 10
       }
     },
     {
@@ -172,14 +76,14 @@
     {
       "Unary": {
         "operator": "Dereference",
-        "operand": 32
+        "operand": 14
       }
     },
     {
       "Call": {
-        "func": 31,
+        "func": 13,
         "args": [
-          33
+          15
         ]
       }
     },
@@ -189,7 +93,7 @@
     {
       "Unary": {
         "operator": "Dereference",
-        "operand": 35
+        "operand": 17
       }
     },
     {
@@ -197,8 +101,8 @@
     },
     {
       "Assign": {
-        "target": 36,
-        "value": 37
+        "target": 18,
+        "value": 19
       }
     },
     {
@@ -209,9 +113,9 @@
     },
     {
       "Call": {
-        "func": 39,
+        "func": 21,
         "args": [
-          40
+          22
         ]
       }
     },
@@ -224,13 +128,13 @@
     {
       "Unary": {
         "operator": "AddressOf",
-        "operand": 43
+        "operand": 25
       }
     },
     {
       "Assign": {
-        "target": 42,
-        "value": 44
+        "target": 24,
+        "value": 26
       }
     },
     {
@@ -239,7 +143,7 @@
     {
       "Unary": {
         "operator": "Dereference",
-        "operand": 46
+        "operand": 28
       }
     },
     {
@@ -248,7 +152,7 @@
     {
       "Unary": {
         "operator": "Dereference",
-        "operand": 48
+        "operand": 30
       }
     },
     {
@@ -256,15 +160,15 @@
     },
     {
       "Binary": {
-        "left": 49,
+        "left": 31,
         "operator": "Divide",
-        "right": 50
+        "right": 32
       }
     },
     {
       "Assign": {
-        "target": 47,
-        "value": 51
+        "target": 29,
+        "value": 33
       }
     },
     {
@@ -275,24 +179,27 @@
     },
     {
       "Call": {
-        "func": 53,
+        "func": 35,
         "args": [
-          54
+          36
         ]
       }
     },
     {
       "Block": {
         "statements": [
+          4,
+          5,
+          7,
+          8,
           11,
+          12,
+          16,
           20,
-          30,
+          23,
+          27,
           34,
-          38,
-          41,
-          45,
-          52,
-          55
+          37
         ]
       }
     },
@@ -300,12 +207,12 @@
       "FunctionDecl": {
         "name": 1,
         "params": [],
-        "body": 56
+        "body": 38
       }
     }
   ],
   "roots": [
     2,
-    57
+    39
   ]
 }
