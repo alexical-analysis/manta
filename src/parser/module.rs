@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::collections::BTreeMap;
 
 use crate::ast::{BlockStmt, Decl, Expr, LetExcept, Pattern, Stmt, TypeSpec};
@@ -6,7 +6,23 @@ use crate::parser::ParseError;
 use crate::parser::lexer::{Token, TokenKind};
 use crate::str_store::{self, StrID};
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
+struct IDTracker {
+    id: SymID,
+}
+
+impl IDTracker {
+    fn new() -> Self {
+        IDTracker { id: 0 }
+    }
+
+    fn next_id(&mut self) -> SymID {
+        self.id += 1;
+        self.id - 1
+    }
+}
+
+#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub enum BindingType {
     EnumType,
     StructType,
@@ -15,8 +31,11 @@ pub enum BindingType {
     Value,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+pub type SymID = usize;
+
+#[derive(Debug, Serialize)]
 pub struct Binding {
+    pub id: SymID,
     pub name: StrID,
     pub binding_type: BindingType,
     pub used: bool,
@@ -24,7 +43,7 @@ pub struct Binding {
 
 pub type ScopeID = usize;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 struct Scope {
     parent: Option<ScopeID>,
     bindings: Vec<Binding>,
@@ -38,7 +57,7 @@ impl Scope {
         }
     }
 
-    fn new_root() -> Scope {
+    fn new_root(id_tracker: &mut IDTracker) -> Scope {
         let mut bindings = vec![];
         let builtin_types = vec![
             str_store::U8,
@@ -56,6 +75,7 @@ impl Scope {
 
         for t in builtin_types {
             bindings.push(Binding {
+                id: id_tracker.next_id(),
                 name: t,
                 binding_type: BindingType::UnitType,
                 used: true, // don't warn on unused builtin types
@@ -63,6 +83,7 @@ impl Scope {
         }
 
         bindings.push(Binding {
+            id: id_tracker.next_id(),
             name: str_store::STR,
             binding_type: BindingType::StructType,
             used: true, // don't warn if we don't use the str type
@@ -75,7 +96,7 @@ impl Scope {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 struct SymTable {
     scopes: Vec<Scope>,
     current_scope: ScopeID,
@@ -84,15 +105,17 @@ struct SymTable {
     // a little messy in some ways too. I would rather use something like a NodeID but to do that
     // would require a HUGE refactor of the AST so I'm leaving it at this for now.
     scope_map: BTreeMap<usize, ScopeID>,
+    id_tracker: IDTracker,
 }
 
 impl SymTable {
     fn new() -> SymTable {
+        let mut id_tracker = IDTracker::new();
         SymTable {
-            // TODO: Should we use a SlotMap?
-            scopes: vec![Scope::new_root()],
+            scopes: vec![Scope::new_root(&mut id_tracker)],
             current_scope: 0,
             scope_map: BTreeMap::new(),
+            id_tracker,
         }
     }
 
@@ -128,7 +151,14 @@ impl SymTable {
         }
     }
 
-    fn add_binding(&mut self, b: Binding) {
+    fn add_binding(&mut self, name: StrID, binding_type: BindingType) {
+        let b = Binding {
+            id: self.id_tracker.next_id(),
+            name,
+            binding_type,
+            used: false,
+        };
+
         let current_scope = self.get_current_scope_mut();
         current_scope.bindings.push(b);
     }
@@ -181,7 +211,7 @@ impl SymTable {
 }
 
 /// A module in a manta program
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 pub struct Module {
     name: StrID,
     using_modules: Vec<StrID>,
@@ -290,11 +320,7 @@ impl Module {
         for decl in decls {
             match decl {
                 Decl::Function(decl) => {
-                    sym_table.add_binding(Binding {
-                        name: decl.name,
-                        binding_type: BindingType::FuncType,
-                        used: false,
-                    });
+                    sym_table.add_binding(decl.name, BindingType::FuncType);
 
                     if let Some(type_spec) = &decl.return_type {
                         Self::build_sym_table_type_spec(errors, &mut sym_table, type_spec);
@@ -303,11 +329,7 @@ impl Module {
                     sym_table.open_scope(decl.token.source_id);
 
                     for param in &decl.params {
-                        sym_table.add_binding(Binding {
-                            name: param.name,
-                            binding_type: BindingType::Value,
-                            used: false,
-                        });
+                        sym_table.add_binding(param.name, BindingType::Value);
                     }
 
                     Self::build_sym_table_block(errors, &mut sym_table, &decl.body);
@@ -329,45 +351,25 @@ impl Module {
                             None => panic!("unknown type (return this error)"),
                         };
 
-                        sym_table.add_binding(Binding {
-                            name: decl.name,
-                            binding_type,
-                            used: false,
-                        });
+                        sym_table.add_binding(decl.name, binding_type);
                     }
                     TypeSpec::Pointer(p) => {
-                        sym_table.add_binding(Binding {
-                            name: decl.name,
-                            binding_type: BindingType::UnitType,
-                            used: false,
-                        });
+                        sym_table.add_binding(decl.name, BindingType::UnitType);
 
                         Self::build_sym_table_type_spec(errors, &mut sym_table, p);
                     }
                     TypeSpec::Slice(s) => {
-                        sym_table.add_binding(Binding {
-                            name: decl.name,
-                            binding_type: BindingType::StructType,
-                            used: false,
-                        });
+                        sym_table.add_binding(decl.name, BindingType::StructType);
 
                         Self::build_sym_table_type_spec(errors, &mut sym_table, s);
                     }
                     TypeSpec::Array(a) => {
-                        sym_table.add_binding(Binding {
-                            name: decl.name,
-                            binding_type: BindingType::UnitType,
-                            used: false,
-                        });
+                        sym_table.add_binding(decl.name, BindingType::UnitType);
 
                         Self::build_sym_table_type_spec(errors, &mut sym_table, &a.type_spec);
                     }
                     TypeSpec::Struct(s) => {
-                        sym_table.add_binding(Binding {
-                            name: decl.name,
-                            binding_type: BindingType::StructType,
-                            used: false,
-                        });
+                        sym_table.add_binding(decl.name, BindingType::StructType);
 
                         for field in &s.fields {
                             Self::build_sym_table_type_spec(
@@ -378,11 +380,7 @@ impl Module {
                         }
                     }
                     TypeSpec::Enum(e) => {
-                        sym_table.add_binding(Binding {
-                            name: decl.name,
-                            binding_type: BindingType::EnumType,
-                            used: false,
-                        });
+                        sym_table.add_binding(decl.name, BindingType::EnumType);
 
                         for variant in &e.variants {
                             if let Some(payload) = &variant.payload {
@@ -391,33 +389,17 @@ impl Module {
                         }
                     }
                     TypeSpec::String => {
-                        sym_table.add_binding(Binding {
-                            name: decl.name,
-                            binding_type: BindingType::StructType,
-                            used: false,
-                        });
+                        sym_table.add_binding(decl.name, BindingType::StructType);
                     }
                     _ => {
-                        sym_table.add_binding(Binding {
-                            name: decl.name,
-                            binding_type: BindingType::UnitType,
-                            used: false,
-                        });
+                        sym_table.add_binding(decl.name, BindingType::UnitType);
                     }
                 },
                 Decl::Const(decl) => {
-                    sym_table.add_binding(Binding {
-                        name: decl.name,
-                        binding_type: BindingType::Value,
-                        used: false,
-                    });
+                    sym_table.add_binding(decl.name, BindingType::Value);
                 }
                 Decl::Var(decl) => {
-                    sym_table.add_binding(Binding {
-                        name: decl.name,
-                        binding_type: BindingType::Value,
-                        used: false,
-                    });
+                    sym_table.add_binding(decl.name, BindingType::Value);
                 }
                 Decl::Use(_) => { /* nothing to do */ }
                 Decl::Mod(_) => { /* nothing to do */ }
@@ -446,19 +428,11 @@ impl Module {
         match stmt {
             Stmt::Let(stmt) => {
                 if let Pattern::Payload(pat) = &stmt.pattern {
-                    sym_table.add_binding(Binding {
-                        name: pat.payload,
-                        binding_type: BindingType::Value,
-                        used: false,
-                    })
+                    sym_table.add_binding(pat.payload, BindingType::Value)
                 }
 
                 if let Pattern::Identifier(ident) = &stmt.pattern {
-                    sym_table.add_binding(Binding {
-                        name: ident.name,
-                        binding_type: BindingType::Value,
-                        used: false,
-                    })
+                    sym_table.add_binding(ident.name, BindingType::Value)
                 }
 
                 Self::build_sym_table_expr(errors, sym_table, &stmt.value);
@@ -472,11 +446,7 @@ impl Module {
                         sym_table.open_scope(token.source_id);
 
                         if let Some(binding) = binding {
-                            sym_table.add_binding(Binding {
-                                name: *binding,
-                                binding_type: BindingType::Value,
-                                used: false,
-                            });
+                            sym_table.add_binding(*binding, BindingType::Value);
                         }
 
                         Self::build_sym_table_block(errors, sym_table, body);
@@ -512,11 +482,7 @@ impl Module {
                     sym_table.open_scope(arm.token.source_id);
 
                     if let Pattern::Payload(pat) = &arm.pattern {
-                        sym_table.add_binding(Binding {
-                            name: pat.payload,
-                            binding_type: BindingType::Value,
-                            used: false,
-                        });
+                        sym_table.add_binding(pat.payload, BindingType::Value);
                     }
 
                     Self::build_sym_table_block(errors, sym_table, &arm.body);

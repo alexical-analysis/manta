@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::ast::{BinaryOp, UnaryOp};
 use crate::str_store::StrID;
@@ -11,7 +11,7 @@ use crate::str_store::StrID;
 pub type NodeID = usize;
 
 /// NodeTree contains all the nodes for a given tree as well as tracking the tree roots
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 pub struct NodeTree {
     nodes: Vec<Node>,
     roots: Vec<NodeID>,
@@ -50,7 +50,7 @@ impl NodeTree {
 }
 
 /// A single node type that can represent any construct in the HIR
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize)]
 pub enum Node {
     Invalid,
     FunctionDecl {
@@ -168,7 +168,7 @@ pub enum Node {
     Pattern(PatternNode),
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum PatternNode {
     IntLiteral(i64),
     StringLiteral(StrID),
