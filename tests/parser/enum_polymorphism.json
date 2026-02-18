@@ -473,103 +473,103 @@
         "parent": null,
         "bindings": [
           {
-            "id": 4649806883032343723,
+            "id": 0,
             "name": 18446744073709551614,
             "binding_type": "UnitType",
             "used": true
           },
           {
-            "id": 9394921685922598259,
+            "id": 1,
             "name": 18446744073709551613,
             "binding_type": "UnitType",
             "used": true
           },
           {
-            "id": 9128259261676898432,
+            "id": 2,
             "name": 18446744073709551612,
             "binding_type": "UnitType",
             "used": true
           },
           {
-            "id": 13666820208686946942,
+            "id": 3,
             "name": 18446744073709551611,
             "binding_type": "UnitType",
             "used": true
           },
           {
-            "id": 16784381474932480827,
+            "id": 4,
             "name": 18446744073709551610,
             "binding_type": "UnitType",
             "used": true
           },
           {
-            "id": 11278949895463030692,
+            "id": 5,
             "name": 18446744073709551609,
             "binding_type": "UnitType",
             "used": true
           },
           {
-            "id": 11172163506495738808,
+            "id": 6,
             "name": 18446744073709551608,
             "binding_type": "UnitType",
             "used": true
           },
           {
-            "id": 8872476995929881610,
+            "id": 7,
             "name": 18446744073709551607,
             "binding_type": "UnitType",
             "used": true
           },
           {
-            "id": 2070419218664501403,
+            "id": 8,
             "name": 18446744073709551606,
             "binding_type": "UnitType",
             "used": true
           },
           {
-            "id": 4740701893091323840,
+            "id": 9,
             "name": 18446744073709551605,
             "binding_type": "UnitType",
             "used": true
           },
           {
-            "id": 3741772012005498657,
+            "id": 10,
             "name": 18446744073709551603,
             "binding_type": "UnitType",
             "used": true
           },
           {
-            "id": 9313269161564822281,
+            "id": 11,
             "name": 18446744073709551604,
             "binding_type": "StructType",
             "used": true
           },
           {
-            "id": 16908435946908028480,
+            "id": 12,
             "name": 9,
             "binding_type": "Value",
             "used": true
           },
           {
-            "id": 10600859970928075146,
+            "id": 13,
             "name": 13,
             "binding_type": "FuncType",
             "used": true
           },
           {
-            "id": 18355447153781539518,
+            "id": 15,
             "name": 18,
             "binding_type": "EnumType",
             "used": true
           },
           {
-            "id": 2082112759523120532,
+            "id": 16,
             "name": 22,
             "binding_type": "FuncType",
             "used": true
           },
           {
-            "id": 13780817332588942278,
+            "id": 20,
             "name": 1,
             "binding_type": "FuncType",
             "used": false
@@ -580,7 +580,7 @@
         "parent": 0,
         "bindings": [
           {
-            "id": 1716788828436201442,
+            "id": 14,
             "name": 14,
             "binding_type": "Value",
             "used": false
@@ -595,7 +595,7 @@
         "parent": 0,
         "bindings": [
           {
-            "id": 2336559617549189289,
+            "id": 17,
             "name": 23,
             "binding_type": "Value",
             "used": true
@@ -610,7 +610,7 @@
         "parent": 4,
         "bindings": [
           {
-            "id": 1360299432734730871,
+            "id": 18,
             "name": 26,
             "binding_type": "Value",
             "used": true
@@ -625,7 +625,7 @@
         "parent": 4,
         "bindings": [
           {
-            "id": 1513626084943265032,
+            "id": 19,
             "name": 23,
             "binding_type": "Value",
             "used": true
@@ -644,25 +644,25 @@
         "parent": 9,
         "bindings": [
           {
-            "id": 3344712531148077773,
+            "id": 21,
             "name": 31,
             "binding_type": "Value",
             "used": true
           },
           {
-            "id": 18217333413248115816,
+            "id": 22,
             "name": 33,
             "binding_type": "Value",
             "used": true
           },
           {
-            "id": 9551647684713445923,
+            "id": 23,
             "name": 34,
             "binding_type": "Value",
             "used": true
           },
           {
-            "id": 11646494952794727506,
+            "id": 24,
             "name": 36,
             "binding_type": "Value",
             "used": true
@@ -697,6 +697,9 @@
       "758": 10,
       "770": 10,
       "782": 10
+    },
+    "id_tracker": {
+      "id": 25
     }
   }
 }
