@@ -1,4 +1,4 @@
-use crate::noder::Noder;
+use crate::noder::node_module;
 use crate::parser::Parser;
 use crate::str_store::StrStore;
 
@@ -22,7 +22,6 @@ impl Compiler {
             panic!("errors in the parser: {:?}", module.get_errors())
         }
 
-        let mut noder = Noder::new();
-        let _node_tree = noder.node(module);
+        let _node_tree = node_module(module);
     }
 }
