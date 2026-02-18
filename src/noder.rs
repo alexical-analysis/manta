@@ -4,57 +4,59 @@ use crate::ast::{
     BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Stmt, StructField, StructType, TypeSpec,
 };
 use crate::hir::{Node, NodeID, NodeTree, PatternNode};
-use crate::parser::module::{BindingType, Module};
+use crate::parser::module::{BindingType, Module, SymID};
 use crate::str_store;
 
-struct TypeMap {
+struct DenseTable<T> {
     node_ids: Vec<Option<NodeID>>,
-    types: Vec<TypeSpec>,
+    items: Vec<T>,
 }
 
-impl TypeMap {
+impl<T> DenseTable<T> {
     fn new() -> Self {
-        TypeMap {
+        DenseTable {
             node_ids: vec![],
-            types: vec![],
+            items: vec![],
         }
     }
 
-    fn add_type(&mut self, node_id: NodeID, type_spec: TypeSpec) {
+    fn add(&mut self, node_id: NodeID, t: T) {
         match self.node_ids.get_mut(node_id) {
-            Some(t) => *t = Some(self.types.len()),
+            Some(t) => *t = Some(self.items.len()),
             None => {
                 // we use resize here in case we add two nodes that are more than a single index apart.
                 // e.g. add_type(1, t) and then add_type(10, t)
                 self.node_ids.resize(node_id + 1, None);
-                self.node_ids[node_id] = Some(self.types.len());
+                self.node_ids[node_id] = Some(self.items.len());
             }
         }
 
-        self.types.push(type_spec)
+        self.items.push(t)
     }
 
-    fn get_type(&self, node_id: NodeID) -> Option<&TypeSpec> {
+    fn get(&self, node_id: NodeID) -> Option<&T> {
         match self.node_ids.get(node_id) {
             // This is double nested because the node_id might not point to a valid slot in the
             // node_ids vector AND, it may also point to a valid slot that was not actually
             // initalized to a type spec. This is the tradeoff we make to avoid hashing to make the
             // jump. Since node_ids are contiguous and most nodes will have some type spec
             // associated with them, this tradeoff seems appropriate.
-            Some(Some(i)) => self.types.get(*i),
+            Some(Some(i)) => self.items.get(*i),
             _ => None,
         }
     }
 }
 
 pub struct Noder {
-    type_map: TypeMap,
+    type_map: DenseTable<TypeSpec>,
+    symbol_map: DenseTable<SymID>,
 }
 
 impl Noder {
     pub fn new() -> Self {
         Noder {
-            type_map: TypeMap::new(),
+            type_map: DenseTable::new(),
+            symbol_map: DenseTable::new(),
         }
     }
 
@@ -87,13 +89,15 @@ impl Noder {
                 });
 
                 if let Some(t) = decl.return_type.clone() {
-                    self.type_map.add_type(func_id, t);
+                    self.type_map.add(func_id, t);
                 };
             }
             Decl::Type(decl) => {
                 // create the node
                 let decl_id = node_tree.add_root_node(Node::TypeDecl { name: decl.name });
-                self.type_map.add_type(decl_id, decl.type_spec.clone());
+                self.type_map.add(decl_id, decl.type_spec.clone());
+                // TODO: where's the source_id for the type decl?
+                // module.find_binding(0, name)
             }
             Decl::Const(decl) => {
                 // create the nodes
@@ -103,6 +107,8 @@ impl Noder {
                     target: decl_id,
                     value: value_node,
                 });
+                // TODO: where's the source_id for the type decl?
+                // module.find_binding(0, name)
             }
             Decl::Var(decl) => {
                 // create the nodes
@@ -112,6 +118,8 @@ impl Noder {
                     target: decl_id,
                     value: value_node,
                 });
+                // TODO: where's the source_id for the type decl?
+                // module.find_binding(0, name)
             }
             Decl::Use(_) => { /* ignore these since they're handled by the parser */ }
             Decl::Mod(_) => { /* ignore these since they're handled by the parser */ }
@@ -272,11 +280,15 @@ impl Noder {
                 // ident = value
 
                 if stmt.except != LetExcept::None {
-                    panic!("identifier expressions can not have an except handle")
+                    panic!(
+                        "identifier expressions can never faile and should not have an except handle"
+                    )
                 }
 
                 let var_id = node_tree.add_node(Node::VarDecl { name: ident.name });
                 nodes.push(var_id);
+                // TODO: where's the source_id for the type decl?
+                // module.find_binding(ident.token.source_id, name)
 
                 let assign_id = node_tree.add_node(Node::Assign {
                     target: var_id,
@@ -313,6 +325,8 @@ impl Noder {
                 // ouside variable declaration
                 let var_id = node_tree.add_node(Node::VarDecl { name: pat.payload });
                 nodes.push(var_id);
+                // TODO: where's the source_id for the type decl?
+                // module.find_binding(ident.token.source_id, name)
 
                 // rebuild the pattern
                 let inner_pat_id = Self::node_pattern(node_tree, &pat.pat);
@@ -530,7 +544,7 @@ impl Noder {
                 let node_id = node_tree.add_node(Node::IntLiteral(*expr));
 
                 // need to infer this type instead of just assuming it's an i64
-                self.type_map.add_type(node_id, TypeSpec::Int64);
+                self.type_map.add(node_id, TypeSpec::Int64);
 
                 node_id
             }
@@ -538,18 +552,18 @@ impl Noder {
                 let node_id = node_tree.add_node(Node::FloatLiteral(*expr));
 
                 // need to infer this type instead of just assuming it's an f64
-                self.type_map.add_type(node_id, TypeSpec::Float64);
+                self.type_map.add(node_id, TypeSpec::Float64);
 
                 node_id
             }
             Expr::StringLiteral(expr) => {
                 let node_id = node_tree.add_node(Node::StringLiteral(*expr));
-                self.type_map.add_type(node_id, TypeSpec::String);
+                self.type_map.add(node_id, TypeSpec::String);
                 node_id
             }
             Expr::BoolLiteral(expr) => {
                 let node_id = node_tree.add_node(Node::BoolLiteral(*expr));
-                self.type_map.add_type(node_id, TypeSpec::Bool);
+                self.type_map.add(node_id, TypeSpec::Bool);
                 node_id
             }
             Expr::Identifier(expr) => {
@@ -675,7 +689,7 @@ impl Noder {
             Expr::ModuleAccess(_expr) => todo!("modules are not yet supported"),
             Expr::MetaType(_expr) => {
                 let node_id = node_tree.add_node(Node::MetaType);
-                self.type_map.add_type(
+                self.type_map.add(
                     node_id,
                     // TODO: the meta type should probably live somewhere central since I don't
                     // think this is the only place this will pop up.
@@ -715,7 +729,7 @@ impl Noder {
                     options,
                 });
 
-                self.type_map.add_type(node_id, TypeSpec::UnsafePtr);
+                self.type_map.add(node_id, TypeSpec::UnsafePtr);
 
                 node_id
             }
@@ -736,28 +750,28 @@ mod tests {
 
     #[test]
     fn typemap_new_get_none() {
-        let tm = TypeMap::new();
-        assert_eq!(tm.get_type(0), None);
-        assert_eq!(tm.get_type(10), None);
+        let tm: DenseTable<TypeSpec> = DenseTable::new();
+        assert_eq!(tm.get(0), None);
+        assert_eq!(tm.get(10), None);
     }
 
     #[test]
     fn typemap_add_and_get() {
-        let mut tm = TypeMap::new();
-        tm.add_type(0, TypeSpec::Int32);
-        assert_eq!(tm.get_type(0), Some(&TypeSpec::Int32));
+        let mut tm: DenseTable<TypeSpec> = DenseTable::new();
+        tm.add(0, TypeSpec::Int32);
+        assert_eq!(tm.get(0), Some(&TypeSpec::Int32));
 
-        tm.add_type(1, TypeSpec::Bool);
-        assert_eq!(tm.get_type(1), Some(&TypeSpec::Bool));
-        assert_eq!(tm.get_type(0), Some(&TypeSpec::Int32));
+        tm.add(1, TypeSpec::Bool);
+        assert_eq!(tm.get(1), Some(&TypeSpec::Bool));
+        assert_eq!(tm.get(0), Some(&TypeSpec::Int32));
     }
 
     #[test]
     fn typemap_sparse_indices() {
-        let mut tm = TypeMap::new();
-        tm.add_type(3, TypeSpec::String);
-        assert_eq!(tm.get_type(3), Some(&TypeSpec::String));
-        assert_eq!(tm.get_type(0), None);
+        let mut tm: DenseTable<TypeSpec> = DenseTable::new();
+        tm.add(3, TypeSpec::String);
+        assert_eq!(tm.get(3), Some(&TypeSpec::String));
+        assert_eq!(tm.get(0), None);
     }
 
     fn assert_file_path_eq(path: &std::path::Path, noder_dir: &Path) {

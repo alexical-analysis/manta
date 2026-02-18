@@ -200,6 +200,11 @@
               "Let": {
                 "pattern": {
                   "Identifier": {
+                    "token": {
+                      "kind": "Identifier",
+                      "source_id": 447,
+                      "lexeme_id": 28
+                    },
                     "name": 28
                   }
                 },
@@ -253,6 +258,11 @@
                           "DotAccess": {
                             "target": null,
                             "field": {
+                              "token": {
+                                "kind": "Identifier",
+                                "source_id": 485,
+                                "lexeme_id": 15
+                              },
                               "name": 15
                             }
                           }
@@ -313,6 +323,11 @@
                       "DotAccess": {
                         "target": null,
                         "field": {
+                          "token": {
+                            "kind": "Identifier",
+                            "source_id": 531,
+                            "lexeme_id": 16
+                          },
                           "name": 16
                         }
                       }

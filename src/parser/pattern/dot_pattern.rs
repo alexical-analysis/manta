@@ -16,6 +16,7 @@ impl PrefixPatternParselet for PrefixDotPatternParselet {
             TokenKind::Identifier => Ok(Pattern::DotAccess(DotAccessPat {
                 target: None,
                 field: IdentifierPat {
+                    token: field_token,
                     name: field_token.lexeme_id,
                 },
             })),
@@ -46,6 +47,7 @@ impl InfixPatternParselet for InfixDotPatternParselet {
             TokenKind::Identifier => Ok(Pattern::DotAccess(DotAccessPat {
                 target: Some(Box::new(left)),
                 field: IdentifierPat {
+                    token: field_token,
                     name: field_token.lexeme_id,
                 },
             })),
