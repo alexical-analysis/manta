@@ -256,6 +256,11 @@
                       "DotAccess": {
                         "target": null,
                         "field": {
+                          "token": {
+                            "kind": "Identifier",
+                            "source_id": 969,
+                            "lexeme_id": 14
+                          },
                           "name": 14
                         }
                       }
@@ -408,6 +413,11 @@
                       "DotAccess": {
                         "target": null,
                         "field": {
+                          "token": {
+                            "kind": "Identifier",
+                            "source_id": 1101,
+                            "lexeme_id": 14
+                          },
                           "name": 14
                         }
                       }

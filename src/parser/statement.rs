@@ -212,7 +212,14 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::Identifier(IdentifierPat { name: 1 }),
+                    pattern: Pattern::Identifier(IdentifierPat {
+                        token: Token {
+                            kind: TokenKind::Identifier,
+                            source_id: 4,
+                            lexeme_id: 1
+                        },
+                        name: 1
+                    }),
                     value: Expr::IntLiteral(10),
                     except: LetExcept::None,
                 }
@@ -226,6 +233,11 @@ mod test {
                 LetStmt {
                     pattern: Pattern::Payload(PayloadPat {
                         pat: Box::new(Pattern::Identifier(IdentifierPat {
+                            token: Token {
+                                kind: TokenKind::Identifier,
+                                source_id: 4,
+                                lexeme_id: 18446744073709551603,
+                            },
                             name: 18446744073709551603
                         })),
                         payload: 2
@@ -241,7 +253,14 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::Identifier(IdentifierPat { name: 1 }),
+                    pattern: Pattern::Identifier(IdentifierPat {
+                        token: Token {
+                            kind: TokenKind::Identifier,
+                            source_id: 4,
+                            lexeme_id: 1
+                        },
+                        name: 1
+                    }),
                     value: Expr::FloatLiteral(3.45),
                     except: LetExcept::None,
                 },
@@ -254,7 +273,14 @@ mod test {
                 stmt,
                 LetStmt {
                     pattern: Pattern::Payload(PayloadPat {
-                        pat: Box::new(Pattern::Identifier(IdentifierPat { name: 1 })),
+                        pat: Box::new(Pattern::Identifier(IdentifierPat {
+                            token: Token {
+                                kind: TokenKind::Identifier,
+                                source_id: 4,
+                                lexeme_id: 1
+                            },
+                            name: 1
+                        })),
                         payload: 3
                     }),
                     value: Expr::Call(CallExpr {
@@ -424,7 +450,14 @@ mod test {
                     },
                     statements: vec![
                         Stmt::Let(LetStmt {
-                            pattern: Pattern::Identifier(IdentifierPat { name: 2 }),
+                            pattern: Pattern::Identifier(IdentifierPat {
+                                token: Token {
+                                    kind: TokenKind::Identifier,
+                                    source_id: 10,
+                                    lexeme_id: 2
+                                },
+                                name: 2
+                            }),
                             value: Expr::IntLiteral(10),
                             except: LetExcept::None,
                         }),
@@ -432,7 +465,14 @@ mod test {
                             pattern: Pattern::Payload(PayloadPat {
                                 pat: Box::new(Pattern::DotAccess(DotAccessPat {
                                     target: None,
-                                    field: IdentifierPat { name: 7 },
+                                    field: IdentifierPat {
+                                        token: Token {
+                                            kind: TokenKind::Identifier,
+                                            source_id: 26,
+                                            lexeme_id: 7
+                                        },
+                                        name: 7
+                                    },
                                 })),
                                 payload: 9
                             }),
@@ -450,7 +490,14 @@ mod test {
                             except: LetExcept::Panic,
                         }),
                         Stmt::Let(LetStmt {
-                            pattern: Pattern::Identifier(IdentifierPat { name: 14 }),
+                            pattern: Pattern::Identifier(IdentifierPat {
+                                token: Token {
+                                    kind: TokenKind::Identifier,
+                                    source_id: 58,
+                                    lexeme_id: 14
+                                },
+                                name: 14
+                            }),
                             value: Expr::Binary(BinaryExpr {
                                 left: Box::new(Expr::Identifier(IdentifierExpr {
                                     token: Token {
@@ -720,7 +767,14 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::Identifier(IdentifierPat { name: 1 }),
+                    pattern: Pattern::Identifier(IdentifierPat {
+                        token: Token {
+                            kind: TokenKind::Identifier,
+                            source_id: 4,
+                            lexeme_id: 1
+                        },
+                        name: 1
+                    }),
                     value: Expr::Unary(UnaryExpr {
                         operator: UnaryOp::AddressOf,
                         operand: Box::new(Expr::Identifier(IdentifierExpr {
@@ -744,7 +798,14 @@ mod test {
                 LetStmt {
                     pattern: Pattern::DotAccess(DotAccessPat {
                         target: None,
-                        field: IdentifierPat { name: 2 },
+                        field: IdentifierPat {
+                            token: Token {
+                                kind: TokenKind::Identifier,
+                                source_id: 5,
+                                lexeme_id: 2
+                            },
+                            name: 2
+                        },
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -771,8 +832,22 @@ mod test {
                 LetStmt {
                     pattern: Pattern::Payload(PayloadPat {
                         pat: Box::new(Pattern::DotAccess(DotAccessPat {
-                            target: Some(Box::new(Pattern::Identifier(IdentifierPat { name: 1 }))),
-                            field: IdentifierPat { name: 3 },
+                            target: Some(Box::new(Pattern::Identifier(IdentifierPat {
+                                token: Token {
+                                    kind: TokenKind::Identifier,
+                                    source_id: 4,
+                                    lexeme_id: 1
+                                },
+                                name: 1
+                            }))),
+                            field: IdentifierPat {
+                                token: Token {
+                                    kind: TokenKind::Identifier,
+                                    source_id: 8,
+                                    lexeme_id: 3
+                                },
+                                name: 3
+                            },
                         })),
                         payload: 5,
                     }),
@@ -829,7 +904,14 @@ mod test {
                 LetStmt {
                     pattern: Pattern::DotAccess(DotAccessPat {
                         target: None,
-                        field: IdentifierPat { name: 2 },
+                        field: IdentifierPat {
+                            token: Token {
+                                kind: TokenKind::Identifier,
+                                source_id: 5,
+                                lexeme_id: 2
+                            },
+                            name: 2
+                        },
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -904,7 +986,14 @@ mod test {
                     pattern: Pattern::Payload(PayloadPat {
                         pat: Box::new(Pattern::DotAccess(DotAccessPat {
                             target: None,
-                            field: IdentifierPat { name: 2 },
+                            field: IdentifierPat {
+                                token: Token {
+                                    kind: TokenKind::Identifier,
+                                    source_id: 5,
+                                    lexeme_id: 2
+                                },
+                                name: 2
+                            },
                         })),
                         payload: 4,
                     }),
@@ -953,7 +1042,14 @@ mod test {
                             pattern: Pattern::Payload(PayloadPat {
                                 pat: Box::new(Pattern::DotAccess(DotAccessPat {
                                     target: None,
-                                    field: IdentifierPat { name: 4 },
+                                    field: IdentifierPat {
+                                        token: Token {
+                                            kind: TokenKind::Identifier,
+                                            source_id: 15,
+                                            lexeme_id: 4
+                                        },
+                                        name: 4
+                                    },
                                 })),
                                 payload: 6,
                             }),
@@ -993,7 +1089,14 @@ mod test {
                             },
                             pattern: Pattern::DotAccess(DotAccessPat {
                                 target: None,
-                                field: IdentifierPat { name: 12 },
+                                field: IdentifierPat {
+                                    token: Token {
+                                        kind: TokenKind::Identifier,
+                                        source_id: 41,
+                                        lexeme_id: 12
+                                    },
+                                    name: 12
+                                },
                             }),
                             body: BlockStmt {
                                 token: Token {
@@ -1048,7 +1151,14 @@ mod test {
                             pattern: Pattern::Payload(PayloadPat {
                                 pat: Box::new(Pattern::DotAccess(DotAccessPat {
                                     target: None,
-                                    field: IdentifierPat { name: 4 },
+                                    field: IdentifierPat {
+                                        token: Token {
+                                            kind: TokenKind::Identifier,
+                                            source_id: 20,
+                                            lexeme_id: 4
+                                        },
+                                        name: 4
+                                    },
                                 })),
                                 payload: 6
                             }),
@@ -1089,7 +1199,14 @@ mod test {
                             pattern: Pattern::Payload(PayloadPat {
                                 pat: Box::new(Pattern::DotAccess(DotAccessPat {
                                     target: None,
-                                    field: IdentifierPat { name: 12 },
+                                    field: IdentifierPat {
+                                        token: Token {
+                                            kind: TokenKind::Identifier,
+                                            source_id: 53,
+                                            lexeme_id: 12
+                                        },
+                                        name: 12
+                                    },
                                 })),
                                 payload: 13
                             }),
@@ -1129,7 +1246,14 @@ mod test {
                             },
                             pattern: Pattern::DotAccess(DotAccessPat {
                                 target: None,
-                                field: IdentifierPat { name: 14 },
+                                field: IdentifierPat {
+                                    token: Token {
+                                        kind: TokenKind::Identifier,
+                                        source_id: 86,
+                                        lexeme_id: 14
+                                    },
+                                    name: 14
+                                },
                             }),
                             body: BlockStmt {
                                 token: Token {
@@ -1182,7 +1306,14 @@ mod test {
                             },
                             pattern: Pattern::DotAccess(DotAccessPat {
                                 target: None,
-                                field: IdentifierPat { name: 4 },
+                                field: IdentifierPat {
+                                    token: Token {
+                                        kind: TokenKind::Identifier,
+                                        source_id: 20,
+                                        lexeme_id: 4
+                                    },
+                                    name: 4
+                                },
                             }),
                             body: BlockStmt {
                                 token: Token {
@@ -1214,7 +1345,14 @@ mod test {
                             pattern: Pattern::Payload(PayloadPat {
                                 pat: Box::new(Pattern::DotAccess(DotAccessPat {
                                     target: None,
-                                    field: IdentifierPat { name: 12 },
+                                    field: IdentifierPat {
+                                        token: Token {
+                                            kind: TokenKind::Identifier,
+                                            source_id: 47,
+                                            lexeme_id: 12
+                                        },
+                                        name: 12
+                                    },
                                 })),
                                 payload: 13
                             }),

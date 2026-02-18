@@ -163,6 +163,11 @@
                           "Payload": {
                             "pat": {
                               "Identifier": {
+                                "token": {
+                                  "kind": "Identifier",
+                                  "source_id": 488,
+                                  "lexeme_id": 18446744073709551608
+                                },
                                 "name": 18446744073709551608
                               }
                             },
@@ -307,6 +312,11 @@
                           "DotAccess": {
                             "target": null,
                             "field": {
+                              "token": {
+                                "kind": "Identifier",
+                                "source_id": 655,
+                                "lexeme_id": 21
+                              },
                               "name": 21
                             }
                           }
@@ -369,6 +379,11 @@
                       "DotAccess": {
                         "target": null,
                         "field": {
+                          "token": {
+                            "kind": "Identifier",
+                            "source_id": 694,
+                            "lexeme_id": 22
+                          },
                           "name": 22
                         }
                       }
