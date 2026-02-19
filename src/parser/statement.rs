@@ -240,7 +240,14 @@ mod test {
                             },
                             name: 18446744073709551603
                         })),
-                        payload: 2
+                        payload: IdentifierPat {
+                            token: Token {
+                                kind: TokenKind::Identifier,
+                                source_id: 9,
+                                lexeme_id: 2
+                            },
+                            name: 2
+                        },
                     }),
                     value: Expr::BoolLiteral(true),
                     except: LetExcept::None,
@@ -281,7 +288,14 @@ mod test {
                             },
                             name: 1
                         })),
-                        payload: 3
+                        payload: IdentifierPat {
+                            token: Token {
+                                kind: TokenKind::Identifier,
+                                source_id: 11,
+                                lexeme_id: 3
+                            },
+                            name: 3
+                        },
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -474,7 +488,14 @@ mod test {
                                         name: 7
                                     },
                                 })),
-                                payload: 9
+                                payload: IdentifierPat {
+                                    token: Token {
+                                        kind: TokenKind::Identifier,
+                                        source_id: 29,
+                                        lexeme_id: 9
+                                    },
+                                    name: 9
+                                },
                             }),
                             value: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -849,7 +870,14 @@ mod test {
                                 name: 3
                             },
                         })),
-                        payload: 5,
+                        payload: IdentifierPat {
+                            token: Token {
+                                kind: TokenKind::Identifier,
+                                source_id: 14,
+                                lexeme_id: 5
+                            },
+                            name: 5
+                        },
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -995,7 +1023,14 @@ mod test {
                                 name: 2
                             },
                         })),
-                        payload: 4,
+                        payload: IdentifierPat {
+                            token: Token {
+                                kind: TokenKind::Identifier,
+                                source_id: 8,
+                                lexeme_id: 4
+                            },
+                            name: 4
+                        },
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -1051,7 +1086,14 @@ mod test {
                                         name: 4
                                     },
                                 })),
-                                payload: 6,
+                                payload: IdentifierPat {
+                                    token: Token {
+                                        kind: TokenKind::Identifier,
+                                        source_id: 20,
+                                        lexeme_id: 6
+                                    },
+                                    name: 6
+                                },
                             }),
                             body: BlockStmt {
                                 token: Token {
@@ -1160,7 +1202,14 @@ mod test {
                                         name: 4
                                     },
                                 })),
-                                payload: 6
+                                payload: IdentifierPat {
+                                    token: Token {
+                                        kind: TokenKind::Identifier,
+                                        source_id: 28,
+                                        lexeme_id: 6
+                                    },
+                                    name: 6
+                                },
                             }),
                             body: BlockStmt {
                                 token: Token {
@@ -1208,7 +1257,14 @@ mod test {
                                         name: 12
                                     },
                                 })),
-                                payload: 13
+                                payload: IdentifierPat {
+                                    token: Token {
+                                        kind: TokenKind::Identifier,
+                                        source_id: 61,
+                                        lexeme_id: 13
+                                    },
+                                    name: 13
+                                },
                             }),
                             body: BlockStmt {
                                 token: Token {
@@ -1354,7 +1410,14 @@ mod test {
                                         name: 12
                                     },
                                 })),
-                                payload: 13
+                                payload: IdentifierPat {
+                                    token: Token {
+                                        kind: TokenKind::Identifier,
+                                        source_id: 52,
+                                        lexeme_id: 13
+                                    },
+                                    name: 13
+                                },
                             }),
                             body: BlockStmt {
                                 token: Token {

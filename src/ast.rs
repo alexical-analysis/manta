@@ -269,7 +269,7 @@ pub struct DotAccessPat {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PayloadPat {
     pub pat: Box<Pattern>,
-    pub payload: StrID,
+    pub payload: IdentifierPat,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
