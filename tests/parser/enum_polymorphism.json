@@ -21,6 +21,11 @@
     },
     {
       "Const": {
+        "token": {
+          "kind": "Identifier",
+          "source_id": 131,
+          "lexeme_id": 9
+        },
         "name": 9,
         "value": {
           "FloatLiteral": 3.14
@@ -54,6 +59,11 @@
     },
     {
       "Type": {
+        "token": {
+          "kind": "Identifier",
+          "source_id": 300,
+          "lexeme_id": 18
+        },
         "name": 18,
         "type_spec": {
           "Enum": {

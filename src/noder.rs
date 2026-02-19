@@ -752,6 +752,8 @@ impl Noder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ast::{ConstDecl, VarDecl};
+    use crate::parser::lexer::{Token, TokenKind};
     use pretty_assertions::assert_eq;
     use std::fs;
     use std::path::Path;
@@ -865,7 +867,12 @@ mod tests {
     // that returns the expected NodeTree.
     test_noder!(
         node_const_decl_int_literal {
-            decl: Decl::Const(crate::ast::ConstDecl {
+            decl: Decl::Const(ConstDecl {
+                token: Token {
+                    kind: TokenKind::Identifier,
+                    source_id: 0,
+                    lexeme_id: 0,
+                },
                 name: 1,
                 value: Expr::IntLiteral(42)
             }),
@@ -881,7 +888,12 @@ mod tests {
             }
         },
         node_var_decl_string_literal {
-            decl: Decl::Var(crate::ast::VarDecl {
+            decl: Decl::Var(VarDecl {
+                token: Token {
+                    kind: TokenKind::Identifier,
+                    source_id: 0,
+                    lexeme_id: 0,
+                },
                 name: 2,
                 value: Expr::StringLiteral(3)
             }),

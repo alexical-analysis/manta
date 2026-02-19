@@ -15,27 +15,31 @@ impl DeclParselet for ConstDeclParselet {
         lexer: &mut Lexer,
         _token: Token,
     ) -> Result<Decl, ParseError> {
-        let token = lexer.next_token();
-        if token.kind != TokenKind::Identifier {
+        let ident = lexer.next_token();
+        if ident.kind != TokenKind::Identifier {
             return Err(ParseError::UnexpectedToken(
-                token,
+                ident,
                 "Expected const name".to_string(),
             ));
         }
 
-        let name = token.lexeme_id;
+        let name = ident.lexeme_id;
 
         // Expect '='
-        let token = lexer.next_token();
-        if token.kind != TokenKind::Equal {
+        let equal = lexer.next_token();
+        if equal.kind != TokenKind::Equal {
             return Err(ParseError::UnexpectedToken(
-                token,
+                equal,
                 "Expected '=' after const name".to_string(),
             ));
         }
 
         let value = parser.parse_expression(lexer)?;
 
-        Ok(Decl::Const(ConstDecl { name, value }))
+        Ok(Decl::Const(ConstDecl {
+            token: ident,
+            name,
+            value,
+        }))
     }
 }

@@ -34,13 +34,11 @@ impl DeclParselet for TypeDeclParselet {
     }
 }
 
-fn parse_enum(lexer: &mut Lexer, name: Token) -> Result<Decl, ParseError> {
-    let name = name.lexeme_id;
-
-    let token = lexer.next_token();
-    if token.kind != TokenKind::OpenBrace {
+fn parse_enum(lexer: &mut Lexer, token: Token) -> Result<Decl, ParseError> {
+    let open = lexer.next_token();
+    if open.kind != TokenKind::OpenBrace {
         return Err(ParseError::UnexpectedToken(
-            token,
+            open,
             "Expected '{' before enum body".to_string(),
         ));
     }
@@ -48,16 +46,17 @@ fn parse_enum(lexer: &mut Lexer, name: Token) -> Result<Decl, ParseError> {
     // Parse enum variants
     let variants = parse_enum_variants(lexer)?;
 
-    let token = lexer.next_token();
-    if token.kind != TokenKind::CloseBrace {
+    let close = lexer.next_token();
+    if close.kind != TokenKind::CloseBrace {
         return Err(ParseError::UnexpectedToken(
-            token,
+            close,
             "Expected '}' after enum body".to_string(),
         ));
     }
 
     Ok(Decl::Type(TypeDecl {
-        name,
+        token,
+        name: token.lexeme_id,
         type_spec: TypeSpec::Enum(EnumType { variants }),
     }))
 }
@@ -136,30 +135,29 @@ fn parse_enum_variants(lexer: &mut Lexer) -> Result<Vec<EnumVariant>, ParseError
 }
 
 /// Parse struct declaration after 'type' keyword has been consumed
-fn parse_struct(lexer: &mut Lexer, name: Token) -> Result<Decl, ParseError> {
-    let name = name.lexeme_id;
-
+fn parse_struct(lexer: &mut Lexer, token: Token) -> Result<Decl, ParseError> {
     // Expect opening brace
-    let token = lexer.next_token();
-    if token.kind != TokenKind::OpenBrace {
+    let open = lexer.next_token();
+    if open.kind != TokenKind::OpenBrace {
         return Err(ParseError::UnexpectedToken(
-            token,
+            open,
             "Expected '{' before struct body".to_string(),
         ));
     }
 
     let fields = parse_struct_fields(lexer)?;
 
-    let token = lexer.next_token();
-    if token.kind != TokenKind::CloseBrace {
+    let close = lexer.next_token();
+    if close.kind != TokenKind::CloseBrace {
         return Err(ParseError::UnexpectedToken(
-            token,
+            close,
             "Expected '}' after struct body".to_string(),
         ));
     }
 
     Ok(Decl::Type(TypeDecl {
-        name,
+        token,
+        name: token.lexeme_id,
         type_spec: TypeSpec::Struct(StructType { fields }),
     }))
 }
