@@ -1,12 +1,12 @@
 use crate::str_store::{StrID, StrStore};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use strum_macros::{Display, EnumString};
 
 // SourceID is the uniqe identifier of the token in the source code
 pub type SourceID = usize;
 
 /// The kind of Token produced by the lexer.
-#[derive(Debug, Display, EnumString, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Display, EnumString, Copy, Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum TokenKind {
     Identifier,
     Int,
@@ -79,7 +79,7 @@ pub enum TokenKind {
 
 /// A token produced by the lexer. `lexeme` contains raw text for ids/numbers/strings
 /// (strings are returned unescaped), or None for simple punctuation/EOF.
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize)]
 pub struct Token {
     pub kind: TokenKind,
     pub source_id: SourceID,

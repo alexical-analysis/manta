@@ -12,10 +12,10 @@ use crate::str_store::StrStore;
 use declaration::DeclParser;
 use lexer::{Lexer, Token, TokenKind};
 use module::Module;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 /// Parse error type for the parser core.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum ParseError {
     Custom(Token, String),
     UnexpectedToken(Token, String),
