@@ -51,5 +51,17 @@
   "roots": [
     2,
     7
-  ]
+  ],
+  "type_map": {
+    "node_ids": {
+      "4": 0
+    },
+    "items": [
+      "String"
+    ]
+  },
+  "symbol_map": {
+    "node_ids": {},
+    "items": []
+  }
 }

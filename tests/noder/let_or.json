@@ -593,5 +593,112 @@
     19,
     62,
     98
-  ]
+  ],
+  "type_map": {
+    "node_ids": {
+      "0": 0,
+      "1": 1,
+      "6": 2,
+      "10": 3,
+      "15": 4,
+      "19": 5,
+      "62": 6,
+      "64": 7,
+      "73": 8,
+      "84": 9
+    },
+    "items": [
+      {
+        "Struct": {
+          "fields": []
+        }
+      },
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 16,
+              "payload": {
+                "Named": {
+                  "module": null,
+                  "name": 10
+                }
+              }
+            },
+            {
+              "name": 17,
+              "payload": null
+            }
+          ]
+        }
+      },
+      {
+        "Named": {
+          "module": null,
+          "name": 14
+        }
+      },
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 16,
+              "payload": "String"
+            },
+            {
+              "name": 17,
+              "payload": null
+            }
+          ]
+        }
+      },
+      {
+        "Named": {
+          "module": null,
+          "name": 25
+        }
+      },
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 16,
+              "payload": "String"
+            },
+            {
+              "name": 30,
+              "payload": {
+                "Named": {
+                  "module": null,
+                  "name": 14
+                }
+              }
+            },
+            {
+              "name": 31,
+              "payload": {
+                "Named": {
+                  "module": null,
+                  "name": 25
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "Named": {
+          "module": null,
+          "name": 29
+        }
+      },
+      "String",
+      "String",
+      "String"
+    ]
+  },
+  "symbol_map": {
+    "node_ids": {},
+    "items": []
+  }
 }

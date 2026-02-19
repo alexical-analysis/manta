@@ -461,5 +461,120 @@
     16,
     17,
     77
-  ]
+  ],
+  "type_map": {
+    "node_ids": {
+      "0": 0,
+      "1": 1,
+      "6": 2,
+      "10": 3,
+      "17": 4,
+      "40": 5,
+      "41": 6,
+      "77": 7
+    },
+    "items": [
+      {
+        "Struct": {
+          "fields": []
+        }
+      },
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 14,
+              "payload": {
+                "Named": {
+                  "module": null,
+                  "name": 8
+                }
+              }
+            },
+            {
+              "name": 15,
+              "payload": null
+            }
+          ]
+        }
+      },
+      {
+        "Named": {
+          "module": null,
+          "name": 12
+        }
+      },
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 14,
+              "payload": "UInt64"
+            },
+            {
+              "name": 15,
+              "payload": null
+            }
+          ]
+        }
+      },
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 14,
+              "payload": null
+            },
+            {
+              "name": 30,
+              "payload": {
+                "Named": {
+                  "module": null,
+                  "name": 12
+                }
+              }
+            },
+            {
+              "name": 31,
+              "payload": {
+                "Named": {
+                  "module": null,
+                  "name": 23
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "Struct": {
+          "fields": [
+            {
+              "name": 18446744073709551600,
+              "type_spec": "UInt64"
+            },
+            {
+              "name": 18446744073709551599,
+              "type_spec": "UInt64"
+            },
+            {
+              "name": 18446744073709551598,
+              "type_spec": "UInt64"
+            }
+          ]
+        }
+      },
+      "UnsafePtr",
+      {
+        "Named": {
+          "module": null,
+          "name": 29
+        }
+      }
+    ]
+  },
+  "symbol_map": {
+    "node_ids": {},
+    "items": []
+  }
 }

@@ -214,5 +214,23 @@
   "roots": [
     2,
     39
-  ]
+  ],
+  "type_map": {
+    "node_ids": {
+      "3": 0,
+      "6": 1,
+      "19": 2,
+      "32": 3
+    },
+    "items": [
+      "Int64",
+      "Int64",
+      "Int64",
+      "Int64"
+    ]
+  },
+  "symbol_map": {
+    "node_ids": {},
+    "items": []
+  }
 }
