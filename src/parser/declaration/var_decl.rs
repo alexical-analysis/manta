@@ -15,27 +15,29 @@ impl DeclParselet for VarDeclParselet {
         lexer: &mut Lexer,
         _token: Token,
     ) -> Result<Decl, ParseError> {
-        let token = lexer.next_token();
-        if token.kind != TokenKind::Identifier {
+        let ident = lexer.next_token();
+        if ident.kind != TokenKind::Identifier {
             return Err(ParseError::UnexpectedToken(
-                token,
+                ident,
                 "Expected var name".to_string(),
             ));
         }
 
-        let name = token.lexeme_id;
-
         // Expect '='
-        let token = lexer.next_token();
-        if token.kind != TokenKind::Equal {
+        let equal = lexer.next_token();
+        if equal.kind != TokenKind::Equal {
             return Err(ParseError::UnexpectedToken(
-                token,
+                equal,
                 "Expected '=' after const name".to_string(),
             ));
         }
 
         let value = parser.parse_expression(lexer)?;
 
-        Ok(Decl::Var(VarDecl { name, value }))
+        Ok(Decl::Var(VarDecl {
+            token: ident,
+            name: ident.lexeme_id,
+            value,
+        }))
     }
 }
