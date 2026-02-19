@@ -261,5 +261,47 @@
     3,
     19,
     43
-  ]
+  ],
+  "type_map": {
+    "node_ids": {
+      "3": 0,
+      "7": 1,
+      "19": 2,
+      "21": 3,
+      "22": 4,
+      "30": 5,
+      "37": 6
+    },
+    "items": [
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 15,
+              "payload": "Int32"
+            },
+            {
+              "name": 16,
+              "payload": null
+            }
+          ]
+        }
+      },
+      "Int64",
+      {
+        "Named": {
+          "module": null,
+          "name": 13
+        }
+      },
+      "Int64",
+      "Int64",
+      "String",
+      "String"
+    ]
+  },
+  "symbol_map": {
+    "node_ids": {},
+    "items": []
+  }
 }

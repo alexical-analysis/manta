@@ -1,4 +1,5 @@
 use serde::Serialize;
+use std::collections::BTreeMap;
 use std::ops::Deref;
 
 use crate::ast::{
@@ -9,41 +10,32 @@ use crate::parser::module::{BindingType, Module, SymID};
 use crate::str_store;
 
 #[derive(Serialize)]
-struct DenseTable<T> {
-    node_ids: Vec<Option<NodeID>>,
+struct SideTable<T> {
+    node_ids: BTreeMap<NodeID, usize>,
     items: Vec<T>,
 }
 
-impl<T> DenseTable<T> {
+impl<T> SideTable<T> {
     fn new() -> Self {
-        DenseTable {
-            node_ids: vec![],
+        SideTable {
+            node_ids: BTreeMap::new(),
             items: vec![],
         }
     }
 
     fn add(&mut self, node_id: NodeID, t: T) {
-        match self.node_ids.get_mut(node_id) {
-            Some(t) => *t = Some(self.items.len()),
-            None => {
-                // we use resize here in case we add two nodes that are more than a single index apart.
-                // e.g. add_type(1, t) and then add_type(10, t)
-                self.node_ids.resize(node_id + 1, None);
-                self.node_ids[node_id] = Some(self.items.len());
-            }
+        if let Some(k) = self.node_ids.get(&node_id) {
+            panic!("can not add the same node twice")
         }
 
-        self.items.push(t)
+        let id = self.items.len();
+        self.items.push(t);
+        self.node_ids.insert(node_id, id);
     }
 
     fn get(&self, node_id: NodeID) -> Option<&T> {
-        match self.node_ids.get(node_id) {
-            // This is double nested because the node_id might not point to a valid slot in the
-            // node_ids vector AND, it may also point to a valid slot that was not actually
-            // initalized to a type spec. This is the tradeoff we make to avoid hashing to make the
-            // jump. Since node_ids are contiguous and most nodes will have some type spec
-            // associated with them, this tradeoff seems appropriate.
-            Some(Some(i)) => self.items.get(*i),
+        match self.node_ids.get(&node_id) {
+            Some(i) => self.items.get(*i),
             _ => None,
         }
     }
@@ -54,8 +46,8 @@ impl<T> DenseTable<T> {
 pub struct NodeTree {
     nodes: Vec<Node>,
     roots: Vec<NodeID>,
-    type_map: DenseTable<TypeSpec>,
-    symbol_map: DenseTable<SymID>,
+    type_map: SideTable<TypeSpec>,
+    symbol_map: SideTable<SymID>,
 }
 
 impl NodeTree {
@@ -64,8 +56,8 @@ impl NodeTree {
         NodeTree {
             nodes: vec![],
             roots: vec![],
-            type_map: DenseTable::new(),
-            symbol_map: DenseTable::new(),
+            type_map: SideTable::new(),
+            symbol_map: SideTable::new(),
         }
     }
 
@@ -773,14 +765,14 @@ mod tests {
 
     #[test]
     fn typemap_new_get_none() {
-        let tm: DenseTable<TypeSpec> = DenseTable::new();
+        let tm: SideTable<TypeSpec> = SideTable::new();
         assert_eq!(tm.get(0), None);
         assert_eq!(tm.get(10), None);
     }
 
     #[test]
     fn typemap_add_and_get() {
-        let mut tm: DenseTable<TypeSpec> = DenseTable::new();
+        let mut tm: SideTable<TypeSpec> = SideTable::new();
         tm.add(0, TypeSpec::Int32);
         assert_eq!(tm.get(0), Some(&TypeSpec::Int32));
 
@@ -791,7 +783,7 @@ mod tests {
 
     #[test]
     fn typemap_sparse_indices() {
-        let mut tm: DenseTable<TypeSpec> = DenseTable::new();
+        let mut tm: SideTable<TypeSpec> = SideTable::new();
         tm.add(3, TypeSpec::String);
         assert_eq!(tm.get(3), Some(&TypeSpec::String));
         assert_eq!(tm.get(0), None);
@@ -891,6 +883,7 @@ mod tests {
                 let mut e = NodeTree::new();
                 let decl_id = e.add_root_node(Node::VarDecl { name: 1 });
                 let value_id = e.add_node(Node::IntLiteral(42));
+                e.type_map.add(value_id, TypeSpec::Int64);
                 e.add_root_node(Node::Assign {
                     target: decl_id,
                     value: value_id,
@@ -912,6 +905,7 @@ mod tests {
                 let mut e = NodeTree::new();
                 let decl_id = e.add_root_node(Node::VarDecl { name: 2 });
                 let value_id = e.add_node(Node::StringLiteral(3));
+                e.type_map.add(value_id, TypeSpec::String);
                 e.add_root_node(Node::Assign {
                     target: decl_id,
                     value: value_id,

@@ -378,5 +378,38 @@
     6,
     29,
     65
-  ]
+  ],
+  "type_map": {
+    "node_ids": {
+      "1": 0,
+      "6": 1,
+      "29": 2,
+      "32": 3,
+      "44": 4
+    },
+    "items": [
+      "Float64",
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 20,
+              "payload": "Int32"
+            },
+            {
+              "name": 21,
+              "payload": "Int32"
+            }
+          ]
+        }
+      },
+      "Int32",
+      "Int64",
+      "Int64"
+    ]
+  },
+  "symbol_map": {
+    "node_ids": {},
+    "items": []
+  }
 }
