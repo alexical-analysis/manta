@@ -182,7 +182,14 @@ mod test {
                     },
                     name: 18446744073709551606
                 })),
-                payload: 1,
+                payload: IdentifierPat {
+                    token: Token {
+                        kind: TokenKind::Identifier,
+                        source_id: 4,
+                        lexeme_id: 1
+                    },
+                    name: 1
+                },
             }),
         },
         parse_pattern_pointer {
@@ -383,7 +390,14 @@ mod test {
                             name: 4
                         },
                     })),
-                    payload: 6,
+                    payload: IdentifierPat {
+                        token: Token {
+                            kind: TokenKind::Identifier,
+                            source_id: 17,
+                            lexeme_id: 6
+                        },
+                        name: 6
+                    },
                 })),
             }),
         },
@@ -398,7 +412,14 @@ mod test {
                     },
                     name: 0
                 })),
-                payload: 2,
+                payload: IdentifierPat {
+                    token: Token {
+                        kind: TokenKind::Identifier,
+                        source_id: 7,
+                        lexeme_id: 2
+                    },
+                    name: 2
+                },
             }),
         },
         parse_pattern_payload_dot_access {
@@ -422,7 +443,14 @@ mod test {
                         name: 2
                     },
                 })),
-                payload: 4,
+                payload: IdentifierPat {
+                    token: Token {
+                        kind: TokenKind::Identifier,
+                        source_id: 7,
+                        lexeme_id: 4
+                    },
+                    name: 4
+                },
             }),
         },
         parse_pattern_payload_dot_inferred {
@@ -439,7 +467,14 @@ mod test {
                         name: 1
                     },
                 })),
-                payload: 3,
+                payload: IdentifierPat {
+                    token: Token {
+                        kind: TokenKind::Identifier,
+                        source_id: 6,
+                        lexeme_id: 3
+                    },
+                    name: 3
+                },
             }),
         },
     );

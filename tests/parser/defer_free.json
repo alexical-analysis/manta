@@ -265,7 +265,14 @@
                         }
                       }
                     },
-                    "payload": 22
+                    "payload": {
+                      "token": {
+                        "kind": "Identifier",
+                        "source_id": 972,
+                        "lexeme_id": 22
+                      },
+                      "name": 22
+                    }
                   }
                 },
                 "value": {
@@ -356,7 +363,14 @@
                         "Slice": "UInt8"
                       }
                     },
-                    "payload": 26
+                    "payload": {
+                      "token": {
+                        "kind": "Identifier",
+                        "source_id": 1045,
+                        "lexeme_id": 26
+                      },
+                      "name": 26
+                    }
                   }
                 },
                 "value": {
@@ -422,7 +436,14 @@
                         }
                       }
                     },
-                    "payload": 42
+                    "payload": {
+                      "token": {
+                        "kind": "Identifier",
+                        "source_id": 1104,
+                        "lexeme_id": 42
+                      },
+                      "name": 42
+                    }
                   }
                 },
                 "value": {
@@ -717,13 +738,16 @@
       "644": 6,
       "911": 7,
       "958": 8,
+      "972": 8,
       "977": 8,
       "985": 8,
       "1015": 9,
       "1017": 9,
       "1026": 9,
+      "1045": 8,
       "1077": 10,
       "1084": 10,
+      "1104": 8,
       "1109": 8,
       "1118": 8,
       "1121": 8

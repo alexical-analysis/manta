@@ -231,7 +231,7 @@ impl Noder {
                 let pat_id = Self::node_pattern(node_tree, &pat.pat);
                 node_tree.add_node(Node::Pattern(PatternNode::Payload {
                     pat: pat_id,
-                    payload: pat.payload,
+                    payload: pat.payload.name,
                 }))
             }
             Pattern::ModuleAccess(pat) => {
@@ -323,10 +323,18 @@ impl Noder {
                 };
 
                 // ouside variable declaration
-                let var_id = node_tree.add_node(Node::VarDecl { name: pat.payload });
+                let name = pat.payload.name;
+                let var_id = node_tree.add_node(Node::VarDecl { name });
                 nodes.push(var_id);
-                // TODO: where's the source_id for the type decl?
-                // module.find_binding(ident.token.source_id, name)
+
+                // TODO: use the resulting sym_id to map the symbol to the var_id in a side table
+                let scope_id = module
+                    .get_scope_id(pat.payload.token.source_id)
+                    .expect("must have a scope for this identifier");
+                let binding = module
+                    .find_binding(scope_id, name)
+                    .expect("must have a valid payload binding");
+                let _sym_id = binding.id;
 
                 // rebuild the pattern
                 let inner_pat_id = Self::node_pattern(node_tree, &pat.pat);

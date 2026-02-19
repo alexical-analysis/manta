@@ -1,4 +1,4 @@
-use crate::ast::{Pattern, PayloadPat};
+use crate::ast::{IdentifierPat, Pattern, PayloadPat};
 use crate::parser::ParseError;
 use crate::parser::lexer::{Lexer, Token, TokenKind};
 use crate::parser::pattern::{InfixPatternParselet, PatternParser};
@@ -30,7 +30,10 @@ impl InfixPatternParselet for PayloadPatternParselet {
 
                 Ok(Pattern::Payload(PayloadPat {
                     pat: Box::new(left),
-                    payload: ident.lexeme_id,
+                    payload: IdentifierPat {
+                        token: ident,
+                        name: ident.lexeme_id,
+                    },
                 }))
             }
             _ => Err(ParseError::UnexpectedToken(
