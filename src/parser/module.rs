@@ -197,7 +197,7 @@ impl SymTable {
                 .expect("invalid scope id")
                 .bindings
                 .iter()
-                .position(|b| b.name == name);
+                .rposition(|b| b.name == name);
 
             if let Some(idx) = binding_index {
                 return Some(&self.scopes.get(id).unwrap().bindings[idx]);
@@ -336,70 +336,85 @@ impl Module {
 
                     sym_table.close_scope();
                 }
-                Decl::Type(decl) => match &decl.type_spec {
-                    TypeSpec::Named { module, name } => {
-                        if let Some(_module) = module {
-                            // TODO: modules are not yet supported just skip things for now
-                            continue;
-                        }
-
-                        let binding_type = match sym_table.find_binding(*name) {
-                            Some(b) => {
-                                b.used = true;
-                                b.binding_type
+                Decl::Type(decl) => {
+                    match &decl.type_spec {
+                        TypeSpec::Named { module, name } => {
+                            if let Some(_module) = module {
+                                // TODO: modules are not yet supported just skip things for now
+                                continue;
                             }
-                            None => panic!("unknown type (return this error)"),
-                        };
 
-                        sym_table.add_binding(decl.name, binding_type);
-                    }
-                    TypeSpec::Pointer(p) => {
-                        sym_table.add_binding(decl.name, BindingType::UnitType);
+                            let binding_type = match sym_table.find_binding(*name) {
+                                Some(b) => {
+                                    b.used = true;
+                                    b.binding_type
+                                }
+                                None => panic!("unknown type (return this error)"),
+                            };
 
-                        Self::build_sym_table_type_spec(errors, &mut sym_table, p);
-                    }
-                    TypeSpec::Slice(s) => {
-                        sym_table.add_binding(decl.name, BindingType::StructType);
-
-                        Self::build_sym_table_type_spec(errors, &mut sym_table, s);
-                    }
-                    TypeSpec::Array(a) => {
-                        sym_table.add_binding(decl.name, BindingType::UnitType);
-
-                        Self::build_sym_table_type_spec(errors, &mut sym_table, &a.type_spec);
-                    }
-                    TypeSpec::Struct(s) => {
-                        sym_table.add_binding(decl.name, BindingType::StructType);
-
-                        for field in &s.fields {
-                            Self::build_sym_table_type_spec(
-                                errors,
-                                &mut sym_table,
-                                &field.type_spec,
-                            );
+                            sym_table.add_binding(decl.name, binding_type);
                         }
-                    }
-                    TypeSpec::Enum(e) => {
-                        sym_table.add_binding(decl.name, BindingType::EnumType);
+                        TypeSpec::Pointer(p) => {
+                            sym_table.add_binding(decl.name, BindingType::UnitType);
 
-                        for variant in &e.variants {
-                            if let Some(payload) = &variant.payload {
-                                Self::build_sym_table_type_spec(errors, &mut sym_table, payload);
+                            Self::build_sym_table_type_spec(errors, &mut sym_table, p);
+                        }
+                        TypeSpec::Slice(s) => {
+                            sym_table.add_binding(decl.name, BindingType::StructType);
+
+                            Self::build_sym_table_type_spec(errors, &mut sym_table, s);
+                        }
+                        TypeSpec::Array(a) => {
+                            sym_table.add_binding(decl.name, BindingType::UnitType);
+
+                            Self::build_sym_table_type_spec(errors, &mut sym_table, &a.type_spec);
+                        }
+                        TypeSpec::Struct(s) => {
+                            sym_table.add_binding(decl.name, BindingType::StructType);
+
+                            for field in &s.fields {
+                                Self::build_sym_table_type_spec(
+                                    errors,
+                                    &mut sym_table,
+                                    &field.type_spec,
+                                );
                             }
                         }
+                        TypeSpec::Enum(e) => {
+                            sym_table.add_binding(decl.name, BindingType::EnumType);
+
+                            for variant in &e.variants {
+                                if let Some(payload) = &variant.payload {
+                                    Self::build_sym_table_type_spec(
+                                        errors,
+                                        &mut sym_table,
+                                        payload,
+                                    );
+                                }
+                            }
+                        }
+                        TypeSpec::String => {
+                            sym_table.add_binding(decl.name, BindingType::StructType);
+                        }
+                        _ => {
+                            sym_table.add_binding(decl.name, BindingType::UnitType);
+                        }
                     }
-                    TypeSpec::String => {
-                        sym_table.add_binding(decl.name, BindingType::StructType);
-                    }
-                    _ => {
-                        sym_table.add_binding(decl.name, BindingType::UnitType);
-                    }
-                },
+                    sym_table
+                        .scope_map
+                        .insert(decl.token.source_id, sym_table.current_scope);
+                }
                 Decl::Const(decl) => {
                     sym_table.add_binding(decl.name, BindingType::Value);
+                    sym_table
+                        .scope_map
+                        .insert(decl.token.source_id, sym_table.current_scope);
                 }
                 Decl::Var(decl) => {
                     sym_table.add_binding(decl.name, BindingType::Value);
+                    sym_table
+                        .scope_map
+                        .insert(decl.token.source_id, sym_table.current_scope);
                 }
                 Decl::Use(_) => { /* nothing to do */ }
                 Decl::Mod(_) => { /* nothing to do */ }

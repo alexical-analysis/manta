@@ -1,4 +1,5 @@
 use serde::Serialize;
+use std::cmp::Ord;
 use std::collections::BTreeMap;
 use std::ops::Deref;
 
@@ -10,32 +11,32 @@ use crate::parser::module::{BindingType, Module, SymID};
 use crate::str_store;
 
 #[derive(Serialize)]
-struct SideTable<T> {
-    node_ids: BTreeMap<NodeID, usize>,
-    items: Vec<T>,
+struct SideTable<K, V> {
+    keys: BTreeMap<K, usize>,
+    values: Vec<V>,
 }
 
-impl<T> SideTable<T> {
+impl<K: Ord, V> SideTable<K, V> {
     fn new() -> Self {
         SideTable {
-            node_ids: BTreeMap::new(),
-            items: vec![],
+            keys: BTreeMap::new(),
+            values: vec![],
         }
     }
 
-    fn add(&mut self, node_id: NodeID, t: T) {
-        if let Some(k) = self.node_ids.get(&node_id) {
+    fn add(&mut self, key: K, value: V) {
+        if self.keys.contains_key(&key) {
             panic!("can not add the same node twice")
         }
 
-        let id = self.items.len();
-        self.items.push(t);
-        self.node_ids.insert(node_id, id);
+        let id = self.values.len();
+        self.values.push(value);
+        self.keys.insert(key, id);
     }
 
-    fn get(&self, node_id: NodeID) -> Option<&T> {
-        match self.node_ids.get(&node_id) {
-            Some(i) => self.items.get(*i),
+    fn get(&self, key: K) -> Option<&V> {
+        match self.keys.get(&key) {
+            Some(i) => self.values.get(*i),
             _ => None,
         }
     }
@@ -46,8 +47,8 @@ impl<T> SideTable<T> {
 pub struct NodeTree {
     nodes: Vec<Node>,
     roots: Vec<NodeID>,
-    type_map: SideTable<TypeSpec>,
-    symbol_map: SideTable<SymID>,
+    type_map: SideTable<NodeID, TypeSpec>,
+    symbol_map: SideTable<SymID, NodeID>,
 }
 
 impl NodeTree {
@@ -112,6 +113,15 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 body: body_id,
             });
 
+            let scope_id = module
+                .get_scope_id(decl.token.source_id)
+                .expect("missing scope_id for function");
+            let binding = module
+                .find_binding(scope_id, decl.name)
+                .expect("missing binding for function");
+
+            node_tree.symbol_map.add(binding.id, func_id);
+
             if let Some(t) = decl.return_type.clone() {
                 node_tree.type_map.add(func_id, t);
             };
@@ -120,8 +130,15 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
             // create the node
             let decl_id = node_tree.add_root_node(Node::TypeDecl { name: decl.name });
             node_tree.type_map.add(decl_id, decl.type_spec.clone());
-            // TODO: where's the source_id for the type decl?
-            // module.find_binding(0, name)
+
+            let scope_id = module
+                .get_scope_id(decl.token.source_id)
+                .expect("missing scope_id for type decl");
+            let binding = module
+                .find_binding(scope_id, decl.name)
+                .expect("missing binding for type decl");
+
+            node_tree.symbol_map.add(binding.id, decl_id);
         }
         Decl::Const(decl) => {
             // create the nodes
@@ -131,8 +148,15 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 target: decl_id,
                 value: value_node,
             });
-            // TODO: where's the source_id for the type decl?
-            // module.find_binding(0, name)
+
+            let scope_id = module
+                .get_scope_id(decl.token.source_id)
+                .expect("missing scope_id for const decl");
+            let binding = module
+                .find_binding(scope_id, decl.name)
+                .expect("missing binding for const decl");
+
+            node_tree.symbol_map.add(binding.id, decl_id);
         }
         Decl::Var(decl) => {
             // create the nodes
@@ -142,8 +166,15 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 target: decl_id,
                 value: value_node,
             });
-            // TODO: where's the source_id for the type decl?
-            // module.find_binding(0, name)
+
+            let scope_id = module
+                .get_scope_id(decl.token.source_id)
+                .expect("missing scope_id for var decl");
+            let binding = module
+                .find_binding(scope_id, decl.name)
+                .expect("missing binding for var decl");
+
+            node_tree.symbol_map.add(binding.id, decl_id);
         }
         Decl::Use(_) => { /* ignore these since they're handled by the parser */ }
         Decl::Mod(_) => { /* ignore these since they're handled by the parser */ }
@@ -298,8 +329,15 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
 
             let var_id = node_tree.add_node(Node::VarDecl { name: ident.name });
             nodes.push(var_id);
-            // TODO: where's the source_id for the type decl?
-            // module.find_binding(ident.token.source_id, name)
+
+            let scope_id = module
+                .get_scope_id(ident.token.source_id)
+                .expect("missing scope_id for function");
+            let binding = module
+                .find_binding(scope_id, ident.name)
+                .expect("missing binding for function");
+
+            node_tree.symbol_map.add(binding.id, var_id);
 
             let assign_id = node_tree.add_node(Node::Assign {
                 target: var_id,
@@ -338,14 +376,14 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             let var_id = node_tree.add_node(Node::VarDecl { name });
             nodes.push(var_id);
 
-            // TODO: use the resulting sym_id to map the symbol to the var_id in a side table
             let scope_id = module
                 .get_scope_id(pat.payload.token.source_id)
-                .expect("must have a scope for this identifier");
+                .expect("missing scope_id for function");
             let binding = module
                 .find_binding(scope_id, name)
-                .expect("must have a valid payload binding");
-            let _sym_id = binding.id;
+                .expect("missing binding for function");
+
+            node_tree.symbol_map.add(binding.id, var_id);
 
             // rebuild the pattern
             let inner_pat_id = node_pattern(node_tree, &pat.pat);
@@ -765,14 +803,14 @@ mod tests {
 
     #[test]
     fn typemap_new_get_none() {
-        let tm: SideTable<TypeSpec> = SideTable::new();
+        let tm: SideTable<NodeID, TypeSpec> = SideTable::new();
         assert_eq!(tm.get(0), None);
         assert_eq!(tm.get(10), None);
     }
 
     #[test]
     fn typemap_add_and_get() {
-        let mut tm: SideTable<TypeSpec> = SideTable::new();
+        let mut tm: SideTable<NodeID, TypeSpec> = SideTable::new();
         tm.add(0, TypeSpec::Int32);
         assert_eq!(tm.get(0), Some(&TypeSpec::Int32));
 
@@ -783,7 +821,7 @@ mod tests {
 
     #[test]
     fn typemap_sparse_indices() {
-        let mut tm: SideTable<TypeSpec> = SideTable::new();
+        let mut tm: SideTable<NodeID, TypeSpec> = SideTable::new();
         tm.add(3, TypeSpec::String);
         assert_eq!(tm.get(3), Some(&TypeSpec::String));
         assert_eq!(tm.get(0), None);
@@ -888,6 +926,7 @@ mod tests {
                     target: decl_id,
                     value: value_id,
                 });
+                e.symbol_map.add(12, decl_id);
                 e
             }
         },
@@ -910,6 +949,7 @@ mod tests {
                     target: decl_id,
                     value: value_id,
                 });
+                e.symbol_map.add(12, decl_id);
                 e
             }
         },
