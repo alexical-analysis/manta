@@ -113,11 +113,11 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 body: body_id,
             });
 
-            let scope_id = module
-                .get_scope_id(decl.token.source_id)
-                .expect("missing scope_id for function");
+            let scope_pos = module
+                .get_scope_pos(decl.token.source_id)
+                .expect("missing scope_pos for function");
             let binding = module
-                .find_binding(scope_id, decl.name)
+                .find_binding(scope_pos, decl.name)
                 .expect("missing binding for function");
 
             node_tree.symbol_map.add(binding.id, func_id);
@@ -131,11 +131,11 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
             let decl_id = node_tree.add_root_node(Node::TypeDecl { name: decl.name });
             node_tree.type_map.add(decl_id, decl.type_spec.clone());
 
-            let scope_id = module
-                .get_scope_id(decl.token.source_id)
-                .expect("missing scope_id for type decl");
+            let scope_pos = module
+                .get_scope_pos(decl.token.source_id)
+                .expect("missing scope_posfor type decl");
             let binding = module
-                .find_binding(scope_id, decl.name)
+                .find_binding(scope_pos, decl.name)
                 .expect("missing binding for type decl");
 
             node_tree.symbol_map.add(binding.id, decl_id);
@@ -149,11 +149,11 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 value: value_node,
             });
 
-            let scope_id = module
-                .get_scope_id(decl.token.source_id)
-                .expect("missing scope_id for const decl");
+            let scope_pos = module
+                .get_scope_pos(decl.token.source_id)
+                .expect("missing scope_posfor const decl");
             let binding = module
-                .find_binding(scope_id, decl.name)
+                .find_binding(scope_pos, decl.name)
                 .expect("missing binding for const decl");
 
             node_tree.symbol_map.add(binding.id, decl_id);
@@ -167,11 +167,11 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 value: value_node,
             });
 
-            let scope_id = module
-                .get_scope_id(decl.token.source_id)
-                .expect("missing scope_id for var decl");
+            let scope_pos = module
+                .get_scope_pos(decl.token.source_id)
+                .expect("missing scope_posfor var decl");
             let binding = module
-                .find_binding(scope_id, decl.name)
+                .find_binding(scope_pos, decl.name)
                 .expect("missing binding for var decl");
 
             node_tree.symbol_map.add(binding.id, decl_id);
@@ -330,11 +330,11 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             let var_id = node_tree.add_node(Node::VarDecl { name: ident.name });
             nodes.push(var_id);
 
-            let scope_id = module
-                .get_scope_id(ident.token.source_id)
-                .expect("missing scope_id for function");
+            let scope_pos = module
+                .get_scope_pos(ident.token.source_id)
+                .expect("missing scope_posfor function");
             let binding = module
-                .find_binding(scope_id, ident.name)
+                .find_binding(scope_pos, ident.name)
                 .expect("missing binding for function");
 
             node_tree.symbol_map.add(binding.id, var_id);
@@ -376,11 +376,11 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             let var_id = node_tree.add_node(Node::VarDecl { name });
             nodes.push(var_id);
 
-            let scope_id = module
-                .get_scope_id(pat.payload.token.source_id)
-                .expect("missing scope_id for function");
+            let scope_pos = module
+                .get_scope_pos(pat.payload.token.source_id)
+                .expect("missing scope_posfor function");
             let binding = module
-                .find_binding(scope_id, name)
+                .find_binding(scope_pos, name)
                 .expect("missing binding for function");
 
             node_tree.symbol_map.add(binding.id, var_id);
@@ -566,10 +566,10 @@ fn node_wrap_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> Opt
         _ => return None,
     };
 
-    let scope_id = module
-        .get_scope_id(target.token.source_id)
+    let scope_pos = module
+        .get_scope_pos(target.token.source_id)
         .expect("could not find scope for identifier");
-    let binding = module.find_binding(scope_id, target.name);
+    let binding = module.find_binding(scope_pos, target.name);
     if let Some(b) = binding {
         // if the identifier is a declared enum type we know this is a valid enum expression
         if b.binding_type != BindingType::EnumType {
@@ -619,10 +619,10 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
             node_id
         }
         Expr::Identifier(expr) => {
-            let scope_id = module
-                .get_scope_id(expr.token.source_id)
+            let scope_pos = module
+                .get_scope_pos(expr.token.source_id)
                 .expect("could not get scope for identifier");
-            match module.find_binding(scope_id, expr.name) {
+            match module.find_binding(scope_pos, expr.name) {
                 // make sure this binding exists before we dereference it
                 // TODO: should I check type information here?
                 Some(_) => node_tree.add_node(Node::Identifier(expr.name)),
@@ -706,11 +706,11 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
 
             let binding = match target.deref() {
                 Expr::Identifier(ident) => {
-                    let scope_id = module
-                        .get_scope_id(ident.token.source_id)
-                        .expect("could not find scope_id for identifier");
+                    let scope_pos = module
+                        .get_scope_pos(ident.token.source_id)
+                        .expect("could not find scope_posfor identifier");
                     module
-                        .find_binding(scope_id, ident.name)
+                        .find_binding(scope_pos, ident.name)
                         .expect("missing binding for already noded target")
                 }
                 _ => {
