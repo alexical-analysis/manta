@@ -41,6 +41,12 @@ pub struct Binding {
     pub used: bool,
 }
 
+#[derive(Debug, Copy, Clone, Serialize)]
+pub struct ScopePos {
+    scope_id: ScopeID,
+    scope_depth: usize,
+}
+
 pub type ScopeID = usize;
 
 #[derive(Debug, Serialize)]
@@ -104,7 +110,7 @@ struct SymTable {
     // nice because the scope maps to the actual spot in the file where it opens. However it feels
     // a little messy in some ways too. I would rather use something like a NodeID but to do that
     // would require a HUGE refactor of the AST so I'm leaving it at this for now.
-    scope_map: BTreeMap<usize, ScopeID>,
+    scope_map: BTreeMap<usize, ScopePos>,
     id_tracker: IDTracker,
 }
 
@@ -138,9 +144,19 @@ impl SymTable {
         let new_scope_id = self.scopes.len();
 
         self.scopes.push(new_scope);
-        self.scope_map.insert(source_id, new_scope_id);
-
         self.current_scope = new_scope_id;
+        self.add_scope_pos(source_id);
+    }
+
+    fn add_scope_pos(&mut self, source_id: usize) {
+        let scope_depth = self.get_current_scope().bindings.len();
+        self.scope_map.insert(
+            source_id,
+            ScopePos {
+                scope_id: self.current_scope,
+                scope_depth,
+            },
+        );
     }
 
     fn close_scope(&mut self) {
@@ -173,7 +189,7 @@ impl SymTable {
                 .expect("invalid scope id")
                 .bindings
                 .iter()
-                .position(|b| b.name == name);
+                .rposition(|b| b.name == name);
 
             if let Some(idx) = binding_index {
                 return Some(&mut self.scopes.get_mut(id).unwrap().bindings[idx]);
@@ -185,11 +201,15 @@ impl SymTable {
         None
     }
 
-    fn find_binding_in_scope(&self, scope_id: ScopeID, name: StrID) -> Option<&Binding> {
-        self.scopes.get(scope_id)?;
+    fn find_binding_in_scope(&self, scope_pos: ScopePos, name: StrID) -> Option<&Binding> {
+        self.scopes
+            .get(scope_pos.scope_id)
+            .expect("invalid scope id lookup in find_binding_in_scope");
 
-        let mut scope_id = Some(scope_id);
+        let mut scope_id = Some(scope_pos.scope_id);
 
+        // TODO: need to update this to slice the bindings vector so that it only contains
+        // scopes that were declared before scope_pos.scope_depth
         while let Some(id) = scope_id {
             let binding_index = self
                 .scopes
@@ -239,7 +259,7 @@ impl Module {
         }
     }
 
-    pub fn get_scope_id(&self, source_id: usize) -> Option<ScopeID> {
+    pub fn get_scope_pos(&self, source_id: usize) -> Option<ScopePos> {
         self.sym_table.scope_map.get(&source_id).copied()
     }
 
@@ -247,8 +267,8 @@ impl Module {
         &self.decls
     }
 
-    pub fn find_binding(&self, scope_id: ScopeID, name: StrID) -> Option<&Binding> {
-        self.sym_table.find_binding_in_scope(scope_id, name)
+    pub fn find_binding(&self, scope_pos: ScopePos, name: StrID) -> Option<&Binding> {
+        self.sym_table.find_binding_in_scope(scope_pos, name)
     }
 
     pub fn get_errors(&self) -> &Vec<ParseError> {
@@ -400,21 +420,15 @@ impl Module {
                             sym_table.add_binding(decl.name, BindingType::UnitType);
                         }
                     }
-                    sym_table
-                        .scope_map
-                        .insert(decl.token.source_id, sym_table.current_scope);
+                    sym_table.add_scope_pos(decl.token.source_id);
                 }
                 Decl::Const(decl) => {
                     sym_table.add_binding(decl.name, BindingType::Value);
-                    sym_table
-                        .scope_map
-                        .insert(decl.token.source_id, sym_table.current_scope);
+                    sym_table.add_scope_pos(decl.token.source_id);
                 }
                 Decl::Var(decl) => {
                     sym_table.add_binding(decl.name, BindingType::Value);
-                    sym_table
-                        .scope_map
-                        .insert(decl.token.source_id, sym_table.current_scope);
+                    sym_table.add_scope_pos(decl.token.source_id);
                 }
                 Decl::Use(_) => { /* nothing to do */ }
                 Decl::Mod(_) => { /* nothing to do */ }
@@ -444,16 +458,12 @@ impl Module {
             Stmt::Let(stmt) => {
                 if let Pattern::Payload(pat) = &stmt.pattern {
                     sym_table.add_binding(pat.payload.name, BindingType::Value);
-                    sym_table
-                        .scope_map
-                        .insert(pat.payload.token.source_id, sym_table.current_scope);
+                    sym_table.add_scope_pos(pat.payload.token.source_id);
                 }
 
                 if let Pattern::Identifier(ident) = &stmt.pattern {
                     sym_table.add_binding(ident.name, BindingType::Value);
-                    sym_table
-                        .scope_map
-                        .insert(ident.token.source_id, sym_table.current_scope);
+                    sym_table.add_scope_pos(ident.token.source_id);
                 }
 
                 Self::build_sym_table_expr(errors, sym_table, &stmt.value);
@@ -504,9 +514,7 @@ impl Module {
 
                     if let Pattern::Payload(pat) = &arm.pattern {
                         sym_table.add_binding(pat.payload.name, BindingType::Value);
-                        sym_table
-                            .scope_map
-                            .insert(pat.payload.token.source_id, sym_table.current_scope);
+                        sym_table.add_scope_pos(pat.payload.token.source_id);
                     }
 
                     Self::build_sym_table_block(errors, sym_table, &arm.body);
@@ -536,10 +544,7 @@ impl Module {
             Expr::Identifier(expr) => match sym_table.find_binding(expr.name) {
                 Some(b) => {
                     b.used = true;
-                    // TODO: this should be made cleaner. Mabye like a method on the sym_table?
-                    sym_table
-                        .scope_map
-                        .insert(expr.token.source_id, sym_table.current_scope);
+                    sym_table.add_scope_pos(expr.token.source_id);
                 }
                 None => errors.push(ParseError::Custom(
                     Token {
