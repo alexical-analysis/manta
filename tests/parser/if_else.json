@@ -375,20 +375,62 @@
     ],
     "current_scope": 0,
     "scope_map": {
-      "117": 1,
-      "139": 2,
-      "176": 3,
-      "186": 4,
-      "196": 4,
-      "222": 4,
-      "233": 5,
-      "243": 5,
-      "277": 4,
-      "294": 4,
-      "304": 6,
-      "314": 6,
-      "343": 7,
-      "353": 7
+      "117": {
+        "scope_id": 1,
+        "scope_depth": 0
+      },
+      "139": {
+        "scope_id": 2,
+        "scope_depth": 0
+      },
+      "176": {
+        "scope_id": 3,
+        "scope_depth": 0
+      },
+      "186": {
+        "scope_id": 4,
+        "scope_depth": 0
+      },
+      "196": {
+        "scope_id": 4,
+        "scope_depth": 1
+      },
+      "222": {
+        "scope_id": 4,
+        "scope_depth": 1
+      },
+      "233": {
+        "scope_id": 5,
+        "scope_depth": 0
+      },
+      "243": {
+        "scope_id": 5,
+        "scope_depth": 0
+      },
+      "277": {
+        "scope_id": 4,
+        "scope_depth": 2
+      },
+      "294": {
+        "scope_id": 4,
+        "scope_depth": 2
+      },
+      "304": {
+        "scope_id": 6,
+        "scope_depth": 0
+      },
+      "314": {
+        "scope_id": 6,
+        "scope_depth": 0
+      },
+      "343": {
+        "scope_id": 7,
+        "scope_depth": 0
+      },
+      "353": {
+        "scope_id": 7,
+        "scope_depth": 0
+      }
     },
     "id_tracker": {
       "id": 17

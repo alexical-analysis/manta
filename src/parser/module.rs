@@ -206,24 +206,32 @@ impl SymTable {
             .get(scope_pos.scope_id)
             .expect("invalid scope id lookup in find_binding_in_scope");
 
-        let mut scope_id = Some(scope_pos.scope_id);
+        // check the target scope first only looking at bindings declared before the
+        // scope_pos.scope_depth
+        let mut scope = self
+            .scopes
+            .get(scope_pos.scope_id)
+            .expect("failed to find root scope for binding");
+        let binding_index = scope.bindings.as_slice()[..scope_pos.scope_depth]
+            .iter()
+            .rposition(|b| b.name == name);
 
-        // TODO: need to update this to slice the bindings vector so that it only contains
-        // scopes that were declared before scope_pos.scope_depth
-        while let Some(id) = scope_id {
-            let binding_index = self
+        if let Some(idx) = binding_index {
+            return Some(&scope.bindings[idx]);
+        }
+
+        // for all the remaining parent scopes just look at every binding
+        while let Some(id) = scope.parent {
+            scope = self
                 .scopes
                 .get(id)
-                .expect("invalid scope id")
-                .bindings
-                .iter()
-                .rposition(|b| b.name == name);
+                .expect("failed to find scope for binding");
+
+            let binding_index = scope.bindings.iter().rposition(|b| b.name == name);
 
             if let Some(idx) = binding_index {
-                return Some(&self.scopes.get(id).unwrap().bindings[idx]);
+                return Some(&scope.bindings[idx]);
             }
-
-            scope_id = self.scopes.get(id).unwrap().parent;
         }
 
         None

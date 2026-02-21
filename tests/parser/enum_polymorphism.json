@@ -733,39 +733,138 @@
     ],
     "current_scope": 0,
     "scope_map": {
-      "131": 0,
-      "209": 1,
-      "231": 2,
-      "300": 0,
-      "393": 3,
-      "414": 4,
-      "490": 4,
-      "502": 5,
-      "510": 5,
-      "513": 6,
-      "522": 6,
-      "532": 6,
-      "536": 6,
-      "548": 7,
-      "556": 7,
-      "559": 8,
-      "568": 8,
-      "572": 8,
-      "585": 9,
-      "595": 10,
-      "605": 10,
-      "614": 10,
-      "639": 10,
-      "653": 10,
-      "658": 10,
-      "670": 10,
-      "682": 10,
-      "710": 10,
-      "739": 10,
-      "753": 10,
-      "758": 10,
-      "770": 10,
-      "782": 10
+      "131": {
+        "scope_id": 0,
+        "scope_depth": 13
+      },
+      "209": {
+        "scope_id": 1,
+        "scope_depth": 0
+      },
+      "231": {
+        "scope_id": 2,
+        "scope_depth": 0
+      },
+      "300": {
+        "scope_id": 0,
+        "scope_depth": 15
+      },
+      "393": {
+        "scope_id": 3,
+        "scope_depth": 0
+      },
+      "414": {
+        "scope_id": 4,
+        "scope_depth": 0
+      },
+      "490": {
+        "scope_id": 4,
+        "scope_depth": 0
+      },
+      "502": {
+        "scope_id": 5,
+        "scope_depth": 0
+      },
+      "510": {
+        "scope_id": 5,
+        "scope_depth": 1
+      },
+      "513": {
+        "scope_id": 6,
+        "scope_depth": 0
+      },
+      "522": {
+        "scope_id": 6,
+        "scope_depth": 0
+      },
+      "532": {
+        "scope_id": 6,
+        "scope_depth": 0
+      },
+      "536": {
+        "scope_id": 6,
+        "scope_depth": 0
+      },
+      "548": {
+        "scope_id": 7,
+        "scope_depth": 0
+      },
+      "556": {
+        "scope_id": 7,
+        "scope_depth": 1
+      },
+      "559": {
+        "scope_id": 8,
+        "scope_depth": 0
+      },
+      "568": {
+        "scope_id": 8,
+        "scope_depth": 0
+      },
+      "572": {
+        "scope_id": 8,
+        "scope_depth": 0
+      },
+      "585": {
+        "scope_id": 9,
+        "scope_depth": 0
+      },
+      "595": {
+        "scope_id": 10,
+        "scope_depth": 0
+      },
+      "605": {
+        "scope_id": 10,
+        "scope_depth": 1
+      },
+      "614": {
+        "scope_id": 10,
+        "scope_depth": 1
+      },
+      "639": {
+        "scope_id": 10,
+        "scope_depth": 2
+      },
+      "653": {
+        "scope_id": 10,
+        "scope_depth": 2
+      },
+      "658": {
+        "scope_id": 10,
+        "scope_depth": 2
+      },
+      "670": {
+        "scope_id": 10,
+        "scope_depth": 2
+      },
+      "682": {
+        "scope_id": 10,
+        "scope_depth": 2
+      },
+      "710": {
+        "scope_id": 10,
+        "scope_depth": 3
+      },
+      "739": {
+        "scope_id": 10,
+        "scope_depth": 4
+      },
+      "753": {
+        "scope_id": 10,
+        "scope_depth": 4
+      },
+      "758": {
+        "scope_id": 10,
+        "scope_depth": 4
+      },
+      "770": {
+        "scope_id": 10,
+        "scope_depth": 4
+      },
+      "782": {
+        "scope_id": 10,
+        "scope_depth": 4
+      }
     },
     "id_tracker": {
       "id": 25

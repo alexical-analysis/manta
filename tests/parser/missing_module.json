@@ -208,11 +208,26 @@
     ],
     "current_scope": 0,
     "scope_map": {
-      "87": 1,
-      "109": 2,
-      "113": 3,
-      "123": 4,
-      "129": 4
+      "87": {
+        "scope_id": 1,
+        "scope_depth": 0
+      },
+      "109": {
+        "scope_id": 2,
+        "scope_depth": 0
+      },
+      "113": {
+        "scope_id": 3,
+        "scope_depth": 0
+      },
+      "123": {
+        "scope_id": 4,
+        "scope_depth": 0
+      },
+      "129": {
+        "scope_id": 4,
+        "scope_depth": 0
+      }
     },
     "id_tracker": {
       "id": 15

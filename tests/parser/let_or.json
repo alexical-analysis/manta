@@ -969,7 +969,7 @@
             "id": 31,
             "name": 38,
             "binding_type": "Value",
-            "used": false
+            "used": true
           }
         ]
       },
@@ -991,43 +991,154 @@
     ],
     "current_scope": 0,
     "scope_map": {
-      "144": 0,
-      "229": 0,
-      "341": 1,
-      "369": 2,
-      "464": 3,
-      "484": 4,
-      "565": 0,
-      "694": 5,
-      "738": 6,
-      "837": 7,
-      "859": 8,
-      "926": 0,
-      "1051": 9,
-      "1083": 10,
-      "1097": 10,
-      "1102": 10,
-      "1110": 10,
-      "1140": 11,
-      "1142": 11,
-      "1151": 11,
-      "1169": 10,
-      "1174": 10,
-      "1192": 10,
-      "1224": 10,
-      "1261": 12,
-      "1271": 13,
-      "1285": 13,
-      "1296": 13,
-      "1320": 14,
-      "1326": 15,
-      "1336": 15,
-      "1388": 13,
-      "1400": 13,
-      "1484": 13,
-      "1495": 13,
-      "1531": 13,
-      "1543": 13
+      "144": {
+        "scope_id": 0,
+        "scope_depth": 13
+      },
+      "229": {
+        "scope_id": 0,
+        "scope_depth": 14
+      },
+      "341": {
+        "scope_id": 1,
+        "scope_depth": 0
+      },
+      "369": {
+        "scope_id": 2,
+        "scope_depth": 0
+      },
+      "464": {
+        "scope_id": 3,
+        "scope_depth": 0
+      },
+      "484": {
+        "scope_id": 4,
+        "scope_depth": 0
+      },
+      "565": {
+        "scope_id": 0,
+        "scope_depth": 17
+      },
+      "694": {
+        "scope_id": 5,
+        "scope_depth": 0
+      },
+      "738": {
+        "scope_id": 6,
+        "scope_depth": 0
+      },
+      "837": {
+        "scope_id": 7,
+        "scope_depth": 0
+      },
+      "859": {
+        "scope_id": 8,
+        "scope_depth": 0
+      },
+      "926": {
+        "scope_id": 0,
+        "scope_depth": 20
+      },
+      "1051": {
+        "scope_id": 9,
+        "scope_depth": 0
+      },
+      "1083": {
+        "scope_id": 10,
+        "scope_depth": 0
+      },
+      "1097": {
+        "scope_id": 10,
+        "scope_depth": 1
+      },
+      "1102": {
+        "scope_id": 10,
+        "scope_depth": 1
+      },
+      "1110": {
+        "scope_id": 10,
+        "scope_depth": 1
+      },
+      "1140": {
+        "scope_id": 11,
+        "scope_depth": 0
+      },
+      "1142": {
+        "scope_id": 11,
+        "scope_depth": 0
+      },
+      "1151": {
+        "scope_id": 11,
+        "scope_depth": 0
+      },
+      "1169": {
+        "scope_id": 10,
+        "scope_depth": 2
+      },
+      "1174": {
+        "scope_id": 10,
+        "scope_depth": 2
+      },
+      "1192": {
+        "scope_id": 10,
+        "scope_depth": 2
+      },
+      "1224": {
+        "scope_id": 10,
+        "scope_depth": 2
+      },
+      "1261": {
+        "scope_id": 12,
+        "scope_depth": 0
+      },
+      "1271": {
+        "scope_id": 13,
+        "scope_depth": 0
+      },
+      "1285": {
+        "scope_id": 13,
+        "scope_depth": 1
+      },
+      "1296": {
+        "scope_id": 13,
+        "scope_depth": 1
+      },
+      "1320": {
+        "scope_id": 14,
+        "scope_depth": 0
+      },
+      "1326": {
+        "scope_id": 15,
+        "scope_depth": 0
+      },
+      "1336": {
+        "scope_id": 15,
+        "scope_depth": 0
+      },
+      "1388": {
+        "scope_id": 13,
+        "scope_depth": 1
+      },
+      "1400": {
+        "scope_id": 13,
+        "scope_depth": 1
+      },
+      "1484": {
+        "scope_id": 13,
+        "scope_depth": 2
+      },
+      "1495": {
+        "scope_id": 13,
+        "scope_depth": 2
+      },
+      "1531": {
+        "scope_id": 13,
+        "scope_depth": 2
+      },
+      "1543": {
+        "scope_id": 13,
+        "scope_depth": 2
+      }
     },
     "id_tracker": {
       "id": 32

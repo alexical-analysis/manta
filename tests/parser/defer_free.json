@@ -750,31 +750,106 @@
     ],
     "current_scope": 0,
     "scope_map": {
-      "126": 0,
-      "211": 0,
-      "308": 1,
-      "336": 2,
-      "417": 3,
-      "437": 4,
-      "511": 0,
-      "614": 5,
-      "644": 6,
-      "743": 0,
-      "911": 7,
-      "958": 8,
-      "972": 8,
-      "977": 8,
-      "985": 8,
-      "1015": 9,
-      "1017": 9,
-      "1026": 9,
-      "1045": 8,
-      "1077": 10,
-      "1084": 10,
-      "1104": 8,
-      "1109": 8,
-      "1118": 8,
-      "1121": 8
+      "126": {
+        "scope_id": 0,
+        "scope_depth": 13
+      },
+      "211": {
+        "scope_id": 0,
+        "scope_depth": 14
+      },
+      "308": {
+        "scope_id": 1,
+        "scope_depth": 0
+      },
+      "336": {
+        "scope_id": 2,
+        "scope_depth": 0
+      },
+      "417": {
+        "scope_id": 3,
+        "scope_depth": 0
+      },
+      "437": {
+        "scope_id": 4,
+        "scope_depth": 0
+      },
+      "511": {
+        "scope_id": 0,
+        "scope_depth": 17
+      },
+      "614": {
+        "scope_id": 5,
+        "scope_depth": 0
+      },
+      "644": {
+        "scope_id": 6,
+        "scope_depth": 0
+      },
+      "743": {
+        "scope_id": 0,
+        "scope_depth": 19
+      },
+      "911": {
+        "scope_id": 7,
+        "scope_depth": 0
+      },
+      "958": {
+        "scope_id": 8,
+        "scope_depth": 0
+      },
+      "972": {
+        "scope_id": 8,
+        "scope_depth": 1
+      },
+      "977": {
+        "scope_id": 8,
+        "scope_depth": 1
+      },
+      "985": {
+        "scope_id": 8,
+        "scope_depth": 1
+      },
+      "1015": {
+        "scope_id": 9,
+        "scope_depth": 0
+      },
+      "1017": {
+        "scope_id": 9,
+        "scope_depth": 0
+      },
+      "1026": {
+        "scope_id": 9,
+        "scope_depth": 0
+      },
+      "1045": {
+        "scope_id": 8,
+        "scope_depth": 2
+      },
+      "1077": {
+        "scope_id": 10,
+        "scope_depth": 0
+      },
+      "1084": {
+        "scope_id": 10,
+        "scope_depth": 0
+      },
+      "1104": {
+        "scope_id": 8,
+        "scope_depth": 3
+      },
+      "1109": {
+        "scope_id": 8,
+        "scope_depth": 3
+      },
+      "1118": {
+        "scope_id": 8,
+        "scope_depth": 3
+      },
+      "1121": {
+        "scope_id": 8,
+        "scope_depth": 3
+      }
     },
     "id_tracker": {
       "id": 28
