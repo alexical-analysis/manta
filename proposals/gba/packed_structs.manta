@@ -1,0 +1,142 @@
+mod hwd
+
+use (
+  "unsafe"
+  "math"
+  "float"
+)
+
+// GBControl is the background control register type
+// 'pack' is the keyword for creating a packed struct where
+// no padding is added and normal alignment rules are ignored
+pub type BGControl pack {
+    priority u2
+    char_base_block u2
+    // _ in a packed struct is padding data, It can not be read or written to
+    _ u3
+    mosaic bit
+    color_mode bit
+    screen_base_block u5
+    display_area_overflow bit
+    screen_size bit
+}
+
+new BGControl [
+pub fn new_mode3_bgcontrol() BGControl {
+    // TODO
+}
+]
+
+// this is just a guess, i don't remember the actual addr
+let unsafe::ptr(BGControlAddr) = 0x0400_0000
+
+// this converts the unsafe pointer into the BGControl struct
+pub let BGControl(BGControlReg) = BGControlAddr
+
+
+// angle braces here mean that the paramaters must provided at compile time
+// so this function must be run at compile time, this is the only reason we're allowed to use
+// the size param in the return type like this. This is because arrays must have a known
+// size at compile time. 
+fn genSinLut<size usize> [size]s16q8 {
+    mut lut [size]s16u8
+
+    // this is an alternative syntax for a for loop that I'm considering
+    // 0..size is a range statment and creates a pull iterator (like Go's iterators)
+    // it then takes a closure as the function body. I think this makes for a more readable
+    // loop when we start to introduce pull iterators
+    for 0..size fn(i usize) {
+        let angle = (2 * math::PI * float::from_usize(i) / float::from_usize(size))
+        let s = math::sin(angle)
+        table[i] = int::from_float(math::round(256 * s))
+    }
+
+    return lut
+}
+
+let sin_lut = genSinLut<256>
+
+// this is an example of a pull iterator that we can build using the functional style for-loop
+// proposed above. Often the assembly to decriment loops is faster than incrementing loops
+// so this is an example for how we could leverage that knowledge (in practice the compiler could potentially
+// do this for us and might already if we use LLVM).
+//
+// Also notice the iter<usize> type here. This is actually a comptime function that returns a type
+fn fast_range(start, end usize) iter<usize> {
+    mut i = end - start
+    return fn(yield fn(usize) stat) {
+        if i == 0 {
+            // once the for-loop sees a stat.Break it will stop calling the iter
+            return .Break
+        }
+        i--
+
+        return body(end - i - 1)
+    }
+}
+
+// used below with lut::gen
+fn qcos(f f64) s16q8 {
+    // this is slow especially on old embedded hardware like the GBA
+    let f = math::cos(f)
+    // notice we use comptime here and return a function which we can then directly invoke
+    // to do the type conversion, this is also potentially slow
+    return fixed::from_float<16,8>(f)
+}
+
+// you can also do fancy stuff like passing closures around to make lut generation easy
+// here we pass a closure into lut::gen to generate a cosine loopkup table where the
+// entries are s16q8 fixed pont values. math::qcos takes fixed point sizes as comptime args
+// and returns a specified function to be run.
+// step_range returns an iterator over floating point values. Here it starts at zero and moves
+// towards 2PI, spilt into 256 even size steps. The resulting cos_lut table is a [256]s16q8 array
+// this leaves all the slow work to happen at compile time and then we just use the lut at run time
+// which is much faster
+let cos_lut = lut::gen<step_range(0, 2 * math::PI, 256), qcos>
+
+// SprTransform is a transform matrix for a GBA OAM sprite
+pub type SprTransform pack {
+    // this is a fixed point type. It's 16 bits in length 8 of which are used for the
+    // fractional piece (quotient) and the integer part is signed
+    pa s16q8
+    _ u48 // skip normal sprite attributes since this type is interleaved
+    pb s16q8
+    _ u48 // skip
+    pc s16q8
+    _ u48 // skip
+    pd s16q8
+    _ u48 // skip
+}
+
+new SprTransform [
+pub fn new_spr_transform(theta u8) SprTransform {
+    let s = sin_lut[theta]
+    let c = cos_lut[theta]
+
+    return SprTransform {
+        // notice we don't set the _ value here to anything. This memory is explicitly left untouched
+        a: c,
+        b: s,
+        c: -s,
+        d: c,
+    }
+}
+]
+
+// SprTransformAddr is the starting address of all the OAM sprite transform data
+let unsafe::ptr(SprTransformAddr) = 0x0700_0000
+
+// SprTransforms is the arry of sprite transforms in hardware OAM
+pub let [64]SprTransform(SprTransforms) = SprTransformAddr
+
+---
+mod main
+
+use ( "hwd" )
+
+fn main() {
+    // 'on' and 'off' are like 'true' and 'false' but for the bit type
+    hwd::BGControl.display_area_overflow = on
+
+    hwd::SprTransforms[0] = hwd::new_spr_transform(45)
+}

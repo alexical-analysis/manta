@@ -1,0 +1,81 @@
+mod main
+
+use (
+  "volatile"
+  "hwd"
+  "fiber"
+  "game"
+  "mem"
+)
+
+fn fade_in() {
+  // color brightness target register (maybe?)
+  mut volatile::ptr(color_addr) = 0x0400_0054
+
+  for 16..0 fn(lvl u32) {
+    *color_addr = lvl
+    
+    // this yields controll untill the next vblank when the
+    // fiber will be called again. (need to think through
+    // the mecanics of how this yield works more carefully)
+    //
+    // maybe this works like throw and jumps stack frames 
+    // until it's caught by a pool.
+    // 
+    // that would be really unsafe so we could use a "co" keyword
+    // or something to indicate that fade_in can't really be called
+    // like a normal function
+    // That kinda just creates async/await again though
+    //
+    // Maybe the real reason go-routines are great is because you
+    // don't get to decide when the yield happens...
+    yield
+
+    // Maybe instead of a yield keyword we have something like
+    fiber::vblank30()
+    // now we don't have an explicit yield and the compiler needs to
+    // be smart enough to know that it needs to yield controll when
+    // this line is hit. That basically fixes all the issues but makes
+    // scheduling a little more tricky, I think I like this though.
+    //
+    // The only tricky thing is the vblank30 call needs be a fiber::vblank30
+    // because if it's a hwd::vblank30 then this fiber blocks all execution
+    // till the next vblank which would be bad, espeically if multilple
+    // fibers all do this
+  }
+}
+
+fn main() {
+  // this creates a tri-color garbage collected heap that runs a
+  // little bit of cleanup after every time collect is called
+  let heap = mem::new_fiber_gc_heap(hwd::HeapSize)
+  // clean up the heap once we're done
+  defer { heap.free() }
+
+  // this needs to happen at comptime so we know the exact sizes of the
+  // closures and can put them on the stack.
+  // we could also use fiber::new_dyn_pool() which would create a pool that
+  // we can add to dynamically at run time, but it's closures will run more
+  // slowly as they'll have to be heap allocated
+  let pool = fiber::new_pool<fade_in, heap.collect>
+
+  // the fiber pool does not block
+  loop {
+    // this is a smart vblank that will put the CPU to sleep and with for a interupt
+    // to start execution again. It tracks frames such that we run at a constant 30fps
+    hwd::vblank30()
+
+    // draw the current frame to the screen now that we're in vblank
+    game::draw(heap)
+
+    // comput the next frame
+    game::update(heap)
+
+    // need to call this explicitly to run all the fibers in the pool
+    // this could be automated by a fancy scheduler, but doing it explicitly 
+    // like this simplifies all that logic at a very small cost to the developer
+    // it might actually be more convient since they now can see exactly where that
+    // logic will get run
+    pool.tick()
+  }
+}
