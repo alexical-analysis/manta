@@ -454,25 +454,82 @@
     ],
     "current_scope": 0,
     "scope_map": {
-      "29": 1,
-      "51": 2,
-      "55": 3,
-      "65": 4,
-      "75": 4,
-      "90": 4,
-      "108": 4,
-      "113": 4,
-      "119": 4,
-      "132": 4,
-      "140": 4,
-      "151": 4,
-      "163": 4,
-      "171": 4,
-      "176": 4,
-      "183": 4,
-      "188": 4,
-      "199": 4,
-      "211": 4
+      "29": {
+        "scope_id": 1,
+        "scope_depth": 0
+      },
+      "51": {
+        "scope_id": 2,
+        "scope_depth": 0
+      },
+      "55": {
+        "scope_id": 3,
+        "scope_depth": 0
+      },
+      "65": {
+        "scope_id": 4,
+        "scope_depth": 0
+      },
+      "75": {
+        "scope_id": 4,
+        "scope_depth": 1
+      },
+      "90": {
+        "scope_id": 4,
+        "scope_depth": 2
+      },
+      "108": {
+        "scope_id": 4,
+        "scope_depth": 3
+      },
+      "113": {
+        "scope_id": 4,
+        "scope_depth": 3
+      },
+      "119": {
+        "scope_id": 4,
+        "scope_depth": 3
+      },
+      "132": {
+        "scope_id": 4,
+        "scope_depth": 3
+      },
+      "140": {
+        "scope_id": 4,
+        "scope_depth": 3
+      },
+      "151": {
+        "scope_id": 4,
+        "scope_depth": 3
+      },
+      "163": {
+        "scope_id": 4,
+        "scope_depth": 3
+      },
+      "171": {
+        "scope_id": 4,
+        "scope_depth": 3
+      },
+      "176": {
+        "scope_id": 4,
+        "scope_depth": 3
+      },
+      "183": {
+        "scope_id": 4,
+        "scope_depth": 3
+      },
+      "188": {
+        "scope_id": 4,
+        "scope_depth": 3
+      },
+      "199": {
+        "scope_id": 4,
+        "scope_depth": 3
+      },
+      "211": {
+        "scope_id": 4,
+        "scope_depth": 3
+      }
     },
     "id_tracker": {
       "id": 18
