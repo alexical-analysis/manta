@@ -63,6 +63,6 @@ fn main() {
     fmt_println(content)
 
     // a try can become a simple panic if it has a trailing !
-    let .Ok(content2) = read_file("/tmp/missing.txt") !
-    fmt_println(content2)
+    let .Ok(content) = read_file("/tmp/missing.txt") !
+    fmt_println(content)
 }
