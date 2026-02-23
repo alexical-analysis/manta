@@ -4,7 +4,8 @@ use std::collections::BTreeMap;
 use std::ops::Deref;
 
 use crate::ast::{
-    BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Stmt, StructField, StructType, TypeSpec,
+    BinaryOp, BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Stmt, StructField, StructType,
+    TypeSpec, UnaryOp,
 };
 use crate::hir::{Node, NodeID, PatternNode};
 use crate::parser::module::{BindingType, Module, SymID};
@@ -26,7 +27,7 @@ impl<K: Ord, V> SideTable<K, V> {
 
     fn add(&mut self, key: K, value: V) {
         if self.keys.contains_key(&key) {
-            panic!("can not add the same node twice")
+            panic!("can not add the same key twice")
         }
 
         let id = self.values.len();
@@ -40,6 +41,16 @@ impl<K: Ord, V> SideTable<K, V> {
             _ => None,
         }
     }
+
+    fn set(&mut self, key: K, value: V) {
+        match self.keys.get(&key) {
+            Some(k) => match self.values.get_mut(*k) {
+                Some(v) => *v = value,
+                None => panic!("missing value"),
+            },
+            None => panic!("unknown key"),
+        }
+    }
 }
 
 /// NodeTree contains all the nodes for a given tree as well as tracking the tree roots
@@ -47,8 +58,15 @@ impl<K: Ord, V> SideTable<K, V> {
 pub struct NodeTree {
     nodes: Vec<Node>,
     roots: Vec<NodeID>,
+    // the type_map maps each node in the node tree to it's type (if it has one)
     type_map: SideTable<NodeID, TypeSpec>,
+    // the symbol_map maps a bindings symbol id, which is related to it's declaratoin site, to the
+    // node_id where it was declared, using this you can look up a symbols declaration site in the
+    // node tree through the symbol table
     symbol_map: SideTable<SymID, NodeID>,
+    // the decl_map maps a node id for an Identifier it the related node id where it was declared.
+    // This is needed later on when doing type checking
+    decl_map: SideTable<NodeID, NodeID>,
 }
 
 impl NodeTree {
@@ -59,6 +77,7 @@ impl NodeTree {
             roots: vec![],
             type_map: SideTable::new(),
             symbol_map: SideTable::new(),
+            decl_map: SideTable::new(),
         }
     }
 
@@ -92,6 +111,9 @@ pub fn node_module(module: Module) -> NodeTree {
     for decl in module.get_decls() {
         node_decl(&mut node_tree, &module, decl);
     }
+
+    // TODO: gather errors here instead of just panicing
+    check_node_tree_types(&mut node_tree);
 
     node_tree
 }
@@ -792,6 +814,229 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
     }
 }
 
+fn check_node_tree_types(node_tree: &mut NodeTree) {
+    for node in &node_tree.roots.clone() {
+        check_node_type(node_tree, *node);
+    }
+}
+
+fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec> {
+    let node = match node_tree.get_node(node_id) {
+        Some(n) => n,
+        None => panic!("type checking unknown node"),
+    };
+    let node = node.clone();
+
+    match node {
+        Node::Invalid => None,
+        Node::FunctionDecl { .. } => todo!("type check function decl"),
+        Node::TypeDecl { .. } => None,
+        Node::UseDecl { .. } => None,
+        Node::ModDecl { .. } => None,
+        Node::Block { statements } => {
+            for node in statements {
+                check_node_type(node_tree, node);
+            }
+            None
+        }
+        Node::VarDecl { .. } => None,
+        Node::Assign { target, value } => {
+            let r_type = match check_node_type(node_tree, value) {
+                Some(t) => t,
+                None => panic!("value is missing a type (probably is a statement)"),
+            };
+
+            let l_type = match check_node_type(node_tree, target) {
+                Some(t) => t,
+                None => {
+                    if let Some(Node::Identifier(_)) = node_tree.get_node(target) {
+                        // if the left hand side has no type, check if the node is an identifier.
+                        // if not this is a type checking bug and we should panice because there is
+                        // a problem with the type checker itself.
+                        // if not, we need to "back-type" the identifier and return the r_type
+                        let decl_node = node_tree
+                            .decl_map
+                            .get(target)
+                            .expect("decl node must exist");
+                        node_tree.type_map.set(*decl_node, r_type.clone());
+                        r_type.clone()
+                    } else {
+                        panic!("missing type for assignment target")
+                    }
+                }
+            };
+
+            if l_type != r_type {
+                panic!("l_type does not equal r_type")
+            }
+            None
+        }
+        Node::Return { value } => match value {
+            Some(n) => check_node_type(node_tree, n),
+            None => None,
+        },
+        Node::Defer { .. } => None,
+        Node::If { .. } => None,
+        Node::Match { .. } => None,
+        Node::MatchArm { .. } => None,
+        // make this type more flexible, maybe it should be the smallest type that will
+        // hold the literal value and then we allow up-casting integers to larget types
+        Node::IntLiteral(_) => Some(TypeSpec::Int64),
+        // same as the int, make this more flexible
+        Node::FloatLiteral(_) => Some(TypeSpec::Float64),
+        Node::StringLiteral(_) => Some(TypeSpec::String),
+        Node::BoolLiteral(_) => Some(TypeSpec::Bool),
+        Node::Identifier(_) => {
+            let decl_id = node_tree
+                .decl_map
+                .get(node_id)
+                .expect("missing decl node for identifier node");
+            match node_tree.type_map.get(*decl_id) {
+                Some(t) => Some(t.clone()),
+                None => panic!("identifier is missing it's type!"),
+            }
+        }
+        Node::Binary {
+            left,
+            operator,
+            right,
+        } => {
+            let l_type = check_node_type(node_tree, left)
+                .expect("missing type for left side of binary expression");
+
+            let r_type = check_node_type(node_tree, right)
+                .expect("missing type for right side of binary expression");
+
+            if l_type != r_type {
+                panic!("left and right side of binary expression do not match!")
+            }
+
+            match operator {
+                BinaryOp::Add
+                | BinaryOp::Subtract
+                | BinaryOp::Multiply
+                | BinaryOp::Divide
+                | BinaryOp::LessThan
+                | BinaryOp::LessThanOrEqual
+                | BinaryOp::GreaterThan
+                | BinaryOp::GreaterThanOrEqual => {
+                    if !is_numeric_type(&l_type) {
+                        panic!("invalid type for numeric operator");
+                    }
+                }
+
+                BinaryOp::BitwiseAnd
+                | BinaryOp::BitwiseOr
+                | BinaryOp::BitwiseXor
+                | BinaryOp::Modulo => {
+                    if !is_integer_type(&l_type) {
+                        panic!("invalid type for integer operator")
+                    }
+                }
+
+                BinaryOp::LogicalAnd | BinaryOp::LogicalOr => {
+                    if !is_bool_type(&l_type) {
+                        panic!("invalid type for boolean operator")
+                    }
+                }
+
+                BinaryOp::Equal | BinaryOp::NotEqual => { /* anything goes here */ }
+            }
+
+            Some(l_type)
+        }
+        Node::Unary { operator, operand } => {
+            let t = check_node_type(node_tree, operand)
+                .expect("can not call unary operator on non-expression node");
+
+            match operator {
+                UnaryOp::Not => {
+                    if !is_bool_type(&t) {
+                        panic!("can not boolean negate(!) non-boolean value");
+                    }
+                }
+                UnaryOp::Negate => {
+                    if !is_numeric_type(&t) {
+                        panic!("can not get the negative of non-numeric value")
+                    }
+                }
+                UnaryOp::Positive => {
+                    if !is_numeric_type(&t) {
+                        panic!("can not get the positive of non-numeric value")
+                    }
+                }
+                UnaryOp::Dereference => {
+                    if !matches!(t, TypeSpec::Pointer(_)) {
+                        panic!("can not dereference non-pointer value")
+                    }
+                }
+                UnaryOp::AddressOf => {
+                    // TODO: so technically all types CAN in theory at least be addressable and this
+                    // depends more on the acutal value (i.e. does is have a valid memory location)
+                    // than it does on the type. The only exception to this is a function which
+                    // cant be addressed because the compiler makes no guarentee that a function
+                    // will survive the various optimization passes of the complier in tact. It
+                    // make end up in a single place in the final binary, or in multiple places, or
+                    // be in-lined into various other functions or even be optimized away
+                    // completely.
+                    // The issue here is that we don't actually have a "TypeSpec" for functions so
+                    // we can't really check that here. We should fix that though since it's clear
+                    // that we actually do need to be able to express that idea in the type system
+                }
+            };
+
+            Some(t)
+        }
+        Node::Call { func, args } => {
+            // TODO: need to make sure function decls make it into the decl map as well
+            let func_type =
+                check_node_type(node_tree, func).expect("can not call node with no type");
+
+            // TODO: so right now we just store the return type of the function so we just return
+            // it directly here and assume we're all good. In reality though, we need to know if
+            // the result of the expression is a function type. If now the this can't be called.
+            // That will also let us check the args which right now we can't really do since we
+            // don't know the shape of the function
+            Some(func_type)
+        }
+        _ => todo!("unsupported node type"),
+    }
+}
+
+fn is_numeric_type(t: &TypeSpec) -> bool {
+    matches!(
+        t,
+        TypeSpec::Int8
+            | TypeSpec::Int16
+            | TypeSpec::Int32
+            | TypeSpec::Int64
+            | TypeSpec::UInt8
+            | TypeSpec::UInt16
+            | TypeSpec::UInt32
+            | TypeSpec::UInt64
+            | TypeSpec::Float32
+            | TypeSpec::Float64
+    )
+}
+
+fn is_integer_type(t: &TypeSpec) -> bool {
+    matches!(
+        t,
+        TypeSpec::Int8
+            | TypeSpec::Int16
+            | TypeSpec::Int32
+            | TypeSpec::Int64
+            | TypeSpec::UInt8
+            | TypeSpec::UInt16
+            | TypeSpec::UInt32
+            | TypeSpec::UInt64
+    )
+}
+
+fn is_bool_type(t: &TypeSpec) -> bool {
+    matches!(t, TypeSpec::Bool)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -965,7 +1210,7 @@ mod tests {
     #[test]
     fn test_add_node_returns_correct_id() {
         let mut store = NodeTree::new();
-        let node = Node::NilLiteral;
+        let node = Node::Identifier(0);
         let id = store.add_node(node);
         assert_eq!(id, 0);
     }
@@ -973,7 +1218,7 @@ mod tests {
     #[test]
     fn test_add_multiple_nodes() {
         let mut store = NodeTree::new();
-        let id1 = store.add_node(Node::NilLiteral);
+        let id1 = store.add_node(Node::Identifier(0));
         let id2 = store.add_node(Node::BoolLiteral(true));
         let id3 = store.add_node(Node::IntLiteral(42));
 
@@ -986,14 +1231,14 @@ mod tests {
     #[test]
     fn test_add_node_does_not_add_to_roots() {
         let mut store = NodeTree::new();
-        store.add_node(Node::NilLiteral);
+        store.add_node(Node::Identifier(0));
         assert_eq!(store.roots.len(), 0);
     }
 
     #[test]
     fn test_add_root_node_returns_correct_id() {
         let mut store = NodeTree::new();
-        let node = Node::NilLiteral;
+        let node = Node::Identifier(0);
         let id = store.add_root_node(node);
         assert_eq!(id, 0);
     }
@@ -1022,7 +1267,7 @@ mod tests {
     #[test]
     fn test_mix_nodes_and_root_nodes() {
         let mut store = NodeTree::new();
-        let regular_id = store.add_node(Node::NilLiteral);
+        let regular_id = store.add_node(Node::Identifier(0));
         let root_id = store.add_root_node(Node::BoolLiteral(true));
         let another_regular = store.add_node(Node::IntLiteral(42));
 
