@@ -70,7 +70,6 @@ pub enum Node {
     FloatLiteral(f64),
     StringLiteral(StrID),
     BoolLiteral(bool),
-    NilLiteral,
 
     Identifier(StrID),
 
