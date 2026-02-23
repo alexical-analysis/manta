@@ -71,16 +71,9 @@
         "name": 17,
         "params": [
           {
-            "name": 18,
-            "type_spec": "String"
+            "name": 18
           }
         ],
-        "return_type": {
-          "Named": {
-            "module": null,
-            "name": 12
-          }
-        },
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -99,6 +92,17 @@
               }
             }
           ]
+        },
+        "function_type": {
+          "params": [
+            "String"
+          ],
+          "return_type": {
+            "Named": {
+              "module": null,
+              "name": 12
+            }
+          }
         }
       }
     },
@@ -112,16 +116,9 @@
         "name": 21,
         "params": [
           {
-            "name": 22,
-            "type_spec": {
-              "Named": {
-                "module": null,
-                "name": 8
-              }
-            }
+            "name": 22
           }
         ],
-        "return_type": null,
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -129,6 +126,17 @@
             "lexeme_id": 10
           },
           "statements": []
+        },
+        "function_type": {
+          "params": [
+            {
+              "Named": {
+                "module": null,
+                "name": 8
+              }
+            }
+          ],
+          "return_type": null
         }
       }
     },
@@ -166,22 +174,12 @@
         "name": 24,
         "params": [
           {
-            "name": 22,
-            "type_spec": {
-              "Named": {
-                "module": null,
-                "name": 8
-              }
-            }
+            "name": 22
           },
           {
-            "name": 26,
-            "type_spec": {
-              "Slice": "UInt8"
-            }
+            "name": 26
           }
         ],
-        "return_type": null,
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -200,6 +198,20 @@
               }
             }
           ]
+        },
+        "function_type": {
+          "params": [
+            {
+              "Named": {
+                "module": null,
+                "name": 8
+              }
+            },
+            {
+              "Slice": "UInt8"
+            }
+          ],
+          "return_type": null
         }
       }
     },
@@ -251,16 +263,9 @@
         "name": 32,
         "params": [
           {
-            "name": 18,
-            "type_spec": "String"
+            "name": 18
           }
         ],
-        "return_type": {
-          "Named": {
-            "module": null,
-            "name": 29
-          }
-        },
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -523,6 +528,17 @@
               }
             }
           ]
+        },
+        "function_type": {
+          "params": [
+            "String"
+          ],
+          "return_type": {
+            "Named": {
+              "module": null,
+              "name": 29
+            }
+          }
         }
       }
     }
@@ -644,7 +660,7 @@
             "id": 22,
             "name": 29,
             "binding_type": "EnumType",
-            "used": true
+            "used": false
           },
           {
             "id": 23,

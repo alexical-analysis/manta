@@ -54,10 +54,26 @@
   ],
   "type_map": {
     "keys": {
-      "4": 0
+      "2": 0,
+      "4": 1,
+      "7": 2
     },
     "values": [
-      "String"
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": null
+        }
+      },
+      "String",
+      {
+        "Function": {
+          "params": [],
+          "return_type": null
+        }
+      }
     ]
   },
   "symbol_map": {

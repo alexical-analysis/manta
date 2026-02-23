@@ -264,15 +264,25 @@
   ],
   "type_map": {
     "keys": {
-      "3": 0,
-      "7": 1,
-      "19": 2,
-      "21": 3,
-      "22": 4,
-      "30": 5,
-      "37": 6
+      "2": 0,
+      "3": 1,
+      "7": 2,
+      "19": 3,
+      "21": 4,
+      "22": 5,
+      "30": 6,
+      "37": 7,
+      "43": 8
     },
     "values": [
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": null
+        }
+      },
       {
         "Enum": {
           "variants": [
@@ -289,15 +299,29 @@
       },
       "Int64",
       {
-        "Named": {
-          "module": null,
-          "name": 13
+        "Function": {
+          "params": [
+            "Int32",
+            "Int32"
+          ],
+          "return_type": {
+            "Named": {
+              "module": null,
+              "name": 13
+            }
+          }
         }
       },
       "Int64",
       "Int64",
       "String",
-      "String"
+      "String",
+      {
+        "Function": {
+          "params": [],
+          "return_type": null
+        }
+      }
     ]
   },
   "symbol_map": {

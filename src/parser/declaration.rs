@@ -8,7 +8,7 @@ mod var_decl;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use crate::ast::{BlockStmt, Decl, Expr};
+use crate::ast::{BlockStmt, Decl, Expr, FunctionType, Parameter, TypeSpec};
 use crate::parser::ParseError;
 use crate::parser::statement::StmtParser;
 use crate::parser::{Lexer, Token, TokenKind};
@@ -135,17 +135,11 @@ mod tests {
                         lexeme_id: 0
                     },
                     name: 1,
-                    params: vec![
-                        Parameter {
-                            name: 3,
-                            type_spec: TypeSpec::Int32,
-                        },
-                        Parameter {
-                            name: 5,
-                            type_spec: TypeSpec::Int32,
-                        }
-                    ],
-                    return_type: Some(TypeSpec::Int32),
+                    params: vec![Parameter { name: 3 }, Parameter { name: 5 }],
+                    function_type: FunctionType {
+                        params: vec![TypeSpec::Int32, TypeSpec::Int32],
+                        return_type: Some(Box::new(TypeSpec::Int32)),
+                    },
                     body: BlockStmt {
                         token: Token {
                             kind: TokenKind::OpenBrace,
@@ -194,7 +188,10 @@ mod tests {
                     },
                     name: 1,
                     params: vec![],
-                    return_type: None,
+                    function_type: FunctionType {
+                        params: vec![],
+                        return_type: None,
+                    },
                     body: BlockStmt {
                         token: Token {
                             kind: TokenKind::OpenBrace,
@@ -236,17 +233,11 @@ mod tests {
                         lexeme_id: 0
                     },
                     name: 1,
-                    params: vec![
-                        Parameter {
-                            name: 3,
-                            type_spec: TypeSpec::Int32,
-                        },
-                        Parameter {
-                            name: 5,
-                            type_spec: TypeSpec::String,
-                        },
-                    ],
-                    return_type: Some(TypeSpec::Bool),
+                    params: vec![Parameter { name: 3 }, Parameter { name: 5 },],
+                    function_type: FunctionType {
+                        params: vec![TypeSpec::Int32, TypeSpec::String],
+                        return_type: Some(Box::new(TypeSpec::Bool)),
+                    },
                     body: BlockStmt {
                         token: Token {
                             kind: TokenKind::OpenBrace,
@@ -274,11 +265,11 @@ mod tests {
                         lexeme_id: 0
                     },
                     name: 1,
-                    params: vec![Parameter {
-                        name: 3,
-                        type_spec: TypeSpec::String,
-                    }],
-                    return_type: None,
+                    params: vec![Parameter { name: 3 }],
+                    function_type: FunctionType {
+                        params: vec![TypeSpec::String],
+                        return_type: None,
+                    },
                     body: BlockStmt {
                         token: Token {
                             kind: TokenKind::OpenBrace,
@@ -327,17 +318,11 @@ mod tests {
                         lexeme_id: 0
                     },
                     name: 1,
-                    params: vec![
-                        Parameter {
-                            name: 3,
-                            type_spec: TypeSpec::Int32,
-                        },
-                        Parameter {
-                            name: 5,
-                            type_spec: TypeSpec::Int32,
-                        },
-                    ],
-                    return_type: Some(TypeSpec::Int32),
+                    params: vec![Parameter { name: 3 }, Parameter { name: 5 },],
+                    function_type: FunctionType {
+                        params: vec![TypeSpec::Int32, TypeSpec::Int32],
+                        return_type: Some(Box::new(TypeSpec::Int32)),
+                    },
                     body: BlockStmt {
                         token: Token {
                             kind: TokenKind::OpenBrace,
@@ -413,10 +398,13 @@ mod tests {
                     },
                     name: 1,
                     params: vec![],
-                    return_type: Some(TypeSpec::Named {
-                        module: Some(4),
-                        name: 6,
-                    }),
+                    function_type: FunctionType {
+                        params: vec![],
+                        return_type: Some(Box::new(TypeSpec::Named {
+                            module: Some(4),
+                            name: 6,
+                        })),
+                    },
                     body: BlockStmt {
                         token: Token {
                             kind: TokenKind::OpenBrace,
@@ -449,11 +437,11 @@ mod tests {
                         lexeme_id: 0
                     },
                     name: 1,
-                    params: vec![Parameter {
-                        name: 3,
-                        type_spec: TypeSpec::Slice(Box::new(TypeSpec::Int32))
-                    }],
-                    return_type: None,
+                    params: vec![Parameter { name: 3 }],
+                    function_type: FunctionType {
+                        params: vec![TypeSpec::Slice(Box::new(TypeSpec::Int32))],
+                        return_type: None,
+                    },
                     body: BlockStmt {
                         token: Token {
                             kind: TokenKind::OpenBrace,

@@ -350,18 +350,39 @@
   "type_map": {
     "keys": {
       "0": 0,
-      "7": 1,
-      "10": 2,
-      "11": 3,
-      "27": 4,
-      "37": 5,
-      "39": 6,
-      "51": 7
+      "3": 1,
+      "6": 2,
+      "7": 3,
+      "10": 4,
+      "11": 5,
+      "27": 6,
+      "37": 7,
+      "39": 8,
+      "51": 9,
+      "57": 10
     },
     "values": [
       {
         "Struct": {
           "fields": []
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            {
+              "Pointer": "Int32"
+            }
+          ],
+          "return_type": null
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": null
         }
       },
       {
@@ -410,13 +431,26 @@
       "UnsafePtr",
       "Int64",
       {
-        "Named": {
-          "module": null,
-          "name": 19
+        "Function": {
+          "params": [
+            "Bool"
+          ],
+          "return_type": {
+            "Named": {
+              "module": null,
+              "name": 19
+            }
+          }
         }
       },
       "Bool",
-      "String"
+      "String",
+      {
+        "Function": {
+          "params": [],
+          "return_type": null
+        }
+      }
     ]
   },
   "symbol_map": {
