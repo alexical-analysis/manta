@@ -121,10 +121,9 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 .expect("missing binding for function");
 
             node_tree.symbol_map.add(binding.id, func_id);
-
-            if let Some(t) = decl.return_type.clone() {
-                node_tree.type_map.add(func_id, t);
-            };
+            node_tree
+                .type_map
+                .add(func_id, TypeSpec::Function(decl.function_type.clone()));
         }
         Decl::Type(decl) => {
             // create the node

@@ -1,8 +1,9 @@
-use crate::ast::{Decl, FunctionDecl, Parameter};
+use crate::ast::{Decl, FunctionDecl, FunctionType, Parameter, TypeSpec};
 use crate::parser::ParseError;
 use crate::parser::declaration::{DeclParselet, DeclParser};
 use crate::parser::lexer::{Lexer, Token, TokenKind};
 use crate::parser::types;
+use crate::str_store::StrID;
 
 /// Parses top-level function declarations
 ///
@@ -35,8 +36,7 @@ impl DeclParselet for FunctionDeclParselet {
             ));
         }
 
-        // Parse parameters
-        let params = parse_parameters(lexer)?;
+        let parsed_params = parse_parameters(lexer)?;
 
         // Expect closing paren
         let next = lexer.next_token();
@@ -52,7 +52,7 @@ impl DeclParselet for FunctionDeclParselet {
             None
         } else {
             let next = lexer.next_token();
-            Some(types::parse_type(lexer, next)?)
+            Some(Box::new(types::parse_type(lexer, next)?))
         };
 
         // Parse function body
@@ -66,21 +66,37 @@ impl DeclParselet for FunctionDeclParselet {
 
         let body = parser.parse_block(lexer, next)?;
 
+        // build the function type and params vec
+        let mut params = vec![];
+        let mut types = vec![];
+        for p in parsed_params {
+            params.push(Parameter { name: p.name });
+            types.push(p.type_spec);
+        }
+
         Ok(Decl::Function(FunctionDecl {
             token,
             name,
             params,
-            return_type,
             body,
+            function_type: FunctionType {
+                params: types,
+                return_type,
+            },
         }))
     }
+}
+
+struct ParsedParam {
+    name: StrID,
+    type_spec: TypeSpec,
 }
 
 /// Parse function parameters
 /// Syntax: param_list: param (',' param)*
 /// param: identifier (type_spec)?
 /// Type annotations can be shared: `a, b i32` means both a and b are i32
-fn parse_parameters(lexer: &mut Lexer) -> Result<Vec<Parameter>, ParseError> {
+fn parse_parameters(lexer: &mut Lexer) -> Result<Vec<ParsedParam>, ParseError> {
     let mut params = vec![];
 
     // Check for empty parameter list
@@ -130,7 +146,7 @@ fn parse_parameters(lexer: &mut Lexer) -> Result<Vec<Parameter>, ParseError> {
 
         // Add all parameters with this type
         for name in param_names {
-            params.push(Parameter {
+            params.push(ParsedParam {
                 name,
                 type_spec: type_spec.clone(),
             });

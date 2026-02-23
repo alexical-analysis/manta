@@ -350,9 +350,11 @@ impl Module {
                 Decl::Function(decl) => {
                     sym_table.add_binding(decl.name, BindingType::FuncType);
 
-                    if let Some(type_spec) = &decl.return_type {
-                        Self::build_sym_table_type_spec(errors, &mut sym_table, type_spec);
-                    }
+                    Self::build_sym_table_type_spec(
+                        errors,
+                        &mut sym_table,
+                        &TypeSpec::Function(decl.function_type.clone()),
+                    );
 
                     sym_table.open_scope(decl.token.source_id);
 
