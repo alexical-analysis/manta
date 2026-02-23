@@ -28,8 +28,8 @@ pub struct FunctionDecl {
     pub token: Token,
     pub name: StrID,
     pub params: Vec<Parameter>,
-    pub return_type: Option<TypeSpec>,
     pub body: BlockStmt,
+    pub function_type: FunctionType,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -43,7 +43,6 @@ pub struct TypeDecl {
 #[derive(Debug, PartialEq, Serialize)]
 pub struct Parameter {
     pub name: StrID,
-    pub type_spec: TypeSpec,
 }
 
 /// Const declaration
@@ -118,6 +117,7 @@ pub enum TypeSpec {
     Array(ArrayType),
     Struct(StructType),
     Enum(EnumType),
+    Function(FunctionType),
     // UnsafePtr is the intermediary between types used by alloc
     UnsafePtr,
 }
@@ -151,6 +151,13 @@ pub struct StructField {
 #[derive(Debug, PartialEq, Clone, Serialize)]
 pub struct EnumType {
     pub variants: Vec<EnumVariant>,
+}
+
+/// Function types with arguments
+#[derive(Debug, PartialEq, Clone, Serialize)]
+pub struct FunctionType {
+    pub params: Vec<TypeSpec>,
+    pub return_type: Option<Box<TypeSpec>>,
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize)]
