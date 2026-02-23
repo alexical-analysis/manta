@@ -27,11 +27,9 @@
         "name": 8,
         "params": [
           {
-            "name": 9,
-            "type_spec": "String"
+            "name": 9
           }
         ],
-        "return_type": null,
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -39,6 +37,12 @@
             "lexeme_id": 10
           },
           "statements": []
+        },
+        "function_type": {
+          "params": [
+            "String"
+          ],
+          "return_type": null
         }
       }
     },
@@ -51,7 +55,6 @@
         },
         "name": 1,
         "params": [],
-        "return_type": null,
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -229,6 +232,10 @@
               }
             }
           ]
+        },
+        "function_type": {
+          "params": [],
+          "return_type": null
         }
       }
     }

@@ -42,11 +42,9 @@
         "name": 13,
         "params": [
           {
-            "name": 14,
-            "type_spec": "Int32"
+            "name": 14
           }
         ],
-        "return_type": null,
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -54,6 +52,12 @@
             "lexeme_id": 15
           },
           "statements": []
+        },
+        "function_type": {
+          "params": [
+            "Int32"
+          ],
+          "return_type": null
         }
       }
     },
@@ -91,16 +95,9 @@
         "name": 22,
         "params": [
           {
-            "name": 23,
-            "type_spec": {
-              "Named": {
-                "module": null,
-                "name": 18
-              }
-            }
+            "name": 23
           }
         ],
-        "return_type": "Int32",
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -280,6 +277,17 @@
               }
             }
           ]
+        },
+        "function_type": {
+          "params": [
+            {
+              "Named": {
+                "module": null,
+                "name": 18
+              }
+            }
+          ],
+          "return_type": "Int32"
         }
       }
     },
@@ -292,7 +300,6 @@
         },
         "name": 1,
         "params": [],
-        "return_type": null,
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -524,6 +531,10 @@
               }
             }
           ]
+        },
+        "function_type": {
+          "params": [],
+          "return_type": null
         }
       }
     }

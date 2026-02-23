@@ -166,20 +166,36 @@
   ],
   "type_map": {
     "keys": {
-      "3": 0,
-      "8": 1,
-      "12": 2,
-      "16": 3,
-      "19": 4,
-      "23": 5
+      "2": 0,
+      "3": 1,
+      "8": 2,
+      "12": 3,
+      "16": 4,
+      "19": 5,
+      "23": 6,
+      "28": 7
     },
     "values": [
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": null
+        }
+      },
       "Bool",
       "String",
       "Int64",
       "Int64",
       "String",
-      "String"
+      "String",
+      {
+        "Function": {
+          "params": [],
+          "return_type": null
+        }
+      }
     ]
   },
   "symbol_map": {

@@ -217,16 +217,32 @@
   ],
   "type_map": {
     "keys": {
-      "3": 0,
-      "6": 1,
-      "19": 2,
-      "32": 3
+      "2": 0,
+      "3": 1,
+      "6": 2,
+      "19": 3,
+      "32": 4,
+      "39": 5
     },
     "values": [
+      {
+        "Function": {
+          "params": [
+            "Int64"
+          ],
+          "return_type": null
+        }
+      },
       "Int64",
       "Int64",
       "Int64",
-      "Int64"
+      "Int64",
+      {
+        "Function": {
+          "params": [],
+          "return_type": null
+        }
+      }
     ]
   },
   "symbol_map": {

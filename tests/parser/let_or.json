@@ -75,16 +75,9 @@
         "name": 19,
         "params": [
           {
-            "name": 20,
-            "type_spec": "String"
+            "name": 20
           }
         ],
-        "return_type": {
-          "Named": {
-            "module": null,
-            "name": 14
-          }
-        },
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -103,6 +96,17 @@
               }
             }
           ]
+        },
+        "function_type": {
+          "params": [
+            "String"
+          ],
+          "return_type": {
+            "Named": {
+              "module": null,
+              "name": 14
+            }
+          }
         }
       }
     },
@@ -116,16 +120,9 @@
         "name": 23,
         "params": [
           {
-            "name": 24,
-            "type_spec": {
-              "Named": {
-                "module": null,
-                "name": 10
-              }
-            }
+            "name": 24
           }
         ],
-        "return_type": null,
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -133,6 +130,17 @@
             "lexeme_id": 12
           },
           "statements": []
+        },
+        "function_type": {
+          "params": [
+            {
+              "Named": {
+                "module": null,
+                "name": 10
+              }
+            }
+          ],
+          "return_type": null
         }
       }
     },
@@ -170,21 +178,9 @@
         "name": 26,
         "params": [
           {
-            "name": 24,
-            "type_spec": {
-              "Named": {
-                "module": null,
-                "name": 10
-              }
-            }
+            "name": 24
           }
         ],
-        "return_type": {
-          "Named": {
-            "module": null,
-            "name": 25
-          }
-        },
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -203,6 +199,22 @@
               }
             }
           ]
+        },
+        "function_type": {
+          "params": [
+            {
+              "Named": {
+                "module": null,
+                "name": 10
+              }
+            }
+          ],
+          "return_type": {
+            "Named": {
+              "module": null,
+              "name": 25
+            }
+          }
         }
       }
     },
@@ -216,11 +228,9 @@
         "name": 27,
         "params": [
           {
-            "name": 28,
-            "type_spec": "String"
+            "name": 28
           }
         ],
-        "return_type": null,
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -228,6 +238,12 @@
             "lexeme_id": 12
           },
           "statements": []
+        },
+        "function_type": {
+          "params": [
+            "String"
+          ],
+          "return_type": null
         }
       }
     },
@@ -279,16 +295,9 @@
         "name": 32,
         "params": [
           {
-            "name": 20,
-            "type_spec": "String"
+            "name": 20
           }
         ],
-        "return_type": {
-          "Named": {
-            "module": null,
-            "name": 29
-          }
-        },
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -492,6 +501,17 @@
               }
             }
           ]
+        },
+        "function_type": {
+          "params": [
+            "String"
+          ],
+          "return_type": {
+            "Named": {
+              "module": null,
+              "name": 29
+            }
+          }
         }
       }
     },
@@ -504,7 +524,6 @@
         },
         "name": 1,
         "params": [],
-        "return_type": null,
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -717,6 +736,10 @@
               }
             }
           ]
+        },
+        "function_type": {
+          "params": [],
+          "return_type": null
         }
       }
     }
@@ -844,7 +867,7 @@
             "id": 23,
             "name": 29,
             "binding_type": "EnumType",
-            "used": true
+            "used": false
           },
           {
             "id": 24,

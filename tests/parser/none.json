@@ -44,13 +44,9 @@
         "name": 14,
         "params": [
           {
-            "name": 15,
-            "type_spec": {
-              "Pointer": "Int32"
-            }
+            "name": 15
           }
         ],
-        "return_type": null,
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -58,6 +54,14 @@
             "lexeme_id": 11
           },
           "statements": []
+        },
+        "function_type": {
+          "params": [
+            {
+              "Pointer": "Int32"
+            }
+          ],
+          "return_type": null
         }
       }
     },
@@ -71,11 +75,9 @@
         "name": 17,
         "params": [
           {
-            "name": 18,
-            "type_spec": "String"
+            "name": 18
           }
         ],
-        "return_type": null,
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -83,6 +85,12 @@
             "lexeme_id": 11
           },
           "statements": []
+        },
+        "function_type": {
+          "params": [
+            "String"
+          ],
+          "return_type": null
         }
       }
     },
@@ -131,16 +139,9 @@
         "name": 24,
         "params": [
           {
-            "name": 25,
-            "type_spec": "Bool"
+            "name": 25
           }
         ],
-        "return_type": {
-          "Named": {
-            "module": null,
-            "name": 19
-          }
-        },
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -275,6 +276,17 @@
               }
             }
           ]
+        },
+        "function_type": {
+          "params": [
+            "Bool"
+          ],
+          "return_type": {
+            "Named": {
+              "module": null,
+              "name": 19
+            }
+          }
         }
       }
     },
@@ -287,7 +299,6 @@
         },
         "name": 1,
         "params": [],
-        "return_type": null,
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -449,6 +460,10 @@
               }
             }
           ]
+        },
+        "function_type": {
+          "params": [],
+          "return_type": null
         }
       }
     }
@@ -552,7 +567,7 @@
             "id": 17,
             "name": 19,
             "binding_type": "EnumType",
-            "used": true
+            "used": false
           },
           {
             "id": 18,

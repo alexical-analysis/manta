@@ -382,13 +382,23 @@
   "type_map": {
     "keys": {
       "1": 0,
-      "6": 1,
-      "29": 2,
-      "32": 3,
-      "44": 4
+      "5": 1,
+      "6": 2,
+      "29": 3,
+      "32": 4,
+      "44": 5,
+      "65": 6
     },
     "values": [
       "Float64",
+      {
+        "Function": {
+          "params": [
+            "Int32"
+          ],
+          "return_type": null
+        }
+      },
       {
         "Enum": {
           "variants": [
@@ -403,9 +413,27 @@
           ]
         }
       },
-      "Int32",
+      {
+        "Function": {
+          "params": [
+            {
+              "Named": {
+                "module": null,
+                "name": 18
+              }
+            }
+          ],
+          "return_type": "Int32"
+        }
+      },
       "Int64",
-      "Int64"
+      "Int64",
+      {
+        "Function": {
+          "params": [],
+          "return_type": null
+        }
+      }
     ]
   },
   "symbol_map": {

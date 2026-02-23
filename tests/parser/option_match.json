@@ -27,11 +27,9 @@
         "name": 8,
         "params": [
           {
-            "name": 9,
-            "type_spec": "String"
+            "name": 9
           }
         ],
-        "return_type": null,
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -39,6 +37,12 @@
             "lexeme_id": 10
           },
           "statements": []
+        },
+        "function_type": {
+          "params": [
+            "String"
+          ],
+          "return_type": null
         }
       }
     },
@@ -76,20 +80,12 @@
         "name": 17,
         "params": [
           {
-            "name": 18,
-            "type_spec": "Int32"
+            "name": 18
           },
           {
-            "name": 20,
-            "type_spec": "Int32"
+            "name": 20
           }
         ],
-        "return_type": {
-          "Named": {
-            "module": null,
-            "name": 13
-          }
-        },
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -181,6 +177,18 @@
               }
             }
           ]
+        },
+        "function_type": {
+          "params": [
+            "Int32",
+            "Int32"
+          ],
+          "return_type": {
+            "Named": {
+              "module": null,
+              "name": 13
+            }
+          }
         }
       }
     },
@@ -193,7 +201,6 @@
         },
         "name": 1,
         "params": [],
-        "return_type": null,
         "body": {
           "token": {
             "kind": "OpenBrace",
@@ -381,6 +388,10 @@
               }
             }
           ]
+        },
+        "function_type": {
+          "params": [],
+          "return_type": null
         }
       }
     }
@@ -472,7 +483,7 @@
             "id": 14,
             "name": 13,
             "binding_type": "EnumType",
-            "used": true
+            "used": false
           },
           {
             "id": 15,
