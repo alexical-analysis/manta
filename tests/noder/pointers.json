@@ -1,8 +1,11 @@
 {
   "nodes": [
     {
+      "Identifier": 9
+    },
+    {
       "VarDecl": {
-        "name": 9
+        "ident": 0
       }
     },
     {
@@ -11,67 +14,70 @@
       }
     },
     {
+      "Identifier": 8
+    },
+    {
       "FunctionDecl": {
-        "name": 8,
+        "ident": 3,
         "params": [
-          0
+          1
         ],
-        "body": 1
+        "body": 2
       }
     },
     {
       "IntLiteral": 42
     },
     {
+      "Identifier": 9
+    },
+    {
       "VarDecl": {
-        "name": 9
+        "ident": 6
       }
     },
     {
       "Assign": {
-        "target": 4,
-        "value": 3
+        "target": 6,
+        "value": 5
       }
     },
     {
       "IntLiteral": 2701
     },
     {
+      "Identifier": 15
+    },
+    {
       "VarDecl": {
-        "name": 15
+        "ident": 10
       }
     },
     {
       "Assign": {
-        "target": 7,
-        "value": 6
+        "target": 10,
+        "value": 9
       }
-    },
-    {
-      "Identifier": 9
     },
     {
       "Unary": {
         "operator": "AddressOf",
-        "operand": 9
+        "operand": 6
       }
     },
     {
+      "Identifier": 17
+    },
+    {
       "VarDecl": {
-        "name": 17
+        "ident": 14
       }
     },
     {
       "Assign": {
-        "target": 11,
-        "value": 10
+        "target": 14,
+        "value": 13
       }
-    },
-    {
-      "Identifier": 8
-    },
-    {
-      "Identifier": 17
     },
     {
       "Unary": {
@@ -81,19 +87,16 @@
     },
     {
       "Call": {
-        "func": 13,
+        "func": 3,
         "args": [
-          15
+          17
         ]
       }
     },
     {
-      "Identifier": 17
-    },
-    {
       "Unary": {
         "operator": "Dereference",
-        "operand": 17
+        "operand": 14
       }
     },
     {
@@ -101,58 +104,40 @@
     },
     {
       "Assign": {
-        "target": 18,
-        "value": 19
+        "target": 19,
+        "value": 20
       }
     },
     {
-      "Identifier": 8
-    },
-    {
-      "Identifier": 9
-    },
-    {
       "Call": {
-        "func": 21,
+        "func": 3,
         "args": [
-          22
+          6
         ]
       }
     },
     {
-      "Identifier": 17
-    },
-    {
-      "Identifier": 15
-    },
-    {
       "Unary": {
         "operator": "AddressOf",
-        "operand": 25
+        "operand": 10
       }
     },
     {
       "Assign": {
-        "target": 24,
-        "value": 26
+        "target": 14,
+        "value": 23
       }
-    },
-    {
-      "Identifier": 17
     },
     {
       "Unary": {
         "operator": "Dereference",
-        "operand": 28
+        "operand": 14
       }
-    },
-    {
-      "Identifier": 17
     },
     {
       "Unary": {
         "operator": "Dereference",
-        "operand": 30
+        "operand": 14
       }
     },
     {
@@ -160,71 +145,70 @@
     },
     {
       "Binary": {
-        "left": 31,
+        "left": 26,
         "operator": "Divide",
-        "right": 32
+        "right": 27
       }
     },
     {
       "Assign": {
-        "target": 29,
-        "value": 33
+        "target": 25,
+        "value": 28
       }
     },
     {
-      "Identifier": 8
-    },
-    {
-      "Identifier": 15
-    },
-    {
       "Call": {
-        "func": 35,
+        "func": 3,
         "args": [
-          36
+          10
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          4,
-          5,
           7,
           8,
           11,
           12,
+          15,
           16,
-          20,
-          23,
-          27,
-          34,
-          37
+          18,
+          21,
+          22,
+          24,
+          29,
+          30
         ]
       }
     },
     {
+      "Identifier": 1
+    },
+    {
       "FunctionDecl": {
-        "name": 1,
+        "ident": 32,
         "params": [],
-        "body": 38
+        "body": 31
       }
     }
   ],
   "roots": [
-    2,
-    39
+    4,
+    33
   ],
   "type_map": {
     "keys": {
-      "2": 0,
-      "3": 1,
-      "6": 2,
-      "19": 3,
-      "32": 4,
-      "39": 5
+      "0": 0,
+      "4": 1,
+      "5": 2,
+      "9": 3,
+      "20": 4,
+      "27": 5,
+      "33": 6
     },
     "values": [
+      "Int64",
       {
         "Function": {
           "params": [
@@ -247,18 +231,20 @@
   },
   "symbol_map": {
     "keys": {
-      "12": 0,
-      "14": 4,
-      "15": 1,
-      "16": 2,
-      "17": 3
+      "12": 1,
+      "13": 0,
+      "14": 5,
+      "15": 2,
+      "16": 3,
+      "17": 4
     },
     "values": [
-      2,
-      4,
-      7,
-      11,
-      39
+      0,
+      3,
+      6,
+      10,
+      14,
+      32
     ]
   }
 }

@@ -1,8 +1,11 @@
 {
   "nodes": [
     {
+      "Identifier": 7
+    },
+    {
       "VarDecl": {
-        "name": 7
+        "ident": 0
       }
     },
     {
@@ -11,16 +14,16 @@
       }
     },
     {
-      "FunctionDecl": {
-        "name": 6,
-        "params": [
-          0
-        ],
-        "body": 1
-      }
+      "Identifier": 6
     },
     {
-      "Identifier": 6
+      "FunctionDecl": {
+        "ident": 3,
+        "params": [
+          1
+        ],
+        "body": 2
+      }
     },
     {
       "StringLiteral": 11
@@ -29,36 +32,41 @@
       "Call": {
         "func": 3,
         "args": [
-          4
+          5
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          5
+          6
         ]
       }
     },
     {
+      "Identifier": 10
+    },
+    {
       "FunctionDecl": {
-        "name": 10,
+        "ident": 8,
         "params": [],
-        "body": 6
+        "body": 7
       }
     }
   ],
   "roots": [
-    2,
-    7
+    4,
+    9
   ],
   "type_map": {
     "keys": {
-      "2": 0,
+      "0": 0,
       "4": 1,
-      "7": 2
+      "5": 2,
+      "9": 3
     },
     "values": [
+      "String",
       {
         "Function": {
           "params": [
@@ -78,12 +86,14 @@
   },
   "symbol_map": {
     "keys": {
-      "12": 0,
-      "14": 1
+      "12": 1,
+      "13": 0,
+      "14": 2
     },
     "values": [
-      2,
-      7
+      0,
+      3,
+      8
     ]
   }
 }

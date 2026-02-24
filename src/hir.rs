@@ -15,13 +15,15 @@ pub type NodeID = usize;
 pub enum Node {
     Invalid,
     FunctionDecl {
-        name: StrID,
+        // ident is always an identifier node
+        ident: NodeID,
         // params are just VarDecl nodes
         params: Vec<NodeID>,
         body: NodeID,
     },
     TypeDecl {
-        name: StrID,
+        // ident is always an identifier node
+        ident: NodeID,
     },
     UseDecl {
         modules: Vec<StrID>,
@@ -33,7 +35,8 @@ pub enum Node {
         statements: Vec<NodeID>,
     },
     VarDecl {
-        name: StrID,
+        // ident is always an identifier node
+        ident: NodeID,
         // no value here because HIR declares variables first and then
         // assigns a value in a later node
     },
@@ -70,7 +73,6 @@ pub enum Node {
     FloatLiteral(f64),
     StringLiteral(StrID),
     BoolLiteral(bool),
-    NilLiteral,
 
     Identifier(StrID),
 
@@ -139,18 +141,23 @@ pub enum PatternNode {
     TypeSpec,
 
     Payload {
-        pat: NodeID, // Always a Pattern node
-        payload: StrID,
+        // Always a Pattern node
+        pat: NodeID,
+        // always an identifier node
+        payload_ident: NodeID,
     },
     ModuleAccess {
         module: StrID,
-        pat: NodeID, // Always a Pattern Node
+        // Always a Pattern Node
+        pat: NodeID,
     },
     DotAccess {
-        target: Option<NodeID>, // Always a Pattern node
+        // Always a Pattern node
+        target: Option<NodeID>,
         field: StrID,
     },
 
-    Identifier(StrID),
+    // Always points to an identifier expression
+    Identifier(NodeID),
     Default, // the _ pattern
 }

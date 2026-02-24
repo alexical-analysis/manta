@@ -348,7 +348,11 @@ impl Module {
         for decl in decls {
             match decl {
                 Decl::Function(decl) => {
+                    // TODO: should add_binding and add_scope_pos always be coupled? Or maybe
+                    // just for identifier declarations? In theory though all bindings are
+                    // declarations right?
                     sym_table.add_binding(decl.name, BindingType::FuncType);
+                    sym_table.add_scope_pos(decl.token.source_id);
 
                     Self::build_sym_table_type_spec(
                         errors,
@@ -359,7 +363,11 @@ impl Module {
                     sym_table.open_scope(decl.token.source_id);
 
                     for param in &decl.params {
+                        // TODO: should add_binding and add_scope_pos always be coupled? Or maybe
+                        // just for identifier declarations? In theory though all bindings are
+                        // declarations right?
                         sym_table.add_binding(param.name, BindingType::Value);
+                        sym_table.add_scope_pos(param.id);
                     }
 
                     Self::build_sym_table_block(errors, &mut sym_table, &decl.body);
@@ -488,6 +496,7 @@ impl Module {
 
                         if let Some(binding) = binding {
                             sym_table.add_binding(*binding, BindingType::Value);
+                            sym_table.add_scope_pos(token.source_id);
                         }
 
                         Self::build_sym_table_block(errors, sym_table, body);

@@ -2,9 +2,11 @@ use serde::Serialize;
 use std::cmp::Ord;
 use std::collections::BTreeMap;
 use std::ops::Deref;
+use std::process::id;
 
 use crate::ast::{
-    BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Stmt, StructField, StructType, TypeSpec,
+    BlockStmt, Decl, Expr, FunctionType, LetExcept, LetStmt, Pattern, Stmt, StructField,
+    StructType, TypeSpec,
 };
 use crate::hir::{Node, NodeID, PatternNode};
 use crate::parser::module::{BindingType, Module, SymID};
@@ -100,18 +102,38 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
     match decl {
         Decl::Function(decl) => {
             let mut params = vec![];
-            for param in &decl.params {
-                let param_id = node_tree.add_node(Node::VarDecl { name: param.name });
+            for i in 0..decl.params.len() {
+                let param = &decl.params[i];
+                let param_type = &decl.function_type.params[i];
+
+                let ident_id = node_tree.add_node(Node::Identifier(param.name));
+                let param_id = node_tree.add_node(Node::VarDecl { ident: ident_id });
                 params.push(param_id);
+
+                node_tree.type_map.add(ident_id, param_type.clone());
+
+                let scope_pos = module
+                    .get_scope_pos(param.id)
+                    .expect("missing scope position for function paramater");
+                let binding = module
+                    .find_binding(scope_pos, param.name)
+                    .expect("missing binding for function parameter");
+
+                node_tree.symbol_map.add(binding.id, ident_id);
             }
 
             let body_id = node_block(node_tree, module, &decl.body);
 
+            let ident_id = node_tree.add_node(Node::Identifier(decl.name));
             let func_id = node_tree.add_root_node(Node::FunctionDecl {
-                name: decl.name,
+                ident: ident_id,
                 params,
                 body: body_id,
             });
+
+            node_tree
+                .type_map
+                .add(func_id, TypeSpec::Function(decl.function_type.clone()));
 
             let scope_pos = module
                 .get_scope_pos(decl.token.source_id)
@@ -120,14 +142,12 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 .find_binding(scope_pos, decl.name)
                 .expect("missing binding for function");
 
-            node_tree.symbol_map.add(binding.id, func_id);
-            node_tree
-                .type_map
-                .add(func_id, TypeSpec::Function(decl.function_type.clone()));
+            node_tree.symbol_map.add(binding.id, ident_id);
         }
         Decl::Type(decl) => {
-            // create the node
-            let decl_id = node_tree.add_root_node(Node::TypeDecl { name: decl.name });
+            let ident_id = node_tree.add_node(Node::Identifier(decl.name));
+            let decl_id = node_tree.add_root_node(Node::TypeDecl { ident: ident_id });
+
             node_tree.type_map.add(decl_id, decl.type_spec.clone());
 
             let scope_pos = module
@@ -137,16 +157,11 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 .find_binding(scope_pos, decl.name)
                 .expect("missing binding for type decl");
 
-            node_tree.symbol_map.add(binding.id, decl_id);
+            node_tree.symbol_map.add(binding.id, ident_id);
         }
         Decl::Const(decl) => {
-            // create the nodes
-            let decl_id = node_tree.add_root_node(Node::VarDecl { name: decl.name });
-            let value_node = node_expr(node_tree, module, &decl.value);
-            node_tree.add_root_node(Node::Assign {
-                target: decl_id,
-                value: value_node,
-            });
+            let ident_id = node_tree.add_node(Node::Identifier(decl.name));
+            node_tree.add_root_node(Node::VarDecl { ident: ident_id });
 
             let scope_pos = module
                 .get_scope_pos(decl.token.source_id)
@@ -155,16 +170,17 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 .find_binding(scope_pos, decl.name)
                 .expect("missing binding for const decl");
 
-            node_tree.symbol_map.add(binding.id, decl_id);
-        }
-        Decl::Var(decl) => {
-            // create the nodes
-            let decl_id = node_tree.add_root_node(Node::VarDecl { name: decl.name });
+            node_tree.symbol_map.add(binding.id, ident_id);
+
             let value_node = node_expr(node_tree, module, &decl.value);
             node_tree.add_root_node(Node::Assign {
-                target: decl_id,
+                target: ident_id,
                 value: value_node,
             });
+        }
+        Decl::Var(decl) => {
+            let ident_id = node_tree.add_node(Node::Identifier(decl.name));
+            node_tree.add_root_node(Node::VarDecl { ident: ident_id });
 
             let scope_pos = module
                 .get_scope_pos(decl.token.source_id)
@@ -173,7 +189,13 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 .find_binding(scope_pos, decl.name)
                 .expect("missing binding for var decl");
 
-            node_tree.symbol_map.add(binding.id, decl_id);
+            node_tree.symbol_map.add(binding.id, ident_id);
+
+            let value_node = node_expr(node_tree, module, &decl.value);
+            node_tree.add_root_node(Node::Assign {
+                target: ident_id,
+                value: value_node,
+            });
         }
         Decl::Use(_) => { /* ignore these since they're handled by the parser */ }
         Decl::Mod(_) => { /* ignore these since they're handled by the parser */ }
@@ -227,7 +249,7 @@ fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<Node
             let target_id = node_expr(node_tree, module, &stmt.target);
             let mut arms = vec![];
             for arm in &stmt.arms {
-                let pat_id = node_pattern(node_tree, &arm.pattern);
+                let pat_id = node_pattern(node_tree, module, &arm.pattern);
                 let block_id = node_block(node_tree, module, &arm.body);
 
                 let arm_id = node_tree.add_node(Node::MatchArm {
@@ -261,7 +283,7 @@ fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<Node
     }
 }
 
-fn node_pattern(node_tree: &mut NodeTree, pattern: &Pattern) -> NodeID {
+fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) -> NodeID {
     match pattern {
         Pattern::IntLiteral(pat) => {
             node_tree.add_node(Node::Pattern(PatternNode::IntLiteral(*pat)))
@@ -277,21 +299,36 @@ fn node_pattern(node_tree: &mut NodeTree, pattern: &Pattern) -> NodeID {
         }
         Pattern::TypeSpec(_) => node_tree.add_node(Node::Pattern(PatternNode::TypeSpec)),
         Pattern::Payload(pat) => {
-            let pat_id = node_pattern(node_tree, &pat.pat);
+            let payload = &pat.payload;
+            let ident_id = node_tree.add_node(Node::Identifier(payload.name));
+
+            let scope_pos = module
+                .get_scope_pos(payload.token.source_id)
+                .expect("missing source position for the payload");
+            let binding = module
+                .find_binding(scope_pos, payload.name)
+                .expect("missing binding for payload");
+
+            node_tree.symbol_map.add(binding.id, ident_id);
+
+            let pat_id = node_pattern(node_tree, module, &pat.pat);
             node_tree.add_node(Node::Pattern(PatternNode::Payload {
                 pat: pat_id,
-                payload: pat.payload.name,
+                payload_ident: ident_id,
             }))
         }
         Pattern::ModuleAccess(pat) => {
-            let pat_id = node_pattern(node_tree, &pat.pat);
+            let pat_id = node_pattern(node_tree, module, &pat.pat);
             node_tree.add_node(Node::Pattern(PatternNode::ModuleAccess {
                 module: pat.module.name,
                 pat: pat_id,
             }))
         }
         Pattern::DotAccess(pat) => {
-            let target_id = pat.target.clone().map(|t| node_pattern(node_tree, &t));
+            let target_id = pat
+                .target
+                .clone()
+                .map(|t| node_pattern(node_tree, module, &t));
 
             node_tree.add_node(Node::Pattern(PatternNode::DotAccess {
                 target: target_id,
@@ -326,8 +363,8 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                 )
             }
 
-            let var_id = node_tree.add_node(Node::VarDecl { name: ident.name });
-            nodes.push(var_id);
+            let ident_id = node_tree.add_node(Node::Identifier(ident.name));
+            nodes.push(node_tree.add_node(Node::VarDecl { ident: ident_id }));
 
             let scope_pos = module
                 .get_scope_pos(ident.token.source_id)
@@ -336,10 +373,10 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                 .find_binding(scope_pos, ident.name)
                 .expect("missing binding for function");
 
-            node_tree.symbol_map.add(binding.id, var_id);
+            node_tree.symbol_map.add(binding.id, ident_id);
 
             let assign_id = node_tree.add_node(Node::Assign {
-                target: var_id,
+                target: ident_id,
                 value: value_id,
             });
             nodes.push(assign_id);
@@ -372,8 +409,8 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
 
             // ouside variable declaration
             let name = pat.payload.name;
-            let var_id = node_tree.add_node(Node::VarDecl { name });
-            nodes.push(var_id);
+            let ident_id = node_tree.add_node(Node::Identifier(name));
+            nodes.push(node_tree.add_node(Node::VarDecl { ident: ident_id }));
 
             let scope_pos = module
                 .get_scope_pos(pat.payload.token.source_id)
@@ -382,23 +419,23 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                 .find_binding(scope_pos, name)
                 .expect("missing binding for function");
 
-            node_tree.symbol_map.add(binding.id, var_id);
+            node_tree.symbol_map.add(binding.id, ident_id);
 
-            // rebuild the pattern
-            let inner_pat_id = node_pattern(node_tree, &pat.pat);
+            // rebuild the pattern to use the same inner pattern and a new <inner let> payload
+            let inner_ident_id = node_tree.add_node(Node::Identifier(str_store::INNERLET));
+            let inner_pat_id = node_pattern(node_tree, module, &pat.pat);
             let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Payload {
                 pat: inner_pat_id,
-                payload: str_store::INNERLET,
+                payload_ident: inner_ident_id,
             }));
 
-            // set up the inner assignment
-            let inner_let_id = node_tree.add_node(Node::Identifier(str_store::INNERLET));
+            // set up the inner assignment using the identifer node created above
             let assign_id = node_tree.add_node(Node::Assign {
-                target: var_id,
-                value: inner_let_id,
+                target: ident_id,
+                value: inner_ident_id,
             });
 
-            // creat the match arm
+            // create the match arm for the successful let match
             let arm_id = node_tree.add_node(Node::MatchArm {
                 pattern: pat_id,
                 body: assign_id,
@@ -421,7 +458,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                 panic!("let statement needs an exception handler")
             }
 
-            let pat_id = node_pattern(node_tree, &stmt.pattern);
+            let pat_id = node_pattern(node_tree, module, &stmt.pattern);
             let empty_body = node_tree.add_node(Node::Block { statements: vec![] });
             let arm_id = node_tree.add_node(Node::MatchArm {
                 pattern: pat_id,
@@ -432,9 +469,13 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
     }
 
     let default_id = match &stmt.except {
-        LetExcept::Or { binding, body, .. } => {
-            let body_id = node_block(node_tree, module, body);
-
+        // TODO: binding should be an identifier so we have a symbol ID so we can map to an
+        // identifer and pass it through successfully
+        LetExcept::Or {
+            token,
+            binding,
+            body,
+        } => {
             match *binding {
                 Some(b) => {
                     // or(e) { ... }
@@ -442,7 +483,20 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                     // becomes:
                     //
                     // e { ... }
-                    let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Identifier(b)));
+                    let ident_id = node_tree.add_node(Node::Identifier(b));
+                    let pat_id =
+                        node_tree.add_node(Node::Pattern(PatternNode::Identifier(ident_id)));
+
+                    let scope_pos = module
+                        .get_scope_pos(token.source_id)
+                        .expect("missing scope position for or binding");
+                    let binding = module
+                        .find_binding(scope_pos, b)
+                        .expect("missing binding for or identifier");
+
+                    node_tree.symbol_map.add(binding.id, ident_id);
+
+                    let body_id = node_block(node_tree, module, body);
                     node_tree.add_node(Node::MatchArm {
                         pattern: pat_id,
                         body: body_id,
@@ -455,6 +509,8 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                     //
                     // _ { ... }
                     let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Default));
+
+                    let body_id = node_block(node_tree, module, body);
                     node_tree.add_node(Node::MatchArm {
                         pattern: pat_id,
                         body: body_id,
@@ -468,21 +524,21 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             // becomes:
             //
             // <wrap> { return .Variant(<wrap>) }
-            let enum_id = node_wrap_expr(node_tree, module, expr);
-            if enum_id.is_none() {
-                panic!("not a valid target for a let wrap statement")
-            }
+            let ident_id = node_tree.add_node(Node::Identifier(str_store::WRAP));
+            let enum_id = node_wrap_expr(node_tree, module, expr, ident_id);
 
-            let body_id = node_tree.add_node(Node::Return { value: enum_id });
-            let block_id = node_tree.add_node(Node::Block {
-                statements: vec![body_id],
+            let ret_id = node_tree.add_node(Node::Return {
+                value: Some(enum_id),
+            });
+            let body_id = node_tree.add_node(Node::Block {
+                statements: vec![ret_id],
             });
 
             let pat_id =
                 node_tree.add_node(Node::Pattern(PatternNode::Identifier(str_store::WRAP)));
             node_tree.add_node(Node::MatchArm {
                 pattern: pat_id,
-                body: block_id,
+                body: body_id,
             })
         }
         LetExcept::Panic => {
@@ -492,15 +548,33 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             //
             // <panic> { panic(<panic>) }
 
-            // TODO: can we reuse this node mabye?
+            // the identifier for the function call
             let panic_id = node_tree.add_node(Node::Identifier(str_store::PANIC));
-            // TODO: need to actually pass the results of the call to the panic
-            let body_id = node_tree.add_node(Node::Call {
+
+            node_tree.type_map.add(
+                panic_id,
+                TypeSpec::Function(FunctionType {
+                    // TODO: this needs to be the type of the expression that's being matched or an
+                    // any type like in Go, just pick a random type for now
+                    params: vec![TypeSpec::String],
+                    return_type: Some(Box::new(TypeSpec::Panic)),
+                }),
+            );
+
+            // the identifier for the pattern, this needs to be seperate from the function call
+            // ideentifier for type checking to work correctly since they need to have different
+            // underlying types
+            let ident_id = node_tree.add_node(Node::Identifier(str_store::PANIC));
+
+            let call_id = node_tree.add_node(Node::Call {
                 func: panic_id,
-                args: vec![],
+                args: vec![ident_id],
+            });
+            let body_id = node_tree.add_node(Node::Block {
+                statements: vec![call_id],
             });
 
-            let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Default));
+            let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Identifier(ident_id)));
             node_tree.add_node(Node::MatchArm {
                 pattern: pat_id,
                 body: body_id,
@@ -510,16 +584,35 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             // TODO: we need to check that this expression can not fail to match
             // for now just panic if we hit this arm somehow
 
+            // the identifier for the function call
             let panic_id = node_tree.add_node(Node::Identifier(str_store::PANIC));
-            // TODO: need to actually pass the results of the call to the panic
-            let body_id = node_tree.add_node(Node::Call {
+
+            node_tree.type_map.add(
+                panic_id,
+                TypeSpec::Function(FunctionType {
+                    // TODO: this needs to be the type of the expression that's being matched or an
+                    // any type like in Go, just pick a random type for now
+                    params: vec![TypeSpec::String],
+                    return_type: Some(Box::new(TypeSpec::Panic)),
+                }),
+            );
+
+            // the identifier for the pattern, this needs to be seperate from the function call
+            // ideentifier for type checking to work correctly since they need to have different
+            // underlying types
+            let ident_id = node_tree.add_node(Node::Identifier(str_store::PANIC));
+
+            let call_id = node_tree.add_node(Node::Call {
                 func: panic_id,
-                args: vec![],
+                args: vec![ident_id],
+            });
+            let body_id = node_tree.add_node(Node::Block {
+                statements: vec![call_id],
             });
 
-            let pattern_id = node_tree.add_node(Node::Pattern(PatternNode::Default));
+            let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Identifier(ident_id)));
             node_tree.add_node(Node::MatchArm {
-                pattern: pattern_id,
+                pattern: pat_id,
                 body: body_id,
             })
         }
@@ -537,11 +630,15 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
 }
 
 /// convert an abitrary expression into a wrap node for the `let .Ok = expr wrap .Err` syntax
-/// if the given expression is not a valid enum expression None is returned instead.
-fn node_wrap_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> Option<NodeID> {
+fn node_wrap_expr(
+    node_tree: &mut NodeTree,
+    module: &Module,
+    expr: &Expr,
+    wrap_id: NodeID,
+) -> NodeID {
     let dot_expr = match expr {
         Expr::DotAccess(expr) => expr,
-        _ => return None,
+        _ => panic!("only dot expressions are allowed!"),
     };
 
     let target = match &dot_expr.target {
@@ -549,44 +646,39 @@ fn node_wrap_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> Opt
         // TODO: how do we check this more carfully, we need to fill in the type hole first by
         // checking what the return value of the function is
         None => {
-            let wrap_id = node_tree.add_node(Node::Identifier(str_store::WRAP));
             let enum_id = node_tree.add_node(Node::EnumConstructor {
                 target: None,
                 variant: dot_expr.field,
                 payload: Some(wrap_id),
             });
-            return Some(enum_id);
+            return enum_id;
         }
     };
 
     let target = match target.deref() {
         Expr::Identifier(expr) => expr,
         // if we have a non-identifier target this isn't an enum variant
-        _ => return None,
+        _ => panic!("dot expression target must be an identifier"),
     };
 
     let scope_pos = module
         .get_scope_pos(target.token.source_id)
         .expect("could not find scope for identifier");
-    let binding = module.find_binding(scope_pos, target.name);
-    if let Some(b) = binding {
-        // if the identifier is a declared enum type we know this is a valid enum expression
-        if b.binding_type != BindingType::EnumType {
-            return None;
-        }
 
-        let wrap_id = node_tree.add_node(Node::Identifier(str_store::WRAP));
-        let enum_id = node_tree.add_node(Node::EnumConstructor {
-            target: Some(target.name),
-            variant: dot_expr.field,
-            payload: Some(wrap_id),
-        });
+    let binding = module
+        .find_binding(scope_pos, target.name)
+        .expect("unknown identifier used in dot expression target");
 
-        Some(enum_id)
-    } else {
-        // this is not a declared type, it could be a struct value though
-        None
+    // if the identifier is a declared enum type we know this is a valid enum expression
+    if binding.binding_type != BindingType::EnumType {
+        panic!("can only call wrap with enum types");
     }
+
+    node_tree.add_node(Node::EnumConstructor {
+        target: Some(target.name),
+        variant: dot_expr.field,
+        payload: Some(wrap_id),
+    })
 }
 
 fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
@@ -621,12 +713,17 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
             let scope_pos = module
                 .get_scope_pos(expr.token.source_id)
                 .expect("could not get scope for identifier");
-            match module.find_binding(scope_pos, expr.name) {
-                // make sure this binding exists before we dereference it
-                // TODO: should I check type information here?
-                Some(_) => node_tree.add_node(Node::Identifier(expr.name)),
-                None => panic!("unknown identifier"),
-            }
+
+            let binding = module
+                .find_binding(scope_pos, expr.name)
+                .expect("failed to find binding for identifier expression");
+
+            let ident_id = node_tree
+                .symbol_map
+                .get(binding.id)
+                .expect("unknown identifier in expression check");
+
+            *ident_id
         }
         Expr::Binary(expr) => {
             let left_id = node_expr(node_tree, module, &expr.left);
@@ -692,7 +789,8 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
             let target = match &expr.target {
                 Some(t) => t,
                 None => {
-                    // if there's no target it must be an enum
+                    // if there's no target it must be an enum (and if it's not, we'll fail type
+                    // checking later)
                     return node_tree.add_node(Node::EnumConstructor {
                         target: None,
                         variant: expr.field,
@@ -918,14 +1016,18 @@ mod tests {
             }),
             expected: {
                 let mut e = NodeTree::new();
-                let decl_id = e.add_root_node(Node::VarDecl { name: 1 });
+
+                let ident_id = e.add_node(Node::Identifier(1));
+                e.add_root_node(Node::VarDecl { ident: ident_id });
+
                 let value_id = e.add_node(Node::IntLiteral(42));
                 e.type_map.add(value_id, TypeSpec::Int64);
                 e.add_root_node(Node::Assign {
-                    target: decl_id,
+                    target: ident_id,
                     value: value_id,
                 });
-                e.symbol_map.add(12, decl_id);
+                e.symbol_map.add(12, ident_id);
+
                 e
             }
         },
@@ -941,14 +1043,18 @@ mod tests {
             }),
             expected: {
                 let mut e = NodeTree::new();
-                let decl_id = e.add_root_node(Node::VarDecl { name: 2 });
+
+                let ident_id = e.add_node(Node::Identifier(2));
+                e.add_root_node(Node::VarDecl { ident: ident_id });
+
                 let value_id = e.add_node(Node::StringLiteral(3));
                 e.type_map.add(value_id, TypeSpec::String);
                 e.add_root_node(Node::Assign {
-                    target: decl_id,
+                    target: ident_id,
                     value: value_id,
                 });
-                e.symbol_map.add(12, decl_id);
+                e.symbol_map.add(12, ident_id);
+
                 e
             }
         },
@@ -964,7 +1070,7 @@ mod tests {
     #[test]
     fn test_add_node_returns_correct_id() {
         let mut store = NodeTree::new();
-        let node = Node::NilLiteral;
+        let node = Node::Invalid;
         let id = store.add_node(node);
         assert_eq!(id, 0);
     }
@@ -972,7 +1078,7 @@ mod tests {
     #[test]
     fn test_add_multiple_nodes() {
         let mut store = NodeTree::new();
-        let id1 = store.add_node(Node::NilLiteral);
+        let id1 = store.add_node(Node::Invalid);
         let id2 = store.add_node(Node::BoolLiteral(true));
         let id3 = store.add_node(Node::IntLiteral(42));
 
@@ -985,14 +1091,14 @@ mod tests {
     #[test]
     fn test_add_node_does_not_add_to_roots() {
         let mut store = NodeTree::new();
-        store.add_node(Node::NilLiteral);
+        store.add_node(Node::Invalid);
         assert_eq!(store.roots.len(), 0);
     }
 
     #[test]
     fn test_add_root_node_returns_correct_id() {
         let mut store = NodeTree::new();
-        let node = Node::NilLiteral;
+        let node = Node::Invalid;
         let id = store.add_root_node(node);
         assert_eq!(id, 0);
     }
@@ -1021,7 +1127,7 @@ mod tests {
     #[test]
     fn test_mix_nodes_and_root_nodes() {
         let mut store = NodeTree::new();
-        let regular_id = store.add_node(Node::NilLiteral);
+        let regular_id = store.add_node(Node::Invalid);
         let root_id = store.add_root_node(Node::BoolLiteral(true));
         let another_regular = store.add_node(Node::IntLiteral(42));
 
@@ -1121,13 +1227,15 @@ mod tests {
     #[test]
     fn test_add_function_declaration() {
         let mut store = NodeTree::new();
+        let ident_id = store.add_node(Node::Identifier(20));
         let id = store.add_node(Node::FunctionDecl {
-            name: 20,
+            ident: ident_id,
             params: vec![],
             body: 0,
         });
-        if let Node::FunctionDecl { name, .. } = &store.nodes[id] {
-            assert_eq!(*name, 20);
+
+        if let Node::FunctionDecl { ident, .. } = &store.nodes[id] {
+            assert_eq!(*ident, 0);
         } else {
             panic!("Expected FunctionDecl");
         }
