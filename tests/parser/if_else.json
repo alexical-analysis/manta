@@ -27,6 +27,7 @@
         "name": 8,
         "params": [
           {
+            "id": 132,
             "name": 9
           }
         ],
@@ -385,6 +386,10 @@
       "117": {
         "scope_id": 1,
         "scope_depth": 0
+      },
+      "132": {
+        "scope_id": 1,
+        "scope_depth": 1
       },
       "139": {
         "scope_id": 2,

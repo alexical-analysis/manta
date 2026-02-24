@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::parser::lexer::Token;
+use crate::parser::lexer::{SourceID, Token};
 use crate::str_store::StrID;
 
 /// Top-level declarations in a Manta program
@@ -42,6 +42,7 @@ pub struct TypeDecl {
 /// Function parameter
 #[derive(Debug, PartialEq, Serialize)]
 pub struct Parameter {
+    pub id: SourceID,
     pub name: StrID,
 }
 
@@ -120,6 +121,8 @@ pub enum TypeSpec {
     Function(FunctionType),
     // UnsafePtr is the intermediary between types used by alloc
     UnsafePtr,
+    // Panic is the type used for expressions that panic
+    Panic,
 }
 
 /// MetaType

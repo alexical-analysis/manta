@@ -8,7 +8,7 @@ mod var_decl;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use crate::ast::{BlockStmt, Decl, Expr, FunctionType, Parameter, TypeSpec};
+use crate::ast::{BlockStmt, Decl, Expr};
 use crate::parser::ParseError;
 use crate::parser::statement::StmtParser;
 use crate::parser::{Lexer, Token, TokenKind};
@@ -94,8 +94,8 @@ mod tests {
     use super::*;
     use crate::ast::{
         AllocExpr, BinaryExpr, BinaryOp, BlockStmt, CallExpr, ConstDecl, EnumType, EnumVariant,
-        Expr, ExprStmt, FunctionDecl, IdentifierExpr, IfStmt, MetaTypeExpr, Parameter, ReturnStmt,
-        Stmt, StructField, StructType, TypeDecl, TypeSpec, UseDecl,
+        Expr, ExprStmt, FunctionDecl, FunctionType, IdentifierExpr, IfStmt, MetaTypeExpr,
+        Parameter, ReturnStmt, Stmt, StructField, StructType, TypeDecl, TypeSpec, UseDecl,
     };
     use crate::parser::lexer::Lexer;
     use crate::str_store::StrStore;
@@ -135,7 +135,7 @@ mod tests {
                         lexeme_id: 0
                     },
                     name: 1,
-                    params: vec![Parameter { name: 3 }, Parameter { name: 5 }],
+                    params: vec![Parameter { id: 7, name: 3 }, Parameter { id: 10, name: 5 }],
                     function_type: FunctionType {
                         params: vec![TypeSpec::Int32, TypeSpec::Int32],
                         return_type: Some(Box::new(TypeSpec::Int32)),
@@ -233,7 +233,7 @@ mod tests {
                         lexeme_id: 0
                     },
                     name: 1,
-                    params: vec![Parameter { name: 3 }, Parameter { name: 5 },],
+                    params: vec![Parameter { id: 11, name: 3 }, Parameter { id: 18, name: 5 },],
                     function_type: FunctionType {
                         params: vec![TypeSpec::Int32, TypeSpec::String],
                         return_type: Some(Box::new(TypeSpec::Bool)),
@@ -265,7 +265,7 @@ mod tests {
                         lexeme_id: 0
                     },
                     name: 1,
-                    params: vec![Parameter { name: 3 }],
+                    params: vec![Parameter { id: 9, name: 3 }],
                     function_type: FunctionType {
                         params: vec![TypeSpec::String],
                         return_type: None,
@@ -318,7 +318,7 @@ mod tests {
                         lexeme_id: 0
                     },
                     name: 1,
-                    params: vec![Parameter { name: 3 }, Parameter { name: 5 },],
+                    params: vec![Parameter { id: 13, name: 3 }, Parameter { id: 16, name: 5 },],
                     function_type: FunctionType {
                         params: vec![TypeSpec::Int32, TypeSpec::Int32],
                         return_type: Some(Box::new(TypeSpec::Int32)),
@@ -437,7 +437,7 @@ mod tests {
                         lexeme_id: 0
                     },
                     name: 1,
-                    params: vec![Parameter { name: 3 }],
+                    params: vec![Parameter { id: 17, name: 3 }],
                     function_type: FunctionType {
                         params: vec![TypeSpec::Slice(Box::new(TypeSpec::Int32))],
                         return_type: None,

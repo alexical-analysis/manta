@@ -1,7 +1,7 @@
 use crate::ast::{Decl, FunctionDecl, FunctionType, Parameter, TypeSpec};
 use crate::parser::ParseError;
 use crate::parser::declaration::{DeclParselet, DeclParser};
-use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::lexer::{Lexer, SourceID, Token, TokenKind};
 use crate::parser::types;
 use crate::str_store::StrID;
 
@@ -70,7 +70,10 @@ impl DeclParselet for FunctionDeclParselet {
         let mut params = vec![];
         let mut types = vec![];
         for p in parsed_params {
-            params.push(Parameter { name: p.name });
+            params.push(Parameter {
+                id: p.id,
+                name: p.name,
+            });
             types.push(p.type_spec);
         }
 
@@ -88,6 +91,7 @@ impl DeclParselet for FunctionDeclParselet {
 }
 
 struct ParsedParam {
+    id: SourceID,
     name: StrID,
     type_spec: TypeSpec,
 }
@@ -106,19 +110,18 @@ fn parse_parameters(lexer: &mut Lexer) -> Result<Vec<ParsedParam>, ParseError> {
 
     loop {
         // Collect parameter names
-        let mut param_names = vec![];
+        let mut param_tokens = vec![];
 
         // Get first identifier
-        let token = lexer.next_token();
-        if token.kind != TokenKind::Identifier {
+        let ident_token = lexer.next_token();
+        if ident_token.kind != TokenKind::Identifier {
             return Err(ParseError::UnexpectedToken(
-                token,
+                ident_token,
                 "Expected parameter name".to_string(),
             ));
         }
 
-        let name = token.lexeme_id;
-        param_names.push(name);
+        param_tokens.push(ident_token);
 
         // Keep collecting params separated by commas while we see: comma, identifier, comma/paren/type
         loop {
@@ -128,26 +131,26 @@ fn parse_parameters(lexer: &mut Lexer) -> Result<Vec<ParsedParam>, ParseError> {
             }
             lexer.next_token();
 
-            let token = lexer.next_token();
-            if token.kind != TokenKind::Identifier {
+            let ident_token = lexer.next_token();
+            if ident_token.kind != TokenKind::Identifier {
                 return Err(ParseError::UnexpectedToken(
-                    token,
+                    ident_token,
                     "Expected parameter name".to_string(),
                 ));
             }
 
-            let name = token.lexeme_id;
-            param_names.push(name);
+            param_tokens.push(ident_token);
         }
 
         // Now parse the type spec
-        let token = lexer.next_token();
-        let type_spec = types::parse_type(lexer, token)?;
+        let type_token = lexer.next_token();
+        let type_spec = types::parse_type(lexer, type_token)?;
 
         // Add all parameters with this type
-        for name in param_names {
+        for token in param_tokens {
             params.push(ParsedParam {
-                name,
+                id: token.source_id,
+                name: token.lexeme_id,
                 type_spec: type_spec.clone(),
             });
         }

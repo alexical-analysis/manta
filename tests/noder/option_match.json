@@ -1,8 +1,11 @@
 {
   "nodes": [
     {
+      "Identifier": 9
+    },
+    {
       "VarDecl": {
-        "name": 9
+        "ident": 0
       }
     },
     {
@@ -11,40 +14,49 @@
       }
     },
     {
+      "Identifier": 8
+    },
+    {
       "FunctionDecl": {
-        "name": 8,
+        "ident": 3,
         "params": [
-          0
+          1
         ],
-        "body": 1
+        "body": 2
       }
+    },
+    {
+      "Identifier": 13
     },
     {
       "TypeDecl": {
-        "name": 13
+        "ident": 5
       }
     },
     {
-      "VarDecl": {
-        "name": 18
-      }
+      "Identifier": 18
     },
     {
       "VarDecl": {
-        "name": 20
+        "ident": 7
       }
     },
     {
       "Identifier": 20
     },
     {
+      "VarDecl": {
+        "ident": 9
+      }
+    },
+    {
       "IntLiteral": 0
     },
     {
       "Binary": {
-        "left": 6,
+        "left": 9,
         "operator": "Equal",
-        "right": 7
+        "right": 11
       }
     },
     {
@@ -56,20 +68,20 @@
     },
     {
       "Return": {
-        "value": 9
+        "value": 13
       }
     },
     {
       "Block": {
         "statements": [
-          10
+          14
         ]
       }
     },
     {
       "If": {
-        "condition": 8,
-        "then_block": 11,
+        "condition": 12,
+        "then_block": 15,
         "else_block": null
       }
     },
@@ -77,47 +89,41 @@
       "EnumConstructor": {
         "target": null,
         "variant": 15,
-        "payload": 16
+        "payload": 18
       }
     },
     {
-      "Identifier": 18
-    },
-    {
-      "Identifier": 20
-    },
-    {
       "Binary": {
-        "left": 14,
+        "left": 7,
         "operator": "Divide",
-        "right": 15
+        "right": 9
       }
     },
     {
       "Return": {
-        "value": 13
+        "value": 17
       }
     },
     {
       "Block": {
         "statements": [
-          12,
-          17
+          16,
+          19
         ]
       }
     },
     {
-      "FunctionDecl": {
-        "name": 17,
-        "params": [
-          4,
-          5
-        ],
-        "body": 18
-      }
+      "Identifier": 17
     },
     {
-      "Identifier": 17
+      "FunctionDecl": {
+        "ident": 21,
+        "params": [
+          8,
+          10
+        ],
+        "body": 20
+      }
     },
     {
       "IntLiteral": 10
@@ -127,26 +133,29 @@
     },
     {
       "Call": {
-        "func": 20,
+        "func": 21,
         "args": [
-          21,
-          22
+          23,
+          24
         ]
       }
     },
     {
+      "Identifier": 28
+    },
+    {
       "VarDecl": {
-        "name": 28
+        "ident": 26
       }
     },
     {
       "Assign": {
-        "target": 24,
-        "value": 23
+        "target": 26,
+        "value": 25
       }
     },
     {
-      "Identifier": 28
+      "Identifier": 33
     },
     {
       "Pattern": {
@@ -159,40 +168,34 @@
     {
       "Pattern": {
         "Payload": {
-          "pat": 27,
-          "payload": 33
+          "pat": 30,
+          "payload_ident": 29
         }
       }
-    },
-    {
-      "Identifier": 8
     },
     {
       "StringLiteral": 34
     },
     {
-      "Identifier": 33
-    },
-    {
       "Call": {
-        "func": 29,
+        "func": 3,
         "args": [
-          30,
-          31
+          32,
+          29
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          32
+          33
         ]
       }
     },
     {
       "MatchArm": {
-        "pattern": 28,
-        "body": 33
+        "pattern": 31,
+        "body": 34
       }
     },
     {
@@ -204,14 +207,11 @@
       }
     },
     {
-      "Identifier": 8
-    },
-    {
       "StringLiteral": 36
     },
     {
       "Call": {
-        "func": 36,
+        "func": 3,
         "args": [
           37
         ]
@@ -226,7 +226,7 @@
     },
     {
       "MatchArm": {
-        "pattern": 35,
+        "pattern": 36,
         "body": 39
       }
     },
@@ -234,7 +234,7 @@
       "Match": {
         "target": 26,
         "arms": [
-          34,
+          35,
           40
         ]
       }
@@ -242,39 +242,46 @@
     {
       "Block": {
         "statements": [
-          24,
-          25,
+          27,
+          28,
           41
         ]
       }
     },
     {
+      "Identifier": 1
+    },
+    {
       "FunctionDecl": {
-        "name": 1,
+        "ident": 43,
         "params": [],
         "body": 42
       }
     }
   ],
   "roots": [
-    2,
-    3,
-    19,
-    43
+    4,
+    6,
+    22,
+    44
   ],
   "type_map": {
     "keys": {
-      "2": 0,
-      "3": 1,
-      "7": 2,
-      "19": 3,
-      "21": 4,
-      "22": 5,
-      "30": 6,
-      "37": 7,
-      "43": 8
+      "0": 0,
+      "4": 1,
+      "6": 2,
+      "7": 3,
+      "9": 4,
+      "11": 5,
+      "22": 6,
+      "23": 7,
+      "24": 8,
+      "32": 9,
+      "37": 10,
+      "44": 11
     },
     "values": [
+      "String",
       {
         "Function": {
           "params": [
@@ -297,6 +304,8 @@
           ]
         }
       },
+      "Int32",
+      "Int32",
       "Int64",
       {
         "Function": {
@@ -326,17 +335,25 @@
   },
   "symbol_map": {
     "keys": {
-      "12": 0,
-      "14": 1,
-      "15": 2,
-      "18": 4,
-      "19": 3
+      "12": 1,
+      "13": 0,
+      "14": 2,
+      "15": 5,
+      "16": 3,
+      "17": 4,
+      "18": 8,
+      "19": 6,
+      "20": 7
     },
     "values": [
-      2,
+      0,
       3,
-      19,
-      24,
+      5,
+      7,
+      9,
+      21,
+      26,
+      29,
       43
     ]
   }
