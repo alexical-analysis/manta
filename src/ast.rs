@@ -25,7 +25,7 @@ pub enum Decl {
 /// ```
 #[derive(Debug, PartialEq, Serialize)]
 pub struct FunctionDecl {
-    pub token: Token,
+    pub id: SourceID,
     pub name: StrID,
     pub params: Vec<Parameter>,
     pub body: BlockStmt,

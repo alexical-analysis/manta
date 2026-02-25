@@ -78,7 +78,7 @@ impl DeclParselet for FunctionDeclParselet {
         }
 
         Ok(Decl::Function(FunctionDecl {
-            token,
+            id: token.source_id,
             name,
             params,
             body,

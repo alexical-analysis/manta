@@ -352,7 +352,7 @@ impl Module {
                     // just for identifier declarations? In theory though all bindings are
                     // declarations right?
                     sym_table.add_binding(decl.name, BindingType::FuncType);
-                    sym_table.add_scope_pos(decl.token.source_id);
+                    sym_table.add_scope_pos(decl.id);
 
                     Self::build_sym_table_type_spec(
                         errors,
@@ -360,7 +360,7 @@ impl Module {
                         &TypeSpec::Function(decl.function_type.clone()),
                     );
 
-                    sym_table.open_scope(decl.token.source_id);
+                    sym_table.open_scope(decl.id);
 
                     for param in &decl.params {
                         // TODO: should add_binding and add_scope_pos always be coupled? Or maybe

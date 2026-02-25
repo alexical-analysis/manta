@@ -129,11 +129,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
-                    token: Token {
-                        kind: TokenKind::FnKeyword,
-                        source_id: 0,
-                        lexeme_id: 0
-                    },
+                    id: 0,
                     name: 1,
                     params: vec![Parameter { id: 7, name: 3 }, Parameter { id: 10, name: 5 }],
                     function_type: FunctionType {
@@ -181,11 +177,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
-                    token: Token {
-                        kind: TokenKind::FnKeyword,
-                        source_id: 0,
-                        lexeme_id: 0
-                    },
+                    id: 0,
                     name: 1,
                     params: vec![],
                     function_type: FunctionType {
@@ -227,11 +219,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
-                    token: Token {
-                        kind: TokenKind::FnKeyword,
-                        source_id: 0,
-                        lexeme_id: 0
-                    },
+                    id: 0,
                     name: 1,
                     params: vec![Parameter { id: 11, name: 3 }, Parameter { id: 18, name: 5 },],
                     function_type: FunctionType {
@@ -259,11 +247,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
-                    token: Token {
-                        kind: TokenKind::FnKeyword,
-                        source_id: 0,
-                        lexeme_id: 0
-                    },
+                    id: 0,
                     name: 1,
                     params: vec![Parameter { id: 9, name: 3 }],
                     function_type: FunctionType {
@@ -312,11 +296,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
-                    token: Token {
-                        kind: TokenKind::FnKeyword,
-                        source_id: 0,
-                        lexeme_id: 0
-                    },
+                    id: 0,
                     name: 1,
                     params: vec![Parameter { id: 13, name: 3 }, Parameter { id: 16, name: 5 },],
                     function_type: FunctionType {
@@ -391,11 +371,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
-                    token: Token {
-                        kind: TokenKind::FnKeyword,
-                        source_id: 0,
-                        lexeme_id: 0
-                    },
+                    id: 0,
                     name: 1,
                     params: vec![],
                     function_type: FunctionType {
@@ -431,11 +407,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
-                    token: Token {
-                        kind: TokenKind::FnKeyword,
-                        source_id: 0,
-                        lexeme_id: 0
-                    },
+                    id: 0,
                     name: 1,
                     params: vec![Parameter { id: 17, name: 3 }],
                     function_type: FunctionType {
