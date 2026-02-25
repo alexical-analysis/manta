@@ -34,7 +34,7 @@ pub struct FunctionDecl {
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct TypeDecl {
-    pub token: Token,
+    pub id: SourceID,
     pub name: StrID,
     pub type_spec: TypeSpec,
 }

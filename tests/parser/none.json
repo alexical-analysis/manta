@@ -21,11 +21,7 @@
     },
     {
       "Type": {
-        "token": {
-          "kind": "Identifier",
-          "source_id": 137,
-          "lexeme_id": 9
-        },
+        "id": 137,
         "name": 9,
         "type_spec": {
           "Struct": {
@@ -90,11 +86,7 @@
     },
     {
       "Type": {
-        "token": {
-          "kind": "Identifier",
-          "source_id": 287,
-          "lexeme_id": 19
-        },
+        "id": 287,
         "name": 19,
         "type_spec": {
           "Enum": {

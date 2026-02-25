@@ -438,7 +438,7 @@ impl Module {
                             sym_table.add_binding(decl.name, BindingType::UnitType);
                         }
                     }
-                    sym_table.add_scope_pos(decl.token.source_id);
+                    sym_table.add_scope_pos(decl.id);
                 }
                 Decl::Const(decl) => {
                     sym_table.add_binding(decl.name, BindingType::Value);

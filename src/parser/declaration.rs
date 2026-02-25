@@ -454,11 +454,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 TypeDecl {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 5,
-                        lexeme_id: 1
-                    },
+                    id: 5,
                     name: 1,
                     type_spec: TypeSpec::Struct(StructType {
                         fields: vec![
@@ -484,11 +480,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 TypeDecl {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 5,
-                        lexeme_id: 1
-                    },
+                    id: 5,
                     name: 1,
                     type_spec: TypeSpec::Enum(EnumType {
                         variants: vec![
@@ -514,11 +506,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 TypeDecl {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 5,
-                        lexeme_id: 1
-                    },
+                    id: 5,
                     name: 1,
                     type_spec: TypeSpec::Enum(EnumType {
                         variants: vec![
@@ -544,11 +532,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 TypeDecl {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 5,
-                        lexeme_id: 1
-                    },
+                    id: 5,
                     name: 1,
                     type_spec: TypeSpec::Struct(StructType { fields: vec![] }),
                 },
