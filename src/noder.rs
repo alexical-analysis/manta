@@ -2,7 +2,6 @@ use serde::Serialize;
 use std::cmp::Ord;
 use std::collections::BTreeMap;
 use std::ops::Deref;
-use std::process::id;
 
 use crate::ast::{
     BlockStmt, Decl, Expr, FunctionType, LetExcept, LetStmt, Pattern, Stmt, StructField,
@@ -136,7 +135,7 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 .add(func_id, TypeSpec::Function(decl.function_type.clone()));
 
             let scope_pos = module
-                .get_scope_pos(decl.token.source_id)
+                .get_scope_pos(decl.id)
                 .expect("missing scope_pos for function");
             let binding = module
                 .find_binding(scope_pos, decl.name)

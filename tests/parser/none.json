@@ -36,11 +36,7 @@
     },
     {
       "Function": {
-        "token": {
-          "kind": "FnKeyword",
-          "source_id": 226,
-          "lexeme_id": 13
-        },
+        "id": 226,
         "name": 14,
         "params": [
           {
@@ -68,11 +64,7 @@
     },
     {
       "Function": {
-        "token": {
-          "kind": "FnKeyword",
-          "source_id": 256,
-          "lexeme_id": 13
-        },
+        "id": 256,
         "name": 17,
         "params": [
           {
@@ -133,11 +125,7 @@
     },
     {
       "Function": {
-        "token": {
-          "kind": "FnKeyword",
-          "source_id": 423,
-          "lexeme_id": 13
-        },
+        "id": 423,
         "name": 24,
         "params": [
           {
@@ -295,11 +283,7 @@
     },
     {
       "Function": {
-        "token": {
-          "kind": "FnKeyword",
-          "source_id": 603,
-          "lexeme_id": 13
-        },
+        "id": 603,
         "name": 1,
         "params": [],
         "body": {

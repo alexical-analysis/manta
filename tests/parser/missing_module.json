@@ -23,11 +23,7 @@
     },
     {
       "Function": {
-        "token": {
-          "kind": "FnKeyword",
-          "source_id": 87,
-          "lexeme_id": 5
-        },
+        "id": 87,
         "name": 6,
         "params": [
           {
@@ -53,11 +49,7 @@
     },
     {
       "Function": {
-        "token": {
-          "kind": "FnKeyword",
-          "source_id": 113,
-          "lexeme_id": 5
-        },
+        "id": 113,
         "name": 10,
         "params": [],
         "body": {
