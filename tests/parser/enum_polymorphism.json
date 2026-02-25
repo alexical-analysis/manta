@@ -21,11 +21,7 @@
     },
     {
       "Const": {
-        "token": {
-          "kind": "Identifier",
-          "source_id": 131,
-          "lexeme_id": 9
-        },
+        "id": 131,
         "name": 9,
         "value": {
           "FloatLiteral": 3.14

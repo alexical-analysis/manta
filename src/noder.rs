@@ -163,7 +163,7 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
             node_tree.add_root_node(Node::VarDecl { ident: ident_id });
 
             let scope_pos = module
-                .get_scope_pos(decl.token.source_id)
+                .get_scope_pos(decl.id)
                 .expect("missing scope_posfor const decl");
             let binding = module
                 .find_binding(scope_pos, decl.name)
@@ -1005,11 +1005,7 @@ mod tests {
     test_noder!(
         node_const_decl_int_literal {
             decl: Decl::Const(ConstDecl {
-                token: Token {
-                    kind: TokenKind::Identifier,
-                    source_id: 0,
-                    lexeme_id: 0,
-                },
+                id: 0,
                 name: 1,
                 value: Expr::IntLiteral(42)
             }),
