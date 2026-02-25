@@ -35,7 +35,7 @@ impl DeclParselet for VarDeclParselet {
         let value = parser.parse_expression(lexer)?;
 
         Ok(Decl::Var(VarDecl {
-            token: ident,
+            id: ident.source_id,
             name: ident.lexeme_id,
             value,
         }))
