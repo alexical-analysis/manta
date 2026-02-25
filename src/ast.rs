@@ -54,7 +54,7 @@ pub struct Parameter {
 /// ```
 #[derive(Debug, PartialEq, Serialize)]
 pub struct ConstDecl {
-    pub token: Token,
+    pub id: SourceID,
     pub name: StrID,
     pub value: Expr,
 }

@@ -37,7 +37,7 @@ impl DeclParselet for ConstDeclParselet {
         let value = parser.parse_expression(lexer)?;
 
         Ok(Decl::Const(ConstDecl {
-            token: ident,
+            id: ident.source_id,
             name,
             value,
         }))

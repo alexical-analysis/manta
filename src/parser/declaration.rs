@@ -544,11 +544,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 ConstDecl {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 6,
-                        lexeme_id: 1
-                    },
+                    id: 6,
                     name: 1,
                     value: Expr::FloatLiteral(3.45),
                 },
@@ -560,11 +556,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 ConstDecl {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 6,
-                        lexeme_id: 1
-                    },
+                    id: 6,
                     name: 1,
                     value: Expr::IntLiteral(1024),
                 },
@@ -576,11 +568,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 ConstDecl {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 6,
-                        lexeme_id: 1
-                    },
+                    id: 6,
                     name: 1,
                     value: Expr::Binary(BinaryExpr {
                         left: Box::new(Expr::IntLiteral(5)),
@@ -596,11 +584,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 ConstDecl {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 6,
-                        lexeme_id: 1
-                    },
+                    id: 6,
                     name: 1,
                     value: Expr::StringLiteral(3),
                 },
