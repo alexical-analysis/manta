@@ -446,7 +446,7 @@ impl Module {
                 }
                 Decl::Var(decl) => {
                     sym_table.add_binding(decl.name, BindingType::Value);
-                    sym_table.add_scope_pos(decl.token.source_id);
+                    sym_table.add_scope_pos(decl.id);
                 }
                 Decl::Use(_) => { /* nothing to do */ }
                 Decl::Mod(_) => { /* nothing to do */ }

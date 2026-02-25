@@ -182,7 +182,7 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
             node_tree.add_root_node(Node::VarDecl { ident: ident_id });
 
             let scope_pos = module
-                .get_scope_pos(decl.token.source_id)
+                .get_scope_pos(decl.id)
                 .expect("missing scope_posfor var decl");
             let binding = module
                 .find_binding(scope_pos, decl.name)
@@ -892,7 +892,6 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
 mod tests {
     use super::*;
     use crate::ast::{BinaryOp, ConstDecl, UnaryOp, VarDecl};
-    use crate::parser::lexer::{Token, TokenKind};
     use pretty_assertions::assert_eq;
     use std::fs;
     use std::path::Path;
@@ -1028,11 +1027,7 @@ mod tests {
         },
         node_var_decl_string_literal {
             decl: Decl::Var(VarDecl {
-                token: Token {
-                    kind: TokenKind::Identifier,
-                    source_id: 0,
-                    lexeme_id: 0,
-                },
+                id: 0,
                 name: 2,
                 value: Expr::StringLiteral(3)
             }),

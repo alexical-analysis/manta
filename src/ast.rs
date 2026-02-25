@@ -67,7 +67,7 @@ pub struct ConstDecl {
 /// ```
 #[derive(Debug, PartialEq, Serialize)]
 pub struct VarDecl {
-    pub token: Token,
+    pub id: SourceID,
     pub name: StrID,
     pub value: Expr,
 }
