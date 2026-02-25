@@ -97,11 +97,7 @@
                 },
                 "arms": [
                   {
-                    "token": {
-                      "kind": "Dot",
-                      "source_id": 502,
-                      "lexeme_id": 25
-                    },
+                    "id": 502,
                     "pattern": {
                       "Payload": {
                         "pat": {
@@ -178,11 +174,7 @@
                     }
                   },
                   {
-                    "token": {
-                      "kind": "Dot",
-                      "source_id": 548,
-                      "lexeme_id": 25
-                    },
+                    "id": 548,
                     "pattern": {
                       "Payload": {
                         "pat": {

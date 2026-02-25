@@ -61,7 +61,7 @@ impl PrefixStmtParselet for MatchParselet {
             }
 
             arms.push(MatchArm {
-                token,
+                id: token.source_id,
                 pattern,
                 body,
             });

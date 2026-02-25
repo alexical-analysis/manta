@@ -288,11 +288,7 @@
                 },
                 "arms": [
                   {
-                    "token": {
-                      "kind": "Dot",
-                      "source_id": 654,
-                      "lexeme_id": 32
-                    },
+                    "id": 654,
                     "pattern": {
                       "Payload": {
                         "pat": {
@@ -360,11 +356,7 @@
                     }
                   },
                   {
-                    "token": {
-                      "kind": "Dot",
-                      "source_id": 693,
-                      "lexeme_id": 32
-                    },
+                    "id": 693,
                     "pattern": {
                       "DotAccess": {
                         "target": null,
