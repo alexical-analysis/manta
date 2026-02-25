@@ -57,11 +57,7 @@
                   "Call": {
                     "func": {
                       "Identifier": {
-                        "token": {
-                          "kind": "Identifier",
-                          "source_id": 129,
-                          "lexeme_id": 6
-                        },
+                        "id": 129,
                         "name": 6
                       }
                     },

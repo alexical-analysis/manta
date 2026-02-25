@@ -124,11 +124,7 @@
               "If": {
                 "check": {
                   "Identifier": {
-                    "token": {
-                      "kind": "Identifier",
-                      "source_id": 469,
-                      "lexeme_id": 25
-                    },
+                    "id": 469,
                     "name": 25
                   }
                 },
@@ -178,11 +174,7 @@
                             "operator": "Dereference",
                             "operand": {
                               "Identifier": {
-                                "token": {
-                                  "kind": "Identifier",
-                                  "source_id": 536,
-                                  "lexeme_id": 15
-                                },
+                                "id": 536,
                                 "name": 15
                               }
                             }
@@ -206,11 +198,7 @@
                             "args": [
                               {
                                 "Identifier": {
-                                  "token": {
-                                    "kind": "Identifier",
-                                    "source_id": 562,
-                                    "lexeme_id": 15
-                                  },
+                                  "id": 562,
                                   "name": 15
                                 }
                               }
@@ -263,11 +251,7 @@
                   "Call": {
                     "func": {
                       "Identifier": {
-                        "token": {
-                          "kind": "Identifier",
-                          "source_id": 625,
-                          "lexeme_id": 24
-                        },
+                        "id": 625,
                         "name": 24
                       }
                     },
@@ -307,11 +291,7 @@
                               "Call": {
                                 "func": {
                                   "Identifier": {
-                                    "token": {
-                                      "kind": "Identifier",
-                                      "source_id": 663,
-                                      "lexeme_id": 14
-                                    },
+                                    "id": 663,
                                     "name": 14
                                   }
                                 },
@@ -321,11 +301,7 @@
                                       "operator": "Dereference",
                                       "operand": {
                                         "Identifier": {
-                                          "token": {
-                                            "kind": "Identifier",
-                                            "source_id": 680,
-                                            "lexeme_id": 15
-                                          },
+                                          "id": 680,
                                           "name": 15
                                         }
                                       }
@@ -359,11 +335,7 @@
                               "Call": {
                                 "func": {
                                   "Identifier": {
-                                    "token": {
-                                      "kind": "Identifier",
-                                      "source_id": 708,
-                                      "lexeme_id": 17
-                                    },
+                                    "id": 708,
                                     "name": 17
                                   }
                                 },

@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::parser::lexer::{SourceID, Token};
+use crate::parser::lexer::SourceID;
 use crate::str_store::StrID;
 
 /// Top-level declarations in a Manta program
@@ -338,7 +338,7 @@ pub enum Expr {
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct IdentifierExpr {
-    pub token: Token,
+    pub id: SourceID,
     pub name: StrID,
 }
 
