@@ -28,11 +28,7 @@
           }
         ],
         "body": {
-          "token": {
-            "kind": "OpenBrace",
-            "source_id": 51,
-            "lexeme_id": 10
-          },
+          "id": 51,
           "statements": []
         },
         "function_type": {
@@ -49,11 +45,7 @@
         "name": 1,
         "params": [],
         "body": {
-          "token": {
-            "kind": "OpenBrace",
-            "source_id": 65,
-            "lexeme_id": 10
-          },
+          "id": 65,
           "statements": [
             {
               "Let": {

@@ -28,11 +28,7 @@
           }
         ],
         "body": {
-          "token": {
-            "kind": "OpenBrace",
-            "source_id": 139,
-            "lexeme_id": 10
-          },
+          "id": 139,
           "statements": []
         },
         "function_type": {
@@ -49,11 +45,7 @@
         "name": 1,
         "params": [],
         "body": {
-          "token": {
-            "kind": "OpenBrace",
-            "source_id": 186,
-            "lexeme_id": 10
-          },
+          "id": 186,
           "statements": [
             {
               "Let": {
@@ -86,11 +78,7 @@
                   }
                 },
                 "success": {
-                  "token": {
-                    "kind": "OpenBrace",
-                    "source_id": 233,
-                    "lexeme_id": 10
-                  },
+                  "id": 233,
                   "statements": [
                     {
                       "Expr": {
@@ -159,11 +147,7 @@
                   }
                 },
                 "success": {
-                  "token": {
-                    "kind": "OpenBrace",
-                    "source_id": 304,
-                    "lexeme_id": 10
-                  },
+                  "id": 304,
                   "statements": [
                     {
                       "Expr": {
@@ -191,11 +175,7 @@
                   ]
                 },
                 "fail": {
-                  "token": {
-                    "kind": "OpenBrace",
-                    "source_id": 343,
-                    "lexeme_id": 10
-                  },
+                  "id": 343,
                   "statements": [
                     {
                       "Expr": {

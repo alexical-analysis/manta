@@ -172,7 +172,7 @@ pub struct EnumVariant {
 /// A block of statements
 #[derive(Debug, PartialEq, Serialize)]
 pub struct BlockStmt {
-    pub token: Token,
+    pub id: SourceID,
     pub statements: Vec<Stmt>,
 }
 

@@ -41,11 +41,7 @@
           }
         ],
         "body": {
-          "token": {
-            "kind": "OpenBrace",
-            "source_id": 253,
-            "lexeme_id": 11
-          },
+          "id": 253,
           "statements": []
         },
         "function_type": {
@@ -69,11 +65,7 @@
           }
         ],
         "body": {
-          "token": {
-            "kind": "OpenBrace",
-            "source_id": 278,
-            "lexeme_id": 11
-          },
+          "id": 278,
           "statements": []
         },
         "function_type": {
@@ -126,11 +118,7 @@
           }
         ],
         "body": {
-          "token": {
-            "kind": "OpenBrace",
-            "source_id": 460,
-            "lexeme_id": 11
-          },
+          "id": 460,
           "statements": [
             {
               "If": {
@@ -145,11 +133,7 @@
                   }
                 },
                 "success": {
-                  "token": {
-                    "kind": "OpenBrace",
-                    "source_id": 474,
-                    "lexeme_id": 11
-                  },
+                  "id": 474,
                   "statements": [
                     {
                       "Let": {
@@ -279,11 +263,7 @@
         "name": 1,
         "params": [],
         "body": {
-          "token": {
-            "kind": "OpenBrace",
-            "source_id": 613,
-            "lexeme_id": 11
-          },
+          "id": 613,
           "statements": [
             {
               "Match": {
@@ -339,11 +319,7 @@
                       }
                     },
                     "body": {
-                      "token": {
-                        "kind": "OpenBrace",
-                        "source_id": 661,
-                        "lexeme_id": 11
-                      },
+                      "id": 661,
                       "statements": [
                         {
                           "Expr": {
@@ -403,11 +379,7 @@
                       }
                     },
                     "body": {
-                      "token": {
-                        "kind": "OpenBrace",
-                        "source_id": 706,
-                        "lexeme_id": 11
-                      },
+                      "id": 706,
                       "statements": [
                         {
                           "Expr": {
