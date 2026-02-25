@@ -487,16 +487,12 @@ impl Module {
                 Self::build_sym_table_expr(errors, sym_table, &stmt.value);
 
                 match &stmt.except {
-                    LetExcept::Or {
-                        token,
-                        binding,
-                        body,
-                    } => {
-                        sym_table.open_scope(token.source_id);
+                    LetExcept::Or { id, binding, body } => {
+                        sym_table.open_scope(*id);
 
                         if let Some(binding) = binding {
                             sym_table.add_binding(*binding, BindingType::Value);
-                            sym_table.add_scope_pos(token.source_id);
+                            sym_table.add_scope_pos(*id);
                         }
 
                         Self::build_sym_table_block(errors, sym_table, body);

@@ -867,11 +867,7 @@ mod test {
                         args: vec![Expr::StringLiteral(9)],
                     }),
                     except: LetExcept::Or {
-                        token: Token {
-                            kind: TokenKind::OrKeyword,
-                            source_id: 36,
-                            lexeme_id: 10,
-                        },
+                        id: 36,
                         binding: None,
                         body: BlockStmt {
                             id: 39,
@@ -935,11 +931,7 @@ mod test {
                         ],
                     }),
                     except: LetExcept::Or {
-                        token: Token {
-                            kind: TokenKind::OrKeyword,
-                            source_id: 35,
-                            lexeme_id: 10,
-                        },
+                        id: 35,
                         binding: Some(11),
                         body: BlockStmt {
                             id: 41,
