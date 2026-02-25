@@ -263,14 +263,7 @@ mod test {
                         payload: IdentifierPat { id: 11, name: 3 },
                     }),
                     value: Expr::Call(CallExpr {
-                        func: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 19,
-                                lexeme_id: 6
-                            },
-                            name: 6
-                        })),
+                        func: Box::new(Expr::Identifier(IdentifierExpr { id: 19, name: 6 })),
                         args: vec![],
                     }),
                     except: LetExcept::None,
@@ -302,11 +295,7 @@ mod test {
                         target: Box::new(Expr::Call(CallExpr {
                             func: Box::new(Expr::DotAccess(DotAccessExpr {
                                 target: Some(Box::new(Expr::Identifier(IdentifierExpr {
-                                    token: Token {
-                                        kind: TokenKind::Identifier,
-                                        source_id: 7,
-                                        lexeme_id: 1
-                                    },
+                                    id: 7,
                                     name: 1
                                 }))),
                                 field: 3,
@@ -342,11 +331,7 @@ mod test {
                         statements: vec![Stmt::Expr(ExprStmt {
                             expr: Expr::Free(FreeExpr {
                                 expr: Box::new(Expr::Identifier(IdentifierExpr {
-                                    token: Token {
-                                        kind: TokenKind::Identifier,
-                                        source_id: 13,
-                                        lexeme_id: 4,
-                                    },
+                                    id: 13,
                                     name: 4
                                 })),
                             })
@@ -367,23 +352,12 @@ mod test {
                             Stmt::Expr(ExprStmt {
                                 expr: Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
-                                        token: Token {
-                                            kind: TokenKind::Identifier,
-                                            source_id: 8,
-                                            lexeme_id: 2,
-                                        },
+                                        id: 8,
                                         name: 2
                                     })),
                                     args: vec![
                                         Expr::StringLiteral(4),
-                                        Expr::Identifier(IdentifierExpr {
-                                            token: Token {
-                                                kind: TokenKind::Identifier,
-                                                source_id: 23,
-                                                lexeme_id: 6,
-                                            },
-                                            name: 6
-                                        })
+                                        Expr::Identifier(IdentifierExpr { id: 23, name: 6 })
                                     ],
                                 })
                             }),
@@ -427,11 +401,7 @@ mod test {
                             }),
                             value: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
-                                    token: Token {
-                                        kind: TokenKind::Identifier,
-                                        source_id: 34,
-                                        lexeme_id: 11,
-                                    },
+                                    id: 34,
                                     name: 11
                                 })),
                                 args: vec![Expr::IntLiteral(42)],
@@ -442,20 +412,12 @@ mod test {
                             pattern: Pattern::Identifier(IdentifierPat { id: 58, name: 14 }),
                             value: Expr::Binary(BinaryExpr {
                                 left: Box::new(Expr::Identifier(IdentifierExpr {
-                                    token: Token {
-                                        kind: TokenKind::Identifier,
-                                        source_id: 62,
-                                        lexeme_id: 2,
-                                    },
+                                    id: 62,
                                     name: 2
                                 })),
                                 operator: BinaryOp::Add,
                                 right: Box::new(Expr::Identifier(IdentifierExpr {
-                                    token: Token {
-                                        kind: TokenKind::Identifier,
-                                        source_id: 66,
-                                        lexeme_id: 9,
-                                    },
+                                    id: 66,
                                     name: 9
                                 })),
                             }),
@@ -471,14 +433,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 AssignStmt {
-                    lvalue: Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
-                        },
-                        name: 0
-                    }),
+                    lvalue: Expr::Identifier(IdentifierExpr { id: 0, name: 0 }),
                     rvalue: Expr::IntLiteral(10),
                 },
             ),
@@ -491,14 +446,7 @@ mod test {
                 AssignStmt {
                     lvalue: Expr::Unary(UnaryExpr {
                         operator: UnaryOp::Dereference,
-                        operand: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 1,
-                                lexeme_id: 1,
-                            },
-                            name: 1
-                        })),
+                        operand: Box::new(Expr::Identifier(IdentifierExpr { id: 1, name: 1 })),
                     }),
                     rvalue: Expr::IntLiteral(42),
                 },
@@ -510,45 +458,23 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 AssignStmt {
-                    lvalue: Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
-                        },
-                        name: 0
-                    }),
+                    lvalue: Expr::Identifier(IdentifierExpr { id: 0, name: 0 }),
                     rvalue: Expr::Call(CallExpr {
                         func: Box::new(Expr::DotAccess(DotAccessExpr {
                             target: Some(Box::new(Expr::Identifier(IdentifierExpr {
-                                token: Token {
-                                    kind: TokenKind::Identifier,
-                                    source_id: 7,
-                                    lexeme_id: 2,
-                                },
+                                id: 7,
                                 name: 2
                             }))),
                             field: 0,
                         })),
                         args: vec![
-                            Expr::Identifier(IdentifierExpr {
-                                token: Token {
-                                    kind: TokenKind::Identifier,
-                                    source_id: 19,
-                                    lexeme_id: 5,
-                                },
-                                name: 5
-                            }),
+                            Expr::Identifier(IdentifierExpr { id: 19, name: 5 }),
                             Expr::Binary(BinaryExpr {
                                 left: Box::new(Expr::IntLiteral(1)),
                                 operator: BinaryOp::Add,
                                 right: Box::new(Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
-                                        token: Token {
-                                            kind: TokenKind::Identifier,
-                                            source_id: 26,
-                                            lexeme_id: 9,
-                                        },
+                                        id: 26,
                                         name: 9
                                     })),
                                     args: vec![],
@@ -566,14 +492,7 @@ mod test {
                 stmt,
                 AssignStmt {
                     lvalue: Expr::Index(IndexExpr {
-                        target: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 0,
-                                lexeme_id: 0,
-                            },
-                            name: 0
-                        })),
+                        target: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
                         index: Box::new(Expr::IntLiteral(0)),
                     }),
                     rvalue: Expr::IntLiteral(10),
@@ -594,11 +513,7 @@ mod test {
                         statements: vec![Stmt::Expr(ExprStmt {
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
-                                    token: Token {
-                                        kind: TokenKind::Identifier,
-                                        source_id: 14,
-                                        lexeme_id: 3,
-                                    },
+                                    id: 14,
                                     name: 3
                                 })),
                                 args: vec![Expr::StringLiteral(5)],
@@ -620,14 +535,7 @@ mod test {
                 stmt,
                 IfStmt {
                     check: Box::new(Expr::Binary(BinaryExpr {
-                        left: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 3,
-                                lexeme_id: 1,
-                            },
-                            name: 1
-                        })),
+                        left: Box::new(Expr::Identifier(IdentifierExpr { id: 3, name: 1 })),
                         operator: BinaryOp::LessThan,
                         right: Box::new(Expr::IntLiteral(13)),
                     })),
@@ -636,11 +544,7 @@ mod test {
                         statements: vec![Stmt::Expr(ExprStmt {
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
-                                    token: Token {
-                                        kind: TokenKind::Identifier,
-                                        source_id: 16,
-                                        lexeme_id: 5,
-                                    },
+                                    id: 16,
                                     name: 5
                                 })),
                                 args: vec![Expr::StringLiteral(7)],
@@ -650,24 +554,13 @@ mod test {
                     fail: Some(BlockStmt {
                         id: 35,
                         statements: vec![Stmt::Assign(AssignStmt {
-                            lvalue: Expr::Identifier(IdentifierExpr {
-                                token: Token {
-                                    kind: TokenKind::Identifier,
-                                    source_id: 41,
-                                    lexeme_id: 1,
-                                },
-                                name: 1
-                            }),
+                            lvalue: Expr::Identifier(IdentifierExpr { id: 41, name: 1 }),
                             rvalue: Expr::Binary(BinaryExpr {
                                 left: Box::new(Expr::IntLiteral(10)),
                                 operator: BinaryOp::Add,
                                 right: Box::new(Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
-                                        token: Token {
-                                            kind: TokenKind::Identifier,
-                                            source_id: 50,
-                                            lexeme_id: 15,
-                                        },
+                                        id: 50,
                                         name: 15
                                     })),
                                     args: vec![Expr::FloatLiteral(3.45)],
@@ -700,14 +593,7 @@ mod test {
                     pattern: Pattern::Identifier(IdentifierPat { id: 4, name: 1 }),
                     value: Expr::Unary(UnaryExpr {
                         operator: UnaryOp::AddressOf,
-                        operand: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 12,
-                                lexeme_id: 4,
-                            },
-                            name: 4
-                        })),
+                        operand: Box::new(Expr::Identifier(IdentifierExpr { id: 12, name: 4 })),
                     }),
                     except: LetExcept::None,
                 }
@@ -724,14 +610,7 @@ mod test {
                         field: IdentifierPat { id: 5, name: 2 },
                     }),
                     value: Expr::Call(CallExpr {
-                        func: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 10,
-                                lexeme_id: 4,
-                            },
-                            name: 4
-                        })),
+                        func: Box::new(Expr::Identifier(IdentifierExpr { id: 10, name: 4 })),
                         args: vec![],
                     }),
                     except: LetExcept::Panic,
@@ -757,14 +636,7 @@ mod test {
                         payload: IdentifierPat { id: 14, name: 5 },
                     }),
                     value: Expr::Call(CallExpr {
-                        func: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 19,
-                                lexeme_id: 8,
-                            },
-                            name: 8
-                        })),
+                        func: Box::new(Expr::Identifier(IdentifierExpr { id: 19, name: 8 })),
                         args: vec![Expr::StringLiteral(9)],
                     }),
                     except: LetExcept::Or {
@@ -775,11 +647,7 @@ mod test {
                             statements: vec![Stmt::Expr(ExprStmt {
                                 expr: Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
-                                        token: Token {
-                                            kind: TokenKind::Identifier,
-                                            source_id: 45,
-                                            lexeme_id: 12,
-                                        },
+                                        id: 45,
                                         name: 12
                                     })),
                                     args: vec![Expr::StringLiteral(13)],
@@ -804,23 +672,9 @@ mod test {
                         field: IdentifierPat { id: 5, name: 2 },
                     }),
                     value: Expr::Call(CallExpr {
-                        func: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 11,
-                                lexeme_id: 4,
-                            },
-                            name: 4
-                        })),
+                        func: Box::new(Expr::Identifier(IdentifierExpr { id: 11, name: 4 })),
                         args: vec![
-                            Expr::Identifier(IdentifierExpr {
-                                token: Token {
-                                    kind: TokenKind::Identifier,
-                                    source_id: 22,
-                                    lexeme_id: 6,
-                                },
-                                name: 6
-                            }),
+                            Expr::Identifier(IdentifierExpr { id: 22, name: 6 }),
                             Expr::BoolLiteral(false),
                         ],
                     }),
@@ -833,11 +687,7 @@ mod test {
                                 Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            token: Token {
-                                                kind: TokenKind::Identifier,
-                                                source_id: 47,
-                                                lexeme_id: 13,
-                                            },
+                                            id: 47,
                                             name: 13,
                                         })),
                                         args: vec![Expr::StringLiteral(14)],
@@ -845,11 +695,7 @@ mod test {
                                 }),
                                 Stmt::Return(ReturnStmt {
                                     value: Some(Expr::Identifier(IdentifierExpr {
-                                        token: Token {
-                                            kind: TokenKind::Identifier,
-                                            source_id: 78,
-                                            lexeme_id: 11,
-                                        },
+                                        id: 78,
                                         name: 11
                                     })),
                                 }),
@@ -873,14 +719,7 @@ mod test {
                         payload: IdentifierPat { id: 8, name: 4 },
                     }),
                     value: Expr::Call(CallExpr {
-                        func: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 13,
-                                lexeme_id: 7,
-                            },
-                            name: 7
-                        })),
+                        func: Box::new(Expr::Identifier(IdentifierExpr { id: 13, name: 7 })),
                         args: vec![],
                     }),
                     except: LetExcept::Wrap(Expr::DotAccess(DotAccessExpr {
@@ -899,14 +738,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 MatchStmt {
-                    target: Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 6,
-                            lexeme_id: 1,
-                        },
-                        name: 1
-                    }),
+                    target: Expr::Identifier(IdentifierExpr { id: 6, name: 1 }),
                     arms: vec![
                         MatchArm {
                             id: 14,
@@ -922,19 +754,11 @@ mod test {
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            token: Token {
-                                                kind: TokenKind::Identifier,
-                                                source_id: 25,
-                                                lexeme_id: 8,
-                                            },
+                                            id: 25,
                                             name: 8,
                                         })),
                                         args: vec![Expr::Identifier(IdentifierExpr {
-                                            token: Token {
-                                                kind: TokenKind::Identifier,
-                                                source_id: 31,
-                                                lexeme_id: 6,
-                                            },
+                                            id: 31,
                                             name: 6
                                         })],
                                     }),
@@ -952,11 +776,7 @@ mod test {
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            token: Token {
-                                                kind: TokenKind::Identifier,
-                                                source_id: 48,
-                                                lexeme_id: 8,
-                                            },
+                                            id: 48,
                                             name: 8
                                         })),
                                         args: vec![Expr::StringLiteral(13)],
@@ -978,14 +798,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 MatchStmt {
-                    target: Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 6,
-                            lexeme_id: 1,
-                        },
-                        name: 1
-                    }),
+                    target: Expr::Identifier(IdentifierExpr { id: 6, name: 1 }),
                     arms: vec![
                         MatchArm {
                             id: 19,
@@ -1001,19 +814,11 @@ mod test {
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            token: Token {
-                                                kind: TokenKind::Identifier,
-                                                source_id: 35,
-                                                lexeme_id: 8,
-                                            },
+                                            id: 35,
                                             name: 8
                                         })),
                                         args: vec![Expr::Identifier(IdentifierExpr {
-                                            token: Token {
-                                                kind: TokenKind::Identifier,
-                                                source_id: 41,
-                                                lexeme_id: 6,
-                                            },
+                                            id: 41,
                                             name: 6
                                         })],
                                     }),
@@ -1034,19 +839,11 @@ mod test {
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            token: Token {
-                                                kind: TokenKind::Identifier,
-                                                source_id: 68,
-                                                lexeme_id: 8,
-                                            },
+                                            id: 68,
                                             name: 8
                                         })),
                                         args: vec![Expr::Identifier(IdentifierExpr {
-                                            token: Token {
-                                                kind: TokenKind::Identifier,
-                                                source_id: 74,
-                                                lexeme_id: 13,
-                                            },
+                                            id: 74,
                                             name: 13
                                         })],
                                     }),
@@ -1064,11 +861,7 @@ mod test {
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            token: Token {
-                                                kind: TokenKind::Identifier,
-                                                source_id: 95,
-                                                lexeme_id: 8,
-                                            },
+                                            id: 95,
                                             name: 8
                                         })),
                                         args: vec![Expr::StringLiteral(15)],
@@ -1089,14 +882,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 MatchStmt {
-                    target: Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 6,
-                            lexeme_id: 1,
-                        },
-                        name: 1
-                    }),
+                    target: Expr::Identifier(IdentifierExpr { id: 6, name: 1 }),
                     arms: vec![
                         MatchArm {
                             id: 19,
@@ -1109,11 +895,7 @@ mod test {
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            token: Token {
-                                                kind: TokenKind::Identifier,
-                                                source_id: 28,
-                                                lexeme_id: 5,
-                                            },
+                                            id: 28,
                                             name: 5,
                                         })),
                                         args: vec![Expr::StringLiteral(7)],
@@ -1135,23 +917,12 @@ mod test {
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            token: Token {
-                                                kind: TokenKind::Identifier,
-                                                source_id: 58,
-                                                lexeme_id: 5,
-                                            },
+                                            id: 58,
                                             name: 5
                                         })),
                                         args: vec![
                                             Expr::StringLiteral(14),
-                                            Expr::Identifier(IdentifierExpr {
-                                                token: Token {
-                                                    kind: TokenKind::Identifier,
-                                                    source_id: 78,
-                                                    lexeme_id: 13,
-                                                },
-                                                name: 13
-                                            }),
+                                            Expr::Identifier(IdentifierExpr { id: 78, name: 13 }),
                                         ],
                                     }),
                                 })],
@@ -1169,14 +940,7 @@ mod test {
                 ExprStmt {
                     expr: Expr::ModuleAccess(ModuleAccessExpr {
                         module: 0,
-                        expr: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 5,
-                                lexeme_id: 2,
-                            },
-                            name: 2
-                        })),
+                        expr: Box::new(Expr::Identifier(IdentifierExpr { id: 5, name: 2 })),
                     }),
                 }
             ),
@@ -1190,14 +954,7 @@ mod test {
                     expr: Expr::ModuleAccess(ModuleAccessExpr {
                         module: 0,
                         expr: Box::new(Expr::Call(CallExpr {
-                            func: Box::new(Expr::Identifier(IdentifierExpr {
-                                token: Token {
-                                    kind: TokenKind::Identifier,
-                                    source_id: 5,
-                                    lexeme_id: 2,
-                                },
-                                name: 2
-                            })),
+                            func: Box::new(Expr::Identifier(IdentifierExpr { id: 5, name: 2 })),
                             args: vec![Expr::StringLiteral(4)],
                         })),
                     }),
@@ -1212,14 +969,7 @@ mod test {
                 ExprStmt {
                     expr: Expr::ModuleAccess(ModuleAccessExpr {
                         module: 0,
-                        expr: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 6,
-                                lexeme_id: 2,
-                            },
-                            name: 2
-                        })),
+                        expr: Box::new(Expr::Identifier(IdentifierExpr { id: 6, name: 2 })),
                     }),
                 }
             ),

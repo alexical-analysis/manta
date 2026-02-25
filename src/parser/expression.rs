@@ -432,14 +432,7 @@ mod tests {
                 expr,
                 UnaryExpr {
                     operator: UnaryOp::Dereference,
-                    operand: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 1,
-                            lexeme_id: 1,
-                        },
-                        name: 1
-                    })),
+                    operand: Box::new(Expr::Identifier(IdentifierExpr { id: 1, name: 1 })),
                 },
             ),
         },
@@ -450,14 +443,7 @@ mod tests {
                 expr,
                 UnaryExpr {
                     operator: UnaryOp::AddressOf,
-                    operand: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 1,
-                            lexeme_id: 1,
-                        },
-                        name: 1
-                    })),
+                    operand: Box::new(Expr::Identifier(IdentifierExpr { id: 1, name: 1 })),
                 },
             ),
         },
@@ -470,14 +456,7 @@ mod tests {
                     operator: UnaryOp::Dereference,
                     operand: Box::new(Expr::Unary(UnaryExpr {
                         operator: UnaryOp::Dereference,
-                        operand: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 2,
-                                lexeme_id: 1,
-                            },
-                            name: 1
-                        })),
+                        operand: Box::new(Expr::Identifier(IdentifierExpr { id: 2, name: 1 })),
                     })),
                 },
             ),
@@ -491,14 +470,7 @@ mod tests {
                     operator: UnaryOp::Negate,
                     operand: Box::new(Expr::Unary(UnaryExpr {
                         operator: UnaryOp::Not,
-                        operand: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 2,
-                                lexeme_id: 2,
-                            },
-                            name: 2
-                        })),
+                        operand: Box::new(Expr::Identifier(IdentifierExpr { id: 2, name: 2 })),
                     })),
                 },
             ),
@@ -510,14 +482,7 @@ mod tests {
                 expr,
                 UnaryExpr {
                     operator: UnaryOp::Negate,
-                    operand: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 2,
-                            lexeme_id: 2,
-                        },
-                        name: 2
-                    })),
+                    operand: Box::new(Expr::Identifier(IdentifierExpr { id: 2, name: 2 })),
                 },
             ),
         },
@@ -530,14 +495,7 @@ mod tests {
                     operator: UnaryOp::Negate,
                     operand: Box::new(Expr::Unary(UnaryExpr {
                         operator: UnaryOp::Not,
-                        operand: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 3,
-                                lexeme_id: 3,
-                            },
-                            name: 3
-                        })),
+                        operand: Box::new(Expr::Identifier(IdentifierExpr { id: 3, name: 3 })),
                     })),
                 }
             ),
@@ -640,23 +598,9 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 BinaryExpr {
-                    left: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
-                        },
-                        name: 0
-                    })),
+                    left: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
                     operator: BinaryOp::Equal,
-                    right: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 5,
-                            lexeme_id: 2,
-                        },
-                        name: 2
-                    })),
+                    right: Box::new(Expr::Identifier(IdentifierExpr { id: 5, name: 2 })),
                 }
             ),
         },
@@ -666,23 +610,9 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 BinaryExpr {
-                    left: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
-                        },
-                        name: 0
-                    })),
+                    left: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
                     operator: BinaryOp::NotEqual,
-                    right: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 5,
-                            lexeme_id: 2,
-                        },
-                        name: 2
-                    })),
+                    right: Box::new(Expr::Identifier(IdentifierExpr { id: 5, name: 2 })),
                 },
             ),
         },
@@ -694,14 +624,7 @@ mod tests {
                 BinaryExpr {
                     left: Box::new(Expr::IntLiteral(4)),
                     operator: BinaryOp::LessThan,
-                    right: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 4,
-                            lexeme_id: 2,
-                        },
-                        name: 2
-                    })),
+                    right: Box::new(Expr::Identifier(IdentifierExpr { id: 4, name: 2 })),
                 },
             ),
         },
@@ -711,23 +634,9 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 BinaryExpr {
-                    left: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
-                        },
-                        name: 0
-                    })),
+                    left: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
                     operator: BinaryOp::GreaterThan,
-                    right: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 4,
-                            lexeme_id: 2,
-                        },
-                        name: 2
-                    })),
+                    right: Box::new(Expr::Identifier(IdentifierExpr { id: 4, name: 2 })),
                 },
             ),
         },
@@ -737,23 +646,9 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 BinaryExpr {
-                    left: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
-                        },
-                        name: 0
-                    })),
+                    left: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
                     operator: BinaryOp::LessThanOrEqual,
-                    right: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 5,
-                            lexeme_id: 2,
-                        },
-                        name: 2
-                    })),
+                    right: Box::new(Expr::Identifier(IdentifierExpr { id: 5, name: 2 })),
                 },
             ),
         },
@@ -763,14 +658,7 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 BinaryExpr {
-                    left: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
-                        },
-                        name: 0
-                    })),
+                    left: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
                     operator: BinaryOp::GreaterThanOrEqual,
                     right: Box::new(Expr::IntLiteral(9)),
                 },
@@ -785,27 +673,13 @@ mod tests {
                     left: Box::new(Expr::Binary(BinaryExpr {
                         left: Box::new(Expr::FloatLiteral(3.45)),
                         operator: BinaryOp::Equal,
-                        right: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 8,
-                                lexeme_id: 2,
-                            },
-                            name: 2
-                        })),
+                        right: Box::new(Expr::Identifier(IdentifierExpr { id: 8, name: 2 })),
                     })),
                     operator: BinaryOp::LogicalAnd,
                     right: Box::new(Expr::Binary(BinaryExpr {
                         left: Box::new(Expr::BoolLiteral(true)),
                         operator: BinaryOp::NotEqual,
-                        right: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 21,
-                                lexeme_id: 6,
-                            },
-                            name: 6
-                        })),
+                        right: Box::new(Expr::Identifier(IdentifierExpr { id: 21, name: 6 })),
                     })),
                 },
             ),
@@ -821,14 +695,7 @@ mod tests {
                     right: Box::new(Expr::Binary(BinaryExpr {
                         left: Box::new(Expr::IntLiteral(2)),
                         operator: BinaryOp::BitwiseAnd,
-                        right: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 8,
-                                lexeme_id: 4,
-                            },
-                            name: 4
-                        })),
+                        right: Box::new(Expr::Identifier(IdentifierExpr { id: 8, name: 4 })),
                     })),
                 },
             ),
@@ -839,14 +706,7 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 CallExpr {
-                    func: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
-                        },
-                        name: 0
-                    })),
+                    func: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
                     args: vec![],
                 },
             ),
@@ -857,24 +717,10 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 CallExpr {
-                    func: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
-                        },
-                        name: 0
-                    })),
+                    func: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
                     args: vec![Expr::Unary(UnaryExpr {
                         operator: UnaryOp::Dereference,
-                        operand: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 13,
-                                lexeme_id: 3,
-                            },
-                            name: 3
-                        })),
+                        operand: Box::new(Expr::Identifier(IdentifierExpr { id: 13, name: 3 })),
                     })],
                 }
             ),
@@ -885,24 +731,10 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 CallExpr {
-                    func: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
-                        },
-                        name: 0
-                    })),
+                    func: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
                     args: vec![
                         Expr::IntLiteral(1),
-                        Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 7,
-                                lexeme_id: 4,
-                            },
-                            name: 4
-                        }),
+                        Expr::Identifier(IdentifierExpr { id: 7, name: 4 }),
                         Expr::IntLiteral(3),
                     ],
                 },
@@ -914,14 +746,7 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 IndexExpr {
-                    target: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
-                        },
-                        name: 0
-                    })),
+                    target: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
                     index: Box::new(Expr::IntLiteral(5)),
                 },
             ),
@@ -932,23 +757,9 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 IndexExpr {
-                    target: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
-                        },
-                        name: 0
-                    })),
+                    target: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
                     index: Box::new(Expr::Binary(BinaryExpr {
-                        left: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 7,
-                                lexeme_id: 2,
-                            },
-                            name: 2
-                        })),
+                        left: Box::new(Expr::Identifier(IdentifierExpr { id: 7, name: 2 })),
                         operator: BinaryOp::Add,
                         right: Box::new(Expr::IntLiteral(1)),
                     })),
@@ -961,31 +772,10 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 IndexExpr {
-                    target: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
-                        },
-                        name: 0
-                    })),
+                    target: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
                     index: Box::new(Expr::Index(IndexExpr {
-                        target: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 5,
-                                lexeme_id: 2,
-                            },
-                            name: 2
-                        })),
-                        index: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 10,
-                                lexeme_id: 3,
-                            },
-                            name: 3
-                        })),
+                        target: Box::new(Expr::Identifier(IdentifierExpr { id: 5, name: 2 })),
+                        index: Box::new(Expr::Identifier(IdentifierExpr { id: 10, name: 3 })),
                     })),
                 },
             ),
@@ -998,40 +788,12 @@ mod tests {
                 IndexExpr {
                     target: Box::new(Expr::Index(IndexExpr {
                         target: Box::new(Expr::Index(IndexExpr {
-                            target: Box::new(Expr::Identifier(IdentifierExpr {
-                                token: Token {
-                                    kind: TokenKind::Identifier,
-                                    source_id: 0,
-                                    lexeme_id: 0,
-                                },
-                                name: 0
-                            })),
-                            index: Box::new(Expr::Identifier(IdentifierExpr {
-                                token: Token {
-                                    kind: TokenKind::Identifier,
-                                    source_id: 7,
-                                    lexeme_id: 2,
-                                },
-                                name: 2
-                            })),
+                            target: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
+                            index: Box::new(Expr::Identifier(IdentifierExpr { id: 7, name: 2 })),
                         })),
-                        index: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 10,
-                                lexeme_id: 4,
-                            },
-                            name: 4
-                        })),
+                        index: Box::new(Expr::Identifier(IdentifierExpr { id: 10, name: 4 })),
                     })),
-                    index: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 13,
-                            lexeme_id: 5,
-                        },
-                        name: 5
-                    })),
+                    index: Box::new(Expr::Identifier(IdentifierExpr { id: 13, name: 5 })),
                 },
             ),
         },
@@ -1042,11 +804,7 @@ mod tests {
                 expr,
                 DotAccessExpr {
                     target: Some(Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
-                        },
+                        id: 0,
                         name: 0
                     }))),
                     field: 2,
@@ -1061,11 +819,7 @@ mod tests {
                 DotAccessExpr {
                     target: Some(Box::new(Expr::DotAccess(DotAccessExpr {
                         target: Some(Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 0,
-                                lexeme_id: 0,
-                            },
+                            id: 0,
                             name: 0
                         }))),
                         field: 2,
@@ -1081,14 +835,7 @@ mod tests {
                 expr,
                 DotAccessExpr {
                     target: Some(Box::new(Expr::Index(IndexExpr {
-                        target: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 0,
-                                lexeme_id: 0,
-                            },
-                            name: 0
-                        })),
+                        target: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
                         index: Box::new(Expr::IntLiteral(0)),
                     }))),
                     field: 5,
@@ -1104,11 +851,7 @@ mod tests {
                     target: Some(Box::new(Expr::Call(CallExpr {
                         func: Box::new(Expr::DotAccess(DotAccessExpr {
                             target: Some(Box::new(Expr::Identifier(IdentifierExpr {
-                                token: Token {
-                                    kind: TokenKind::Identifier,
-                                    source_id: 0,
-                                    lexeme_id: 0,
-                                },
+                                id: 0,
                                 name: 0
                             }))),
                             field: 2,
@@ -1201,14 +944,7 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 FreeExpr {
-                    expr: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 5,
-                            lexeme_id: 2,
-                        },
-                        name: 2
-                    })),
+                    expr: Box::new(Expr::Identifier(IdentifierExpr { id: 5, name: 2 })),
                 }
             ),
         },
@@ -1221,11 +957,7 @@ mod tests {
                     expr: Box::new(Expr::DotAccess(DotAccessExpr {
                         target: Some(Box::new(Expr::DotAccess(DotAccessExpr {
                             target: Some(Box::new(Expr::Identifier(IdentifierExpr {
-                                token: Token {
-                                    kind: TokenKind::Identifier,
-                                    source_id: 5,
-                                    lexeme_id: 2,
-                                },
+                                id: 5,
                                 name: 2
                             }))),
                             field: 4,
@@ -1252,14 +984,7 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 BinaryExpr {
-                    left: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
-                        },
-                        name: 0
-                    })),
+                    left: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
                     operator: BinaryOp::Equal,
                     right: Box::new(Expr::DotAccess(DotAccessExpr {
                         target: None,
@@ -1382,23 +1107,9 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 CallExpr {
-                    func: Box::new(Expr::Identifier(IdentifierExpr {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
-                        },
-                        name: 0
-                    })),
+                    func: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
                     args: vec![Expr::Call(CallExpr {
-                        func: Box::new(Expr::Identifier(IdentifierExpr {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 4,
-                                lexeme_id: 2,
-                            },
-                            name: 2
-                        })),
+                        func: Box::new(Expr::Identifier(IdentifierExpr { id: 4, name: 2 })),
 
                         args: vec![Expr::IntLiteral(5)],
                     })],

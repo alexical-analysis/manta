@@ -559,7 +559,7 @@ impl Module {
             Expr::Identifier(expr) => match sym_table.find_binding(expr.name) {
                 Some(b) => {
                     b.used = true;
-                    sym_table.add_scope_pos(expr.token.source_id);
+                    sym_table.add_scope_pos(expr.id);
                 }
                 None => errors.push(ParseError::Custom(
                     Token {

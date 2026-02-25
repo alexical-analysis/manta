@@ -657,7 +657,7 @@ fn node_wrap_expr(
     };
 
     let scope_pos = module
-        .get_scope_pos(target.token.source_id)
+        .get_scope_pos(target.id)
         .expect("could not find scope for identifier");
 
     let binding = module
@@ -706,7 +706,7 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
         }
         Expr::Identifier(expr) => {
             let scope_pos = module
-                .get_scope_pos(expr.token.source_id)
+                .get_scope_pos(expr.id)
                 .expect("could not get scope for identifier");
 
             let binding = module
@@ -799,7 +799,7 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
             let binding = match target.deref() {
                 Expr::Identifier(ident) => {
                     let scope_pos = module
-                        .get_scope_pos(ident.token.source_id)
+                        .get_scope_pos(ident.id)
                         .expect("could not find scope_posfor identifier");
                     module
                         .find_binding(scope_pos, ident.name)
