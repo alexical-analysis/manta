@@ -60,11 +60,7 @@
     },
     {
       "Type": {
-        "token": {
-          "kind": "Identifier",
-          "source_id": 300,
-          "lexeme_id": 18
-        },
+        "id": 300,
         "name": 18,
         "type_spec": {
           "Enum": {

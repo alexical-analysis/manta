@@ -19,11 +19,7 @@
     },
     {
       "Type": {
-        "token": {
-          "kind": "Identifier",
-          "source_id": 126,
-          "lexeme_id": 8
-        },
+        "id": 126,
         "name": 8,
         "type_spec": {
           "Struct": {
@@ -34,11 +30,7 @@
     },
     {
       "Type": {
-        "token": {
-          "kind": "Identifier",
-          "source_id": 211,
-          "lexeme_id": 12
-        },
+        "id": 211,
         "name": 12,
         "type_spec": {
           "Enum": {
@@ -136,11 +128,7 @@
     },
     {
       "Type": {
-        "token": {
-          "kind": "Identifier",
-          "source_id": 511,
-          "lexeme_id": 23
-        },
+        "id": 511,
         "name": 23,
         "type_spec": {
           "Enum": {
@@ -209,11 +197,7 @@
     },
     {
       "Type": {
-        "token": {
-          "kind": "Identifier",
-          "source_id": 743,
-          "lexeme_id": 29
-        },
+        "id": 743,
         "name": 29,
         "type_spec": {
           "Enum": {

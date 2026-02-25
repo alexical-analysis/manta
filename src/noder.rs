@@ -150,7 +150,7 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
             node_tree.type_map.add(decl_id, decl.type_spec.clone());
 
             let scope_pos = module
-                .get_scope_pos(decl.token.source_id)
+                .get_scope_pos(decl.id)
                 .expect("missing scope_posfor type decl");
             let binding = module
                 .find_binding(scope_pos, decl.name)
