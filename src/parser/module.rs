@@ -462,7 +462,7 @@ impl Module {
         sym_table: &mut SymTable,
         block: &BlockStmt,
     ) {
-        sym_table.open_scope(block.token.source_id);
+        sym_table.open_scope(block.id);
 
         for stmt in &block.statements {
             Self::build_sym_table_stmt(errors, sym_table, stmt);

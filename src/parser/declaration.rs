@@ -137,11 +137,7 @@ mod tests {
                         return_type: Some(Box::new(TypeSpec::Int32)),
                     },
                     body: BlockStmt {
-                        token: Token {
-                            kind: TokenKind::OpenBrace,
-                            source_id: 21,
-                            lexeme_id: 7,
-                        },
+                        id: 21,
                         statements: vec![Stmt::Return(ReturnStmt {
                             value: Some(Expr::Binary(BinaryExpr {
                                 left: Box::new(Expr::Identifier(IdentifierExpr {
@@ -185,11 +181,7 @@ mod tests {
                         return_type: None,
                     },
                     body: BlockStmt {
-                        token: Token {
-                            kind: TokenKind::OpenBrace,
-                            source_id: 10,
-                            lexeme_id: 4,
-                        },
+                        id: 10,
                         statements: vec![
                             Stmt::Expr(ExprStmt {
                                 expr: Expr::Call(CallExpr {
@@ -227,11 +219,7 @@ mod tests {
                         return_type: Some(Box::new(TypeSpec::Bool)),
                     },
                     body: BlockStmt {
-                        token: Token {
-                            kind: TokenKind::OpenBrace,
-                            source_id: 32,
-                            lexeme_id: 7,
-                        },
+                        id: 32,
                         statements: vec![Stmt::Return(ReturnStmt {
                             value: Some(Expr::BoolLiteral(true)),
                         })],
@@ -255,11 +243,7 @@ mod tests {
                         return_type: None,
                     },
                     body: BlockStmt {
-                        token: Token {
-                            kind: TokenKind::OpenBrace,
-                            source_id: 19,
-                            lexeme_id: 5,
-                        },
+                        id: 19,
                         statements: vec![Stmt::Expr(ExprStmt {
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -304,11 +288,7 @@ mod tests {
                         return_type: Some(Box::new(TypeSpec::Int32)),
                     },
                     body: BlockStmt {
-                        token: Token {
-                            kind: TokenKind::OpenBrace,
-                            source_id: 27,
-                            lexeme_id: 7,
-                        },
+                        id: 27,
                         statements: vec![
                             Stmt::If(IfStmt {
                                 check: Box::new(Expr::Binary(BinaryExpr {
@@ -325,11 +305,7 @@ mod tests {
                                     right: Box::new(Expr::IntLiteral(0)),
                                 })),
                                 success: BlockStmt {
-                                    token: Token {
-                                        kind: TokenKind::OpenBrace,
-                                        source_id: 55,
-                                        lexeme_id: 7,
-                                    },
+                                    id: 55,
                                     statements: vec![Stmt::Return(ReturnStmt {
                                         value: Some(Expr::IntLiteral(0))
                                     })]
@@ -382,11 +358,7 @@ mod tests {
                         })),
                     },
                     body: BlockStmt {
-                        token: Token {
-                            kind: TokenKind::OpenBrace,
-                            source_id: 26,
-                            lexeme_id: 7,
-                        },
+                        id: 26,
                         statements: vec![Stmt::Return(ReturnStmt {
                             value: Some(Expr::Alloc(AllocExpr {
                                 meta_type: Box::new(Expr::MetaType(MetaTypeExpr {
@@ -415,11 +387,7 @@ mod tests {
                         return_type: None,
                     },
                     body: BlockStmt {
-                        token: Token {
-                            kind: TokenKind::OpenBrace,
-                            source_id: 28,
-                            lexeme_id: 7,
-                        },
+                        id: 28,
                         statements: vec![Stmt::Expr(ExprStmt {
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {

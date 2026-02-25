@@ -32,11 +32,7 @@
           }
         ],
         "body": {
-          "token": {
-            "kind": "OpenBrace",
-            "source_id": 109,
-            "lexeme_id": 8
-          },
+          "id": 109,
           "statements": []
         },
         "function_type": {
@@ -53,11 +49,7 @@
         "name": 10,
         "params": [],
         "body": {
-          "token": {
-            "kind": "OpenBrace",
-            "source_id": 123,
-            "lexeme_id": 8
-          },
+          "id": 123,
           "statements": [
             {
               "Expr": {
