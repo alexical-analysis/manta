@@ -13,7 +13,10 @@ impl PrefixPatternParselet for IdentifierPatternParselet {
         let name = token.lexeme_id;
         match lexer.lexeme(name).as_str() {
             "_" => Ok(Pattern::Default),
-            _ => Ok(Pattern::Identifier(IdentifierPat { token, name })),
+            _ => Ok(Pattern::Identifier(IdentifierPat {
+                id: token.source_id,
+                name,
+            })),
         }
     }
 }

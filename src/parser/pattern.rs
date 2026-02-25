@@ -162,34 +162,16 @@ mod test {
         },
         parse_pattern_identifier {
             input: "my_var =",
-            want: Pattern::Identifier(IdentifierPat {
-                token: Token {
-                    kind: TokenKind::Identifier,
-                    source_id: 0,
-                    lexeme_id: 0
-                },
-                name: 0
-            }),
+            want: Pattern::Identifier(IdentifierPat { id: 0, name: 0 }),
         },
         parse_pattern_type_match {
             input: "f32(f) =",
             want: Pattern::Payload(PayloadPat {
                 pat: Box::new(Pattern::Identifier(IdentifierPat {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 0,
-                        lexeme_id: 18446744073709551606,
-                    },
+                    id: 0,
                     name: 18446744073709551606
                 })),
-                payload: IdentifierPat {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 4,
-                        lexeme_id: 1
-                    },
-                    name: 1
-                },
+                payload: IdentifierPat { id: 4, name: 1 },
             }),
         },
         parse_pattern_pointer {
@@ -242,184 +224,74 @@ mod test {
         },
         parse_pattern_simple_identifier {
             input: "foo {",
-            want: Pattern::Identifier(IdentifierPat {
-                token: Token {
-                    kind: TokenKind::Identifier,
-                    source_id: 0,
-                    lexeme_id: 0
-                },
-                name: 0
-            }),
+            want: Pattern::Identifier(IdentifierPat { id: 0, name: 0 }),
         },
         parse_pattern_variable_name {
             input: "my_variable {",
-            want: Pattern::Identifier(IdentifierPat {
-                token: Token {
-                    kind: TokenKind::Identifier,
-                    source_id: 0,
-                    lexeme_id: 0,
-                },
-                name: 0
-            }),
+            want: Pattern::Identifier(IdentifierPat { id: 0, name: 0 }),
         },
         parse_pattern_identifier_with_numbers {
             input: "var123 {",
-            want: Pattern::Identifier(IdentifierPat {
-                token: Token {
-                    kind: TokenKind::Identifier,
-                    source_id: 0,
-                    lexeme_id: 0
-                },
-                name: 0
-            }),
+            want: Pattern::Identifier(IdentifierPat { id: 0, name: 0 }),
         },
         parse_pattern_dot_inferred_variant {
             input: ".Ok =",
             want: Pattern::DotAccess(DotAccessPat {
                 target: None,
-                field: IdentifierPat {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 1,
-                        lexeme_id: 1
-                    },
-                    name: 1
-                },
+                field: IdentifierPat { id: 1, name: 1 },
             }),
         },
         parse_pattern_dot_variant {
             input: "Ret.Ok {",
             want: Pattern::DotAccess(DotAccessPat {
                 target: Some(Box::new(Pattern::Identifier(IdentifierPat {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 0,
-                        lexeme_id: 0
-                    },
+                    id: 0,
                     name: 0
                 }))),
-                field: IdentifierPat {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 4,
-                        lexeme_id: 2
-                    },
-                    name: 2
-                },
+                field: IdentifierPat { id: 4, name: 2 },
             },),
         },
         parse_pattern_module_access_identifier {
             input: "math::Vec3 =",
             want: Pattern::ModuleAccess(ModuleAccesPat {
-                module: Box::new(IdentifierPat {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 0,
-                        lexeme_id: 0
-                    },
-                    name: 0
-                }),
-                pat: Box::new(Pattern::Identifier(IdentifierPat {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 6,
-                        lexeme_id: 2
-                    },
-                    name: 2
-                })),
+                module: Box::new(IdentifierPat { id: 0, name: 0 }),
+                pat: Box::new(Pattern::Identifier(IdentifierPat { id: 6, name: 2 })),
             }),
         },
         parse_pattern_module_access_dot_variant {
             input: "result::Ret.Ok =",
             want: Pattern::ModuleAccess(ModuleAccesPat {
-                module: Box::new(IdentifierPat {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 0,
-                        lexeme_id: 0
-                    },
-                    name: 0
-                }),
+                module: Box::new(IdentifierPat { id: 0, name: 0 }),
                 pat: Box::new(Pattern::DotAccess(DotAccessPat {
                     target: Some(Box::new(Pattern::Identifier(IdentifierPat {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 8,
-                            lexeme_id: 2
-                        },
+                        id: 8,
                         name: 2
                     }))),
-                    field: IdentifierPat {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 12,
-                            lexeme_id: 4
-                        },
-                        name: 4
-                    },
+                    field: IdentifierPat { id: 12, name: 4 },
                 })),
             }),
         },
         parse_pattern_module_access_payload {
             input: "std::Option.Some(x) {",
             want: Pattern::ModuleAccess(ModuleAccesPat {
-                module: Box::new(IdentifierPat {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 0,
-                        lexeme_id: 0
-                    },
-                    name: 0
-                }),
+                module: Box::new(IdentifierPat { id: 0, name: 0 }),
                 pat: Box::new(Pattern::Payload(PayloadPat {
                     pat: Box::new(Pattern::DotAccess(DotAccessPat {
                         target: Some(Box::new(Pattern::Identifier(IdentifierPat {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 5,
-                                lexeme_id: 2
-                            },
+                            id: 5,
                             name: 2
                         }))),
-                        field: IdentifierPat {
-                            token: Token {
-                                kind: TokenKind::Identifier,
-                                source_id: 12,
-                                lexeme_id: 4
-                            },
-                            name: 4
-                        },
+                        field: IdentifierPat { id: 12, name: 4 },
                     })),
-                    payload: IdentifierPat {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 17,
-                            lexeme_id: 6
-                        },
-                        name: 6
-                    },
+                    payload: IdentifierPat { id: 17, name: 6 },
                 })),
             }),
         },
         parse_pattern_payload_simple {
             input: "Result(err) =",
             want: Pattern::Payload(PayloadPat {
-                pat: Box::new(Pattern::Identifier(IdentifierPat {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 0,
-                        lexeme_id: 0
-                    },
-                    name: 0
-                })),
-                payload: IdentifierPat {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 7,
-                        lexeme_id: 2
-                    },
-                    name: 2
-                },
+                pat: Box::new(Pattern::Identifier(IdentifierPat { id: 0, name: 0 })),
+                payload: IdentifierPat { id: 7, name: 2 },
             }),
         },
         parse_pattern_payload_dot_access {
@@ -427,30 +299,12 @@ mod test {
             want: Pattern::Payload(PayloadPat {
                 pat: Box::new(Pattern::DotAccess(DotAccessPat {
                     target: Some(Box::new(Pattern::Identifier(IdentifierPat {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0
-                        },
+                        id: 0,
                         name: 0
                     }))),
-                    field: IdentifierPat {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 4,
-                            lexeme_id: 2
-                        },
-                        name: 2
-                    },
+                    field: IdentifierPat { id: 4, name: 2 },
                 })),
-                payload: IdentifierPat {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 7,
-                        lexeme_id: 4
-                    },
-                    name: 4
-                },
+                payload: IdentifierPat { id: 7, name: 4 },
             }),
         },
         parse_pattern_payload_dot_inferred {
@@ -458,23 +312,9 @@ mod test {
             want: Pattern::Payload(PayloadPat {
                 pat: Box::new(Pattern::DotAccess(DotAccessPat {
                     target: None,
-                    field: IdentifierPat {
-                        token: Token {
-                            kind: TokenKind::Identifier,
-                            source_id: 1,
-                            lexeme_id: 1
-                        },
-                        name: 1
-                    },
+                    field: IdentifierPat { id: 1, name: 1 },
                 })),
-                payload: IdentifierPat {
-                    token: Token {
-                        kind: TokenKind::Identifier,
-                        source_id: 6,
-                        lexeme_id: 3
-                    },
-                    name: 3
-                },
+                payload: IdentifierPat { id: 6, name: 3 },
             }),
         },
     );

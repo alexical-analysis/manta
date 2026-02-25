@@ -302,7 +302,7 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
             let ident_id = node_tree.add_node(Node::Identifier(payload.name));
 
             let scope_pos = module
-                .get_scope_pos(payload.token.source_id)
+                .get_scope_pos(payload.id)
                 .expect("missing source position for the payload");
             let binding = module
                 .find_binding(scope_pos, payload.name)
@@ -366,7 +366,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             nodes.push(node_tree.add_node(Node::VarDecl { ident: ident_id }));
 
             let scope_pos = module
-                .get_scope_pos(ident.token.source_id)
+                .get_scope_pos(ident.id)
                 .expect("missing scope_posfor function");
             let binding = module
                 .find_binding(scope_pos, ident.name)
@@ -412,7 +412,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             nodes.push(node_tree.add_node(Node::VarDecl { ident: ident_id }));
 
             let scope_pos = module
-                .get_scope_pos(pat.payload.token.source_id)
+                .get_scope_pos(pat.payload.id)
                 .expect("missing scope_posfor function");
             let binding = module
                 .find_binding(scope_pos, name)

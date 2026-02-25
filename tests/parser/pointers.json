@@ -51,11 +51,7 @@
               "Let": {
                 "pattern": {
                   "Identifier": {
-                    "token": {
-                      "kind": "Identifier",
-                      "source_id": 75,
-                      "lexeme_id": 9
-                    },
+                    "id": 75,
                     "name": 9
                   }
                 },
@@ -69,11 +65,7 @@
               "Let": {
                 "pattern": {
                   "Identifier": {
-                    "token": {
-                      "kind": "Identifier",
-                      "source_id": 90,
-                      "lexeme_id": 15
-                    },
+                    "id": 90,
                     "name": 15
                   }
                 },
@@ -87,11 +79,7 @@
               "Let": {
                 "pattern": {
                   "Identifier": {
-                    "token": {
-                      "kind": "Identifier",
-                      "source_id": 108,
-                      "lexeme_id": 17
-                    },
+                    "id": 108,
                     "name": 17
                   }
                 },

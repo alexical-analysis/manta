@@ -262,21 +262,13 @@
                       "DotAccess": {
                         "target": null,
                         "field": {
-                          "token": {
-                            "kind": "Identifier",
-                            "source_id": 1094,
-                            "lexeme_id": 16
-                          },
+                          "id": 1094,
                           "name": 16
                         }
                       }
                     },
                     "payload": {
-                      "token": {
-                        "kind": "Identifier",
-                        "source_id": 1097,
-                        "lexeme_id": 24
-                      },
+                      "id": 1097,
                       "name": 24
                     }
                   }
@@ -364,21 +356,13 @@
                       "DotAccess": {
                         "target": null,
                         "field": {
-                          "token": {
-                            "kind": "Identifier",
-                            "source_id": 1166,
-                            "lexeme_id": 16
-                          },
+                          "id": 1166,
                           "name": 16
                         }
                       }
                     },
                     "payload": {
-                      "token": {
-                        "kind": "Identifier",
-                        "source_id": 1169,
-                        "lexeme_id": 28
-                      },
+                      "id": 1169,
                       "name": 28
                     }
                   }
@@ -476,21 +460,13 @@
                       "DotAccess": {
                         "target": null,
                         "field": {
-                          "token": {
-                            "kind": "Identifier",
-                            "source_id": 1282,
-                            "lexeme_id": 16
-                          },
+                          "id": 1282,
                           "name": 16
                         }
                       }
                     },
                     "payload": {
-                      "token": {
-                        "kind": "Identifier",
-                        "source_id": 1285,
-                        "lexeme_id": 38
-                      },
+                      "id": 1285,
                       "name": 38
                     }
                   }
@@ -593,21 +569,13 @@
                       "DotAccess": {
                         "target": null,
                         "field": {
-                          "token": {
-                            "kind": "Identifier",
-                            "source_id": 1481,
-                            "lexeme_id": 16
-                          },
+                          "id": 1481,
                           "name": 16
                         }
                       }
                     },
                     "payload": {
-                      "token": {
-                        "kind": "Identifier",
-                        "source_id": 1484,
-                        "lexeme_id": 38
-                      },
+                      "id": 1484,
                       "name": 38
                     }
                   }

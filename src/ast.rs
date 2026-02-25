@@ -294,7 +294,7 @@ pub struct EnumVariantPat {
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct IdentifierPat {
-    pub token: Token,
+    pub id: SourceID,
     pub name: StrID,
 }
 
