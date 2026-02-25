@@ -476,12 +476,12 @@ impl Module {
             Stmt::Let(stmt) => {
                 if let Pattern::Payload(pat) = &stmt.pattern {
                     sym_table.add_binding(pat.payload.name, BindingType::Value);
-                    sym_table.add_scope_pos(pat.payload.token.source_id);
+                    sym_table.add_scope_pos(pat.payload.id);
                 }
 
                 if let Pattern::Identifier(ident) = &stmt.pattern {
                     sym_table.add_binding(ident.name, BindingType::Value);
-                    sym_table.add_scope_pos(ident.token.source_id);
+                    sym_table.add_scope_pos(ident.id);
                 }
 
                 Self::build_sym_table_expr(errors, sym_table, &stmt.value);
@@ -529,7 +529,7 @@ impl Module {
 
                     if let Pattern::Payload(pat) = &arm.pattern {
                         sym_table.add_binding(pat.payload.name, BindingType::Value);
-                        sym_table.add_scope_pos(pat.payload.token.source_id);
+                        sym_table.add_scope_pos(pat.payload.id);
                     }
 
                     Self::build_sym_table_block(errors, sym_table, &arm.body);

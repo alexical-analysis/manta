@@ -141,20 +141,12 @@
                           "Payload": {
                             "pat": {
                               "Identifier": {
-                                "token": {
-                                  "kind": "Identifier",
-                                  "source_id": 488,
-                                  "lexeme_id": 18446744073709551608
-                                },
+                                "id": 488,
                                 "name": 18446744073709551608
                               }
                             },
                             "payload": {
-                              "token": {
-                                "kind": "Identifier",
-                                "source_id": 492,
-                                "lexeme_id": 15
-                              },
+                              "id": 492,
                               "name": 15
                             }
                           }
@@ -295,21 +287,13 @@
                           "DotAccess": {
                             "target": null,
                             "field": {
-                              "token": {
-                                "kind": "Identifier",
-                                "source_id": 655,
-                                "lexeme_id": 21
-                              },
+                              "id": 655,
                               "name": 21
                             }
                           }
                         },
                         "payload": {
-                          "token": {
-                            "kind": "Identifier",
-                            "source_id": 658,
-                            "lexeme_id": 15
-                          },
+                          "id": 658,
                           "name": 15
                         }
                       }
@@ -361,11 +345,7 @@
                       "DotAccess": {
                         "target": null,
                         "field": {
-                          "token": {
-                            "kind": "Identifier",
-                            "source_id": 694,
-                            "lexeme_id": 22
-                          },
+                          "id": 694,
                           "name": 22
                         }
                       }

@@ -238,21 +238,13 @@
                       "DotAccess": {
                         "target": null,
                         "field": {
-                          "token": {
-                            "kind": "Identifier",
-                            "source_id": 969,
-                            "lexeme_id": 14
-                          },
+                          "id": 969,
                           "name": 14
                         }
                       }
                     },
                     "payload": {
-                      "token": {
-                        "kind": "Identifier",
-                        "source_id": 972,
-                        "lexeme_id": 22
-                      },
+                      "id": 972,
                       "name": 22
                     }
                   }
@@ -342,11 +334,7 @@
                       }
                     },
                     "payload": {
-                      "token": {
-                        "kind": "Identifier",
-                        "source_id": 1045,
-                        "lexeme_id": 26
-                      },
+                      "id": 1045,
                       "name": 26
                     }
                   }
@@ -401,21 +389,13 @@
                       "DotAccess": {
                         "target": null,
                         "field": {
-                          "token": {
-                            "kind": "Identifier",
-                            "source_id": 1101,
-                            "lexeme_id": 14
-                          },
+                          "id": 1101,
                           "name": 14
                         }
                       }
                     },
                     "payload": {
-                      "token": {
-                        "kind": "Identifier",
-                        "source_id": 1104,
-                        "lexeme_id": 42
-                      },
+                      "id": 1104,
                       "name": 42
                     }
                   }

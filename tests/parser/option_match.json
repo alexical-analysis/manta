@@ -183,11 +183,7 @@
               "Let": {
                 "pattern": {
                   "Identifier": {
-                    "token": {
-                      "kind": "Identifier",
-                      "source_id": 447,
-                      "lexeme_id": 28
-                    },
+                    "id": 447,
                     "name": 28
                   }
                 },
@@ -237,21 +233,13 @@
                           "DotAccess": {
                             "target": null,
                             "field": {
-                              "token": {
-                                "kind": "Identifier",
-                                "source_id": 485,
-                                "lexeme_id": 15
-                              },
+                              "id": 485,
                               "name": 15
                             }
                           }
                         },
                         "payload": {
-                          "token": {
-                            "kind": "Identifier",
-                            "source_id": 488,
-                            "lexeme_id": 33
-                          },
+                          "id": 488,
                           "name": 33
                         }
                       }
@@ -301,11 +289,7 @@
                       "DotAccess": {
                         "target": null,
                         "field": {
-                          "token": {
-                            "kind": "Identifier",
-                            "source_id": 531,
-                            "lexeme_id": 16
-                          },
+                          "id": 531,
                           "name": 16
                         }
                       }
