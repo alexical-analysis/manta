@@ -206,7 +206,7 @@ pub struct LetStmt {
 #[derive(Debug, PartialEq, Serialize)]
 pub enum LetExcept {
     Or {
-        token: Token,
+        id: SourceID,
         binding: Option<StrID>,
         body: BlockStmt,
     },

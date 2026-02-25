@@ -67,7 +67,7 @@ impl PrefixStmtParselet for LetParselet {
 
                 let body = parser.parse_block(lexer, token)?;
                 let except = LetExcept::Or {
-                    token: or_token,
+                    id: or_token.source_id,
                     binding,
                     body,
                 };

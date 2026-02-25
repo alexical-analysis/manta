@@ -516,11 +516,7 @@
                 },
                 "except": {
                   "Or": {
-                    "token": {
-                      "kind": "OrKeyword",
-                      "source_id": 1320,
-                      "lexeme_id": 40
-                    },
+                    "id": 1320,
                     "binding": 41,
                     "body": {
                       "id": 1326,

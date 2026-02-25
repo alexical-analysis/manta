@@ -470,11 +470,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
     let default_id = match &stmt.except {
         // TODO: binding should be an identifier so we have a symbol ID so we can map to an
         // identifer and pass it through successfully
-        LetExcept::Or {
-            token,
-            binding,
-            body,
-        } => {
+        LetExcept::Or { id, binding, body } => {
             match *binding {
                 Some(b) => {
                     // or(e) { ... }
@@ -487,7 +483,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                         node_tree.add_node(Node::Pattern(PatternNode::Identifier(ident_id)));
 
                     let scope_pos = module
-                        .get_scope_pos(token.source_id)
+                        .get_scope_pos(*id)
                         .expect("missing scope position for or binding");
                     let binding = module
                         .find_binding(scope_pos, b)
