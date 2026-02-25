@@ -525,7 +525,7 @@ impl Module {
                 Self::build_sym_table_expr(errors, sym_table, &stmt.target);
 
                 for arm in &stmt.arms {
-                    sym_table.open_scope(arm.token.source_id);
+                    sym_table.open_scope(arm.id);
 
                     if let Pattern::Payload(pat) = &arm.pattern {
                         sym_table.add_binding(pat.payload.name, BindingType::Value);

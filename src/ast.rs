@@ -244,7 +244,7 @@ pub struct MatchStmt {
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct MatchArm {
-    pub token: Token,
+    pub id: SourceID,
     pub pattern: Pattern,
     pub body: BlockStmt,
 }
