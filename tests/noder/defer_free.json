@@ -502,46 +502,50 @@
   ],
   "type_map": {
     "keys": {
-      "1": 0,
-      "3": 1,
+      "0": 0,
+      "2": 1,
       "4": 2,
-      "10": 3,
+      "9": 3,
       "11": 4,
-      "15": 5,
-      "17": 6,
+      "14": 5,
+      "16": 6,
       "18": 7,
       "20": 8,
-      "26": 9,
-      "28": 10,
+      "25": 9,
+      "27": 10,
       "29": 11,
       "49": 12,
       "50": 13,
       "58": 14,
-      "87": 15
+      "86": 15
     },
     "values": [
       {
-        "Struct": {
-          "fields": []
+        "Alias": {
+          "Struct": {
+            "fields": []
+          }
         }
       },
       {
-        "Enum": {
-          "variants": [
-            {
-              "name": 14,
-              "payload": {
-                "Named": {
-                  "module": null,
-                  "name": 8
+        "Alias": {
+          "Enum": {
+            "variants": [
+              {
+                "name": 14,
+                "payload": {
+                  "Named": {
+                    "module": null,
+                    "name": 8
+                  }
                 }
+              },
+              {
+                "name": 15,
+                "payload": null
               }
-            },
-            {
-              "name": 15,
-              "payload": null
-            }
-          ]
+            ]
+          }
         }
       },
       "String",
@@ -578,17 +582,19 @@
         }
       },
       {
-        "Enum": {
-          "variants": [
-            {
-              "name": 14,
-              "payload": "UInt64"
-            },
-            {
-              "name": 15,
-              "payload": null
-            }
-          ]
+        "Alias": {
+          "Enum": {
+            "variants": [
+              {
+                "name": 14,
+                "payload": "UInt64"
+              },
+              {
+                "name": 15,
+                "payload": null
+              }
+            ]
+          }
         }
       },
       {
@@ -617,31 +623,33 @@
         }
       },
       {
-        "Enum": {
-          "variants": [
-            {
-              "name": 14,
-              "payload": null
-            },
-            {
-              "name": 30,
-              "payload": {
-                "Named": {
-                  "module": null,
-                  "name": 12
+        "Alias": {
+          "Enum": {
+            "variants": [
+              {
+                "name": 14,
+                "payload": null
+              },
+              {
+                "name": 30,
+                "payload": {
+                  "Named": {
+                    "module": null,
+                    "name": 12
+                  }
+                }
+              },
+              {
+                "name": 31,
+                "payload": {
+                  "Named": {
+                    "module": null,
+                    "name": 23
+                  }
                 }
               }
-            },
-            {
-              "name": 31,
-              "payload": {
-                "Named": {
-                  "module": null,
-                  "name": 23
-                }
-              }
-            }
-          ]
+            ]
+          }
         }
       },
       "String",

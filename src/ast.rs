@@ -119,6 +119,8 @@ pub enum TypeSpec {
     Struct(StructType),
     Enum(EnumType),
     Function(FunctionType),
+    // Type alias to another type
+    Alias(Box<TypeSpec>),
     // UnsafePtr is the intermediary between types used by alloc
     UnsafePtr,
     // Panic is the type used for expressions that panic

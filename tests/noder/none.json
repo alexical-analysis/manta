@@ -361,25 +361,27 @@
   ],
   "type_map": {
     "keys": {
-      "1": 0,
+      "0": 0,
       "2": 1,
-      "6": 2,
+      "5": 2,
       "7": 3,
-      "11": 4,
-      "13": 5,
+      "10": 4,
+      "12": 5,
       "14": 6,
       "16": 7,
       "17": 8,
       "33": 9,
-      "43": 10,
+      "42": 10,
       "44": 11,
       "54": 12,
-      "61": 13
+      "60": 13
     },
     "values": [
       {
-        "Struct": {
-          "fields": []
+        "Alias": {
+          "Struct": {
+            "fields": []
+          }
         }
       },
       {
@@ -405,28 +407,30 @@
         }
       },
       {
-        "Enum": {
-          "variants": [
-            {
-              "name": 21,
-              "payload": {
-                "Pointer": "Int32"
-              }
-            },
-            {
-              "name": 22,
-              "payload": null
-            },
-            {
-              "name": 23,
-              "payload": {
-                "Named": {
-                  "module": null,
-                  "name": 9
+        "Alias": {
+          "Enum": {
+            "variants": [
+              {
+                "name": 21,
+                "payload": {
+                  "Pointer": "Int32"
+                }
+              },
+              {
+                "name": 22,
+                "payload": null
+              },
+              {
+                "name": 23,
+                "payload": {
+                  "Named": {
+                    "module": null,
+                    "name": 9
+                  }
                 }
               }
-            }
-          ]
+            ]
+          }
         }
       },
       "Bool",

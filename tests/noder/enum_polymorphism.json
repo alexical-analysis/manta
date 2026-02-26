@@ -389,16 +389,21 @@
   ],
   "type_map": {
     "keys": {
+      "0": 11,
       "2": 0,
       "4": 1,
-      "8": 2,
-      "10": 3,
+      "7": 2,
+      "9": 3,
       "11": 4,
-      "31": 5,
-      "33": 6,
-      "43": 7,
-      "51": 8,
-      "65": 9
+      "30": 5,
+      "32": 6,
+      "33": 7,
+      "34": 12,
+      "38": 13,
+      "43": 8,
+      "51": 9,
+      "59": 14,
+      "64": 10
     },
     "values": [
       "Float64",
@@ -412,17 +417,19 @@
         }
       },
       {
-        "Enum": {
-          "variants": [
-            {
-              "name": 20,
-              "payload": "Int32"
-            },
-            {
-              "name": 21,
-              "payload": "Int32"
-            }
-          ]
+        "Alias": {
+          "Enum": {
+            "variants": [
+              {
+                "name": 20,
+                "payload": "Int32"
+              },
+              {
+                "name": 21,
+                "payload": "Int32"
+              }
+            ]
+          }
         }
       },
       {
@@ -444,6 +451,22 @@
           "return_type": "Int32"
         }
       },
+      {
+        "Alias": {
+          "Enum": {
+            "variants": [
+              {
+                "name": 20,
+                "payload": "Int32"
+              },
+              {
+                "name": 21,
+                "payload": "Int32"
+              }
+            ]
+          }
+        }
+      },
       "Int64",
       "Int64",
       {
@@ -459,7 +482,26 @@
           "params": [],
           "return_type": null
         }
-      }
+      },
+      "Float64",
+      {
+        "Alias": {
+          "Enum": {
+            "variants": [
+              {
+                "name": 20,
+                "payload": "Int32"
+              },
+              {
+                "name": 21,
+                "payload": "Int32"
+              }
+            ]
+          }
+        }
+      },
+      "Int32",
+      "Int32"
     ]
   },
   "symbol_map": {

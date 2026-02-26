@@ -268,17 +268,18 @@
   "type_map": {
     "keys": {
       "0": 0,
-      "4": 1,
-      "6": 2,
+      "3": 1,
+      "5": 2,
       "7": 3,
       "9": 4,
       "11": 5,
-      "22": 6,
+      "21": 6,
       "23": 7,
       "24": 8,
+      "26": 12,
       "32": 9,
       "37": 10,
-      "44": 11
+      "43": 11
     },
     "values": [
       "String",
@@ -291,17 +292,19 @@
         }
       },
       {
-        "Enum": {
-          "variants": [
-            {
-              "name": 15,
-              "payload": "Int32"
-            },
-            {
-              "name": 16,
-              "payload": null
-            }
-          ]
+        "Alias": {
+          "Enum": {
+            "variants": [
+              {
+                "name": 15,
+                "payload": "Int32"
+              },
+              {
+                "name": 16,
+                "payload": null
+              }
+            ]
+          }
         }
       },
       "Int32",
@@ -329,6 +332,12 @@
         "Function": {
           "params": [],
           "return_type": null
+        }
+      },
+      {
+        "Named": {
+          "module": null,
+          "name": 13
         }
       }
     ]
