@@ -169,6 +169,7 @@
           "statements": [
             {
               "Let": {
+                "id": 443,
                 "pattern": {
                   "Identifier": {
                     "id": 447,
@@ -229,6 +230,7 @@
                       "statements": [
                         {
                           "Expr": {
+                            "id": 493,
                             "expr": {
                               "Call": {
                                 "func": {
@@ -271,6 +273,7 @@
                       "statements": [
                         {
                           "Expr": {
+                            "id": 543,
                             "expr": {
                               "Call": {
                                 "func": {

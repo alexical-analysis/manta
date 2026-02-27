@@ -133,6 +133,7 @@
                   "statements": [
                     {
                       "Let": {
+                        "id": 484,
                         "pattern": {
                           "Payload": {
                             "pat": {
@@ -169,6 +170,7 @@
                     },
                     {
                       "Assign": {
+                        "id": 538,
                         "lvalue": {
                           "Unary": {
                             "operator": "Dereference",
@@ -287,6 +289,7 @@
                       "statements": [
                         {
                           "Expr": {
+                            "id": 663,
                             "expr": {
                               "Call": {
                                 "func": {
@@ -331,6 +334,7 @@
                       "statements": [
                         {
                           "Expr": {
+                            "id": 708,
                             "expr": {
                               "Call": {
                                 "func": {

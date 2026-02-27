@@ -103,10 +103,10 @@ impl StmtParser {
         // if we failed to match a statment, parse this as expression instead
         let expr = self.expr_parser.parse(lexer, Precedence::Base)?;
 
-        let token = lexer.peek();
+        let next = lexer.peek();
 
         // check if this expression is actually the left hand side of a statement
-        let parselet = self.infix_parselets.get(&token.kind);
+        let parselet = self.infix_parselets.get(&next.kind);
         match parselet {
             Some(parselet) => {
                 let parselet = parselet.clone();
@@ -129,7 +129,10 @@ impl StmtParser {
                     return Err(ParseError::UnexpectedToken(next, "missing ';'".to_string()));
                 }
 
-                Ok(Stmt::Expr(ExprStmt { expr }))
+                Ok(Stmt::Expr(ExprStmt {
+                    id: token.source_id,
+                    expr,
+                }))
             }
         }
     }
@@ -216,6 +219,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
+                    id: 0,
                     pattern: Pattern::Identifier(IdentifierPat { id: 4, name: 1 }),
                     value: Expr::IntLiteral(10),
                     except: LetExcept::None,
@@ -228,6 +232,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
+                    id: 0,
                     pattern: Pattern::Payload(PayloadPat {
                         pat: Box::new(Pattern::Identifier(IdentifierPat {
                             id: 4,
@@ -246,6 +251,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
+                    id: 0,
                     pattern: Pattern::Identifier(IdentifierPat { id: 4, name: 1 }),
                     value: Expr::FloatLiteral(3.45),
                     except: LetExcept::None,
@@ -258,6 +264,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
+                    id: 0,
                     pattern: Pattern::Payload(PayloadPat {
                         pat: Box::new(Pattern::Identifier(IdentifierPat { id: 4, name: 1 })),
                         payload: IdentifierPat { id: 11, name: 3 },
@@ -329,6 +336,7 @@ mod test {
                     block: BlockStmt {
                         id: 6,
                         statements: vec![Stmt::Expr(ExprStmt {
+                            id: 8,
                             expr: Expr::Free(FreeExpr {
                                 expr: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: 13,
@@ -350,6 +358,7 @@ mod test {
                         id: 6,
                         statements: vec![
                             Stmt::Expr(ExprStmt {
+                                id: 6,
                                 expr: Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
                                         id: 8,
@@ -362,6 +371,7 @@ mod test {
                                 })
                             }),
                             Stmt::Expr(ExprStmt {
+                                id: 20,
                                 expr: Expr::Alloc(AllocExpr {
                                     meta_type: Box::new(Expr::MetaType(MetaTypeExpr {
                                         type_spec: TypeSpec::Int32,
@@ -387,11 +397,13 @@ mod test {
                     id: 0,
                     statements: vec![
                         Stmt::Let(LetStmt {
+                            id: 3,
                             pattern: Pattern::Identifier(IdentifierPat { id: 10, name: 2 }),
                             value: Expr::IntLiteral(10),
                             except: LetExcept::None,
                         }),
                         Stmt::Let(LetStmt {
+                            id: 6,
                             pattern: Pattern::Payload(PayloadPat {
                                 pat: Box::new(Pattern::DotAccess(DotAccessPat {
                                     target: None,
@@ -409,6 +421,7 @@ mod test {
                             except: LetExcept::Panic,
                         }),
                         Stmt::Let(LetStmt {
+                            id: 8,
                             pattern: Pattern::Identifier(IdentifierPat { id: 58, name: 14 }),
                             value: Expr::Binary(BinaryExpr {
                                 left: Box::new(Expr::Identifier(IdentifierExpr {
@@ -433,6 +446,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 AssignStmt {
+                    id: 2,
                     lvalue: Expr::Identifier(IdentifierExpr { id: 0, name: 0 }),
                     rvalue: Expr::IntLiteral(10),
                 },
@@ -444,6 +458,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 AssignStmt {
+                    id: 0,
                     lvalue: Expr::Unary(UnaryExpr {
                         operator: UnaryOp::Dereference,
                         operand: Box::new(Expr::Identifier(IdentifierExpr { id: 1, name: 1 })),
@@ -458,6 +473,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 AssignStmt {
+                    id: 5,
                     lvalue: Expr::Identifier(IdentifierExpr { id: 0, name: 0 }),
                     rvalue: Expr::Call(CallExpr {
                         func: Box::new(Expr::DotAccess(DotAccessExpr {
@@ -491,6 +507,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 AssignStmt {
+                    id: 5,
                     lvalue: Expr::Index(IndexExpr {
                         target: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
                         index: Box::new(Expr::IntLiteral(0)),
@@ -511,6 +528,7 @@ mod test {
                     success: BlockStmt {
                         id: 8,
                         statements: vec![Stmt::Expr(ExprStmt {
+                            id: 14,
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: 14,
@@ -542,6 +560,7 @@ mod test {
                     success: BlockStmt {
                         id: 10,
                         statements: vec![Stmt::Expr(ExprStmt {
+                            id: 16,
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: 16,
@@ -554,6 +573,7 @@ mod test {
                     fail: Some(BlockStmt {
                         id: 35,
                         statements: vec![Stmt::Assign(AssignStmt {
+                            id: 43,
                             lvalue: Expr::Identifier(IdentifierExpr { id: 41, name: 1 }),
                             rvalue: Expr::Binary(BinaryExpr {
                                 left: Box::new(Expr::IntLiteral(10)),
@@ -590,6 +610,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
+                    id: 0,
                     pattern: Pattern::Identifier(IdentifierPat { id: 4, name: 1 }),
                     value: Expr::Unary(UnaryExpr {
                         operator: UnaryOp::AddressOf,
@@ -605,6 +626,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
+                    id: 0,
                     pattern: Pattern::DotAccess(DotAccessPat {
                         target: None,
                         field: IdentifierPat { id: 5, name: 2 },
@@ -625,6 +647,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
+                    id: 0,
                     pattern: Pattern::Payload(PayloadPat {
                         pat: Box::new(Pattern::DotAccess(DotAccessPat {
                             target: Some(Box::new(Pattern::Identifier(IdentifierPat {
@@ -645,6 +668,7 @@ mod test {
                         body: BlockStmt {
                             id: 39,
                             statements: vec![Stmt::Expr(ExprStmt {
+                                id: 0,
                                 expr: Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
                                         id: 45,
@@ -667,6 +691,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
+                    id: 0,
                     pattern: Pattern::DotAccess(DotAccessPat {
                         target: None,
                         field: IdentifierPat { id: 5, name: 2 },
@@ -685,6 +710,7 @@ mod test {
                             id: 41,
                             statements: vec![
                                 Stmt::Expr(ExprStmt {
+                                    id: 0,
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
                                             id: 47,
@@ -711,6 +737,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
+                    id: 0,
                     pattern: Pattern::Payload(PayloadPat {
                         pat: Box::new(Pattern::DotAccess(DotAccessPat {
                             target: None,
@@ -752,6 +779,7 @@ mod test {
                             body: BlockStmt {
                                 id: 23,
                                 statements: vec![Stmt::Expr(ExprStmt {
+                                    id: 0,
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
                                             id: 25,
@@ -774,6 +802,7 @@ mod test {
                             body: BlockStmt {
                                 id: 46,
                                 statements: vec![Stmt::Expr(ExprStmt {
+                                    id: 0,
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
                                             id: 48,
@@ -812,6 +841,7 @@ mod test {
                             body: BlockStmt {
                                 id: 33,
                                 statements: vec![Stmt::Expr(ExprStmt {
+                                    id: 0,
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
                                             id: 35,
@@ -837,6 +867,7 @@ mod test {
                             body: BlockStmt {
                                 id: 66,
                                 statements: vec![Stmt::Expr(ExprStmt {
+                                    id: 0,
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
                                             id: 68,
@@ -859,6 +890,7 @@ mod test {
                             body: BlockStmt {
                                 id: 93,
                                 statements: vec![Stmt::Expr(ExprStmt {
+                                    id: 0,
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
                                             id: 95,
@@ -893,6 +925,7 @@ mod test {
                             body: BlockStmt {
                                 id: 26,
                                 statements: vec![Stmt::Expr(ExprStmt {
+                                    id: 0,
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
                                             id: 28,
@@ -915,6 +948,7 @@ mod test {
                             body: BlockStmt {
                                 id: 56,
                                 statements: vec![Stmt::Expr(ExprStmt {
+                                    id: 0,
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
                                             id: 58,
@@ -938,6 +972,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 ExprStmt {
+                    id: 0,
                     expr: Expr::ModuleAccess(ModuleAccessExpr {
                         module: 0,
                         expr: Box::new(Expr::Identifier(IdentifierExpr { id: 5, name: 2 })),
@@ -951,6 +986,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 ExprStmt {
+                    id: 0,
                     expr: Expr::ModuleAccess(ModuleAccessExpr {
                         module: 0,
                         expr: Box::new(Expr::Call(CallExpr {
@@ -967,6 +1003,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 ExprStmt {
+                    id: 0,
                     expr: Expr::ModuleAccess(ModuleAccessExpr {
                         module: 0,
                         expr: Box::new(Expr::Identifier(IdentifierExpr { id: 6, name: 2 })),

@@ -49,6 +49,7 @@
           "statements": [
             {
               "Let": {
+                "id": 192,
                 "pattern": {
                   "Identifier": {
                     "id": 196,
@@ -74,6 +75,7 @@
                   "statements": [
                     {
                       "Expr": {
+                        "id": 243,
                         "expr": {
                           "Call": {
                             "func": {
@@ -98,6 +100,7 @@
             },
             {
               "Let": {
+                "id": 273,
                 "pattern": {
                   "Identifier": {
                     "id": 277,
@@ -131,6 +134,7 @@
                   "statements": [
                     {
                       "Expr": {
+                        "id": 314,
                         "expr": {
                           "Call": {
                             "func": {
@@ -155,6 +159,7 @@
                   "statements": [
                     {
                       "Expr": {
+                        "id": 353,
                         "expr": {
                           "Call": {
                             "func": {
