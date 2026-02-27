@@ -1,18 +1,18 @@
 # Manta MIR (Middle IR) Design
 
-This document describes the design of Manta's Middle IR (MIR). The MIR is a block-based, control-flow oriented intermediate representation that sits between the existing HIR and the Cranelift backend. It is intended to be a stable, analyzable, and easily lowerable representation, with first-class support for definite-initialization checking and clear semantics for local variable binding and exception/`or`-handler control flow.
+This document describes the design of Manta's Middle IR (MIR). The MIR is a block-based, control-flow oriented intermediate representation that sits between the existing HIR and the LLVM backend. It is intended to be a stable, analyzable, and easily lowerable representation, with first-class support for definite-initialization checking and clear semantics for local variable binding and exception/`or`-handler control flow.
 
 ## Overview
 
 MIR is a function-centric, basic-block based IR. Each function is represented as a control-flow graph (CFG) of basic blocks; each block contains a sequence of non-branching instructions and ends with a single terminator which encodes control flow (jump, branch, switch, return, etc.). Values are represented by value identifiers (temporaries) and named locals (storage slots). The MIR is strongly typed at the value level and is designed to make control- and data-flow analysis straightforward.
 
 Key language-driven requirements that informed this design:
-- Support uninitialized local variables declared with `let IDENT = undefined` and a flow checker that ensures variables are always initialized before use.
-- Ensure that `or`-style exception/alternative handlers attached to pattern-let forms (e.g. `let .Ok(n) = call() or { ... }`) do not allow control to continue into the binding's continuation unless the handler never returns to that continuation (i.e., handlers must prevent the use of the bound variable if they fall through).
+- Support uninitialized local variables (all declarations in Manta are uninitialized by default) and enforce a definite-initialization checker that ensures variables are always initialized before use.
+- Ensure that match expressions with control-flow handlers (desugared from syntactic forms like `let x = pat or { ... }`) can be safely analyzed—handlers must not allow control to reach code that expects bindings from a failed pattern match.
 
 ## Goals
 
-- Provide a block-based IR that is straightforward to build from HIR and to lower to Cranelift.
+- Provide a block-based IR that is straightforward to build from HIR and to lower to LLVM.
 - Make definite-initialization analysis (and related verification) simple and conservative-correct.
 - Provide an explicit representation for `pattern-or` binding semantics so that handler divergence can be reliably validated.
 - Keep instruction set small but expressive enough to represent common language constructs (calls, destructuring, control flow, loads/stores, returns, etc.).
@@ -20,10 +20,10 @@ Key language-driven requirements that informed this design:
 
 ## Assumptions and Constraints
 
-- MIR is per-function; there is no interprocedural MIR linking in this design (lowering to Cranelift will generate per-function IR and call sites).
+- MIR is per-function; there is no interprocedural MIR linking in this design (lowering to LLVM will generate per-function IR and call sites).
 - The HIR will supply types for expressions; MIR preserves type information on values.
-- Locals (declared with `let`) map to storage slots; temporaries are single-assignment value identifiers produced by instructions.
-- `or` handlers are expressed explicitly in MIR (as target block ids) and are subject to reachability/divergence checks described below.
+- Locals (declared with simple declarations in the HIR) are uninitialized by default and map to storage slots; temporaries are single-assignment value identifiers produced by instructions.
+- Match expressions with failure handlers (desugared from syntactic forms like `let x = pat or { ... }`) are represented as explicit control-flow edges in the CFG and are subject to reachability/divergence checks described below.
 
 ## High-level Structure
 
@@ -79,12 +79,12 @@ Instruction categories and representative forms (not exhaustive):
   - call_try(func, args..., handler: BlockId) -> ValueId
     - A form that encodes a call whose failure branch jumps to `handler`. Semantics: on the success path, call returns a value used by continuation; on the failure path the handler block is entered. Lowering: modeled as a call followed by a match-check (language semantics determine whether this is a true exception or a value-based Result-check).
 
-- Pattern/Destructure binding with `or` handler:
-  - pattern_bind_or(src: ValueId, pattern, bindings: [(LocalId, ValueId)], handler: BlockId)
-    - Tries to match `src` against `pattern`.
-    - On success: binds values into the given LocalIds (conceptually `store_local` + mark initialized) and continues execution in the current block after the instruction.
-    - On failure: control transfers to `handler` block.
-    - Verification rule: `handler` must not be able to reach the continuation point that expects the bindings to exist (see "Validation & Flow Checks").
+- Pattern matching with failure handlers:
+  - match(src: ValueId, {pattern -> target_block, ...}, default_handler: BlockId?)
+    - Evaluates src and tests it against patterns (which are part of the desugared `let x = pat or { ... }`, `let x = pat wrap { ... }`, etc. syntactic forms in the source).
+    - On a successful pattern match, control transfers to the corresponding target block with the pattern bindings available.
+    - On pattern match failure (no pattern matches), control transfers to the default_handler block.
+    - Verification rule: the handler block must not be able to reach continuation code that expects the bindings from a successful match (see "Validation & Flow Checks").
 
 - Move/Copy semantics:
   - move(dst_local, src_value)
@@ -94,12 +94,11 @@ Instruction categories and representative forms (not exhaustive):
   - drop_local(LocalId) -- explicit drop request for destructors
 
 - Misc:
-  - set_uninitialized(LocalId) -- used to represent `let x = undefined` at declaration time
-  - set_initialized(LocalId) -- used when a store or binding guarantees initialization
+  - declare_local(LocalId) -- explicitly declares a local as uninitialized (semantically implicit for all locals, but explicit instruction for clarity)
 
 Two important design decisions:
-1. Locals have an associated initialization state tracked by MIR analysis rather than relying on SSA alone. This makes representing `let ... = undefined` straightforward.
-2. Pattern-bind-or is an instruction-level primitive that encodes the two-path semantics (success: introduce bindings and continue; failure: jump to handler).
+1. Locals are uninitialized by default. MIR tracks initialization state via dataflow analysis rather than relying on SSA alone. This makes the definite-initialization checker straightforward and conservative-correct.
+2. Match expressions with failure handlers are represented as explicit control-flow in the CFG (target blocks with bindings), allowing handler divergence to be verified against continuation code that expects those bindings.
 
 ## Definite-initialization analysis (flow-checking)
 
@@ -116,11 +115,11 @@ Pattern-bind-or semantics in the analysis:
 - For the success continuation path (fallthrough after the pattern_bind_or instruction), the transfer function will add the newly-bound locals to the set (these are definitely initialized on the success edge only).
 - For the failure handler edge, no new locals are added; the handler is verified separately.
 
-## Enforcing `or` handler termination relative to bindings
+## Enforcing match handler termination relative to bindings
 
-Problem: an `or` handler that returns control to the continuation would make the pattern-bound locals unavailable on some paths (i.e., the pattern would have failed but control still reaches the same continuation expecting the variable to be bound), which would create an unsound use of an uninitialized variable.
+Problem: a match handler that returns control to the continuation would make the pattern-bound locals unavailable on some paths (i.e., the pattern would have failed but control still reaches the same continuation expecting the variables to be bound), which would create an unsound use of an uninitialized variable.
 
-Invariant to enforce: For each pattern_bind_or at block B that continues to point C on success and specifies handler H for failure, H must not be able to reach C (there is no path from H to C in the CFG), unless every path from H to C re-establishes (initializes) the same bindings prior to use.
+Invariant to enforce: For each match instruction at block B with handler H that continues to point C on success and specifies handler H for failure, H must not be able to reach C (there is no path from H to C in the CFG), unless every path from H to C re-establishes (initializes) the same bindings prior to use.
 
 Practical checks to enforce this invariant:
 - Compute reachability from H. If C is reachable, then either:
@@ -135,40 +134,46 @@ This check is implemented with a simple reachability traversal from H; if it fin
 
 - For each function, create a MIRFunction with an entry block.
 - Map HIR local declarations:
-  - `let x = undefined` -> create a LocalId and emit set_uninitialized(x) at the entry (or record as uninitialized in the locals table).
-  - `let x = expr` -> lower expr to MIR and emit store_local(x, tmp)
+  - A simple `declare x` in the HIR creates a LocalId that is uninitialized by default; no explicit set_uninitialized instruction is needed (it is implicit).
+  - `assign x = expr` -> lower expr to MIR and emit store_local(x, tmp) to initialize the local.
 - Lower expressions to sequences of MIR instructions that produce ValueIds, use temporaries when necessary.
-- Lower pattern-let with `or` as a pattern_bind_or instruction with the handler block id taken from the HIR `or` block.
-  - Note: the HIR desugars `let`-with-`or` into a variable declaration followed by a match; the `or` arm is represented as a match/handler successor. MIR therefore performs definite-initialization and handler reachability analysis on the match's control-flow edges rather than relying on distinct `let/or`, `let/wrap`, or `let/panic` MIR primitives. In practice this means initializing a variable in the `or` arm (for example, setting a default value) is acceptable so long as every path that reaches the continuation definitely initializes the local.
+- Lower match expressions (which in the HIR represent desugared syntactic forms like `let x = pat or { ... }`, `let x = pat wrap { ... }`, etc.) to match instructions with explicit target blocks for each pattern and a default handler block for failure.
+  - The HIR has already desugared all `let/or`, `let/wrap`, and `let/!` syntactic forms into distinct declaration and match instructions. MIR faithfully represents this structure.
+  - On a successful pattern match, bindings are stored into locals and control continues in the target block.
+  - On pattern match failure, control transfers to the handler block, which is verified separately to ensure it doesn't reach code expecting the bindings to exist.
 - After constructing basic blocks, compute predecessors and run the definite-initialization analysis and reachability checks for handlers.
 
-## Lowering to Cranelift (mapping notes)
+## Lowering to LLVM (mapping notes)
 
-- Blocks -> Cranelift blocks
-- ValueIds -> Cranelift SSA values
-- Locals -> stack slots or frame-slots. Reads/writes become load/store sequences; in simple lowering, store_local becomes a store to the stack slot, and load_local loads into an SSA temporary.
-- Pattern-bind-or -> lowered to: evaluate src; test/match the discriminant; conditional branch to success-target (with bound value lowered and stored into locals) or branch to handler-target; the handler-target must not allow control to reach the success-target unless it reinitializes locals.
-- Terminators map directly to Cranelift branch/return instructions.
-- Verification must fully complete before lowering (e.g., handler reachability checks), because lowering cannot magically prevent a handler from falling through.
+- Blocks -> LLVM basic blocks
+- ValueIds -> LLVM values (SSA registers)
+- Locals -> LLVM alloca stack slots. Reads/writes become load/store instructions; a store_local becomes an `store` to the alloca, and load_local becomes a `load` from the alloca into an LLVM value.
+- Match instructions -> lowered to: evaluate src; test the discriminant against each pattern; conditional branch to the corresponding target block (with bindings stored into locals) or branch to the handler-target. The handler-target must not allow control to reach code expecting the bindings unless it reinitializes them.
+- Terminators map directly to LLVM terminator instructions (br, ret, switch, unreachable, etc.).
+- Type information from MIR is preserved when emitting LLVM IR, ensuring type safety throughout lowering.
+- Verification must fully complete before lowering (e.g., handler reachability checks, definite-initialization checks), because lowering cannot magically prevent a handler from falling through.
+- MIR can be lowered to LLVM IR using Inkwell (Rust bindings) or direct LLVM-C FFI; implementation flexibility allows for choice of backend based on development needs.
 
 ## Example (pseudo-MIR)
 
 Function write_demo(f, buf) -> i32
 
 locals:
-  n: i32 (declared with `let n = undefined`)
+  n: i32 (uninitialized at declaration)
 
 blocks:
 
 bb0:
   tmp0 = call(write_file, f, buf)
-  pattern_bind_or(tmp0, pattern=.Ok(n_val), bindings=[(n, n_val)], handler=bb_err)
-  // after this instruction n is definitely initialized in bb0 continuation
+  match(tmp0, {.Ok(n_val) -> bb_success, .Err(_) -> bb_err})
+
+bb_success:
+  store_local(n, n_val)  // n is now initialized
   use_n = load_local(n)
   return use_n
 
 bb_err:
-  // must not reach bb0 (conservative rule: reject if it does)
+  // must not reach bb_success (conservative rule: handler blocks must not reach code expecting bindings)
   return -1
 
 
@@ -176,7 +181,7 @@ bb_err:
 
 - Each block must end with a single terminator.
 - No instruction may use a local that is not definitely initialized at that program point (definite-init check must pass before lowering).
-- For each pattern_bind_or, the handler block must not be able to reach the continuation block (or must re-initialize bindings on all paths) — conservative rejection otherwise.
+- For each match instruction with a handler block, the handler block must not be able to reach code that expects the bindings from a successful pattern match (or must re-initialize bindings on all paths) — conservative rejection otherwise.
 - Block arguments/phi-like transfers must be explicit and consistent across predecessor edges.
 
 ## Open decisions (implementation scope, not speculative features)
@@ -185,4 +190,4 @@ bb_err:
 
 ## Summary
 
-This MIR is a block-based, typed representation designed to make definite-initialization checking and `or`-handler validation explicit and analyzable prior to lowering to Cranelift. Key invariants (definite-init and handler non-reachability) are enforced via standard forward dataflow and reachability analyses. The MIR instruction set centers on explicit stores to locals, pattern-bind-or primitives, and canonical terminators to keep lowering straightforward.
+This MIR is a block-based, typed representation designed to make definite-initialization checking and match-handler validation explicit and analyzable prior to lowering to LLVM. Key invariants (definite-init and handler non-reachability) are enforced via standard forward dataflow and reachability analyses. The MIR instruction set centers on explicit stores to locals, match instructions with failure handlers, and canonical terminators to keep lowering straightforward.
