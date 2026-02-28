@@ -223,6 +223,7 @@
           "statements": [
             {
               "Let": {
+                "id": 601,
                 "pattern": {
                   "Identifier": {
                     "id": 605,
@@ -254,6 +255,7 @@
             },
             {
               "Let": {
+                "id": 635,
                 "pattern": {
                   "Identifier": {
                     "id": 639,
@@ -283,6 +285,7 @@
             },
             {
               "Expr": {
+                "id": 670,
                 "expr": {
                   "Call": {
                     "func": {
@@ -305,6 +308,7 @@
             },
             {
               "Let": {
+                "id": 700,
                 "pattern": {
                   "Payload": {
                     "pat": {
@@ -339,6 +343,7 @@
             },
             {
               "Let": {
+                "id": 735,
                 "pattern": {
                   "Identifier": {
                     "id": 739,
@@ -368,6 +373,7 @@
             },
             {
               "Expr": {
+                "id": 770,
                 "expr": {
                   "Call": {
                     "func": {

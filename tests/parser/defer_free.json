@@ -232,6 +232,7 @@
           "statements": [
             {
               "Let": {
+                "id": 964,
                 "pattern": {
                   "Payload": {
                     "pat": {
@@ -284,6 +285,7 @@
                   "statements": [
                     {
                       "Expr": {
+                        "id": 1017,
                         "expr": {
                           "Call": {
                             "func": {
@@ -310,6 +312,7 @@
             },
             {
               "Let": {
+                "id": 1036,
                 "pattern": {
                   "Payload": {
                     "pat": {
@@ -345,6 +348,7 @@
                   "statements": [
                     {
                       "Expr": {
+                        "id": 1079,
                         "expr": {
                           "Free": {
                             "expr": {
@@ -363,6 +367,7 @@
             },
             {
               "Let": {
+                "id": 1096,
                 "pattern": {
                   "Payload": {
                     "pat": {

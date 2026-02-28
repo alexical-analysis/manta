@@ -256,6 +256,7 @@
           "statements": [
             {
               "Let": {
+                "id": 1089,
                 "pattern": {
                   "Payload": {
                     "pat": {
@@ -308,6 +309,7 @@
                   "statements": [
                     {
                       "Expr": {
+                        "id": 1142,
                         "expr": {
                           "Call": {
                             "func": {
@@ -334,6 +336,7 @@
             },
             {
               "Let": {
+                "id": 1161,
                 "pattern": {
                   "Payload": {
                     "pat": {
@@ -426,6 +429,7 @@
           "statements": [
             {
               "Let": {
+                "id": 1277,
                 "pattern": {
                   "Payload": {
                     "pat": {
@@ -467,6 +471,7 @@
                       "statements": [
                         {
                           "Expr": {
+                            "id": 1336,
                             "expr": {
                               "Call": {
                                 "func": {
@@ -497,6 +502,7 @@
             },
             {
               "Expr": {
+                "id": 1388,
                 "expr": {
                   "Call": {
                     "func": {
@@ -519,6 +525,7 @@
             },
             {
               "Let": {
+                "id": 1476,
                 "pattern": {
                   "Payload": {
                     "pat": {
@@ -556,6 +563,7 @@
             },
             {
               "Expr": {
+                "id": 1531,
                 "expr": {
                   "Call": {
                     "func": {

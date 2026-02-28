@@ -176,6 +176,7 @@ mod tests {
                         id: 10,
                         statements: vec![
                             Stmt::Expr(ExprStmt {
+                                id: 28,
                                 expr: Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
                                         id: 28,
@@ -233,6 +234,7 @@ mod tests {
                     body: BlockStmt {
                         id: 19,
                         statements: vec![Stmt::Expr(ExprStmt {
+                            id: 37,
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: 37,
@@ -354,6 +356,7 @@ mod tests {
                     body: BlockStmt {
                         id: 28,
                         statements: vec![Stmt::Expr(ExprStmt {
+                            id: 46,
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: 46,

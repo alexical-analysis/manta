@@ -15,7 +15,7 @@ impl PrefixStmtParselet for LetParselet {
         &self,
         parser: &StmtParser,
         lexer: &mut Lexer,
-        _token: Token,
+        let_token: Token,
     ) -> Result<Stmt, ParseError> {
         let pattern = parser.parse_pattern(lexer)?;
 
@@ -73,6 +73,7 @@ impl PrefixStmtParselet for LetParselet {
                 };
 
                 Ok(Stmt::Let(LetStmt {
+                    id: let_token.source_id,
                     pattern,
                     value,
                     except,
@@ -84,6 +85,7 @@ impl PrefixStmtParselet for LetParselet {
                 let expr = parser.parse_expression(lexer)?;
 
                 Ok(Stmt::Let(LetStmt {
+                    id: let_token.source_id,
                     pattern,
                     value,
                     except: LetExcept::Wrap(expr),
@@ -93,12 +95,14 @@ impl PrefixStmtParselet for LetParselet {
                 lexer.next_token();
 
                 Ok(Stmt::Let(LetStmt {
+                    id: let_token.source_id,
                     pattern,
                     value,
                     except: LetExcept::Panic,
                 }))
             }
             TokenKind::Semicolon => Ok(Stmt::Let(LetStmt {
+                id: let_token.source_id,
                 pattern,
                 value,
                 except: LetExcept::None,

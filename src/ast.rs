@@ -200,6 +200,7 @@ pub enum Stmt {
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct LetStmt {
+    pub id: SourceID,
     pub pattern: Pattern,
     pub value: Expr,
     pub except: LetExcept,
@@ -219,12 +220,14 @@ pub enum LetExcept {
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct AssignStmt {
+    pub id: SourceID,
     pub lvalue: Expr,
     pub rvalue: Expr,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct ExprStmt {
+    pub id: SourceID,
     pub expr: Expr,
 }
 

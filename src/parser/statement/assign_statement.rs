@@ -14,11 +14,12 @@ impl InfixStmtParselet for AssignParselet {
         parser: &StmtParser,
         lexer: &mut Lexer,
         left: Expr,
-        _token: Token,
+        token: Token,
     ) -> Result<Stmt, ParseError> {
         let expr = parser.parse_expression(lexer)?;
 
         Ok(Stmt::Assign(AssignStmt {
+            id: token.source_id,
             lvalue: left,
             rvalue: expr,
         }))
