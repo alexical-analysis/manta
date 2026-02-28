@@ -40,6 +40,7 @@ fn main() -> std::io::Result<()> {
 
     // Ensure rebuild when tests change
     println!("cargo:rerun-if-changed=tests/src");
+    println!("cargo:rerun-if-changed=parser_unit_tests");
 
     let test_src = Path::new("tests/src");
     let mut files: Vec<(String, String)> = Vec::new();
@@ -76,6 +77,43 @@ fn main() -> std::io::Result<()> {
 
     let mut l = File::create(out_path.join("generated_lexer_tests.rs"))?;
     l.write_all(lexer_tests.as_bytes())?;
+
+    // parser unit tests (in parser_unit_tests directory)
+    let unit_src = Path::new("parser_unit_tests");
+    let mut unit_files: Vec<(String, String)> = Vec::new();
+
+    if unit_src.exists() {
+        for entry in fs::read_dir(unit_src)? {
+            let entry = entry?;
+            let path = entry.path();
+            if path.is_file() {
+                if let Some(ext) = path.extension().and_then(|s| s.to_str()) {
+                    if ext == "case" {
+                        if let (Some(fname), Some(stem)) = (
+                            path.file_name().and_then(|s| s.to_str()),
+                            path.file_stem().and_then(|s| s.to_str()),
+                        ) {
+                            unit_files.push((fname.to_string(), stem.to_string()));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    let mut u = File::create(out_path.join("generated_parser_unit_tests.rs"))?;
+    {
+        let mut out = String::new();
+        for (file_name, stem) in &unit_files {
+            let ident = sanitize_ident(stem);
+            let fn_name = format!("test_parser_unit_{}", ident);
+            out.push_str(&format!(
+                "#[test]\nfn {}() {{\n    let path = std::path::Path::new(\"parser_unit_tests/{}\");\n    assert_case_file_eq(path);\n}}\n\n",
+                fn_name, file_name
+            ));
+        }
+        u.write_all(out.as_bytes())?;
+    }
 
     Ok(())
 }

@@ -133,5 +133,107 @@ mod tests {
         }
     }
 
+    fn assert_case_file_eq(path: &Path) {
+        let source = match fs::read_to_string(path) {
+            Ok(s) => s,
+            Err(_) => panic!("Failed to read {}", path.display()),
+        };
+
+        // parse named tests in file: <name>: .. expect: ..
+        let mut cases: Vec<(String, String, String)> = Vec::new();
+        let mut cur_name: Option<String> = None;
+        let mut cur_input = String::new();
+        let mut cur_expect = String::new();
+        let mut reading_expect = false;
+
+        for line in source.lines() {
+            if line.trim_end().ends_with(':') {
+                let label = &line.trim_end()[..line.trim_end().len() - 1];
+                let label = label.trim();
+                if label.eq_ignore_ascii_case("expect") {
+                    reading_expect = true;
+                    continue;
+                } else {
+                    if let Some(name) = cur_name.take() {
+                        cases.push((name, cur_input.clone(), cur_expect.clone()));
+                        cur_input.clear();
+                        cur_expect.clear();
+                        reading_expect = false;
+                    }
+                    cur_name = Some(label.to_string());
+                    reading_expect = false;
+                    continue;
+                }
+            }
+
+            if cur_name.is_some() {
+                if reading_expect {
+                    cur_expect.push_str(line);
+                    cur_expect.push('\n');
+                } else {
+                    cur_input.push_str(line);
+                    cur_input.push('\n');
+                }
+            }
+        }
+
+        if let Some(name) = cur_name.take() {
+            cases.push((name, cur_input.clone(), cur_expect.clone()));
+        }
+
+        if cases.is_empty() {
+            panic!("No parser unit tests found in {}", path.display());
+        }
+
+        let mut needs_write = false;
+
+        for (name, input, expect) in &cases {
+            let mut str_store = StrStore::new();
+            let wrapped_input = format!("fn main() {{\n{}\n}}", input);
+            let parser = Parser::new(wrapped_input);
+            let ast = parser.parse_module(&mut str_store);
+            let json_output =
+                serde_json::to_string_pretty(&ast).expect("Failed to serialize AST to JSON");
+
+            if expect.trim().is_empty() {
+                needs_write = true;
+            } else {
+                let expected = expect.trim_end_matches('\n');
+                assert_eq!(
+                    json_output, expected,
+                    "Parser unit test mismatch for {} in file {:?}",
+                    name, path
+                );
+            }
+        }
+
+        if needs_write {
+            let mut rebuilt = String::new();
+            for (name, input, _) in &cases {
+                rebuilt.push_str(&format!("{}:\n", name));
+                rebuilt.push_str(input);
+                if !input.ends_with('\n') {
+                    rebuilt.push('\n');
+                }
+                rebuilt.push_str("expect:\n");
+                let mut str_store = StrStore::new();
+                let wrapped_input = format!("fn main {{\n{}\n}}", input);
+                let parser = Parser::new(wrapped_input);
+                let ast = parser.parse_module(&mut str_store);
+                let json_output =
+                    serde_json::to_string_pretty(&ast).expect("Failed to serialize AST to JSON");
+                rebuilt.push_str(&json_output);
+                rebuilt.push('\n');
+                rebuilt.push('\n');
+            }
+            fs::write(&path, rebuilt).expect("Failed to write regenerated parser unit tests");
+            panic!(
+                "Generated new parser unit test expected output in {:?}. Please verify",
+                path
+            );
+        }
+    }
+
     include!(concat!(env!("OUT_DIR"), "/generated_parser_tests.rs"));
+    include!(concat!(env!("OUT_DIR"), "/generated_parser_unit_tests.rs"));
 }
