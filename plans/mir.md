@@ -58,7 +58,7 @@ Terminator kinds (canonical set):
 - Return(value?)
 - Jump(target)
 - Branch(cond_value, true_target, false_target)
-- Switch(enum_value, {variant -> target})
+- SwitchVariant(value, {variant_id -> target, ...}) -- routes control based on the enum variant of the value
 - Unreachable (for proven-unreachable code)
 
 For pattern-or constructs and constructs that must attach a handler, an instruction will specify an explicit failure-success control split (see Instructions below). That instruction adds the handler block to the block's successor set for reachability and initialization analysis.
@@ -80,11 +80,14 @@ Instruction categories and representative forms (not exhaustive):
     - A form that encodes a call whose failure branch jumps to `handler`. Semantics: on the success path, call returns a value used by continuation; on the failure path the handler block is entered. Lowering: modeled as a call followed by a match-check (language semantics determine whether this is a true exception or a value-based Result-check).
 
 - Pattern matching with failure handlers:
-  - match(src: ValueId, {pattern -> target_block, ...}, default_handler: BlockId?)
-    - Evaluates src and tests it against patterns (which are part of the desugared `let x = pat or { ... }`, `let x = pat wrap { ... }`, etc. syntactic forms in the source).
-    - On a successful pattern match, control transfers to the corresponding target block with the pattern bindings available.
-    - On pattern match failure (no pattern matches), control transfers to the default_handler block.
-    - Verification rule: the handler block must not be able to reach continuation code that expects the bindings from a successful match (see "Validation & Flow Checks").
+  - switch_variant(src: ValueId, {variant_id -> target_block, ...})
+    - A terminator that routes control based on the enum variant discriminant of `src`.
+    - Each variant_id has an associated target block that is entered when that variant matches.
+    - Default/fallback variants can be represented with a catch-all arm or a separate handler block.
+  - variant_get_payload(src: ValueId, variant_id, field_index) -> ValueId
+    - Extracts the field at `field_index` from variant `variant_id` of the enum value `src`.
+    - This is used in the target blocks after a successful variant match to destructure and bind pattern variables.
+    - All pattern matching complexity (deciding which fields to extract) is handled during HIR->MIR lowering; MIR represents only explicit field extractions.
 
 - Move/Copy semantics:
   - move(dst_local, src_value)
@@ -98,7 +101,7 @@ Instruction categories and representative forms (not exhaustive):
 
 Two important design decisions:
 1. Locals are uninitialized by default. MIR tracks initialization state via dataflow analysis rather than relying on SSA alone. This makes the definite-initialization checker straightforward and conservative-correct.
-2. Match expressions with failure handlers are represented as explicit control-flow in the CFG (target blocks with bindings), allowing handler divergence to be verified against continuation code that expects those bindings.
+2. Pattern matching is decomposed into control-flow (`switch_variant` terminator) and data extraction (`variant_get_payload` instructions). This keeps MIR simple and maps directly to LLVM IR, deferring all pattern complexity to the HIR->MIR lowering stage.
 
 ## Definite-initialization analysis (flow-checking)
 
@@ -119,36 +122,37 @@ Pattern-bind-or semantics in the analysis:
 
 Problem: a match handler that returns control to the continuation would make the pattern-bound locals unavailable on some paths (i.e., the pattern would have failed but control still reaches the same continuation expecting the variables to be bound), which would create an unsound use of an uninitialized variable.
 
-Invariant to enforce: For each match instruction at block B with handler H that continues to point C on success and specifies handler H for failure, H must not be able to reach C (there is no path from H to C in the CFG), unless every path from H to C re-establishes (initializes) the same bindings prior to use.
+Invariant to enforce: For each `switch_variant` terminator at block B that specifies a handler/failure block H, H must not be able to reach continuation blocks that expect bindings from successful variant matches, unless every path from H to those blocks re-establishes (initializes) the same bindings prior to use.
 
 Practical checks to enforce this invariant:
-- Compute reachability from H. If C is reachable, then either:
+- Compute reachability from H. If a continuation block expecting specific bindings is reachable, then either:
   - Reject the pattern as invalid (simple conservative rule), OR
-  - Verify that all paths from H to C definitely initialize the required locals before the first use in C (more complex).
+  - Verify that all paths from H to that block definitely initialize the required locals before the first use (more complex).
 
-Recommended conservative policy (initial implementation): require that H not reach C (i.e., handler must be diverging with respect to C). Diverging includes return-from-function, break/continue to an enclosing construct that ensures C is not reached, panic, or otherwise branching to code that can't reach C.
+Recommended conservative policy (initial implementation): require that H not reach continuation code expecting specific bindings (i.e., handler must be diverging with respect to those continuations). Diverging includes return-from-function, break/continue to an enclosing construct that ensures the continuation is not reached, panic, or otherwise branching to code that can't reach the continuation.
 
-This check is implemented with a simple reachability traversal from H; if it finds C, it errors with guidance that the handler must not fallthrough into the continuation.
+This check is implemented with a simple reachability traversal from H; if it finds continuation code expecting bindings, it errors with guidance that the handler must not fallthrough into those continuations.
 
 ## Building MIR from HIR
 
 - For each function, create a MIRFunction with an entry block.
 - Map HIR local declarations:
-  - A simple `declare x` in the HIR creates a LocalId that is uninitialized by default; no explicit set_uninitialized instruction is needed (it is implicit).
+  - A simple `declare x` in the HIR creates a LocalId that is uninitialized by default; no explicit instruction is needed (it is implicit).
   - `assign x = expr` -> lower expr to MIR and emit store_local(x, tmp) to initialize the local.
 - Lower expressions to sequences of MIR instructions that produce ValueIds, use temporaries when necessary.
-- Lower match expressions (which in the HIR represent desugared syntactic forms like `let x = pat or { ... }`, `let x = pat wrap { ... }`, etc.) to match instructions with explicit target blocks for each pattern and a default handler block for failure.
-  - The HIR has already desugared all `let/or`, `let/wrap`, and `let/!` syntactic forms into distinct declaration and match instructions. MIR faithfully represents this structure.
-  - On a successful pattern match, bindings are stored into locals and control continues in the target block.
-  - On pattern match failure, control transfers to the handler block, which is verified separately to ensure it doesn't reach code expecting the bindings to exist.
+- Lower match expressions (which in the HIR represent desugared syntactic forms like `let x = pat or { ... }`, `let x = pat wrap { ... }`, etc.) into a `switch_variant` terminator with target blocks for each variant and a failure handler block.
+  - The HIR has already desugared all `let/or`, `let/wrap`, and `let/!` syntactic forms into distinct declaration and match instructions. During HIR->MIR lowering, the pattern matching logic (which fields to extract, how to destructure) is analyzed, and the result is a `switch_variant` terminator routing to appropriate blocks.
+  - In each target block, emit `variant_get_payload` instructions to extract the matched payload fields and `store_local` instructions to bind them into locals.
+  - The handler block is verified separately to ensure it doesn't reach code expecting the bindings to exist.
 - After constructing basic blocks, compute predecessors and run the definite-initialization analysis and reachability checks for handlers.
 
 ## Lowering to LLVM (mapping notes)
 
 - Blocks -> LLVM basic blocks
 - ValueIds -> LLVM values (SSA registers)
-- Locals -> LLVM alloca stack slots. Reads/writes become load/store instructions; a store_local becomes an `store` to the alloca, and load_local becomes a `load` from the alloca into an LLVM value.
-- Match instructions -> lowered to: evaluate src; test the discriminant against each pattern; conditional branch to the corresponding target block (with bindings stored into locals) or branch to the handler-target. The handler-target must not allow control to reach code expecting the bindings unless it reinitializes them.
+- Locals -> LLVM alloca stack slots. Reads/writes become load/store instructions; a store_local becomes a `store` to the alloca, and load_local becomes a `load` from the alloca into an LLVM value.
+- SwitchVariant terminators -> LLVM `switch` instructions on the variant discriminant, with one case per variant.
+- variant_get_payload instructions -> LLVM `extractvalue` or similar operations to extract struct/aggregate fields.
 - Terminators map directly to LLVM terminator instructions (br, ret, switch, unreachable, etc.).
 - Type information from MIR is preserved when emitting LLVM IR, ensuring type safety throughout lowering.
 - Verification must fully complete before lowering (e.g., handler reachability checks, definite-initialization checks), because lowering cannot magically prevent a handler from falling through.
@@ -165,9 +169,10 @@ blocks:
 
 bb0:
   tmp0 = call(write_file, f, buf)
-  match(tmp0, {.Ok(n_val) -> bb_success, .Err(_) -> bb_err})
+  switch_variant tmp0 { 0 => bb_success, 1 => bb_err }
 
 bb_success:
+  n_val = variant_get_payload(tmp0, 0, 0)  // Extract payload from variant 0, field 0
   store_local(n, n_val)  // n is now initialized
   use_n = load_local(n)
   return use_n
@@ -181,7 +186,7 @@ bb_err:
 
 - Each block must end with a single terminator.
 - No instruction may use a local that is not definitely initialized at that program point (definite-init check must pass before lowering).
-- For each match instruction with a handler block, the handler block must not be able to reach code that expects the bindings from a successful pattern match (or must re-initialize bindings on all paths) — conservative rejection otherwise.
+- For each `switch_variant` terminator with a failure handler block, the handler block must not be able to reach code that expects the bindings from a successful variant match (or must re-initialize bindings on all paths) — conservative rejection otherwise.
 - Block arguments/phi-like transfers must be explicit and consistent across predecessor edges.
 
 ## Open decisions (implementation scope, not speculative features)
@@ -190,4 +195,4 @@ bb_err:
 
 ## Summary
 
-This MIR is a block-based, typed representation designed to make definite-initialization checking and match-handler validation explicit and analyzable prior to lowering to LLVM. Key invariants (definite-init and handler non-reachability) are enforced via standard forward dataflow and reachability analyses. The MIR instruction set centers on explicit stores to locals, match instructions with failure handlers, and canonical terminators to keep lowering straightforward.
+This MIR is a block-based, typed representation designed to make definite-initialization checking and pattern-handler validation explicit and analyzable prior to lowering to LLVM. Key invariants (definite-init and handler non-reachability) are enforced via standard forward dataflow and reachability analyses. The MIR instruction set is intentionally simple, with pattern matching decomposed into explicit `switch_variant` terminators and `variant_get_payload` instructions, making the lowering to LLVM IR straightforward.
