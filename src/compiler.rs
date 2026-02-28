@@ -1,3 +1,4 @@
+use crate::blocker::block_hir;
 use crate::noder::node_module;
 use crate::parser::Parser;
 use crate::str_store::StrStore;
@@ -22,6 +23,18 @@ impl Compiler {
             panic!("errors in the parser: {:?}", module.get_errors())
         }
 
-        let _node_tree = node_module(module);
+        // build the HIR from the AST
+        let node_tree = node_module(module);
+
+        // build the MIR from the HIR
+        let _blocker = block_hir(node_tree);
+
+        // TODO: build the LLVM IR from the MIR
+
+        // TODO: generate a .o file using llvm
+
+        // TODO: run the system linker to generate a final binary file
+
+        // TODO: print any errors the were encountered during compilation
     }
 }

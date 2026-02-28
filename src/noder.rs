@@ -58,7 +58,7 @@ impl<K: Ord + Debug, V> SideTable<K, V> {
 #[derive(Serialize)]
 pub struct NodeTree {
     nodes: Vec<Node>,
-    roots: Vec<NodeID>,
+    pub roots: Vec<NodeID>,
     // the type_map maps each node in the node tree to it's type (if it has one)
     type_map: SideTable<NodeID, TypeSpec>,
     // the symbol_map maps a bindings symbol id, which is related to it's declaratoin site, to the

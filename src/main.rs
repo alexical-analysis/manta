@@ -1,6 +1,8 @@
 mod ast;
+mod blocker;
 mod compiler;
 mod hir;
+mod mir;
 mod noder;
 mod parser;
 mod str_store;
