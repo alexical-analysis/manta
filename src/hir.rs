@@ -8,7 +8,18 @@ use crate::str_store::StrID;
 // It removes syntactic sugar and represents all code uniformly as a tree of nodes.
 
 /// NodeID is the unique identifier for a gien node in the HIR tree
-pub type NodeID = usize;
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Serialize)]
+pub struct NodeID(usize);
+
+impl NodeID {
+    pub fn from_usize(idx: usize) -> Self {
+        NodeID(idx)
+    }
+
+    pub fn to_usize(&self) -> usize {
+        self.0
+    }
+}
 
 /// A single node type that can represent any construct in the HIR
 #[derive(Debug, PartialEq, Clone, Serialize)]
@@ -92,7 +103,7 @@ pub enum Node {
     },
 
     EnumConstructor {
-        target: Option<StrID>,
+        target: Option<NodeID>,
         variant: StrID,
         payload: Option<NodeID>,
     },

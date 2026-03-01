@@ -295,7 +295,7 @@ mod tests {
         IdentifierExpr, IndexExpr, MetaTypeExpr, TypeSpec, UnaryExpr, UnaryOp,
     };
     use crate::parser::lexer::Lexer;
-    use crate::str_store::StrStore;
+    use crate::str_store::{StrID, StrStore};
     use pretty_assertions::assert_eq;
 
     macro_rules! test_parse_expressions {
@@ -346,7 +346,7 @@ mod tests {
         parse_expression_empty_string {
             input: r#""""#,
             want_var: Expr::StringLiteral(s),
-            want_value: assert_eq!(s, 0),
+            want_value: assert_eq!(s, StrID(0)),
         },
         parse_expression_int_literal {
             input: "42",
@@ -356,7 +356,7 @@ mod tests {
         parse_expression_string_literal {
             input: r#""hello world""#,
             want_var: Expr::StringLiteral(s),
-            want_value: assert_eq!(s, 0),
+            want_value: assert_eq!(s, StrID(0)),
         },
         parse_expression_bool_true {
             input: "true",
@@ -371,12 +371,12 @@ mod tests {
         parse_expression_identifier {
             input: "myVariable",
             want_var: Expr::Identifier(ident),
-            want_value: assert_eq!(ident.name, 0),
+            want_value: assert_eq!(ident.name, StrID(0)),
         },
         parse_expression_identifier_single_char {
             input: "x",
             want_var: Expr::Identifier(ident),
-            want_value: assert_eq!(ident.name, 0),
+            want_value: assert_eq!(ident.name, StrID(0)),
         },
         parse_expression_negative_int {
             input: "-42",
@@ -432,7 +432,10 @@ mod tests {
                 expr,
                 UnaryExpr {
                     operator: UnaryOp::Dereference,
-                    operand: Box::new(Expr::Identifier(IdentifierExpr { id: 1, name: 1 })),
+                    operand: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 1,
+                        name: StrID(1)
+                    })),
                 },
             ),
         },
@@ -443,7 +446,10 @@ mod tests {
                 expr,
                 UnaryExpr {
                     operator: UnaryOp::AddressOf,
-                    operand: Box::new(Expr::Identifier(IdentifierExpr { id: 1, name: 1 })),
+                    operand: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 1,
+                        name: StrID(1)
+                    })),
                 },
             ),
         },
@@ -456,7 +462,10 @@ mod tests {
                     operator: UnaryOp::Dereference,
                     operand: Box::new(Expr::Unary(UnaryExpr {
                         operator: UnaryOp::Dereference,
-                        operand: Box::new(Expr::Identifier(IdentifierExpr { id: 2, name: 1 })),
+                        operand: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: 2,
+                            name: StrID(1)
+                        })),
                     })),
                 },
             ),
@@ -470,7 +479,10 @@ mod tests {
                     operator: UnaryOp::Negate,
                     operand: Box::new(Expr::Unary(UnaryExpr {
                         operator: UnaryOp::Not,
-                        operand: Box::new(Expr::Identifier(IdentifierExpr { id: 2, name: 2 })),
+                        operand: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: 2,
+                            name: StrID(2)
+                        })),
                     })),
                 },
             ),
@@ -482,7 +494,10 @@ mod tests {
                 expr,
                 UnaryExpr {
                     operator: UnaryOp::Negate,
-                    operand: Box::new(Expr::Identifier(IdentifierExpr { id: 2, name: 2 })),
+                    operand: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 2,
+                        name: StrID(2)
+                    })),
                 },
             ),
         },
@@ -495,7 +510,10 @@ mod tests {
                     operator: UnaryOp::Negate,
                     operand: Box::new(Expr::Unary(UnaryExpr {
                         operator: UnaryOp::Not,
-                        operand: Box::new(Expr::Identifier(IdentifierExpr { id: 3, name: 3 })),
+                        operand: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: 3,
+                            name: StrID(3)
+                        })),
                     })),
                 }
             ),
@@ -598,9 +616,15 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 BinaryExpr {
-                    left: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
+                    left: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 0,
+                        name: StrID(0)
+                    })),
                     operator: BinaryOp::Equal,
-                    right: Box::new(Expr::Identifier(IdentifierExpr { id: 5, name: 2 })),
+                    right: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 5,
+                        name: StrID(2)
+                    })),
                 }
             ),
         },
@@ -610,9 +634,15 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 BinaryExpr {
-                    left: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
+                    left: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 0,
+                        name: StrID(0)
+                    })),
                     operator: BinaryOp::NotEqual,
-                    right: Box::new(Expr::Identifier(IdentifierExpr { id: 5, name: 2 })),
+                    right: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 5,
+                        name: StrID(2)
+                    })),
                 },
             ),
         },
@@ -624,7 +654,10 @@ mod tests {
                 BinaryExpr {
                     left: Box::new(Expr::IntLiteral(4)),
                     operator: BinaryOp::LessThan,
-                    right: Box::new(Expr::Identifier(IdentifierExpr { id: 4, name: 2 })),
+                    right: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 4,
+                        name: StrID(2)
+                    })),
                 },
             ),
         },
@@ -634,9 +667,15 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 BinaryExpr {
-                    left: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
+                    left: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 0,
+                        name: StrID(0)
+                    })),
                     operator: BinaryOp::GreaterThan,
-                    right: Box::new(Expr::Identifier(IdentifierExpr { id: 4, name: 2 })),
+                    right: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 4,
+                        name: StrID(2)
+                    })),
                 },
             ),
         },
@@ -646,9 +685,15 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 BinaryExpr {
-                    left: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
+                    left: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 0,
+                        name: StrID(0)
+                    })),
                     operator: BinaryOp::LessThanOrEqual,
-                    right: Box::new(Expr::Identifier(IdentifierExpr { id: 5, name: 2 })),
+                    right: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 5,
+                        name: StrID(2)
+                    })),
                 },
             ),
         },
@@ -658,7 +703,10 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 BinaryExpr {
-                    left: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
+                    left: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 0,
+                        name: StrID(0)
+                    })),
                     operator: BinaryOp::GreaterThanOrEqual,
                     right: Box::new(Expr::IntLiteral(9)),
                 },
@@ -673,13 +721,19 @@ mod tests {
                     left: Box::new(Expr::Binary(BinaryExpr {
                         left: Box::new(Expr::FloatLiteral(3.45)),
                         operator: BinaryOp::Equal,
-                        right: Box::new(Expr::Identifier(IdentifierExpr { id: 8, name: 2 })),
+                        right: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: 8,
+                            name: StrID(2)
+                        })),
                     })),
                     operator: BinaryOp::LogicalAnd,
                     right: Box::new(Expr::Binary(BinaryExpr {
                         left: Box::new(Expr::BoolLiteral(true)),
                         operator: BinaryOp::NotEqual,
-                        right: Box::new(Expr::Identifier(IdentifierExpr { id: 21, name: 6 })),
+                        right: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: 21,
+                            name: StrID(6)
+                        })),
                     })),
                 },
             ),
@@ -695,7 +749,10 @@ mod tests {
                     right: Box::new(Expr::Binary(BinaryExpr {
                         left: Box::new(Expr::IntLiteral(2)),
                         operator: BinaryOp::BitwiseAnd,
-                        right: Box::new(Expr::Identifier(IdentifierExpr { id: 8, name: 4 })),
+                        right: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: 8,
+                            name: StrID(4)
+                        })),
                     })),
                 },
             ),
@@ -706,7 +763,10 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 CallExpr {
-                    func: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
+                    func: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 0,
+                        name: StrID(0)
+                    })),
                     args: vec![],
                 },
             ),
@@ -717,10 +777,16 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 CallExpr {
-                    func: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
+                    func: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 0,
+                        name: StrID(0)
+                    })),
                     args: vec![Expr::Unary(UnaryExpr {
                         operator: UnaryOp::Dereference,
-                        operand: Box::new(Expr::Identifier(IdentifierExpr { id: 13, name: 3 })),
+                        operand: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: 13,
+                            name: StrID(3)
+                        })),
                     })],
                 }
             ),
@@ -731,10 +797,16 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 CallExpr {
-                    func: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
+                    func: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 0,
+                        name: StrID(0)
+                    })),
                     args: vec![
                         Expr::IntLiteral(1),
-                        Expr::Identifier(IdentifierExpr { id: 7, name: 4 }),
+                        Expr::Identifier(IdentifierExpr {
+                            id: 7,
+                            name: StrID(4)
+                        }),
                         Expr::IntLiteral(3),
                     ],
                 },
@@ -746,7 +818,10 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 IndexExpr {
-                    target: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
+                    target: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 0,
+                        name: StrID(0)
+                    })),
                     index: Box::new(Expr::IntLiteral(5)),
                 },
             ),
@@ -757,9 +832,15 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 IndexExpr {
-                    target: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
+                    target: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 0,
+                        name: StrID(0)
+                    })),
                     index: Box::new(Expr::Binary(BinaryExpr {
-                        left: Box::new(Expr::Identifier(IdentifierExpr { id: 7, name: 2 })),
+                        left: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: 7,
+                            name: StrID(2)
+                        })),
                         operator: BinaryOp::Add,
                         right: Box::new(Expr::IntLiteral(1)),
                     })),
@@ -772,10 +853,19 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 IndexExpr {
-                    target: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
+                    target: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 0,
+                        name: StrID(0)
+                    })),
                     index: Box::new(Expr::Index(IndexExpr {
-                        target: Box::new(Expr::Identifier(IdentifierExpr { id: 5, name: 2 })),
-                        index: Box::new(Expr::Identifier(IdentifierExpr { id: 10, name: 3 })),
+                        target: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: 5,
+                            name: StrID(2)
+                        })),
+                        index: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: 10,
+                            name: StrID(3)
+                        })),
                     })),
                 },
             ),
@@ -788,12 +878,24 @@ mod tests {
                 IndexExpr {
                     target: Box::new(Expr::Index(IndexExpr {
                         target: Box::new(Expr::Index(IndexExpr {
-                            target: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
-                            index: Box::new(Expr::Identifier(IdentifierExpr { id: 7, name: 2 })),
+                            target: Box::new(Expr::Identifier(IdentifierExpr {
+                                id: 0,
+                                name: StrID(0)
+                            })),
+                            index: Box::new(Expr::Identifier(IdentifierExpr {
+                                id: 7,
+                                name: StrID(2)
+                            })),
                         })),
-                        index: Box::new(Expr::Identifier(IdentifierExpr { id: 10, name: 4 })),
+                        index: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: 10,
+                            name: StrID(4)
+                        })),
                     })),
-                    index: Box::new(Expr::Identifier(IdentifierExpr { id: 13, name: 5 })),
+                    index: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 13,
+                        name: StrID(5)
+                    })),
                 },
             ),
         },
@@ -805,9 +907,9 @@ mod tests {
                 DotAccessExpr {
                     target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                         id: 0,
-                        name: 0
+                        name: StrID(0)
                     }))),
-                    field: 2,
+                    field: StrID(2),
                 }
             ),
         },
@@ -820,11 +922,11 @@ mod tests {
                     target: Some(Box::new(Expr::DotAccess(DotAccessExpr {
                         target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                             id: 0,
-                            name: 0
+                            name: StrID(0)
                         }))),
-                        field: 2,
+                        field: StrID(2),
                     }))),
-                    field: 3,
+                    field: StrID(3),
                 },
             ),
         },
@@ -835,10 +937,13 @@ mod tests {
                 expr,
                 DotAccessExpr {
                     target: Some(Box::new(Expr::Index(IndexExpr {
-                        target: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
+                        target: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: 0,
+                            name: StrID(0)
+                        })),
                         index: Box::new(Expr::IntLiteral(0)),
                     }))),
-                    field: 5,
+                    field: StrID(5),
                 },
             ),
         },
@@ -852,13 +957,13 @@ mod tests {
                         func: Box::new(Expr::DotAccess(DotAccessExpr {
                             target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                                 id: 0,
-                                name: 0
+                                name: StrID(0)
                             }))),
-                            field: 2,
+                            field: StrID(2),
                         })),
                         args: vec![],
                     }))),
-                    field: 5,
+                    field: StrID(5),
                 },
             ),
         },
@@ -887,7 +992,7 @@ mod tests {
                     options: vec![Expr::Call(CallExpr {
                         func: Box::new(Expr::DotAccess(DotAccessExpr {
                             target: None,
-                            field: 7,
+                            field: StrID(7),
                         })),
                         args: vec![Expr::IntLiteral(10)],
                     })],
@@ -907,13 +1012,13 @@ mod tests {
                         Expr::Call(CallExpr {
                             func: Box::new(Expr::DotAccess(DotAccessExpr {
                                 target: None,
-                                field: 7,
+                                field: StrID(7),
                             })),
                             args: vec![Expr::IntLiteral(15)],
                         }),
                         Expr::DotAccess(DotAccessExpr {
                             target: None,
-                            field: 10,
+                            field: StrID(10),
                         })
                     ],
                 },
@@ -932,7 +1037,7 @@ mod tests {
                             })),
                             options: vec![],
                         }))),
-                        field: 5,
+                        field: StrID(5),
                     })),
                     args: vec![],
                 }
@@ -944,7 +1049,10 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 FreeExpr {
-                    expr: Box::new(Expr::Identifier(IdentifierExpr { id: 5, name: 2 })),
+                    expr: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 5,
+                        name: StrID(2)
+                    })),
                 }
             ),
         },
@@ -958,11 +1066,11 @@ mod tests {
                         target: Some(Box::new(Expr::DotAccess(DotAccessExpr {
                             target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                                 id: 5,
-                                name: 2
+                                name: StrID(2)
                             }))),
-                            field: 4,
+                            field: StrID(4),
                         }))),
-                        field: 5,
+                        field: StrID(5),
                     })),
                 }
             ),
@@ -974,7 +1082,7 @@ mod tests {
                 expr,
                 DotAccessExpr {
                     target: None,
-                    field: 1,
+                    field: StrID(1),
                 },
             ),
         },
@@ -984,11 +1092,14 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 BinaryExpr {
-                    left: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
+                    left: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 0,
+                        name: StrID(0)
+                    })),
                     operator: BinaryOp::Equal,
                     right: Box::new(Expr::DotAccess(DotAccessExpr {
                         target: None,
-                        field: 3,
+                        field: StrID(3),
                     })),
                 },
             ),
@@ -1011,7 +1122,7 @@ mod tests {
                 MetaTypeExpr {
                     type_spec: TypeSpec::Slice(Box::new(TypeSpec::Named {
                         module: None,
-                        name: 3,
+                        name: StrID(3),
                     }))
                 },
             ),
@@ -1024,8 +1135,8 @@ mod tests {
                 MetaTypeExpr {
                     type_spec: TypeSpec::Array(ArrayType {
                         type_spec: Box::new(TypeSpec::Named {
-                            module: Some(4),
-                            name: 6,
+                            module: Some(StrID(4)),
+                            name: StrID(6),
                         }),
                         size: 25,
                     })
@@ -1073,7 +1184,7 @@ mod tests {
         parse_expression_grouped_identifier {
             input: "(myVar)",
             want_var: Expr::Identifier(ident),
-            want_value: assert_eq!(ident.name, 1),
+            want_value: assert_eq!(ident.name, StrID(1)),
         },
         parse_expression_alloc_single_arg {
             input: "alloc(@i32)",
@@ -1107,9 +1218,15 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 CallExpr {
-                    func: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
+                    func: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: 0,
+                        name: StrID(0)
+                    })),
                     args: vec![Expr::Call(CallExpr {
-                        func: Box::new(Expr::Identifier(IdentifierExpr { id: 4, name: 2 })),
+                        func: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: 4,
+                            name: StrID(2)
+                        })),
 
                         args: vec![Expr::IntLiteral(5)],
                     })],

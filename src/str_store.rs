@@ -1,10 +1,18 @@
+use serde::Serialize;
 use std::collections::HashMap;
 
 /// A type alias for string identifiers. Used to efficiently reference interned strings
 /// without storing duplicate string data.
 /// StrID types are safe to compare like strings since the same string will always map to the
 /// same StrID
-pub type StrID = usize;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+pub struct StrID(pub usize);
+
+impl StrID {
+    pub fn to_usize(&self) -> usize {
+        self.0
+    }
+}
 
 // Some key strings are hard coded as package constants these include type names
 // and internal string values
@@ -14,33 +22,33 @@ pub type StrID = usize;
 // constant values will actually be different. Do we care that you won't be able to build/test the
 // complier on 32-bit systems? For now no, but what systems still in play use 32-bit architectures?
 // Is it just embedded systems?
-pub const NIL: StrID = usize::MAX;
+pub const NIL: StrID = StrID(usize::MAX);
 
-pub const U8: StrID = usize::MAX - 1;
-pub const U16: StrID = usize::MAX - 2;
-pub const U32: StrID = usize::MAX - 3;
-pub const U64: StrID = usize::MAX - 4;
+pub const U8: StrID = StrID(usize::MAX - 1);
+pub const U16: StrID = StrID(usize::MAX - 2);
+pub const U32: StrID = StrID(usize::MAX - 3);
+pub const U64: StrID = StrID(usize::MAX - 4);
 
-pub const I8: StrID = usize::MAX - 5;
-pub const I16: StrID = usize::MAX - 6;
-pub const I32: StrID = usize::MAX - 7;
-pub const I64: StrID = usize::MAX - 8;
+pub const I8: StrID = StrID(usize::MAX - 5);
+pub const I16: StrID = StrID(usize::MAX - 6);
+pub const I32: StrID = StrID(usize::MAX - 7);
+pub const I64: StrID = StrID(usize::MAX - 8);
 
-pub const F32: StrID = usize::MAX - 9;
-pub const F64: StrID = usize::MAX - 10;
+pub const F32: StrID = StrID(usize::MAX - 9);
+pub const F64: StrID = StrID(usize::MAX - 10);
 
-pub const STR: StrID = usize::MAX - 11;
-pub const BOOL: StrID = usize::MAX - 12;
+pub const STR: StrID = StrID(usize::MAX - 11);
+pub const BOOL: StrID = StrID(usize::MAX - 12);
 
-pub const WRAP: StrID = usize::MAX - 13;
-pub const PANIC: StrID = usize::MAX - 14;
+pub const WRAP: StrID = StrID(usize::MAX - 13);
+pub const PANIC: StrID = StrID(usize::MAX - 14);
 
 // these are used for the internal meta struct for type information
-pub const SIZEOF: StrID = usize::MAX - 15;
-pub const ALIGNOF: StrID = usize::MAX - 16;
-pub const METAFLAGS: StrID = usize::MAX - 17;
+pub const SIZEOF: StrID = StrID(usize::MAX - 15);
+pub const ALIGNOF: StrID = StrID(usize::MAX - 16);
+pub const METAFLAGS: StrID = StrID(usize::MAX - 17);
 
-pub const INNERLET: StrID = usize::MAX - 18;
+pub const INNERLET: StrID = StrID(usize::MAX - 18);
 
 fn constant_str_id(s: &str) -> Option<StrID> {
     match s {
@@ -72,35 +80,39 @@ fn constant_str_id(s: &str) -> Option<StrID> {
 }
 
 fn constant_id_str(id: StrID) -> Option<&'static str> {
-    match id {
-        U8 => Some("u8"),
-        U16 => Some("u16"),
-        U32 => Some("u32"),
-        U64 => Some("u64"),
-        I8 => Some("i8"),
-        I16 => Some("i16"),
-        I32 => Some("i32"),
-        I64 => Some("i64"),
-        F32 => Some("f32"),
-        F64 => Some("f64"),
-        STR => Some("str"),
-        BOOL => Some("bool"),
+    if id.0 == U8.0 { Some("u8") } else { Some("") }
 
-        // keywords used throughout the complier
-        PANIC => Some("panic"),
-        SIZEOF => Some("size_of"),
-        ALIGNOF => Some("align_of"),
-        METAFLAGS => Some("flags"),
+    /*
+        match id {
+            U8 => Some("u8"),
+            U16 => Some("u16"),
+            U32 => Some("u32"),
+            U64 => Some("u64"),
+            I8 => Some("i8"),
+            I16 => Some("i16"),
+            I32 => Some("i32"),
+            I64 => Some("i64"),
+            F32 => Some("f32"),
+            F64 => Some("f64"),
+            STR => Some("str"),
+            BOOL => Some("bool"),
 
-        // this is not a valid identifier so we can use it in the compiler
-        // without worrying about conflicting with user identifiers
-        WRAP => Some("<wrap>"),
-        INNERLET => Some("<inner let>"),
+            // keywords used throughout the complier
+            PANIC => Some("panic"),
+            SIZEOF => Some("size_of"),
+            ALIGNOF => Some("align_of"),
+            METAFLAGS => Some("flags"),
 
-        // Nil is also not a valid identifier
-        NIL => Some("<nil>"),
-        _ => None,
-    }
+            // this is not a valid identifier so we can use it in the compiler
+            // without worrying about conflicting with user identifiers
+            WRAP => Some("<wrap>"),
+            INNERLET => Some("<inner let>"),
+
+            // Nil is also not a valid identifier
+            NIL => Some("<nil>"),
+            _ => None,
+        }
+    */
 }
 
 /// A string interning store that maps strings to unique identifiers.
@@ -154,7 +166,7 @@ impl StrStore {
             Some(id) => *id,
             // New string encountered, assign it a new ID
             None => {
-                let id = self.next_id;
+                let id = StrID(self.next_id);
                 self.next_id += 1;
                 self.strings.insert(s.to_string(), id);
                 self.reverse_strings.push(s.to_string());
@@ -167,7 +179,7 @@ impl StrStore {
     pub fn get_string(&self, id: StrID) -> Option<String> {
         match constant_id_str(id) {
             Some(id) => Some(id.to_string()),
-            None => self.reverse_strings.get(id).cloned(),
+            None => self.reverse_strings.get(id.to_usize()).cloned(),
         }
     }
 
@@ -188,7 +200,7 @@ mod tests {
     fn test_first_string_gets_id_zero() {
         let mut store = StrStore::new();
         let id = store.get_id("hello");
-        assert_eq!(id, 0);
+        assert_eq!(id, StrID(0));
     }
 
     #[test]
@@ -228,7 +240,7 @@ mod tests {
         let id1 = store.get_id("");
         let id2 = store.get_id("");
         assert_eq!(id1, id2);
-        assert_eq!(id1, 0);
+        assert_eq!(id1, StrID(0));
     }
 
     #[test]
