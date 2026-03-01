@@ -124,7 +124,7 @@ pub fn parse_type(lexer: &mut Lexer, token: Token) -> Result<TypeSpec, ParseErro
 mod tests {
     use super::*;
     use crate::parser::lexer::Lexer;
-    use crate::str_store::StrStore;
+    use crate::str_store::{StrID, StrStore};
 
     macro_rules! test_parse_type_spec {
         ($( $case:ident { input: $input:expr, want: $want:expr, }),*, ) => {
@@ -150,7 +150,7 @@ mod tests {
             input: "MyType",
             want: TypeSpec::Named {
                 module: None,
-                name: 0,
+                name: StrID(0),
             },
         },
         parse_type_pointer_type {

@@ -296,7 +296,7 @@ impl Module {
                         Token {
                             kind: TokenKind::Identifier,
                             source_id: 0,
-                            lexeme_id: 0,
+                            lexeme_id: StrID(0),
                         },
                         "only a single module name is allowed per file".to_string(),
                     ));
@@ -320,7 +320,7 @@ impl Module {
                             Token {
                                 kind: TokenKind::Identifier,
                                 source_id: 0,
-                                lexeme_id: 0,
+                                lexeme_id: StrID(0),
                             },
                             "first declaration in a file must be the module name".to_string(),
                         ));
@@ -331,7 +331,7 @@ impl Module {
                         Token {
                             kind: TokenKind::Identifier,
                             source_id: 0,
-                            lexeme_id: 0,
+                            lexeme_id: StrID(0),
                         },
                         "only a single import section allowed per file, and it must be right below the module name".to_string(),
                     ));
@@ -562,10 +562,11 @@ impl Module {
                     sym_table.add_scope_pos(expr.id);
                 }
                 None => errors.push(ParseError::Custom(
+                    // TODO: need the acutal token here, not just this placeholder
                     Token {
                         kind: TokenKind::Identifier,
                         source_id: 0,
-                        lexeme_id: 0,
+                        lexeme_id: StrID(0),
                     },
                     "use of unknown identifier".to_string(),
                 )),
@@ -602,7 +603,7 @@ impl Module {
                     Token {
                         kind: TokenKind::Identifier,
                         source_id: 0,
-                        lexeme_id: 0,
+                        lexeme_id: StrID(0),
                     },
                     "modules are not yet supported".to_string(),
                 ));
@@ -632,10 +633,11 @@ impl Module {
                 if let Some(_module) = module {
                     // TODO: modules are not yet supported just skip things for now
                     errors.push(ParseError::Custom(
+                        // TODO: need the actual token here
                         Token {
                             kind: TokenKind::Identifier,
                             source_id: 0,
-                            lexeme_id: 0,
+                            lexeme_id: StrID(0),
                         },
                         "modules are not yet supported".to_string(),
                     ));
@@ -648,7 +650,7 @@ impl Module {
                         Token {
                             kind: TokenKind::Identifier,
                             source_id: 0,
-                            lexeme_id: 0,
+                            lexeme_id: StrID(0),
                         },
                         "use of unknown type".to_string(),
                     )),

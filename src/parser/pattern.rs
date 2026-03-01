@@ -117,7 +117,7 @@ mod test {
         ArrayType, DotAccessPat, IdentifierPat, ModuleAccesPat, Pattern, PayloadPat, TypeSpec,
     };
     use crate::parser::lexer::Lexer;
-    use crate::str_store::StrStore;
+    use crate::str_store::{self, StrID, StrStore};
     use pretty_assertions::assert_eq;
 
     macro_rules! test_parse_patterns {
@@ -142,7 +142,7 @@ mod test {
         },
         parse_pattern_string_literal {
             input: r#""hello" {"#,
-            want: Pattern::StringLiteral(0),
+            want: Pattern::StringLiteral(StrID(0)),
         },
         parse_pattern_float_literal {
             input: "3.45 {",
@@ -162,23 +162,29 @@ mod test {
         },
         parse_pattern_identifier {
             input: "my_var =",
-            want: Pattern::Identifier(IdentifierPat { id: 0, name: 0 }),
+            want: Pattern::Identifier(IdentifierPat {
+                id: 0,
+                name: StrID(0)
+            }),
         },
         parse_pattern_type_match {
             input: "f32(f) =",
             want: Pattern::Payload(PayloadPat {
                 pat: Box::new(Pattern::Identifier(IdentifierPat {
                     id: 0,
-                    name: 18446744073709551606
+                    name: str_store::F32,
                 })),
-                payload: IdentifierPat { id: 4, name: 1 },
+                payload: IdentifierPat {
+                    id: 4,
+                    name: StrID(1)
+                },
             }),
         },
         parse_pattern_pointer {
             input: "*foo =",
             want: Pattern::TypeSpec(TypeSpec::Pointer(Box::new(TypeSpec::Named {
                 module: None,
-                name: 1,
+                name: StrID(1),
             }))),
         },
         parse_pattern_double_pointer {
@@ -186,7 +192,7 @@ mod test {
             want: Pattern::TypeSpec(TypeSpec::Pointer(Box::new(TypeSpec::Pointer(Box::new(
                 TypeSpec::Named {
                     module: None,
-                    name: 1,
+                    name: StrID(1),
                 }
             ))))),
         },
@@ -194,7 +200,7 @@ mod test {
             input: "[]Vec2 =",
             want: Pattern::TypeSpec(TypeSpec::Slice(Box::new(TypeSpec::Named {
                 module: None,
-                name: 2,
+                name: StrID(2),
             }))),
         },
         parse_pattern_3d_array {
@@ -216,29 +222,41 @@ mod test {
                 size: 3,
                 type_spec: Box::new(TypeSpec::Pointer(Box::new(TypeSpec::Slice(Box::new(
                     TypeSpec::Pointer(Box::new(TypeSpec::Named {
-                        module: Some(4),
-                        name: 6,
+                        module: Some(StrID(4)),
+                        name: StrID(6),
                     }))
                 ))))),
             }),),
         },
         parse_pattern_simple_identifier {
             input: "foo {",
-            want: Pattern::Identifier(IdentifierPat { id: 0, name: 0 }),
+            want: Pattern::Identifier(IdentifierPat {
+                id: 0,
+                name: StrID(0)
+            }),
         },
         parse_pattern_variable_name {
             input: "my_variable {",
-            want: Pattern::Identifier(IdentifierPat { id: 0, name: 0 }),
+            want: Pattern::Identifier(IdentifierPat {
+                id: 0,
+                name: StrID(0)
+            }),
         },
         parse_pattern_identifier_with_numbers {
             input: "var123 {",
-            want: Pattern::Identifier(IdentifierPat { id: 0, name: 0 }),
+            want: Pattern::Identifier(IdentifierPat {
+                id: 0,
+                name: StrID(0)
+            }),
         },
         parse_pattern_dot_inferred_variant {
             input: ".Ok =",
             want: Pattern::DotAccess(DotAccessPat {
                 target: None,
-                field: IdentifierPat { id: 1, name: 1 },
+                field: IdentifierPat {
+                    id: 1,
+                    name: StrID(1)
+                },
             }),
         },
         parse_pattern_dot_variant {
@@ -246,52 +264,82 @@ mod test {
             want: Pattern::DotAccess(DotAccessPat {
                 target: Some(Box::new(Pattern::Identifier(IdentifierPat {
                     id: 0,
-                    name: 0
+                    name: StrID(0)
                 }))),
-                field: IdentifierPat { id: 4, name: 2 },
+                field: IdentifierPat {
+                    id: 4,
+                    name: StrID(2)
+                },
             },),
         },
         parse_pattern_module_access_identifier {
             input: "math::Vec3 =",
             want: Pattern::ModuleAccess(ModuleAccesPat {
-                module: Box::new(IdentifierPat { id: 0, name: 0 }),
-                pat: Box::new(Pattern::Identifier(IdentifierPat { id: 6, name: 2 })),
+                module: Box::new(IdentifierPat {
+                    id: 0,
+                    name: StrID(0)
+                }),
+                pat: Box::new(Pattern::Identifier(IdentifierPat {
+                    id: 6,
+                    name: StrID(2)
+                })),
             }),
         },
         parse_pattern_module_access_dot_variant {
             input: "result::Ret.Ok =",
             want: Pattern::ModuleAccess(ModuleAccesPat {
-                module: Box::new(IdentifierPat { id: 0, name: 0 }),
+                module: Box::new(IdentifierPat {
+                    id: 0,
+                    name: StrID(0)
+                }),
                 pat: Box::new(Pattern::DotAccess(DotAccessPat {
                     target: Some(Box::new(Pattern::Identifier(IdentifierPat {
                         id: 8,
-                        name: 2
+                        name: StrID(2)
                     }))),
-                    field: IdentifierPat { id: 12, name: 4 },
+                    field: IdentifierPat {
+                        id: 12,
+                        name: StrID(4)
+                    },
                 })),
             }),
         },
         parse_pattern_module_access_payload {
             input: "std::Option.Some(x) {",
             want: Pattern::ModuleAccess(ModuleAccesPat {
-                module: Box::new(IdentifierPat { id: 0, name: 0 }),
+                module: Box::new(IdentifierPat {
+                    id: 0,
+                    name: StrID(0)
+                }),
                 pat: Box::new(Pattern::Payload(PayloadPat {
                     pat: Box::new(Pattern::DotAccess(DotAccessPat {
                         target: Some(Box::new(Pattern::Identifier(IdentifierPat {
                             id: 5,
-                            name: 2
+                            name: StrID(2)
                         }))),
-                        field: IdentifierPat { id: 12, name: 4 },
+                        field: IdentifierPat {
+                            id: 12,
+                            name: StrID(4)
+                        },
                     })),
-                    payload: IdentifierPat { id: 17, name: 6 },
+                    payload: IdentifierPat {
+                        id: 17,
+                        name: StrID(6)
+                    },
                 })),
             }),
         },
         parse_pattern_payload_simple {
             input: "Result(err) =",
             want: Pattern::Payload(PayloadPat {
-                pat: Box::new(Pattern::Identifier(IdentifierPat { id: 0, name: 0 })),
-                payload: IdentifierPat { id: 7, name: 2 },
+                pat: Box::new(Pattern::Identifier(IdentifierPat {
+                    id: 0,
+                    name: StrID(0)
+                })),
+                payload: IdentifierPat {
+                    id: 7,
+                    name: StrID(2)
+                },
             }),
         },
         parse_pattern_payload_dot_access {
@@ -300,11 +348,17 @@ mod test {
                 pat: Box::new(Pattern::DotAccess(DotAccessPat {
                     target: Some(Box::new(Pattern::Identifier(IdentifierPat {
                         id: 0,
-                        name: 0
+                        name: StrID(0)
                     }))),
-                    field: IdentifierPat { id: 4, name: 2 },
+                    field: IdentifierPat {
+                        id: 4,
+                        name: StrID(2)
+                    },
                 })),
-                payload: IdentifierPat { id: 7, name: 4 },
+                payload: IdentifierPat {
+                    id: 7,
+                    name: StrID(4)
+                },
             }),
         },
         parse_pattern_payload_dot_inferred {
@@ -312,9 +366,15 @@ mod test {
             want: Pattern::Payload(PayloadPat {
                 pat: Box::new(Pattern::DotAccess(DotAccessPat {
                     target: None,
-                    field: IdentifierPat { id: 1, name: 1 },
+                    field: IdentifierPat {
+                        id: 1,
+                        name: StrID(1)
+                    },
                 })),
-                payload: IdentifierPat { id: 6, name: 3 },
+                payload: IdentifierPat {
+                    id: 6,
+                    name: StrID(3)
+                },
             }),
         },
     );

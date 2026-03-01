@@ -98,7 +98,7 @@ mod tests {
         Parameter, ReturnStmt, Stmt, StructField, StructType, TypeDecl, TypeSpec, UseDecl,
     };
     use crate::parser::lexer::Lexer;
-    use crate::str_store::StrStore;
+    use crate::str_store::{StrID, StrStore};
     use pretty_assertions::assert_eq;
 
     macro_rules! test_parse_declaration {
@@ -130,8 +130,17 @@ mod tests {
                 decl,
                 FunctionDecl {
                     id: 0,
-                    name: 1,
-                    params: vec![Parameter { id: 7, name: 3 }, Parameter { id: 10, name: 5 }],
+                    name: StrID(1),
+                    params: vec![
+                        Parameter {
+                            id: 7,
+                            name: StrID(3)
+                        },
+                        Parameter {
+                            id: 10,
+                            name: StrID(5)
+                        }
+                    ],
                     function_type: FunctionType {
                         params: vec![TypeSpec::Int32, TypeSpec::Int32],
                         return_type: Some(Box::new(TypeSpec::Int32)),
@@ -142,13 +151,13 @@ mod tests {
                             value: Some(Expr::Binary(BinaryExpr {
                                 left: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: 46,
-                                    name: 3
+                                    name: StrID(3)
                                 })),
 
                                 operator: BinaryOp::Add,
                                 right: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: 50,
-                                    name: 5
+                                    name: StrID(5)
                                 })),
                             })),
                         })]
@@ -166,7 +175,7 @@ mod tests {
                 decl,
                 FunctionDecl {
                     id: 0,
-                    name: 1,
+                    name: StrID(1),
                     params: vec![],
                     function_type: FunctionType {
                         params: vec![],
@@ -179,10 +188,10 @@ mod tests {
                                 expr: Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
                                         id: 28,
-                                        name: 5
+                                        name: StrID(5)
                                     })),
 
-                                    args: vec![Expr::StringLiteral(6)],
+                                    args: vec![Expr::StringLiteral(StrID(6))],
                                 }),
                             }),
                             Stmt::Return(ReturnStmt { value: None }),
@@ -200,8 +209,17 @@ mod tests {
                 decl,
                 FunctionDecl {
                     id: 0,
-                    name: 1,
-                    params: vec![Parameter { id: 11, name: 3 }, Parameter { id: 18, name: 5 },],
+                    name: StrID(1),
+                    params: vec![
+                        Parameter {
+                            id: 11,
+                            name: StrID(3)
+                        },
+                        Parameter {
+                            id: 18,
+                            name: StrID(5)
+                        },
+                    ],
                     function_type: FunctionType {
                         params: vec![TypeSpec::Int32, TypeSpec::String],
                         return_type: Some(Box::new(TypeSpec::Bool)),
@@ -224,8 +242,11 @@ mod tests {
                 decl,
                 FunctionDecl {
                     id: 0,
-                    name: 1,
-                    params: vec![Parameter { id: 9, name: 3 }],
+                    name: StrID(1),
+                    params: vec![Parameter {
+                        id: 9,
+                        name: StrID(3)
+                    }],
                     function_type: FunctionType {
                         params: vec![TypeSpec::String],
                         return_type: None,
@@ -236,10 +257,13 @@ mod tests {
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: 37,
-                                    name: 6
+                                    name: StrID(6)
                                 })),
 
-                                args: vec![Expr::Identifier(IdentifierExpr { id: 43, name: 3 })],
+                                args: vec![Expr::Identifier(IdentifierExpr {
+                                    id: 43,
+                                    name: StrID(3)
+                                })],
                             })
                         })],
                     },
@@ -258,8 +282,17 @@ mod tests {
                 decl,
                 FunctionDecl {
                     id: 0,
-                    name: 1,
-                    params: vec![Parameter { id: 13, name: 3 }, Parameter { id: 16, name: 5 },],
+                    name: StrID(1),
+                    params: vec![
+                        Parameter {
+                            id: 13,
+                            name: StrID(3)
+                        },
+                        Parameter {
+                            id: 16,
+                            name: StrID(5)
+                        },
+                    ],
                     function_type: FunctionType {
                         params: vec![TypeSpec::Int32, TypeSpec::Int32],
                         return_type: Some(Box::new(TypeSpec::Int32)),
@@ -271,7 +304,7 @@ mod tests {
                                 check: Box::new(Expr::Binary(BinaryExpr {
                                     left: Box::new(Expr::Identifier(IdentifierExpr {
                                         id: 48,
-                                        name: 5
+                                        name: StrID(5)
                                     })),
 
                                     operator: BinaryOp::Equal,
@@ -289,13 +322,13 @@ mod tests {
                                 value: Some(Expr::Binary(BinaryExpr {
                                     left: Box::new(Expr::Identifier(IdentifierExpr {
                                         id: 127,
-                                        name: 3
+                                        name: StrID(3)
                                     })),
 
                                     operator: BinaryOp::Divide,
                                     right: Box::new(Expr::Identifier(IdentifierExpr {
                                         id: 131,
-                                        name: 5
+                                        name: StrID(5)
                                     })),
                                 }))
                             }),
@@ -313,13 +346,13 @@ mod tests {
                 decl,
                 FunctionDecl {
                     id: 0,
-                    name: 1,
+                    name: StrID(1),
                     params: vec![],
                     function_type: FunctionType {
                         params: vec![],
                         return_type: Some(Box::new(TypeSpec::Named {
-                            module: Some(4),
-                            name: 6,
+                            module: Some(StrID(4)),
+                            name: StrID(6),
                         })),
                     },
                     body: BlockStmt {
@@ -345,8 +378,11 @@ mod tests {
                 decl,
                 FunctionDecl {
                     id: 0,
-                    name: 1,
-                    params: vec![Parameter { id: 17, name: 3 }],
+                    name: StrID(1),
+                    params: vec![Parameter {
+                        id: 17,
+                        name: StrID(3)
+                    }],
                     function_type: FunctionType {
                         params: vec![TypeSpec::Slice(Box::new(TypeSpec::Int32))],
                         return_type: None,
@@ -357,10 +393,13 @@ mod tests {
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: 46,
-                                    name: 8
+                                    name: StrID(8)
                                 })),
 
-                                args: vec![Expr::Identifier(IdentifierExpr { id: 52, name: 3 })],
+                                args: vec![Expr::Identifier(IdentifierExpr {
+                                    id: 52,
+                                    name: StrID(3)
+                                })],
                             }),
                         })],
                     },
@@ -377,15 +416,15 @@ mod tests {
                 decl,
                 TypeDecl {
                     id: 5,
-                    name: 1,
+                    name: StrID(1),
                     type_spec: TypeSpec::Struct(StructType {
                         fields: vec![
                             StructField {
-                                name: 4,
+                                name: StrID(4),
                                 type_spec: TypeSpec::Int32,
                             },
                             StructField {
-                                name: 6,
+                                name: StrID(6),
                                 type_spec: TypeSpec::Int32,
                             },
                         ]
@@ -403,18 +442,18 @@ mod tests {
                 decl,
                 TypeDecl {
                     id: 5,
-                    name: 1,
+                    name: StrID(1),
                     type_spec: TypeSpec::Enum(EnumType {
                         variants: vec![
                             EnumVariant {
-                                name: 4,
+                                name: StrID(4),
                                 payload: Some(TypeSpec::Named {
-                                    module: Some(6),
-                                    name: 8
+                                    module: Some(StrID(6)),
+                                    name: StrID(8)
                                 }),
                             },
                             EnumVariant {
-                                name: 11,
+                                name: StrID(11),
                                 payload: None,
                             },
                         ],
@@ -429,18 +468,18 @@ mod tests {
                 decl,
                 TypeDecl {
                     id: 5,
-                    name: 1,
+                    name: StrID(1),
                     type_spec: TypeSpec::Enum(EnumType {
                         variants: vec![
                             EnumVariant {
-                                name: 4,
+                                name: StrID(4),
                                 payload: Some(TypeSpec::Pointer(Box::new(TypeSpec::Named {
                                     module: None,
-                                    name: 1
+                                    name: StrID(1)
                                 }))),
                             },
                             EnumVariant {
-                                name: 9,
+                                name: StrID(9),
                                 payload: None,
                             },
                         ],
@@ -455,7 +494,7 @@ mod tests {
                 decl,
                 TypeDecl {
                     id: 5,
-                    name: 1,
+                    name: StrID(1),
                     type_spec: TypeSpec::Struct(StructType { fields: vec![] }),
                 },
             ),
@@ -467,7 +506,7 @@ mod tests {
                 decl,
                 ConstDecl {
                     id: 6,
-                    name: 1,
+                    name: StrID(1),
                     value: Expr::FloatLiteral(3.45),
                 },
             ),
@@ -479,7 +518,7 @@ mod tests {
                 decl,
                 ConstDecl {
                     id: 6,
-                    name: 1,
+                    name: StrID(1),
                     value: Expr::IntLiteral(1024),
                 },
             ),
@@ -491,7 +530,7 @@ mod tests {
                 decl,
                 ConstDecl {
                     id: 6,
-                    name: 1,
+                    name: StrID(1),
                     value: Expr::Binary(BinaryExpr {
                         left: Box::new(Expr::IntLiteral(5)),
                         operator: BinaryOp::Add,
@@ -507,8 +546,8 @@ mod tests {
                 decl,
                 ConstDecl {
                     id: 6,
-                    name: 1,
-                    value: Expr::StringLiteral(3),
+                    name: StrID(1),
+                    value: Expr::StringLiteral(StrID(3)),
                 },
             ),
         },
@@ -517,7 +556,12 @@ mod tests {
                 "math"
             )"#,
             want_var: Decl::Use(decl),
-            want_value: assert_eq!(decl, UseDecl { modules: vec![2] }),
+            want_value: assert_eq!(
+                decl,
+                UseDecl {
+                    modules: vec![StrID(2)]
+                }
+            ),
         },
         parse_decl_use_multiple {
             input: r#"use (
@@ -529,7 +573,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 UseDecl {
-                    modules: vec![2, 4, 5],
+                    modules: vec![StrID(2), StrID(4), StrID(5),],
                 },
             ),
         },

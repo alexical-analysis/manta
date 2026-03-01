@@ -81,23 +81,27 @@ impl NodeTree {
     /// Add node adds a new node ot the store and returns its unique NodeID
     pub fn add_node(&mut self, node: Node) -> NodeID {
         self.nodes.push(node);
-        self.nodes.len() - 1
+        let id = self.nodes.len() - 1;
+        NodeID::from_usize(id)
     }
 
     /// Adds a root node to the store and returns its unique NodeID
     pub fn add_root_node(&mut self, node: Node) -> NodeID {
         self.nodes.push(node);
         let id = self.nodes.len() - 1;
-        self.roots.push(id);
-        id
+
+        let node_id = NodeID::from_usize(id);
+        self.roots.push(node_id.clone());
+
+        node_id
     }
 
     pub fn get_node(&self, node_id: NodeID) -> Option<&Node> {
-        self.nodes.get(node_id)
+        self.nodes.get(node_id.to_usize())
     }
 
     pub fn get_mut_node(&mut self, node_id: NodeID) -> Option<&mut Node> {
-        self.nodes.get_mut(node_id)
+        self.nodes.get_mut(node_id.to_usize())
     }
 }
 
@@ -123,11 +127,13 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 let param = &decl.params[i];
                 let param_type = &decl.function_type.params[i];
 
-                let ident_id = node_tree.add_node(Node::Identifier(param.name));
-                let param_id = node_tree.add_node(Node::VarDecl { ident: ident_id });
+                let ident_id = node_tree.add_node(Node::Identifier(param.name.clone()));
+                let param_id = node_tree.add_node(Node::VarDecl {
+                    ident: ident_id.clone(),
+                });
                 params.push(param_id);
 
-                node_tree.type_map.add(ident_id, param_type.clone());
+                node_tree.type_map.add(ident_id.clone(), param_type.clone());
 
                 let scope_pos = module
                     .get_scope_pos(param.id)
@@ -143,13 +149,13 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
 
             let ident_id = node_tree.add_node(Node::Identifier(decl.name));
             node_tree.add_root_node(Node::FunctionDecl {
-                ident: ident_id,
+                ident: ident_id.clone(),
                 params,
                 body: body_id,
             });
 
             let func_type = TypeSpec::Function(decl.function_type.clone());
-            node_tree.type_map.add(ident_id, func_type);
+            node_tree.type_map.add(ident_id.clone(), func_type);
 
             let scope_pos = module
                 .get_scope_pos(decl.id)
@@ -158,15 +164,17 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 .find_binding(scope_pos, decl.name)
                 .expect("missing binding for function");
 
-            node_tree.symbol_map.add(binding.id, ident_id);
+            node_tree.symbol_map.add(binding.id, ident_id.clone());
         }
         Decl::Type(decl) => {
             let ident_id = node_tree.add_node(Node::Identifier(decl.name));
-            node_tree.add_root_node(Node::TypeDecl { ident: ident_id });
+            node_tree.add_root_node(Node::TypeDecl {
+                ident: ident_id.clone(),
+            });
 
             // Wrap the type in an Alias so it's distinguishable from other uses of the same type
             let type_alias = TypeSpec::Alias(Box::new(decl.type_spec.clone()));
-            node_tree.type_map.add(ident_id, type_alias);
+            node_tree.type_map.add(ident_id.clone(), type_alias);
 
             let scope_pos = module
                 .get_scope_pos(decl.id)
@@ -179,7 +187,9 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
         }
         Decl::Const(decl) => {
             let ident_id = node_tree.add_node(Node::Identifier(decl.name));
-            node_tree.add_root_node(Node::VarDecl { ident: ident_id });
+            node_tree.add_root_node(Node::VarDecl {
+                ident: ident_id.clone(),
+            });
 
             let scope_pos = module
                 .get_scope_pos(decl.id)
@@ -188,17 +198,19 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 .find_binding(scope_pos, decl.name)
                 .expect("missing binding for const decl");
 
-            node_tree.symbol_map.add(binding.id, ident_id);
+            node_tree.symbol_map.add(binding.id, ident_id.clone());
 
             let value_node = node_expr(node_tree, module, &decl.value);
             node_tree.add_root_node(Node::Assign {
-                target: ident_id,
+                target: ident_id.clone(),
                 value: value_node,
             });
         }
         Decl::Var(decl) => {
             let ident_id = node_tree.add_node(Node::Identifier(decl.name));
-            node_tree.add_root_node(Node::VarDecl { ident: ident_id });
+            node_tree.add_root_node(Node::VarDecl {
+                ident: ident_id.clone(),
+            });
 
             let scope_pos = module
                 .get_scope_pos(decl.id)
@@ -207,11 +219,11 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 .find_binding(scope_pos, decl.name)
                 .expect("missing binding for var decl");
 
-            node_tree.symbol_map.add(binding.id, ident_id);
+            node_tree.symbol_map.add(binding.id, ident_id.clone());
 
             let value_node = node_expr(node_tree, module, &decl.value);
             node_tree.add_root_node(Node::Assign {
-                target: ident_id,
+                target: ident_id.clone(),
                 value: value_node,
             });
         }
@@ -328,12 +340,12 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
                 .find_binding(scope_pos, payload.name)
                 .expect("missing binding for payload");
 
-            node_tree.symbol_map.add(binding.id, ident_id);
+            node_tree.symbol_map.add(binding.id, ident_id.clone());
 
             let pat_id = node_pattern(node_tree, module, &pat.pat);
             node_tree.add_node(Node::Pattern(PatternNode::Payload {
                 pat: pat_id,
-                payload_ident: ident_id,
+                payload_ident: ident_id.clone(),
             }))
         }
         Pattern::ModuleAccess(pat) => {
@@ -355,7 +367,8 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
             }))
         }
         Pattern::Identifier(pat) => {
-            node_tree.add_node(Node::Pattern(PatternNode::Identifier(pat.name)))
+            let ident_id = node_tree.add_node(Node::Identifier(pat.name));
+            node_tree.add_node(Node::Pattern(PatternNode::Identifier(ident_id)))
         }
         Pattern::Default => node_tree.add_node(Node::Pattern(PatternNode::Default)),
     }
@@ -383,7 +396,9 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             }
 
             let ident_id = node_tree.add_node(Node::Identifier(ident.name));
-            nodes.push(node_tree.add_node(Node::VarDecl { ident: ident_id }));
+            nodes.push(node_tree.add_node(Node::VarDecl {
+                ident: ident_id.clone(),
+            }));
 
             let scope_pos = module
                 .get_scope_pos(ident.id)
@@ -392,7 +407,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                 .find_binding(scope_pos, ident.name)
                 .expect("missing binding for function");
 
-            node_tree.symbol_map.add(binding.id, ident_id);
+            node_tree.symbol_map.add(binding.id, ident_id.clone());
 
             let assign_id = node_tree.add_node(Node::Assign {
                 target: ident_id,
@@ -429,7 +444,9 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             // ouside variable declaration
             let name = pat.payload.name;
             let ident_id = node_tree.add_node(Node::Identifier(name));
-            nodes.push(node_tree.add_node(Node::VarDecl { ident: ident_id }));
+            nodes.push(node_tree.add_node(Node::VarDecl {
+                ident: ident_id.clone(),
+            }));
 
             let scope_pos = module
                 .get_scope_pos(pat.payload.id)
@@ -438,14 +455,14 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                 .find_binding(scope_pos, name)
                 .expect("missing binding for function");
 
-            node_tree.symbol_map.add(binding.id, ident_id);
+            node_tree.symbol_map.add(binding.id, ident_id.clone());
 
             // rebuild the pattern to use the same inner pattern and a new <inner let> payload
             let inner_ident_id = node_tree.add_node(Node::Identifier(str_store::INNERLET));
             let inner_pat_id = node_pattern(node_tree, module, &pat.pat);
             let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Payload {
                 pat: inner_pat_id,
-                payload_ident: inner_ident_id,
+                payload_ident: inner_ident_id.clone(),
             }));
 
             // set up the inner assignment using the identifer node created above
@@ -499,8 +516,8 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                     //
                     // e { ... }
                     let ident_id = node_tree.add_node(Node::Identifier(b));
-                    let pat_id =
-                        node_tree.add_node(Node::Pattern(PatternNode::Identifier(ident_id)));
+                    let pat_id = node_tree
+                        .add_node(Node::Pattern(PatternNode::Identifier(ident_id.clone())));
 
                     let scope_pos = module
                         .get_scope_pos(*id)
@@ -539,8 +556,8 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             // becomes:
             //
             // <wrap> { return .Variant(<wrap>) }
-            let ident_id = node_tree.add_node(Node::Identifier(str_store::WRAP));
-            let enum_id = node_wrap_expr(node_tree, module, expr, ident_id);
+            let wrap_id = node_tree.add_node(Node::Identifier(str_store::WRAP));
+            let enum_id = node_wrap_expr(node_tree, module, expr, wrap_id.clone());
 
             let ret_id = node_tree.add_node(Node::Return {
                 value: Some(enum_id),
@@ -550,7 +567,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             });
 
             let pat_id =
-                node_tree.add_node(Node::Pattern(PatternNode::Identifier(str_store::WRAP)));
+                node_tree.add_node(Node::Pattern(PatternNode::Identifier(wrap_id.clone())));
             node_tree.add_node(Node::MatchArm {
                 pattern: pat_id,
                 body: body_id,
@@ -564,10 +581,10 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             // <panic> { panic(<panic>) }
 
             // the identifier for the function call
-            let panic_id = node_tree.add_node(Node::Identifier(str_store::PANIC));
+            let panic_fn_id = node_tree.add_node(Node::Identifier(str_store::PANIC));
 
             node_tree.type_map.add(
-                panic_id,
+                panic_fn_id.clone(),
                 TypeSpec::Function(FunctionType {
                     // TODO: this needs to be the type of the expression that's being matched or an
                     // any type like in Go, just pick a random type for now
@@ -579,17 +596,17 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             // the identifier for the pattern, this needs to be seperate from the function call
             // ideentifier for type checking to work correctly since they need to have different
             // underlying types
-            let ident_id = node_tree.add_node(Node::Identifier(str_store::PANIC));
+            let panic_ident_id = node_tree.add_node(Node::Identifier(str_store::PANIC));
 
             let call_id = node_tree.add_node(Node::Call {
-                func: panic_id,
-                args: vec![ident_id],
+                func: panic_fn_id,
+                args: vec![panic_ident_id.clone()],
             });
             let body_id = node_tree.add_node(Node::Block {
                 statements: vec![call_id],
             });
 
-            let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Identifier(ident_id)));
+            let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Identifier(panic_ident_id)));
             node_tree.add_node(Node::MatchArm {
                 pattern: pat_id,
                 body: body_id,
@@ -600,10 +617,10 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             // for now just panic if we hit this arm somehow
 
             // the identifier for the function call
-            let panic_id = node_tree.add_node(Node::Identifier(str_store::PANIC));
+            let panic_fn_id = node_tree.add_node(Node::Identifier(str_store::PANIC));
 
             node_tree.type_map.add(
-                panic_id,
+                panic_fn_id.clone(),
                 TypeSpec::Function(FunctionType {
                     // TODO: this needs to be the type of the expression that's being matched or an
                     // any type like in Go, just pick a random type for now
@@ -615,17 +632,17 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             // the identifier for the pattern, this needs to be seperate from the function call
             // ideentifier for type checking to work correctly since they need to have different
             // underlying types
-            let ident_id = node_tree.add_node(Node::Identifier(str_store::PANIC));
+            let panic_ident_id = node_tree.add_node(Node::Identifier(str_store::PANIC));
 
             let call_id = node_tree.add_node(Node::Call {
-                func: panic_id,
-                args: vec![ident_id],
+                func: panic_fn_id.clone(),
+                args: vec![panic_ident_id.clone()],
             });
             let body_id = node_tree.add_node(Node::Block {
                 statements: vec![call_id],
             });
 
-            let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Identifier(ident_id)));
+            let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Identifier(panic_ident_id)));
             node_tree.add_node(Node::MatchArm {
                 pattern: pat_id,
                 body: body_id,
@@ -688,18 +705,20 @@ fn node_wrap_expr(
         panic!("can only call wrap with enum types");
     }
 
+    let target_node = node_tree.symbol_map.get(binding.id).cloned();
+
     let enum_constructor_id = node_tree.add_node(Node::EnumConstructor {
-        target: Some(target.name),
+        target: target_node,
         variant: dot_expr.field,
         payload: Some(wrap_id),
     });
 
     // Look up the enum type from the symbol map
     if let Some(type_decl_id) = node_tree.symbol_map.get(binding.id) {
-        if let Some(enum_type) = node_tree.type_map.get(*type_decl_id) {
+        if let Some(enum_type) = node_tree.type_map.get(type_decl_id.clone()) {
             node_tree
                 .type_map
-                .add(enum_constructor_id, enum_type.clone());
+                .add(enum_constructor_id.clone(), enum_type.clone());
         }
     }
 
@@ -711,25 +730,25 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
         Expr::IntLiteral(expr) => {
             let node_id = node_tree.add_node(Node::IntLiteral(*expr));
 
-            node_tree.type_map.add(node_id, TypeSpec::Int64);
+            node_tree.type_map.add(node_id.clone(), TypeSpec::Int64);
 
             node_id
         }
         Expr::FloatLiteral(expr) => {
             let node_id = node_tree.add_node(Node::FloatLiteral(*expr));
 
-            node_tree.type_map.add(node_id, TypeSpec::Float64);
+            node_tree.type_map.add(node_id.clone(), TypeSpec::Float64);
 
             node_id
         }
         Expr::StringLiteral(expr) => {
             let node_id = node_tree.add_node(Node::StringLiteral(*expr));
-            node_tree.type_map.add(node_id, TypeSpec::String);
+            node_tree.type_map.add(node_id.clone(), TypeSpec::String);
             node_id
         }
         Expr::BoolLiteral(expr) => {
             let node_id = node_tree.add_node(Node::BoolLiteral(*expr));
-            node_tree.type_map.add(node_id, TypeSpec::Bool);
+            node_tree.type_map.add(node_id.clone(), TypeSpec::Bool);
             node_id
         }
         Expr::Identifier(expr) => {
@@ -746,7 +765,7 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
                 .get(binding.id)
                 .expect("unknown identifier in expression check");
 
-            *ident_id
+            ident_id.clone()
         }
         Expr::Binary(expr) => {
             let left_id = node_expr(node_tree, module, &expr.left);
@@ -776,13 +795,14 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
             // if the function was an enum constructor when we actually need to update the enum
             // to contain a payload and return the EnumConstructor itself rather than creating
             // and returning the ID for the function call.
-            let mut func_node = node_tree.get_mut_node(func_id).unwrap();
+            let mut func_node = node_tree.get_mut_node(func_id.clone()).unwrap();
             if let Node::EnumConstructor { payload: p, .. } = &mut func_node {
                 if args.len() != 1 {
                     panic!("enum constructors can only contain a single paramater")
                 }
 
-                *p = Some(*args.first().unwrap());
+                let first_arg = args.first().unwrap().clone();
+                *p = Some(first_arg);
                 func_id
             } else {
                 node_tree.add_node(Node::Call {
@@ -851,10 +871,10 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
                     });
                     // Look up the enum type from the symbol map
                     if let Some(type_decl_id) = node_tree.symbol_map.get(binding.id) {
-                        if let Some(enum_type) = node_tree.type_map.get(*type_decl_id) {
+                        if let Some(enum_type) = node_tree.type_map.get(type_decl_id.clone()) {
                             node_tree
                                 .type_map
-                                .add(enum_constructor_id, enum_type.clone());
+                                .add(enum_constructor_id.clone(), enum_type.clone());
                         }
                     }
                     enum_constructor_id
@@ -873,7 +893,7 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
         Expr::MetaType(_expr) => {
             let node_id = node_tree.add_node(Node::MetaType);
             node_tree.type_map.add(
-                node_id,
+                node_id.clone(),
                 // TODO: the meta type should probably live somewhere central since I don't
                 // think this is the only place this will pop up.
                 TypeSpec::Struct(StructType {
@@ -912,7 +932,7 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
                 options,
             });
 
-            node_tree.type_map.add(node_id, TypeSpec::UnsafePtr);
+            node_tree.type_map.add(node_id.clone(), TypeSpec::UnsafePtr);
 
             node_id
         }
@@ -925,12 +945,12 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
 
 fn check_node_tree_types(node_tree: &mut NodeTree) {
     for node in &node_tree.roots.clone() {
-        check_node_type(node_tree, *node);
+        check_node_type(node_tree, node.clone());
     }
 }
 
 fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec> {
-    let node = match node_tree.get_node(node_id) {
+    let node = match node_tree.get_node(node_id.clone()) {
         Some(n) => n,
         None => panic!("type checking unknown node"),
     };
@@ -980,12 +1000,12 @@ fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec
         }
         Node::VarDecl { ident } => node_tree.type_map.get(ident).cloned(),
         Node::Assign { target, value } => {
-            let r_type = match check_node_type(node_tree, value) {
+            let r_type = match check_node_type(node_tree, value.clone()) {
                 Some(t) => t,
                 None => {
                     // TODO: remove me after done testing
 
-                    let r_node = node_tree.get_node(value);
+                    let r_node = node_tree.get_node(value.clone());
 
                     panic!(
                         "value is missing a type (probably is a statement) {:?}\n{:?}",
@@ -994,10 +1014,10 @@ fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec
                 }
             };
 
-            let l_type = match check_node_type(node_tree, target) {
+            let l_type = match check_node_type(node_tree, target.clone()) {
                 Some(t) => t,
                 None => {
-                    if let Some(Node::Identifier { .. }) = node_tree.get_node(target) {
+                    if let Some(Node::Identifier { .. }) = node_tree.get_node(target.clone()) {
                         // if the left hand side has no type, check if the node is an identifier.
                         // if not this is a type checking bug and we should panic because there is
                         // a problem with the type checker itself.
@@ -1121,35 +1141,38 @@ fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast::{BinaryOp, ConstDecl, UnaryOp, VarDecl};
-    use pretty_assertions::assert_eq;
     use std::fs;
     use std::path::Path;
+
+    use pretty_assertions::assert_eq;
+
+    use crate::ast::{BinaryOp, ConstDecl, UnaryOp, VarDecl};
+    use crate::str_store::StrID;
 
     #[test]
     fn typemap_new_get_none() {
         let tm: SideTable<NodeID, TypeSpec> = SideTable::new();
-        assert_eq!(tm.get(0), None);
-        assert_eq!(tm.get(10), None);
+        assert_eq!(tm.get(NodeID::from_usize(0)), None);
+        assert_eq!(tm.get(NodeID::from_usize(10)), None);
     }
 
     #[test]
     fn typemap_add_and_get() {
         let mut tm: SideTable<NodeID, TypeSpec> = SideTable::new();
-        tm.add(0, TypeSpec::Int32);
-        assert_eq!(tm.get(0), Some(&TypeSpec::Int32));
+        tm.add(NodeID::from_usize(0), TypeSpec::Int32);
+        assert_eq!(tm.get(NodeID::from_usize(0)), Some(&TypeSpec::Int32));
 
-        tm.add(1, TypeSpec::Bool);
-        assert_eq!(tm.get(1), Some(&TypeSpec::Bool));
-        assert_eq!(tm.get(0), Some(&TypeSpec::Int32));
+        tm.add(NodeID::from_usize(1), TypeSpec::Bool);
+        assert_eq!(tm.get(NodeID::from_usize(1)), Some(&TypeSpec::Bool));
+        assert_eq!(tm.get(NodeID::from_usize(0)), Some(&TypeSpec::Int32));
     }
 
     #[test]
     fn typemap_sparse_indices() {
         let mut tm: SideTable<NodeID, TypeSpec> = SideTable::new();
-        tm.add(3, TypeSpec::String);
-        assert_eq!(tm.get(3), Some(&TypeSpec::String));
-        assert_eq!(tm.get(0), None);
+        tm.add(NodeID::from_usize(3), TypeSpec::String);
+        assert_eq!(tm.get(NodeID::from_usize(3)), Some(&TypeSpec::String));
+        assert_eq!(tm.get(NodeID::from_usize(0)), None);
     }
 
     fn assert_file_path_eq(path: &std::path::Path, noder_dir: &Path) {
@@ -1235,22 +1258,24 @@ mod tests {
         node_const_decl_int_literal {
             decl: Decl::Const(ConstDecl {
                 id: 0,
-                name: 1,
+                name: StrID(1),
                 value: Expr::IntLiteral(42)
             }),
             expected: {
                 let mut e = NodeTree::new();
 
-                let ident_id = e.add_node(Node::Identifier(1));
-                e.add_root_node(Node::VarDecl { ident: ident_id });
+                let ident_id = e.add_node(Node::Identifier(StrID(1)));
+                e.add_root_node(Node::VarDecl {
+                    ident: ident_id.clone(),
+                });
 
                 let value_id = e.add_node(Node::IntLiteral(42));
-                e.type_map.add(value_id, TypeSpec::Int64);
+                e.type_map.add(value_id.clone(), TypeSpec::Int64);
                 e.add_root_node(Node::Assign {
-                    target: ident_id,
-                    value: value_id,
+                    target: ident_id.clone(),
+                    value: value_id.clone(),
                 });
-                e.symbol_map.add(12, ident_id);
+                e.symbol_map.add(12, ident_id.clone());
 
                 // type infered from the above assignment
                 e.type_map.add(ident_id, TypeSpec::Int64);
@@ -1261,25 +1286,27 @@ mod tests {
         node_var_decl_string_literal {
             decl: Decl::Var(VarDecl {
                 id: 0,
-                name: 2,
-                value: Expr::StringLiteral(3)
+                name: StrID(2),
+                value: Expr::StringLiteral(StrID(3))
             }),
             expected: {
                 let mut e = NodeTree::new();
 
-                let ident_id = e.add_node(Node::Identifier(2));
-                e.add_root_node(Node::VarDecl { ident: ident_id });
-
-                let value_id = e.add_node(Node::StringLiteral(3));
-                e.type_map.add(value_id, TypeSpec::String);
-                e.add_root_node(Node::Assign {
-                    target: ident_id,
-                    value: value_id,
+                let ident_id = e.add_node(Node::Identifier(StrID(2)));
+                e.add_root_node(Node::VarDecl {
+                    ident: ident_id.clone(),
                 });
-                e.symbol_map.add(12, ident_id);
+
+                let value_id = e.add_node(Node::StringLiteral(StrID(3)));
+                e.type_map.add(value_id.clone(), TypeSpec::String);
+                e.add_root_node(Node::Assign {
+                    target: ident_id.clone(),
+                    value: value_id.clone(),
+                });
+                e.symbol_map.add(12, ident_id.clone());
 
                 // type infered from the above assignment
-                e.type_map.add(ident_id, TypeSpec::String);
+                e.type_map.add(ident_id.clone(), TypeSpec::String);
 
                 e
             }
@@ -1298,7 +1325,7 @@ mod tests {
         let mut store = NodeTree::new();
         let node = Node::Invalid;
         let id = store.add_node(node);
-        assert_eq!(id, 0);
+        assert_eq!(id, NodeID::from_usize(0));
     }
 
     #[test]
@@ -1308,9 +1335,9 @@ mod tests {
         let id2 = store.add_node(Node::BoolLiteral(true));
         let id3 = store.add_node(Node::IntLiteral(42));
 
-        assert_eq!(id1, 0);
-        assert_eq!(id2, 1);
-        assert_eq!(id3, 2);
+        assert_eq!(id1, NodeID::from_usize(0));
+        assert_eq!(id2, NodeID::from_usize(1));
+        assert_eq!(id3, NodeID::from_usize(2));
         assert_eq!(store.nodes.len(), 3);
     }
 
@@ -1326,7 +1353,7 @@ mod tests {
         let mut store = NodeTree::new();
         let node = Node::Invalid;
         let id = store.add_root_node(node);
-        assert_eq!(id, 0);
+        assert_eq!(id, NodeID::from_usize(0));
     }
 
     #[test]
@@ -1368,21 +1395,21 @@ mod tests {
     fn test_add_int_literal() {
         let mut store = NodeTree::new();
         let id = store.add_node(Node::IntLiteral(100));
-        assert_eq!(store.nodes[id], Node::IntLiteral(100));
+        assert_eq!(store.nodes[id.to_usize()], Node::IntLiteral(100));
     }
 
     #[test]
     fn test_add_float_literal() {
         let mut store = NodeTree::new();
         let id = store.add_node(Node::FloatLiteral(3.45));
-        assert_eq!(store.nodes[id], Node::FloatLiteral(3.45));
+        assert_eq!(store.nodes[id.to_usize()], Node::FloatLiteral(3.45));
     }
 
     #[test]
     fn test_add_string_literal() {
         let mut store = NodeTree::new();
-        let id = store.add_node(Node::StringLiteral(0));
-        assert_eq!(store.nodes[id], Node::StringLiteral(0));
+        let id = store.add_node(Node::StringLiteral(StrID(0)));
+        assert_eq!(store.nodes[id.to_usize()], Node::StringLiteral(StrID(0)));
     }
 
     #[test]
@@ -1391,27 +1418,35 @@ mod tests {
         let id_true = store.add_node(Node::BoolLiteral(true));
         let id_false = store.add_node(Node::BoolLiteral(false));
 
-        assert_eq!(store.nodes[id_true], Node::BoolLiteral(true));
-        assert_eq!(store.nodes[id_false], Node::BoolLiteral(false));
+        assert_eq!(store.nodes[id_true.to_usize()], Node::BoolLiteral(true));
+        assert_eq!(store.nodes[id_false.to_usize()], Node::BoolLiteral(false));
     }
 
     #[test]
     fn test_add_identifier() {
         let mut store = NodeTree::new();
-        let id = store.add_node(Node::Identifier(10));
-        assert_eq!(store.nodes[id], Node::Identifier(10));
+        let id = store.add_node(Node::Identifier(StrID(10)));
+        assert_eq!(store.nodes[id.to_usize()], Node::Identifier(StrID(10)));
     }
 
     #[test]
     fn test_add_block_node() {
         let mut store = NodeTree::new();
         let id = store.add_node(Node::Block {
-            statements: vec![0, 1, 2],
+            statements: vec![
+                NodeID::from_usize(0),
+                NodeID::from_usize(1),
+                NodeID::from_usize(2),
+            ],
         });
         assert_eq!(
-            store.nodes[id],
+            store.nodes[id.to_usize()],
             Node::Block {
-                statements: vec![0, 1, 2],
+                statements: vec![
+                    NodeID::from_usize(0),
+                    NodeID::from_usize(1),
+                    NodeID::from_usize(2),
+                ],
             }
         );
     }
@@ -1420,16 +1455,16 @@ mod tests {
     fn test_add_binary_operation() {
         let mut store = NodeTree::new();
         let id = store.add_node(Node::Binary {
-            left: 0,
+            left: NodeID::from_usize(0),
             operator: BinaryOp::Add,
-            right: 1,
+            right: NodeID::from_usize(1),
         });
         assert_eq!(
-            store.nodes[id],
+            store.nodes[id.to_usize()],
             Node::Binary {
-                left: 0,
+                left: NodeID::from_usize(0),
                 operator: BinaryOp::Add,
-                right: 1,
+                right: NodeID::from_usize(1),
             }
         );
     }
@@ -1439,13 +1474,13 @@ mod tests {
         let mut store = NodeTree::new();
         let id = store.add_node(Node::Unary {
             operator: UnaryOp::Negate,
-            operand: 0,
+            operand: NodeID::from_usize(0),
         });
         assert_eq!(
-            store.nodes[id],
+            store.nodes[id.to_usize()],
             Node::Unary {
                 operator: UnaryOp::Negate,
-                operand: 0,
+                operand: NodeID::from_usize(0),
             }
         );
     }
@@ -1453,15 +1488,15 @@ mod tests {
     #[test]
     fn test_add_function_declaration() {
         let mut store = NodeTree::new();
-        let ident_id = store.add_node(Node::Identifier(20));
+        let ident_id = store.add_node(Node::Identifier(StrID(20)));
         let id = store.add_node(Node::FunctionDecl {
             ident: ident_id,
             params: vec![],
-            body: 0,
+            body: NodeID::from_usize(0),
         });
 
-        if let Node::FunctionDecl { ident, .. } = &store.nodes[id] {
-            assert_eq!(*ident, 0);
+        if let Node::FunctionDecl { ident, .. } = &store.nodes[id.to_usize()] {
+            assert_eq!(*ident, NodeID::from_usize(0));
         } else {
             panic!("Expected FunctionDecl");
         }
