@@ -6,6 +6,8 @@ use crate::parser::ParseError;
 use crate::parser::lexer::{Token, TokenKind};
 use crate::str_store::{self, StrID};
 
+use super::lexer::SourceID;
+
 #[derive(Debug, Serialize)]
 struct IDTracker {
     id: SymID,
@@ -106,11 +108,7 @@ impl Scope {
 struct SymTable {
     scopes: Vec<Scope>,
     current_scope: ScopeID,
-    // TODO: this maps a source_id from the token to it's associated scope. In some ways this is
-    // nice because the scope maps to the actual spot in the file where it opens. However it feels
-    // a little messy in some ways too. I would rather use something like a NodeID but to do that
-    // would require a HUGE refactor of the AST so I'm leaving it at this for now.
-    scope_map: BTreeMap<usize, ScopePos>,
+    scope_map: BTreeMap<SourceID, ScopePos>,
     id_tracker: IDTracker,
 }
 
@@ -139,7 +137,7 @@ impl SymTable {
         }
     }
 
-    fn open_scope(&mut self, source_id: usize) {
+    fn open_scope(&mut self, source_id: SourceID) {
         let new_scope = Scope::new(self.current_scope);
         let new_scope_id = self.scopes.len();
 
@@ -148,7 +146,7 @@ impl SymTable {
         self.add_scope_pos(source_id);
     }
 
-    fn add_scope_pos(&mut self, source_id: usize) {
+    fn add_scope_pos(&mut self, source_id: SourceID) {
         let scope_depth = self.get_current_scope().bindings.len();
         self.scope_map.insert(
             source_id,
@@ -267,7 +265,7 @@ impl Module {
         }
     }
 
-    pub fn get_scope_pos(&self, source_id: usize) -> Option<ScopePos> {
+    pub fn get_scope_pos(&self, source_id: SourceID) -> Option<ScopePos> {
         self.sym_table.scope_map.get(&source_id).copied()
     }
 
@@ -295,8 +293,8 @@ impl Module {
                         // TODO: need to get the actual tokens here
                         Token {
                             kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
+                            source_id: SourceID::from_usize(0),
+                            lexeme_id: StrID::from_usize(0),
                         },
                         "only a single module name is allowed per file".to_string(),
                     ));
@@ -319,8 +317,8 @@ impl Module {
                             // TODO: get the real token for this
                             Token {
                                 kind: TokenKind::Identifier,
-                                source_id: 0,
-                                lexeme_id: 0,
+                                source_id: SourceID::from_usize(0),
+                                lexeme_id: StrID::from_usize(0),
                             },
                             "first declaration in a file must be the module name".to_string(),
                         ));
@@ -330,8 +328,8 @@ impl Module {
                         // TODO: get the real token for this
                         Token {
                             kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
+                            source_id: SourceID::from_usize(0),
+                            lexeme_id: StrID::from_usize(0),
                         },
                         "only a single import section allowed per file, and it must be right below the module name".to_string(),
                     ));
@@ -562,10 +560,11 @@ impl Module {
                     sym_table.add_scope_pos(expr.id);
                 }
                 None => errors.push(ParseError::Custom(
+                    // TODO: need the acutal token here, not just this placeholder
                     Token {
                         kind: TokenKind::Identifier,
-                        source_id: 0,
-                        lexeme_id: 0,
+                        source_id: SourceID::from_usize(0),
+                        lexeme_id: StrID::from_usize(0),
                     },
                     "use of unknown identifier".to_string(),
                 )),
@@ -601,8 +600,8 @@ impl Module {
                     // TODO: use the actual token here
                     Token {
                         kind: TokenKind::Identifier,
-                        source_id: 0,
-                        lexeme_id: 0,
+                        source_id: SourceID::from_usize(0),
+                        lexeme_id: StrID::from_usize(0),
                     },
                     "modules are not yet supported".to_string(),
                 ));
@@ -632,10 +631,11 @@ impl Module {
                 if let Some(_module) = module {
                     // TODO: modules are not yet supported just skip things for now
                     errors.push(ParseError::Custom(
+                        // TODO: need the actual token here
                         Token {
                             kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
+                            source_id: SourceID::from_usize(0),
+                            lexeme_id: StrID::from_usize(0),
                         },
                         "modules are not yet supported".to_string(),
                     ));
@@ -647,8 +647,8 @@ impl Module {
                     None => errors.push(ParseError::Custom(
                         Token {
                             kind: TokenKind::Identifier,
-                            source_id: 0,
-                            lexeme_id: 0,
+                            source_id: SourceID::from_usize(0),
+                            lexeme_id: StrID::from_usize(0),
                         },
                         "use of unknown type".to_string(),
                     )),

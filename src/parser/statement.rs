@@ -186,8 +186,8 @@ mod test {
         LetStmt, MatchArm, MatchStmt, MetaTypeExpr, ModuleAccessExpr, Pattern, PayloadPat,
         ReturnStmt, Stmt, TypeSpec, UnaryExpr, UnaryOp,
     };
-    use crate::parser::lexer::Lexer;
-    use crate::str_store::StrStore;
+    use crate::parser::lexer::{Lexer, SourceID};
+    use crate::str_store::{self, StrID, StrStore};
     use pretty_assertions::assert_eq;
 
     macro_rules! test_parse_statement {
@@ -216,7 +216,10 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::Identifier(IdentifierPat { id: 4, name: 1 }),
+                    pattern: Pattern::Identifier(IdentifierPat {
+                        id: SourceID::from_usize(4),
+                        name: StrID::from_usize(1)
+                    }),
                     value: Expr::IntLiteral(10),
                     except: LetExcept::None,
                 }
@@ -230,10 +233,13 @@ mod test {
                 LetStmt {
                     pattern: Pattern::Payload(PayloadPat {
                         pat: Box::new(Pattern::Identifier(IdentifierPat {
-                            id: 4,
-                            name: 18446744073709551603
+                            id: SourceID::from_usize(4),
+                            name: str_store::BOOL,
                         })),
-                        payload: IdentifierPat { id: 9, name: 2 },
+                        payload: IdentifierPat {
+                            id: SourceID::from_usize(9),
+                            name: StrID::from_usize(2)
+                        },
                     }),
                     value: Expr::BoolLiteral(true),
                     except: LetExcept::None,
@@ -246,7 +252,10 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::Identifier(IdentifierPat { id: 4, name: 1 }),
+                    pattern: Pattern::Identifier(IdentifierPat {
+                        id: SourceID::from_usize(4),
+                        name: StrID::from_usize(1)
+                    }),
                     value: Expr::FloatLiteral(3.45),
                     except: LetExcept::None,
                 },
@@ -259,11 +268,20 @@ mod test {
                 stmt,
                 LetStmt {
                     pattern: Pattern::Payload(PayloadPat {
-                        pat: Box::new(Pattern::Identifier(IdentifierPat { id: 4, name: 1 })),
-                        payload: IdentifierPat { id: 11, name: 3 },
+                        pat: Box::new(Pattern::Identifier(IdentifierPat {
+                            id: SourceID::from_usize(4),
+                            name: StrID::from_usize(1)
+                        })),
+                        payload: IdentifierPat {
+                            id: SourceID::from_usize(11),
+                            name: StrID::from_usize(3)
+                        },
                     }),
                     value: Expr::Call(CallExpr {
-                        func: Box::new(Expr::Identifier(IdentifierExpr { id: 19, name: 6 })),
+                        func: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: SourceID::from_usize(19),
+                            name: StrID::from_usize(6)
+                        })),
                         args: vec![],
                     }),
                     except: LetExcept::None,
@@ -295,10 +313,10 @@ mod test {
                         target: Box::new(Expr::Call(CallExpr {
                             func: Box::new(Expr::DotAccess(DotAccessExpr {
                                 target: Some(Box::new(Expr::Identifier(IdentifierExpr {
-                                    id: 7,
-                                    name: 1
+                                    id: SourceID::from_usize(7),
+                                    name: StrID::from_usize(1)
                                 }))),
-                                field: 3,
+                                field: StrID::from_usize(3),
                             })),
                             args: vec![Expr::BoolLiteral(true)],
                         })),
@@ -314,7 +332,7 @@ mod test {
                 stmt,
                 DeferStmt {
                     block: BlockStmt {
-                        id: 6,
+                        id: SourceID::from_usize(6),
                         statements: vec![]
                     }
                 }
@@ -327,12 +345,12 @@ mod test {
                 stmt,
                 DeferStmt {
                     block: BlockStmt {
-                        id: 6,
+                        id: SourceID::from_usize(6),
                         statements: vec![Stmt::Expr(ExprStmt {
                             expr: Expr::Free(FreeExpr {
                                 expr: Box::new(Expr::Identifier(IdentifierExpr {
-                                    id: 13,
-                                    name: 4
+                                    id: SourceID::from_usize(13),
+                                    name: StrID::from_usize(4)
                                 })),
                             })
                         })]
@@ -347,17 +365,20 @@ mod test {
                 stmt,
                 DeferStmt {
                     block: BlockStmt {
-                        id: 6,
+                        id: SourceID::from_usize(6),
                         statements: vec![
                             Stmt::Expr(ExprStmt {
                                 expr: Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
-                                        id: 8,
-                                        name: 2
+                                        id: SourceID::from_usize(8),
+                                        name: StrID::from_usize(2)
                                     })),
                                     args: vec![
-                                        Expr::StringLiteral(4),
-                                        Expr::Identifier(IdentifierExpr { id: 23, name: 6 })
+                                        Expr::StringLiteral(StrID::from_usize(4)),
+                                        Expr::Identifier(IdentifierExpr {
+                                            id: SourceID::from_usize(23),
+                                            name: StrID::from_usize(6)
+                                        })
                                     ],
                                 })
                             }),
@@ -384,10 +405,13 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 BlockStmt {
-                    id: 0,
+                    id: SourceID::from_usize(0),
                     statements: vec![
                         Stmt::Let(LetStmt {
-                            pattern: Pattern::Identifier(IdentifierPat { id: 10, name: 2 }),
+                            pattern: Pattern::Identifier(IdentifierPat {
+                                id: SourceID::from_usize(10),
+                                name: StrID::from_usize(2)
+                            }),
                             value: Expr::IntLiteral(10),
                             except: LetExcept::None,
                         }),
@@ -395,30 +419,39 @@ mod test {
                             pattern: Pattern::Payload(PayloadPat {
                                 pat: Box::new(Pattern::DotAccess(DotAccessPat {
                                     target: None,
-                                    field: IdentifierPat { id: 26, name: 7 },
+                                    field: IdentifierPat {
+                                        id: SourceID::from_usize(26),
+                                        name: StrID::from_usize(7)
+                                    },
                                 })),
-                                payload: IdentifierPat { id: 29, name: 9 },
+                                payload: IdentifierPat {
+                                    id: SourceID::from_usize(29),
+                                    name: StrID::from_usize(9)
+                                },
                             }),
                             value: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
-                                    id: 34,
-                                    name: 11
+                                    id: SourceID::from_usize(34),
+                                    name: StrID::from_usize(11)
                                 })),
                                 args: vec![Expr::IntLiteral(42)],
                             }),
                             except: LetExcept::Panic,
                         }),
                         Stmt::Let(LetStmt {
-                            pattern: Pattern::Identifier(IdentifierPat { id: 58, name: 14 }),
+                            pattern: Pattern::Identifier(IdentifierPat {
+                                id: SourceID::from_usize(58),
+                                name: StrID::from_usize(14)
+                            }),
                             value: Expr::Binary(BinaryExpr {
                                 left: Box::new(Expr::Identifier(IdentifierExpr {
-                                    id: 62,
-                                    name: 2
+                                    id: SourceID::from_usize(62),
+                                    name: StrID::from_usize(2)
                                 })),
                                 operator: BinaryOp::Add,
                                 right: Box::new(Expr::Identifier(IdentifierExpr {
-                                    id: 66,
-                                    name: 9
+                                    id: SourceID::from_usize(66),
+                                    name: StrID::from_usize(9)
                                 })),
                             }),
                             except: LetExcept::None,
@@ -433,7 +466,10 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 AssignStmt {
-                    lvalue: Expr::Identifier(IdentifierExpr { id: 0, name: 0 }),
+                    lvalue: Expr::Identifier(IdentifierExpr {
+                        id: SourceID::from_usize(0),
+                        name: StrID::from_usize(0)
+                    }),
                     rvalue: Expr::IntLiteral(10),
                 },
             ),
@@ -446,7 +482,10 @@ mod test {
                 AssignStmt {
                     lvalue: Expr::Unary(UnaryExpr {
                         operator: UnaryOp::Dereference,
-                        operand: Box::new(Expr::Identifier(IdentifierExpr { id: 1, name: 1 })),
+                        operand: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: SourceID::from_usize(1),
+                            name: StrID::from_usize(1)
+                        })),
                     }),
                     rvalue: Expr::IntLiteral(42),
                 },
@@ -458,24 +497,30 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 AssignStmt {
-                    lvalue: Expr::Identifier(IdentifierExpr { id: 0, name: 0 }),
+                    lvalue: Expr::Identifier(IdentifierExpr {
+                        id: SourceID::from_usize(0),
+                        name: StrID::from_usize(0)
+                    }),
                     rvalue: Expr::Call(CallExpr {
                         func: Box::new(Expr::DotAccess(DotAccessExpr {
                             target: Some(Box::new(Expr::Identifier(IdentifierExpr {
-                                id: 7,
-                                name: 2
+                                id: SourceID::from_usize(7),
+                                name: StrID::from_usize(2)
                             }))),
-                            field: 0,
+                            field: StrID::from_usize(0),
                         })),
                         args: vec![
-                            Expr::Identifier(IdentifierExpr { id: 19, name: 5 }),
+                            Expr::Identifier(IdentifierExpr {
+                                id: SourceID::from_usize(19),
+                                name: StrID::from_usize(5)
+                            }),
                             Expr::Binary(BinaryExpr {
                                 left: Box::new(Expr::IntLiteral(1)),
                                 operator: BinaryOp::Add,
                                 right: Box::new(Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
-                                        id: 26,
-                                        name: 9
+                                        id: SourceID::from_usize(26),
+                                        name: StrID::from_usize(9)
                                     })),
                                     args: vec![],
                                 })),
@@ -492,7 +537,10 @@ mod test {
                 stmt,
                 AssignStmt {
                     lvalue: Expr::Index(IndexExpr {
-                        target: Box::new(Expr::Identifier(IdentifierExpr { id: 0, name: 0 })),
+                        target: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: SourceID::from_usize(0),
+                            name: StrID::from_usize(0)
+                        })),
                         index: Box::new(Expr::IntLiteral(0)),
                     }),
                     rvalue: Expr::IntLiteral(10),
@@ -509,14 +557,14 @@ mod test {
                 IfStmt {
                     check: Box::new(Expr::BoolLiteral(true)),
                     success: BlockStmt {
-                        id: 8,
+                        id: SourceID::from_usize(8),
                         statements: vec![Stmt::Expr(ExprStmt {
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
-                                    id: 14,
-                                    name: 3
+                                    id: SourceID::from_usize(14),
+                                    name: StrID::from_usize(3)
                                 })),
-                                args: vec![Expr::StringLiteral(5)],
+                                args: vec![Expr::StringLiteral(StrID::from_usize(5))],
                             })
                         })],
                     },
@@ -535,33 +583,39 @@ mod test {
                 stmt,
                 IfStmt {
                     check: Box::new(Expr::Binary(BinaryExpr {
-                        left: Box::new(Expr::Identifier(IdentifierExpr { id: 3, name: 1 })),
+                        left: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: SourceID::from_usize(3),
+                            name: StrID::from_usize(1)
+                        })),
                         operator: BinaryOp::LessThan,
                         right: Box::new(Expr::IntLiteral(13)),
                     })),
                     success: BlockStmt {
-                        id: 10,
+                        id: SourceID::from_usize(10),
                         statements: vec![Stmt::Expr(ExprStmt {
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
-                                    id: 16,
-                                    name: 5
+                                    id: SourceID::from_usize(16),
+                                    name: StrID::from_usize(5)
                                 })),
-                                args: vec![Expr::StringLiteral(7)],
+                                args: vec![Expr::StringLiteral(StrID::from_usize(7))],
                             }),
                         })],
                     },
                     fail: Some(BlockStmt {
-                        id: 35,
+                        id: SourceID::from_usize(35),
                         statements: vec![Stmt::Assign(AssignStmt {
-                            lvalue: Expr::Identifier(IdentifierExpr { id: 41, name: 1 }),
+                            lvalue: Expr::Identifier(IdentifierExpr {
+                                id: SourceID::from_usize(41),
+                                name: StrID::from_usize(1)
+                            }),
                             rvalue: Expr::Binary(BinaryExpr {
                                 left: Box::new(Expr::IntLiteral(10)),
                                 operator: BinaryOp::Add,
                                 right: Box::new(Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
-                                        id: 50,
-                                        name: 15
+                                        id: SourceID::from_usize(50),
+                                        name: StrID::from_usize(15),
                                     })),
                                     args: vec![Expr::FloatLiteral(3.45)],
                                 })),
@@ -579,7 +633,7 @@ mod test {
                 ReturnStmt {
                     value: Some(Expr::DotAccess(DotAccessExpr {
                         target: None,
-                        field: 2,
+                        field: StrID::from_usize(2),
                     })),
                 }
             ),
@@ -590,10 +644,16 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::Identifier(IdentifierPat { id: 4, name: 1 }),
+                    pattern: Pattern::Identifier(IdentifierPat {
+                        id: SourceID::from_usize(4),
+                        name: StrID::from_usize(1)
+                    }),
                     value: Expr::Unary(UnaryExpr {
                         operator: UnaryOp::AddressOf,
-                        operand: Box::new(Expr::Identifier(IdentifierExpr { id: 12, name: 4 })),
+                        operand: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: SourceID::from_usize(12),
+                            name: StrID::from_usize(4)
+                        })),
                     }),
                     except: LetExcept::None,
                 }
@@ -607,10 +667,16 @@ mod test {
                 LetStmt {
                     pattern: Pattern::DotAccess(DotAccessPat {
                         target: None,
-                        field: IdentifierPat { id: 5, name: 2 },
+                        field: IdentifierPat {
+                            id: SourceID::from_usize(5),
+                            name: StrID::from_usize(2)
+                        },
                     }),
                     value: Expr::Call(CallExpr {
-                        func: Box::new(Expr::Identifier(IdentifierExpr { id: 10, name: 4 })),
+                        func: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: SourceID::from_usize(10),
+                            name: StrID::from_usize(4)
+                        })),
                         args: vec![],
                     }),
                     except: LetExcept::Panic,
@@ -628,29 +694,38 @@ mod test {
                     pattern: Pattern::Payload(PayloadPat {
                         pat: Box::new(Pattern::DotAccess(DotAccessPat {
                             target: Some(Box::new(Pattern::Identifier(IdentifierPat {
-                                id: 4,
-                                name: 1
+                                id: SourceID::from_usize(4),
+                                name: StrID::from_usize(1)
                             }))),
-                            field: IdentifierPat { id: 8, name: 3 },
+                            field: IdentifierPat {
+                                id: SourceID::from_usize(8),
+                                name: StrID::from_usize(3)
+                            },
                         })),
-                        payload: IdentifierPat { id: 14, name: 5 },
+                        payload: IdentifierPat {
+                            id: SourceID::from_usize(14),
+                            name: StrID::from_usize(5)
+                        },
                     }),
                     value: Expr::Call(CallExpr {
-                        func: Box::new(Expr::Identifier(IdentifierExpr { id: 19, name: 8 })),
-                        args: vec![Expr::StringLiteral(9)],
+                        func: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: SourceID::from_usize(19),
+                            name: StrID::from_usize(8)
+                        })),
+                        args: vec![Expr::StringLiteral(StrID::from_usize(9))],
                     }),
                     except: LetExcept::Or {
-                        id: 36,
+                        id: SourceID::from_usize(36),
                         binding: None,
                         body: BlockStmt {
-                            id: 39,
+                            id: SourceID::from_usize(39),
                             statements: vec![Stmt::Expr(ExprStmt {
                                 expr: Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
-                                        id: 45,
-                                        name: 12
+                                        id: SourceID::from_usize(45),
+                                        name: StrID::from_usize(12)
                                     })),
-                                    args: vec![Expr::StringLiteral(13)],
+                                    args: vec![Expr::StringLiteral(StrID::from_usize(13))],
                                 }),
                             })],
                         }
@@ -669,34 +744,43 @@ mod test {
                 LetStmt {
                     pattern: Pattern::DotAccess(DotAccessPat {
                         target: None,
-                        field: IdentifierPat { id: 5, name: 2 },
+                        field: IdentifierPat {
+                            id: SourceID::from_usize(5),
+                            name: StrID::from_usize(2)
+                        },
                     }),
                     value: Expr::Call(CallExpr {
-                        func: Box::new(Expr::Identifier(IdentifierExpr { id: 11, name: 4 })),
+                        func: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: SourceID::from_usize(11),
+                            name: StrID::from_usize(4)
+                        })),
                         args: vec![
-                            Expr::Identifier(IdentifierExpr { id: 22, name: 6 }),
+                            Expr::Identifier(IdentifierExpr {
+                                id: SourceID::from_usize(22),
+                                name: StrID::from_usize(6)
+                            }),
                             Expr::BoolLiteral(false),
                         ],
                     }),
                     except: LetExcept::Or {
-                        id: 35,
-                        binding: Some(11),
+                        id: SourceID::from_usize(35),
+                        binding: Some(StrID::from_usize(11)),
                         body: BlockStmt {
-                            id: 41,
+                            id: SourceID::from_usize(41),
                             statements: vec![
                                 Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            id: 47,
-                                            name: 13,
+                                            id: SourceID::from_usize(47),
+                                            name: StrID::from_usize(13),
                                         })),
-                                        args: vec![Expr::StringLiteral(14)],
+                                        args: vec![Expr::StringLiteral(StrID::from_usize(14))],
                                     })
                                 }),
                                 Stmt::Return(ReturnStmt {
                                     value: Some(Expr::Identifier(IdentifierExpr {
-                                        id: 78,
-                                        name: 11
+                                        id: SourceID::from_usize(78),
+                                        name: StrID::from_usize(11)
                                     })),
                                 }),
                             ],
@@ -714,17 +798,26 @@ mod test {
                     pattern: Pattern::Payload(PayloadPat {
                         pat: Box::new(Pattern::DotAccess(DotAccessPat {
                             target: None,
-                            field: IdentifierPat { id: 5, name: 2 },
+                            field: IdentifierPat {
+                                id: SourceID::from_usize(5),
+                                name: StrID::from_usize(2)
+                            },
                         })),
-                        payload: IdentifierPat { id: 8, name: 4 },
+                        payload: IdentifierPat {
+                            id: SourceID::from_usize(8),
+                            name: StrID::from_usize(4)
+                        },
                     }),
                     value: Expr::Call(CallExpr {
-                        func: Box::new(Expr::Identifier(IdentifierExpr { id: 13, name: 7 })),
+                        func: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: SourceID::from_usize(13),
+                            name: StrID::from_usize(7)
+                        })),
                         args: vec![],
                     }),
                     except: LetExcept::Wrap(Expr::DotAccess(DotAccessExpr {
                         target: None,
-                        field: 9,
+                        field: StrID::from_usize(9),
                     })),
                 },
             ),
@@ -738,48 +831,60 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 MatchStmt {
-                    target: Expr::Identifier(IdentifierExpr { id: 6, name: 1 }),
+                    target: Expr::Identifier(IdentifierExpr {
+                        id: SourceID::from_usize(6),
+                        name: StrID::from_usize(1)
+                    }),
                     arms: vec![
                         MatchArm {
-                            id: 14,
+                            id: SourceID::from_usize(14),
                             pattern: Pattern::Payload(PayloadPat {
                                 pat: Box::new(Pattern::DotAccess(DotAccessPat {
                                     target: None,
-                                    field: IdentifierPat { id: 15, name: 4 },
+                                    field: IdentifierPat {
+                                        id: SourceID::from_usize(15),
+                                        name: StrID::from_usize(4)
+                                    },
                                 })),
-                                payload: IdentifierPat { id: 20, name: 6 },
+                                payload: IdentifierPat {
+                                    id: SourceID::from_usize(20),
+                                    name: StrID::from_usize(6)
+                                },
                             }),
                             body: BlockStmt {
-                                id: 23,
+                                id: SourceID::from_usize(23),
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            id: 25,
-                                            name: 8,
+                                            id: SourceID::from_usize(25),
+                                            name: StrID::from_usize(8),
                                         })),
                                         args: vec![Expr::Identifier(IdentifierExpr {
-                                            id: 31,
-                                            name: 6
+                                            id: SourceID::from_usize(31),
+                                            name: StrID::from_usize(6)
                                         })],
                                     }),
                                 })],
                             },
                         },
                         MatchArm {
-                            id: 40,
+                            id: SourceID::from_usize(40),
                             pattern: Pattern::DotAccess(DotAccessPat {
                                 target: None,
-                                field: IdentifierPat { id: 41, name: 12 },
+                                field: IdentifierPat {
+                                    id: SourceID::from_usize(41),
+                                    name: StrID::from_usize(12)
+                                },
                             }),
                             body: BlockStmt {
-                                id: 46,
+                                id: SourceID::from_usize(46),
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            id: 48,
-                                            name: 8
+                                            id: SourceID::from_usize(48),
+                                            name: StrID::from_usize(8)
                                         })),
-                                        args: vec![Expr::StringLiteral(13)],
+                                        args: vec![Expr::StringLiteral(StrID::from_usize(13))],
                                     }),
                                 })],
                             },
@@ -798,73 +903,91 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 MatchStmt {
-                    target: Expr::Identifier(IdentifierExpr { id: 6, name: 1 }),
+                    target: Expr::Identifier(IdentifierExpr {
+                        id: SourceID::from_usize(6),
+                        name: StrID::from_usize(1)
+                    }),
                     arms: vec![
                         MatchArm {
-                            id: 19,
+                            id: SourceID::from_usize(19),
                             pattern: Pattern::Payload(PayloadPat {
                                 pat: Box::new(Pattern::DotAccess(DotAccessPat {
                                     target: None,
-                                    field: IdentifierPat { id: 20, name: 4 },
+                                    field: IdentifierPat {
+                                        id: SourceID::from_usize(20),
+                                        name: StrID::from_usize(4)
+                                    },
                                 })),
-                                payload: IdentifierPat { id: 28, name: 6 },
+                                payload: IdentifierPat {
+                                    id: SourceID::from_usize(28),
+                                    name: StrID::from_usize(6)
+                                },
                             }),
                             body: BlockStmt {
-                                id: 33,
+                                id: SourceID::from_usize(33),
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            id: 35,
-                                            name: 8
+                                            id: SourceID::from_usize(35),
+                                            name: StrID::from_usize(8)
                                         })),
                                         args: vec![Expr::Identifier(IdentifierExpr {
-                                            id: 41,
-                                            name: 6
+                                            id: SourceID::from_usize(41),
+                                            name: StrID::from_usize(6)
                                         })],
                                     }),
                                 })],
                             },
                         },
                         MatchArm {
-                            id: 52,
+                            id: SourceID::from_usize(52),
                             pattern: Pattern::Payload(PayloadPat {
                                 pat: Box::new(Pattern::DotAccess(DotAccessPat {
                                     target: None,
-                                    field: IdentifierPat { id: 53, name: 12 },
+                                    field: IdentifierPat {
+                                        id: SourceID::from_usize(53),
+                                        name: StrID::from_usize(12)
+                                    },
                                 })),
-                                payload: IdentifierPat { id: 61, name: 13 },
+                                payload: IdentifierPat {
+                                    id: SourceID::from_usize(61),
+                                    name: StrID::from_usize(13)
+                                },
                             }),
                             body: BlockStmt {
-                                id: 66,
+                                id: SourceID::from_usize(66),
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            id: 68,
-                                            name: 8
+                                            id: SourceID::from_usize(68),
+                                            name: StrID::from_usize(8)
                                         })),
                                         args: vec![Expr::Identifier(IdentifierExpr {
-                                            id: 74,
-                                            name: 13
+                                            id: SourceID::from_usize(74),
+                                            name: StrID::from_usize(13)
                                         })],
                                     }),
                                 })],
                             },
                         },
                         MatchArm {
-                            id: 85,
+                            id: SourceID::from_usize(85),
                             pattern: Pattern::DotAccess(DotAccessPat {
                                 target: None,
-                                field: IdentifierPat { id: 86, name: 14 },
+                                field: IdentifierPat {
+                                    id: SourceID::from_usize(86),
+                                    name: StrID::from_usize(14)
+                                },
                             }),
                             body: BlockStmt {
-                                id: 93,
+                                id: SourceID::from_usize(93),
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            id: 95,
-                                            name: 8
+                                            id: SourceID::from_usize(95),
+                                            name: StrID::from_usize(8)
                                         })),
-                                        args: vec![Expr::StringLiteral(15)],
+                                        args: vec![Expr::StringLiteral(StrID::from_usize(15))],
                                     }),
                                 })],
                             },
@@ -882,47 +1005,62 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 MatchStmt {
-                    target: Expr::Identifier(IdentifierExpr { id: 6, name: 1 }),
+                    target: Expr::Identifier(IdentifierExpr {
+                        id: SourceID::from_usize(6),
+                        name: StrID::from_usize(1)
+                    }),
                     arms: vec![
                         MatchArm {
-                            id: 19,
+                            id: SourceID::from_usize(19),
                             pattern: Pattern::DotAccess(DotAccessPat {
                                 target: None,
-                                field: IdentifierPat { id: 20, name: 4 },
+                                field: IdentifierPat {
+                                    id: SourceID::from_usize(20),
+                                    name: StrID::from_usize(4)
+                                },
                             }),
                             body: BlockStmt {
-                                id: 26,
+                                id: SourceID::from_usize(26),
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            id: 28,
-                                            name: 5,
+                                            id: SourceID::from_usize(28),
+                                            name: StrID::from_usize(5),
                                         })),
-                                        args: vec![Expr::StringLiteral(7)],
+                                        args: vec![Expr::StringLiteral(StrID::from_usize(7))],
                                     }),
                                 })],
                             },
                         },
                         MatchArm {
-                            id: 46,
+                            id: SourceID::from_usize(46),
                             pattern: Pattern::Payload(PayloadPat {
                                 pat: Box::new(Pattern::DotAccess(DotAccessPat {
                                     target: None,
-                                    field: IdentifierPat { id: 47, name: 12 },
+                                    field: IdentifierPat {
+                                        id: SourceID::from_usize(47),
+                                        name: StrID::from_usize(12)
+                                    },
                                 })),
-                                payload: IdentifierPat { id: 52, name: 13 },
+                                payload: IdentifierPat {
+                                    id: SourceID::from_usize(52),
+                                    name: StrID::from_usize(13)
+                                },
                             }),
                             body: BlockStmt {
-                                id: 56,
+                                id: SourceID::from_usize(56),
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            id: 58,
-                                            name: 5
+                                            id: SourceID::from_usize(58),
+                                            name: StrID::from_usize(5)
                                         })),
                                         args: vec![
-                                            Expr::StringLiteral(14),
-                                            Expr::Identifier(IdentifierExpr { id: 78, name: 13 }),
+                                            Expr::StringLiteral(StrID::from_usize(14)),
+                                            Expr::Identifier(IdentifierExpr {
+                                                id: SourceID::from_usize(78),
+                                                name: StrID::from_usize(13)
+                                            }),
                                         ],
                                     }),
                                 })],
@@ -939,8 +1077,11 @@ mod test {
                 stmt,
                 ExprStmt {
                     expr: Expr::ModuleAccess(ModuleAccessExpr {
-                        module: 0,
-                        expr: Box::new(Expr::Identifier(IdentifierExpr { id: 5, name: 2 })),
+                        module: StrID::from_usize(0),
+                        expr: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: SourceID::from_usize(5),
+                            name: StrID::from_usize(2)
+                        })),
                     }),
                 }
             ),
@@ -952,10 +1093,13 @@ mod test {
                 stmt,
                 ExprStmt {
                     expr: Expr::ModuleAccess(ModuleAccessExpr {
-                        module: 0,
+                        module: StrID::from_usize(0),
                         expr: Box::new(Expr::Call(CallExpr {
-                            func: Box::new(Expr::Identifier(IdentifierExpr { id: 5, name: 2 })),
-                            args: vec![Expr::StringLiteral(4)],
+                            func: Box::new(Expr::Identifier(IdentifierExpr {
+                                id: SourceID::from_usize(5),
+                                name: StrID::from_usize(2)
+                            })),
+                            args: vec![Expr::StringLiteral(StrID::from_usize(4))],
                         })),
                     }),
                 }
@@ -968,8 +1112,11 @@ mod test {
                 stmt,
                 ExprStmt {
                     expr: Expr::ModuleAccess(ModuleAccessExpr {
-                        module: 0,
-                        expr: Box::new(Expr::Identifier(IdentifierExpr { id: 6, name: 2 })),
+                        module: StrID::from_usize(0),
+                        expr: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: SourceID::from_usize(6),
+                            name: StrID::from_usize(2)
+                        })),
                     }),
                 }
             ),

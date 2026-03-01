@@ -257,14 +257,17 @@
       "Identifier": 18446744073709551597
     },
     {
+      "Identifier": 18
+    },
+    {
       "Pattern": {
-        "Identifier": 18
+        "Identifier": 47
       }
     },
     {
       "Pattern": {
         "Payload": {
-          "pat": 47,
+          "pat": 48,
           "payload_ident": 46
         }
       }
@@ -277,8 +280,8 @@
     },
     {
       "MatchArm": {
-        "pattern": 48,
-        "body": 49
+        "pattern": 49,
+        "body": 50
       }
     },
     {
@@ -289,36 +292,36 @@
     },
     {
       "Call": {
-        "func": 51,
+        "func": 52,
         "args": [
-          52
+          53
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          53
+          54
         ]
       }
     },
     {
       "Pattern": {
-        "Identifier": 52
+        "Identifier": 53
       }
     },
     {
       "MatchArm": {
-        "pattern": 55,
-        "body": 54
+        "pattern": 56,
+        "body": 55
       }
     },
     {
       "Match": {
         "target": 42,
         "arms": [
-          50,
-          56
+          51,
+          57
         ]
       }
     },
@@ -335,20 +338,20 @@
     },
     {
       "VarDecl": {
-        "ident": 59
+        "ident": 60
       }
     },
     {
       "Assign": {
-        "target": 59,
-        "value": 58
+        "target": 60,
+        "value": 59
       }
     },
     {
       "Call": {
         "func": 7,
         "args": [
-          59
+          60
         ]
       }
     },
@@ -361,10 +364,10 @@
           40,
           41,
           45,
-          57,
-          60,
+          58,
           61,
-          62
+          62,
+          63
         ]
       }
     },
@@ -373,9 +376,9 @@
     },
     {
       "FunctionDecl": {
-        "ident": 64,
+        "ident": 65,
         "params": [],
-        "body": 63
+        "body": 64
       }
     }
   ],
@@ -385,7 +388,7 @@
     8,
     10,
     31,
-    65
+    66
   ],
   "type_map": {
     "keys": {
@@ -401,9 +404,9 @@
       "34": 12,
       "38": 13,
       "43": 8,
-      "51": 9,
-      "59": 14,
-      "64": 10
+      "52": 9,
+      "60": 14,
+      "65": 10
     },
     "values": [
       "Float64",
@@ -532,8 +535,8 @@
       34,
       38,
       44,
-      59,
-      64
+      60,
+      65
     ]
   }
 }

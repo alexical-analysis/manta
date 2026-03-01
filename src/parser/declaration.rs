@@ -97,8 +97,8 @@ mod tests {
         Expr, ExprStmt, FunctionDecl, FunctionType, IdentifierExpr, IfStmt, MetaTypeExpr,
         Parameter, ReturnStmt, Stmt, StructField, StructType, TypeDecl, TypeSpec, UseDecl,
     };
-    use crate::parser::lexer::Lexer;
-    use crate::str_store::StrStore;
+    use crate::parser::lexer::{Lexer, SourceID};
+    use crate::str_store::{StrID, StrStore};
     use pretty_assertions::assert_eq;
 
     macro_rules! test_parse_declaration {
@@ -129,26 +129,35 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
-                    id: 0,
-                    name: 1,
-                    params: vec![Parameter { id: 7, name: 3 }, Parameter { id: 10, name: 5 }],
+                    id: SourceID::from_usize(0),
+                    name: StrID::from_usize(1),
+                    params: vec![
+                        Parameter {
+                            id: SourceID::from_usize(7),
+                            name: StrID::from_usize(3)
+                        },
+                        Parameter {
+                            id: SourceID::from_usize(10),
+                            name: StrID::from_usize(5)
+                        }
+                    ],
                     function_type: FunctionType {
                         params: vec![TypeSpec::Int32, TypeSpec::Int32],
                         return_type: Some(Box::new(TypeSpec::Int32)),
                     },
                     body: BlockStmt {
-                        id: 21,
+                        id: SourceID::from_usize(21),
                         statements: vec![Stmt::Return(ReturnStmt {
                             value: Some(Expr::Binary(BinaryExpr {
                                 left: Box::new(Expr::Identifier(IdentifierExpr {
-                                    id: 46,
-                                    name: 3
+                                    id: SourceID::from_usize(46),
+                                    name: StrID::from_usize(3)
                                 })),
 
                                 operator: BinaryOp::Add,
                                 right: Box::new(Expr::Identifier(IdentifierExpr {
-                                    id: 50,
-                                    name: 5
+                                    id: SourceID::from_usize(50),
+                                    name: StrID::from_usize(5)
                                 })),
                             })),
                         })]
@@ -165,24 +174,24 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
-                    id: 0,
-                    name: 1,
+                    id: SourceID::from_usize(0),
+                    name: StrID::from_usize(1),
                     params: vec![],
                     function_type: FunctionType {
                         params: vec![],
                         return_type: None,
                     },
                     body: BlockStmt {
-                        id: 10,
+                        id: SourceID::from_usize(10),
                         statements: vec![
                             Stmt::Expr(ExprStmt {
                                 expr: Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
-                                        id: 28,
-                                        name: 5
+                                        id: SourceID::from_usize(28),
+                                        name: StrID::from_usize(5)
                                     })),
 
-                                    args: vec![Expr::StringLiteral(6)],
+                                    args: vec![Expr::StringLiteral(StrID::from_usize(6))],
                                 }),
                             }),
                             Stmt::Return(ReturnStmt { value: None }),
@@ -199,15 +208,24 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
-                    id: 0,
-                    name: 1,
-                    params: vec![Parameter { id: 11, name: 3 }, Parameter { id: 18, name: 5 },],
+                    id: SourceID::from_usize(0),
+                    name: StrID::from_usize(1),
+                    params: vec![
+                        Parameter {
+                            id: SourceID::from_usize(11),
+                            name: StrID::from_usize(3)
+                        },
+                        Parameter {
+                            id: SourceID::from_usize(18),
+                            name: StrID::from_usize(5)
+                        },
+                    ],
                     function_type: FunctionType {
                         params: vec![TypeSpec::Int32, TypeSpec::String],
                         return_type: Some(Box::new(TypeSpec::Bool)),
                     },
                     body: BlockStmt {
-                        id: 32,
+                        id: SourceID::from_usize(32),
                         statements: vec![Stmt::Return(ReturnStmt {
                             value: Some(Expr::BoolLiteral(true)),
                         })],
@@ -223,23 +241,29 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
-                    id: 0,
-                    name: 1,
-                    params: vec![Parameter { id: 9, name: 3 }],
+                    id: SourceID::from_usize(0),
+                    name: StrID::from_usize(1),
+                    params: vec![Parameter {
+                        id: SourceID::from_usize(9),
+                        name: StrID::from_usize(3)
+                    }],
                     function_type: FunctionType {
                         params: vec![TypeSpec::String],
                         return_type: None,
                     },
                     body: BlockStmt {
-                        id: 19,
+                        id: SourceID::from_usize(19),
                         statements: vec![Stmt::Expr(ExprStmt {
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
-                                    id: 37,
-                                    name: 6
+                                    id: SourceID::from_usize(37),
+                                    name: StrID::from_usize(6)
                                 })),
 
-                                args: vec![Expr::Identifier(IdentifierExpr { id: 43, name: 3 })],
+                                args: vec![Expr::Identifier(IdentifierExpr {
+                                    id: SourceID::from_usize(43),
+                                    name: StrID::from_usize(3)
+                                })],
                             })
                         })],
                     },
@@ -257,28 +281,37 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
-                    id: 0,
-                    name: 1,
-                    params: vec![Parameter { id: 13, name: 3 }, Parameter { id: 16, name: 5 },],
+                    id: SourceID::from_usize(0),
+                    name: StrID::from_usize(1),
+                    params: vec![
+                        Parameter {
+                            id: SourceID::from_usize(13),
+                            name: StrID::from_usize(3)
+                        },
+                        Parameter {
+                            id: SourceID::from_usize(16),
+                            name: StrID::from_usize(5)
+                        },
+                    ],
                     function_type: FunctionType {
                         params: vec![TypeSpec::Int32, TypeSpec::Int32],
                         return_type: Some(Box::new(TypeSpec::Int32)),
                     },
                     body: BlockStmt {
-                        id: 27,
+                        id: SourceID::from_usize(27),
                         statements: vec![
                             Stmt::If(IfStmt {
                                 check: Box::new(Expr::Binary(BinaryExpr {
                                     left: Box::new(Expr::Identifier(IdentifierExpr {
-                                        id: 48,
-                                        name: 5
+                                        id: SourceID::from_usize(48),
+                                        name: StrID::from_usize(5)
                                     })),
 
                                     operator: BinaryOp::Equal,
                                     right: Box::new(Expr::IntLiteral(0)),
                                 })),
                                 success: BlockStmt {
-                                    id: 55,
+                                    id: SourceID::from_usize(55),
                                     statements: vec![Stmt::Return(ReturnStmt {
                                         value: Some(Expr::IntLiteral(0))
                                     })]
@@ -288,14 +321,14 @@ mod tests {
                             Stmt::Return(ReturnStmt {
                                 value: Some(Expr::Binary(BinaryExpr {
                                     left: Box::new(Expr::Identifier(IdentifierExpr {
-                                        id: 127,
-                                        name: 3
+                                        id: SourceID::from_usize(127),
+                                        name: StrID::from_usize(3)
                                     })),
 
                                     operator: BinaryOp::Divide,
                                     right: Box::new(Expr::Identifier(IdentifierExpr {
-                                        id: 131,
-                                        name: 5
+                                        id: SourceID::from_usize(131),
+                                        name: StrID::from_usize(5)
                                     })),
                                 }))
                             }),
@@ -312,18 +345,18 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
-                    id: 0,
-                    name: 1,
+                    id: SourceID::from_usize(0),
+                    name: StrID::from_usize(1),
                     params: vec![],
                     function_type: FunctionType {
                         params: vec![],
                         return_type: Some(Box::new(TypeSpec::Named {
-                            module: Some(4),
-                            name: 6,
+                            module: Some(StrID::from_usize(4)),
+                            name: StrID::from_usize(6),
                         })),
                     },
                     body: BlockStmt {
-                        id: 26,
+                        id: SourceID::from_usize(26),
                         statements: vec![Stmt::Return(ReturnStmt {
                             value: Some(Expr::Alloc(AllocExpr {
                                 meta_type: Box::new(Expr::MetaType(MetaTypeExpr {
@@ -344,23 +377,29 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
-                    id: 0,
-                    name: 1,
-                    params: vec![Parameter { id: 17, name: 3 }],
+                    id: SourceID::from_usize(0),
+                    name: StrID::from_usize(1),
+                    params: vec![Parameter {
+                        id: SourceID::from_usize(17),
+                        name: StrID::from_usize(3)
+                    }],
                     function_type: FunctionType {
                         params: vec![TypeSpec::Slice(Box::new(TypeSpec::Int32))],
                         return_type: None,
                     },
                     body: BlockStmt {
-                        id: 28,
+                        id: SourceID::from_usize(28),
                         statements: vec![Stmt::Expr(ExprStmt {
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
-                                    id: 46,
-                                    name: 8
+                                    id: SourceID::from_usize(46),
+                                    name: StrID::from_usize(8)
                                 })),
 
-                                args: vec![Expr::Identifier(IdentifierExpr { id: 52, name: 3 })],
+                                args: vec![Expr::Identifier(IdentifierExpr {
+                                    id: SourceID::from_usize(52),
+                                    name: StrID::from_usize(3)
+                                })],
                             }),
                         })],
                     },
@@ -376,16 +415,16 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 TypeDecl {
-                    id: 5,
-                    name: 1,
+                    id: SourceID::from_usize(5),
+                    name: StrID::from_usize(1),
                     type_spec: TypeSpec::Struct(StructType {
                         fields: vec![
                             StructField {
-                                name: 4,
+                                name: StrID::from_usize(4),
                                 type_spec: TypeSpec::Int32,
                             },
                             StructField {
-                                name: 6,
+                                name: StrID::from_usize(6),
                                 type_spec: TypeSpec::Int32,
                             },
                         ]
@@ -402,19 +441,19 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 TypeDecl {
-                    id: 5,
-                    name: 1,
+                    id: SourceID::from_usize(5),
+                    name: StrID::from_usize(1),
                     type_spec: TypeSpec::Enum(EnumType {
                         variants: vec![
                             EnumVariant {
-                                name: 4,
+                                name: StrID::from_usize(4),
                                 payload: Some(TypeSpec::Named {
-                                    module: Some(6),
-                                    name: 8
+                                    module: Some(StrID::from_usize(6)),
+                                    name: StrID::from_usize(8)
                                 }),
                             },
                             EnumVariant {
-                                name: 11,
+                                name: StrID::from_usize(11),
                                 payload: None,
                             },
                         ],
@@ -428,19 +467,19 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 TypeDecl {
-                    id: 5,
-                    name: 1,
+                    id: SourceID::from_usize(5),
+                    name: StrID::from_usize(1),
                     type_spec: TypeSpec::Enum(EnumType {
                         variants: vec![
                             EnumVariant {
-                                name: 4,
+                                name: StrID::from_usize(4),
                                 payload: Some(TypeSpec::Pointer(Box::new(TypeSpec::Named {
                                     module: None,
-                                    name: 1
+                                    name: StrID::from_usize(1)
                                 }))),
                             },
                             EnumVariant {
-                                name: 9,
+                                name: StrID::from_usize(9),
                                 payload: None,
                             },
                         ],
@@ -454,8 +493,8 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 TypeDecl {
-                    id: 5,
-                    name: 1,
+                    id: SourceID::from_usize(5),
+                    name: StrID::from_usize(1),
                     type_spec: TypeSpec::Struct(StructType { fields: vec![] }),
                 },
             ),
@@ -466,8 +505,8 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 ConstDecl {
-                    id: 6,
-                    name: 1,
+                    id: SourceID::from_usize(6),
+                    name: StrID::from_usize(1),
                     value: Expr::FloatLiteral(3.45),
                 },
             ),
@@ -478,8 +517,8 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 ConstDecl {
-                    id: 6,
-                    name: 1,
+                    id: SourceID::from_usize(6),
+                    name: StrID::from_usize(1),
                     value: Expr::IntLiteral(1024),
                 },
             ),
@@ -490,8 +529,8 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 ConstDecl {
-                    id: 6,
-                    name: 1,
+                    id: SourceID::from_usize(6),
+                    name: StrID::from_usize(1),
                     value: Expr::Binary(BinaryExpr {
                         left: Box::new(Expr::IntLiteral(5)),
                         operator: BinaryOp::Add,
@@ -506,9 +545,9 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 ConstDecl {
-                    id: 6,
-                    name: 1,
-                    value: Expr::StringLiteral(3),
+                    id: SourceID::from_usize(6),
+                    name: StrID::from_usize(1),
+                    value: Expr::StringLiteral(StrID::from_usize(3)),
                 },
             ),
         },
@@ -517,7 +556,12 @@ mod tests {
                 "math"
             )"#,
             want_var: Decl::Use(decl),
-            want_value: assert_eq!(decl, UseDecl { modules: vec![2] }),
+            want_value: assert_eq!(
+                decl,
+                UseDecl {
+                    modules: vec![StrID::from_usize(2)]
+                }
+            ),
         },
         parse_decl_use_multiple {
             input: r#"use (
@@ -529,7 +573,11 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 UseDecl {
-                    modules: vec![2, 4, 5],
+                    modules: vec![
+                        StrID::from_usize(2),
+                        StrID::from_usize(4),
+                        StrID::from_usize(5),
+                    ],
                 },
             ),
         },

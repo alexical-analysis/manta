@@ -93,14 +93,17 @@
       "Identifier": 18446744073709551597
     },
     {
+      "Identifier": 18446744073709551608
+    },
+    {
       "Pattern": {
-        "Identifier": 18446744073709551608
+        "Identifier": 21
       }
     },
     {
       "Pattern": {
         "Payload": {
-          "pat": 21,
+          "pat": 22,
           "payload_ident": 20
         }
       }
@@ -113,8 +116,8 @@
     },
     {
       "MatchArm": {
-        "pattern": 22,
-        "body": 23
+        "pattern": 23,
+        "body": 24
       }
     },
     {
@@ -124,38 +127,38 @@
       "EnumConstructor": {
         "target": null,
         "variant": 23,
-        "payload": 25
+        "payload": 26
       }
     },
     {
       "Return": {
-        "value": 26
+        "value": 27
       }
     },
     {
       "Block": {
         "statements": [
-          27
+          28
         ]
       }
     },
     {
       "Pattern": {
-        "Identifier": 18446744073709551602
+        "Identifier": 26
       }
     },
     {
       "MatchArm": {
-        "pattern": 29,
-        "body": 28
+        "pattern": 30,
+        "body": 29
       }
     },
     {
       "Match": {
         "target": 17,
         "arms": [
-          24,
-          30
+          25,
+          31
         ]
       }
     },
@@ -170,8 +173,8 @@
     },
     {
       "Assign": {
-        "target": 32,
-        "value": 33
+        "target": 33,
+        "value": 34
       }
     },
     {
@@ -183,23 +186,23 @@
     },
     {
       "Return": {
-        "value": 35
+        "value": 36
       }
     },
     {
       "Block": {
         "statements": [
           19,
-          31,
-          34,
-          36
+          32,
+          35,
+          37
         ]
       }
     },
     {
       "If": {
         "condition": 14,
-        "then_block": 37,
+        "then_block": 38,
         "else_block": null
       }
     },
@@ -212,14 +215,14 @@
     },
     {
       "Return": {
-        "value": 39
+        "value": 40
       }
     },
     {
       "Block": {
         "statements": [
-          38,
-          40
+          39,
+          41
         ]
       }
     },
@@ -228,11 +231,11 @@
     },
     {
       "FunctionDecl": {
-        "ident": 42,
+        "ident": 43,
         "params": [
           15
         ],
-        "body": 41
+        "body": 42
       }
     },
     {
@@ -240,9 +243,9 @@
     },
     {
       "Call": {
-        "func": 42,
+        "func": 43,
         "args": [
-          44
+          45
         ]
       }
     },
@@ -260,36 +263,36 @@
     {
       "Pattern": {
         "Payload": {
-          "pat": 47,
-          "payload_ident": 46
+          "pat": 48,
+          "payload_ident": 47
         }
       }
     },
     {
       "Unary": {
         "operator": "Dereference",
-        "operand": 46
+        "operand": 47
       }
     },
     {
       "Call": {
         "func": 5,
         "args": [
-          49
+          50
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          50
+          51
         ]
       }
     },
     {
       "MatchArm": {
-        "pattern": 48,
-        "body": 51
+        "pattern": 49,
+        "body": 52
       }
     },
     {
@@ -307,36 +310,36 @@
       "Call": {
         "func": 10,
         "args": [
-          54
-        ]
-      }
-    },
-    {
-      "Block": {
-        "statements": [
           55
         ]
       }
     },
     {
+      "Block": {
+        "statements": [
+          56
+        ]
+      }
+    },
+    {
       "MatchArm": {
-        "pattern": 53,
-        "body": 56
+        "pattern": 54,
+        "body": 57
       }
     },
     {
       "Match": {
-        "target": 45,
+        "target": 46,
         "arms": [
-          52,
-          57
+          53,
+          58
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          58
+          59
         ]
       }
     },
@@ -345,9 +348,9 @@
     },
     {
       "FunctionDecl": {
-        "ident": 60,
+        "ident": 61,
         "params": [],
-        "body": 59
+        "body": 60
       }
     }
   ],
@@ -356,8 +359,8 @@
     6,
     11,
     13,
-    43,
-    61
+    44,
+    62
   ],
   "type_map": {
     "keys": {
@@ -370,11 +373,11 @@
       "14": 6,
       "16": 7,
       "17": 8,
-      "33": 9,
-      "42": 10,
-      "44": 11,
-      "54": 12,
-      "60": 13
+      "34": 9,
+      "43": 10,
+      "45": 11,
+      "55": 12,
+      "61": 13
     },
     "values": [
       {
@@ -500,9 +503,9 @@
       12,
       14,
       18,
-      42,
-      46,
-      60
+      43,
+      47,
+      61
     ]
   }
 }
