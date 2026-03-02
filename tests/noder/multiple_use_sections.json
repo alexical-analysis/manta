@@ -9,8 +9,15 @@
       }
     },
     {
+      "Return": {
+        "value": null
+      }
+    },
+    {
       "Block": {
-        "statements": []
+        "statements": [
+          2
+        ]
       }
     },
     {
@@ -18,11 +25,11 @@
     },
     {
       "FunctionDecl": {
-        "ident": 3,
+        "ident": 4,
         "params": [
           1
         ],
-        "body": 2
+        "body": 3
       }
     },
     {
@@ -30,16 +37,16 @@
     },
     {
       "Call": {
-        "func": 3,
+        "func": 4,
         "args": [
-          5
+          6
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          6
+          7
         ]
       }
     },
@@ -48,22 +55,24 @@
     },
     {
       "FunctionDecl": {
-        "ident": 8,
+        "ident": 9,
         "params": [],
-        "body": 7
+        "body": 8
       }
     }
   ],
   "roots": [
-    4,
-    9
+    5,
+    10
   ],
   "type_map": {
     "keys": {
       "0": 0,
-      "3": 1,
+      "4": 1,
       "5": 2,
-      "8": 3
+      "6": 3,
+      "9": 4,
+      "10": 5
     },
     "values": [
       "String",
@@ -75,7 +84,21 @@
           "return_type": null
         }
       },
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": null
+        }
+      },
       "String",
+      {
+        "Function": {
+          "params": [],
+          "return_type": null
+        }
+      },
       {
         "Function": {
           "params": [],
@@ -92,8 +115,8 @@
     },
     "values": [
       0,
-      3,
-      8
+      4,
+      9
     ]
   }
 }

@@ -64,8 +64,15 @@
       }
     },
     {
+      "Return": {
+        "value": null
+      }
+    },
+    {
       "Block": {
-        "statements": []
+        "statements": [
+          13
+        ]
       }
     },
     {
@@ -73,11 +80,11 @@
     },
     {
       "FunctionDecl": {
-        "ident": 14,
+        "ident": 15,
         "params": [
           12
         ],
-        "body": 13
+        "body": 14
       }
     },
     {
@@ -85,7 +92,7 @@
     },
     {
       "TypeDecl": {
-        "ident": 16
+        "ident": 17
       }
     },
     {
@@ -93,7 +100,7 @@
     },
     {
       "VarDecl": {
-        "ident": 18
+        "ident": 19
       }
     },
     {
@@ -105,13 +112,13 @@
     },
     {
       "Return": {
-        "value": 20
+        "value": 21
       }
     },
     {
       "Block": {
         "statements": [
-          21
+          22
         ]
       }
     },
@@ -120,11 +127,11 @@
     },
     {
       "FunctionDecl": {
-        "ident": 23,
+        "ident": 24,
         "params": [
-          19
+          20
         ],
-        "body": 22
+        "body": 23
       }
     },
     {
@@ -132,12 +139,19 @@
     },
     {
       "VarDecl": {
-        "ident": 25
+        "ident": 26
+      }
+    },
+    {
+      "Return": {
+        "value": null
       }
     },
     {
       "Block": {
-        "statements": []
+        "statements": [
+          28
+        ]
       }
     },
     {
@@ -145,11 +159,11 @@
     },
     {
       "FunctionDecl": {
-        "ident": 28,
+        "ident": 30,
         "params": [
-          26
+          27
         ],
-        "body": 27
+        "body": 29
       }
     },
     {
@@ -157,7 +171,7 @@
     },
     {
       "TypeDecl": {
-        "ident": 30
+        "ident": 32
       }
     },
     {
@@ -165,14 +179,14 @@
     },
     {
       "VarDecl": {
-        "ident": 32
+        "ident": 34
       }
     },
     {
       "Call": {
         "func": 9,
         "args": [
-          32
+          34
         ]
       }
     },
@@ -181,7 +195,7 @@
     },
     {
       "VarDecl": {
-        "ident": 35
+        "ident": 37
       }
     },
     {
@@ -198,21 +212,21 @@
     {
       "Pattern": {
         "Payload": {
-          "pat": 38,
-          "payload_ident": 37
+          "pat": 40,
+          "payload_ident": 39
         }
       }
     },
     {
       "Assign": {
-        "target": 35,
-        "value": 37
+        "target": 37,
+        "value": 39
       }
     },
     {
       "MatchArm": {
-        "pattern": 39,
-        "body": 40
+        "pattern": 41,
+        "body": 42
       }
     },
     {
@@ -222,66 +236,66 @@
       "EnumConstructor": {
         "target": null,
         "variant": 30,
-        "payload": 42
+        "payload": 44
       }
     },
     {
       "Return": {
-        "value": 43
+        "value": 45
       }
     },
     {
       "Block": {
         "statements": [
-          44
+          46
         ]
       }
     },
     {
       "Pattern": {
-        "Identifier": 42
+        "Identifier": 44
       }
     },
     {
       "MatchArm": {
-        "pattern": 46,
-        "body": 45
+        "pattern": 48,
+        "body": 47
       }
     },
     {
       "Match": {
-        "target": 34,
+        "target": 36,
         "arms": [
-          41,
-          47
+          43,
+          49
         ]
       }
     },
     {
       "Call": {
-        "func": 14,
+        "func": 15,
         "args": [
-          35
+          37
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          49
+          51
         ]
       }
     },
     {
       "Defer": {
-        "block": 50
+        "block": 52
       }
     },
     {
       "Call": {
-        "func": 23,
+        "func": 24,
         "args": [
-          35
+          37
         ]
       }
     },
@@ -290,7 +304,7 @@
     },
     {
       "VarDecl": {
-        "ident": 53
+        "ident": 55
       }
     },
     {
@@ -307,21 +321,21 @@
     {
       "Pattern": {
         "Payload": {
-          "pat": 56,
-          "payload_ident": 55
+          "pat": 58,
+          "payload_ident": 57
         }
       }
     },
     {
       "Assign": {
-        "target": 53,
-        "value": 55
+        "target": 55,
+        "value": 57
       }
     },
     {
       "MatchArm": {
-        "pattern": 57,
-        "body": 58
+        "pattern": 59,
+        "body": 60
       }
     },
     {
@@ -331,38 +345,38 @@
       "EnumConstructor": {
         "target": null,
         "variant": 31,
-        "payload": 60
+        "payload": 62
       }
     },
     {
       "Return": {
-        "value": 61
+        "value": 63
       }
     },
     {
       "Block": {
         "statements": [
-          62
+          64
         ]
       }
     },
     {
       "Pattern": {
-        "Identifier": 60
+        "Identifier": 62
       }
     },
     {
       "MatchArm": {
-        "pattern": 64,
-        "body": 63
+        "pattern": 66,
+        "body": 65
       }
     },
     {
       "Match": {
-        "target": 52,
+        "target": 54,
         "arms": [
-          59,
-          65
+          61,
+          67
         ]
       }
     },
@@ -370,23 +384,23 @@
       "EnumConstructor": {
         "target": null,
         "variant": 16,
-        "payload": 53
+        "payload": 55
       }
     },
     {
       "Return": {
-        "value": 67
+        "value": 69
       }
     },
     {
       "Block": {
         "statements": [
-          36,
-          48,
-          51,
-          54,
-          66,
-          68
+          38,
+          50,
+          53,
+          56,
+          68,
+          70
         ]
       }
     },
@@ -395,11 +409,11 @@
     },
     {
       "FunctionDecl": {
-        "ident": 70,
+        "ident": 72,
         "params": [
-          33
+          35
         ],
-        "body": 69
+        "body": 71
       }
     },
     {
@@ -407,9 +421,9 @@
     },
     {
       "Call": {
-        "func": 70,
+        "func": 72,
         "args": [
-          72
+          74
         ]
       }
     },
@@ -418,7 +432,7 @@
     },
     {
       "VarDecl": {
-        "ident": 74
+        "ident": 76
       }
     },
     {
@@ -435,21 +449,21 @@
     {
       "Pattern": {
         "Payload": {
-          "pat": 77,
-          "payload_ident": 76
+          "pat": 79,
+          "payload_ident": 78
         }
       }
     },
     {
       "Assign": {
-        "target": 74,
-        "value": 76
+        "target": 76,
+        "value": 78
       }
     },
     {
       "MatchArm": {
-        "pattern": 78,
-        "body": 79
+        "pattern": 80,
+        "body": 81
       }
     },
     {
@@ -457,7 +471,7 @@
     },
     {
       "Pattern": {
-        "Identifier": 81
+        "Identifier": 83
       }
     },
     {
@@ -465,9 +479,9 @@
     },
     {
       "Call": {
-        "func": 28,
+        "func": 30,
         "args": [
-          83
+          85
         ]
       }
     },
@@ -479,31 +493,31 @@
     {
       "Block": {
         "statements": [
-          84,
-          85
-        ]
-      }
-    },
-    {
-      "MatchArm": {
-        "pattern": 82,
-        "body": 86
-      }
-    },
-    {
-      "Match": {
-        "target": 73,
-        "arms": [
-          80,
+          86,
           87
         ]
       }
     },
     {
+      "MatchArm": {
+        "pattern": 84,
+        "body": 88
+      }
+    },
+    {
+      "Match": {
+        "target": 75,
+        "arms": [
+          82,
+          89
+        ]
+      }
+    },
+    {
       "Call": {
-        "func": 28,
+        "func": 30,
         "args": [
-          74
+          76
         ]
       }
     },
@@ -512,9 +526,9 @@
     },
     {
       "Call": {
-        "func": 70,
+        "func": 72,
         "args": [
-          90
+          92
         ]
       }
     },
@@ -523,7 +537,7 @@
     },
     {
       "VarDecl": {
-        "ident": 92
+        "ident": 94
       }
     },
     {
@@ -540,21 +554,21 @@
     {
       "Pattern": {
         "Payload": {
-          "pat": 95,
-          "payload_ident": 94
+          "pat": 97,
+          "payload_ident": 96
         }
       }
     },
     {
       "Assign": {
-        "target": 92,
-        "value": 94
+        "target": 94,
+        "value": 96
       }
     },
     {
       "MatchArm": {
-        "pattern": 96,
-        "body": 97
+        "pattern": 98,
+        "body": 99
       }
     },
     {
@@ -565,56 +579,56 @@
     },
     {
       "Call": {
-        "func": 99,
+        "func": 101,
         "args": [
-          100
+          102
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          101
+          103
         ]
       }
     },
     {
       "Pattern": {
-        "Identifier": 100
+        "Identifier": 102
       }
     },
     {
       "MatchArm": {
-        "pattern": 103,
-        "body": 102
+        "pattern": 105,
+        "body": 104
       }
     },
     {
       "Match": {
-        "target": 91,
+        "target": 93,
         "arms": [
-          98,
-          104
+          100,
+          106
         ]
       }
     },
     {
       "Call": {
-        "func": 28,
+        "func": 30,
         "args": [
-          92
+          94
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          75,
-          88,
-          89,
-          93,
-          105,
-          106
+          77,
+          90,
+          91,
+          95,
+          107,
+          108
         ]
       }
     },
@@ -623,9 +637,9 @@
     },
     {
       "FunctionDecl": {
-        "ident": 108,
+        "ident": 110,
         "params": [],
-        "body": 107
+        "body": 109
       }
     }
   ],
@@ -633,13 +647,13 @@
     1,
     3,
     10,
-    15,
-    17,
-    24,
-    29,
+    16,
+    18,
+    25,
     31,
-    71,
-    109
+    33,
+    73,
+    111
   ],
   "type_map": {
     "keys": {
@@ -647,21 +661,27 @@
       "2": 1,
       "4": 2,
       "9": 3,
-      "11": 4,
-      "14": 5,
-      "16": 6,
-      "18": 7,
-      "23": 8,
-      "25": 9,
-      "28": 10,
-      "30": 11,
-      "32": 12,
-      "70": 13,
-      "72": 14,
-      "83": 15,
-      "90": 16,
-      "99": 17,
-      "108": 18
+      "10": 4,
+      "11": 5,
+      "15": 6,
+      "16": 7,
+      "17": 8,
+      "19": 9,
+      "24": 10,
+      "25": 11,
+      "26": 12,
+      "30": 13,
+      "31": 14,
+      "32": 15,
+      "34": 16,
+      "72": 17,
+      "73": 18,
+      "74": 19,
+      "85": 20,
+      "92": 21,
+      "101": 22,
+      "110": 23,
+      "111": 24
     },
     "values": [
       {
@@ -707,9 +727,35 @@
         }
       },
       {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": {
+            "Named": {
+              "module": null,
+              "name": 14
+            }
+          }
+        }
+      },
+      {
         "Named": {
           "module": null,
           "name": 10
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            {
+              "Named": {
+                "module": null,
+                "name": 10
+              }
+            }
+          ],
+          "return_type": null
         }
       },
       {
@@ -765,7 +811,33 @@
           }
         }
       },
+      {
+        "Function": {
+          "params": [
+            {
+              "Named": {
+                "module": null,
+                "name": 10
+              }
+            }
+          ],
+          "return_type": {
+            "Named": {
+              "module": null,
+              "name": 25
+            }
+          }
+        }
+      },
       "String",
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": null
+        }
+      },
       {
         "Function": {
           "params": [
@@ -818,6 +890,19 @@
           }
         }
       },
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": {
+            "Named": {
+              "module": null,
+              "name": 29
+            }
+          }
+        }
+      },
       "String",
       "String",
       "String",
@@ -827,6 +912,12 @@
             "String"
           ],
           "return_type": "Panic"
+        }
+      },
+      {
+        "Function": {
+          "params": [],
+          "return_type": null
         }
       },
       {
@@ -866,21 +957,21 @@
       4,
       9,
       11,
-      14,
-      16,
-      18,
-      23,
-      25,
-      28,
+      15,
+      17,
+      19,
+      24,
+      26,
       30,
       32,
-      35,
-      53,
-      70,
-      74,
-      81,
-      92,
-      108
+      34,
+      37,
+      55,
+      72,
+      76,
+      83,
+      94,
+      110
     ]
   }
 }
