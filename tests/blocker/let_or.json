@@ -1,0 +1,245 @@
+{
+  "init": {
+    "name": 18446744073709551596,
+    "params": [],
+    "type_spec": {
+      "Function": {
+        "params": [],
+        "return_type": null
+      }
+    },
+    "locals": [],
+    "blocks": [
+      {
+        "block_args": [],
+        "instructions": [
+          {
+            "Const": {
+              "type_spec": "Int64",
+              "value": {
+                "ConstInt": 1
+              }
+            }
+          }
+        ],
+        "terminator": "Unreachable"
+      }
+    ],
+    "entry_block": 1
+  },
+  "functions": [
+    {
+      "name": 19,
+      "params": [
+        20
+      ],
+      "type_spec": {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": {
+            "Named": {
+              "module": null,
+              "name": 14
+            }
+          }
+        }
+      },
+      "locals": [],
+      "blocks": [
+        {
+          "block_args": [],
+          "instructions": [
+            {
+              "Const": {
+                "type_spec": "Int64",
+                "value": {
+                  "ConstInt": 1
+                }
+              }
+            }
+          ],
+          "terminator": "Unreachable"
+        }
+      ],
+      "entry_block": 1
+    },
+    {
+      "name": 23,
+      "params": [
+        24
+      ],
+      "type_spec": {
+        "Function": {
+          "params": [
+            {
+              "Named": {
+                "module": null,
+                "name": 10
+              }
+            }
+          ],
+          "return_type": null
+        }
+      },
+      "locals": [],
+      "blocks": [
+        {
+          "block_args": [],
+          "instructions": [
+            {
+              "Const": {
+                "type_spec": "Int64",
+                "value": {
+                  "ConstInt": 1
+                }
+              }
+            }
+          ],
+          "terminator": "Unreachable"
+        }
+      ],
+      "entry_block": 1
+    },
+    {
+      "name": 26,
+      "params": [
+        24
+      ],
+      "type_spec": {
+        "Function": {
+          "params": [
+            {
+              "Named": {
+                "module": null,
+                "name": 10
+              }
+            }
+          ],
+          "return_type": {
+            "Named": {
+              "module": null,
+              "name": 25
+            }
+          }
+        }
+      },
+      "locals": [],
+      "blocks": [
+        {
+          "block_args": [],
+          "instructions": [
+            {
+              "Const": {
+                "type_spec": "Int64",
+                "value": {
+                  "ConstInt": 1
+                }
+              }
+            }
+          ],
+          "terminator": "Unreachable"
+        }
+      ],
+      "entry_block": 1
+    },
+    {
+      "name": 27,
+      "params": [
+        28
+      ],
+      "type_spec": {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": null
+        }
+      },
+      "locals": [],
+      "blocks": [
+        {
+          "block_args": [],
+          "instructions": [
+            {
+              "Const": {
+                "type_spec": "Int64",
+                "value": {
+                  "ConstInt": 1
+                }
+              }
+            }
+          ],
+          "terminator": "Unreachable"
+        }
+      ],
+      "entry_block": 1
+    },
+    {
+      "name": 32,
+      "params": [
+        20
+      ],
+      "type_spec": {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": {
+            "Named": {
+              "module": null,
+              "name": 29
+            }
+          }
+        }
+      },
+      "locals": [],
+      "blocks": [
+        {
+          "block_args": [],
+          "instructions": [
+            {
+              "Const": {
+                "type_spec": "Int64",
+                "value": {
+                  "ConstInt": 1
+                }
+              }
+            }
+          ],
+          "terminator": "Unreachable"
+        }
+      ],
+      "entry_block": 1
+    },
+    {
+      "name": 1,
+      "params": [],
+      "type_spec": {
+        "Function": {
+          "params": [],
+          "return_type": null
+        }
+      },
+      "locals": [],
+      "blocks": [
+        {
+          "block_args": [],
+          "instructions": [
+            {
+              "Const": {
+                "type_spec": "Int64",
+                "value": {
+                  "ConstInt": 1
+                }
+              }
+            }
+          ],
+          "terminator": "Unreachable"
+        }
+      ],
+      "entry_block": 1
+    }
+  ]
+}

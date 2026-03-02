@@ -27,7 +27,7 @@ impl Compiler {
         let node_tree = node_module(module);
 
         // build the MIR from the HIR
-        let _blocker = block_hir(node_tree);
+        let _blocker = block_hir(&node_tree);
 
         // TODO: build the LLVM IR from the MIR
 

@@ -103,6 +103,10 @@ impl NodeTree {
     pub fn get_mut_node(&mut self, node_id: NodeID) -> Option<&mut Node> {
         self.nodes.get_mut(node_id.to_usize())
     }
+
+    pub fn get_type(&self, node_id: NodeID) -> Option<&TypeSpec> {
+        self.type_map.get(node_id)
+    }
 }
 
 pub fn node_module(module: Module) -> NodeTree {
@@ -146,14 +150,15 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
             let body_id = node_block(node_tree, module, &decl.body);
 
             let ident_id = node_tree.add_node(Node::Identifier(decl.name));
-            node_tree.add_root_node(Node::FunctionDecl {
+            let func_id = node_tree.add_root_node(Node::FunctionDecl {
                 ident: ident_id,
                 params,
                 body: body_id,
             });
 
             let func_type = TypeSpec::Function(decl.function_type.clone());
-            node_tree.type_map.add(ident_id, func_type);
+            node_tree.type_map.add(ident_id, func_type.clone());
+            node_tree.type_map.add(func_id, func_type);
 
             let scope_pos = module
                 .get_scope_pos(decl.id)
@@ -232,6 +237,12 @@ fn node_block(node_tree: &mut NodeTree, module: &Module, block: &BlockStmt) -> N
     for stmt in &block.statements {
         let ids = node_stmt(node_tree, module, stmt);
         stmt_ids.extend(ids);
+    }
+
+    if stmt_ids.is_empty() {
+        // fn my_func() {} is technically semantic sugar for fn my_func() { return }
+        // so we need to make sure we represent that here
+        stmt_ids.push(node_tree.add_node(Node::Return { value: None }))
     }
 
     node_tree.add_node(Node::Block {

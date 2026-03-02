@@ -1,8 +1,9 @@
 use crate::ast::{BinaryOp, TypeSpec, UnaryOp};
 use crate::str_store::StrID;
+use serde::Serialize;
 
 /// A unique identifier for a value (temporary or SSA-like result from an instruction).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize)]
 pub struct ValueId(u32);
 
 impl ValueId {
@@ -29,7 +30,7 @@ impl ValueId {
 }
 
 /// A unique identifier for a block in the control-flow graph.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize)]
 pub struct BlockId(u32);
 
 impl BlockId {
@@ -61,7 +62,7 @@ impl BlockId {
 }
 
 /// A unique identifier for a local variable (storage slot).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize)]
 pub struct LocalId(u32);
 
 impl LocalId {
@@ -93,7 +94,7 @@ impl LocalId {
 }
 
 /// Metadata about a local variable.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Local {
     pub id: LocalId,
     pub type_spec: TypeSpec,
@@ -103,7 +104,7 @@ pub struct Local {
 /// ConstValue is a constant value that can be compiled directly into the final binary
 /// I'm not 100% sure we'll actually want this since we could just swap the constant values in
 /// directly to the MIR but I've added them now just in case
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub enum ConstValue {
     ConstString(StrID),
     ConstInt(u64),
@@ -114,7 +115,7 @@ pub enum ConstValue {
 }
 
 /// An instruction that produces a value or modifies state.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub enum Instruction {
     /// const ty, value -> ValueId
     Const {
@@ -161,7 +162,7 @@ pub enum Instruction {
 }
 
 /// A terminator instruction that ends a basic block and directs control flow.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub enum Terminator {
     /// Return(value?)
     Return { value: Option<ValueId> },
@@ -183,47 +184,47 @@ pub enum Terminator {
 }
 
 /// A basic block in the control-flow graph.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct BasicBlock {
-    pub id: BlockId,
+    pub block_args: Vec<ValueId>,
     pub instructions: Vec<Instruction>,
     pub terminator: Terminator,
-    pub block_args: Vec<ValueId>, // Explicit incoming values if needed
 }
 
 impl BasicBlock {
-    pub fn new(id: BlockId, terminator: Terminator) -> Self {
+    pub fn new(
+        block_args: Vec<ValueId>,
+        instructions: Vec<Instruction>,
+        terminator: Terminator,
+    ) -> Self {
         BasicBlock {
-            id,
-            instructions: Vec::new(),
+            block_args,
+            instructions,
             terminator,
-            block_args: Vec::new(),
         }
     }
 }
 
 /// A function in MIR form.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct MirFunction {
     pub name: StrID,
-    pub params: Vec<(StrID, TypeSpec)>, // Parameter names and types
-    pub return_type: TypeSpec,
+    pub params: Vec<StrID>,
+    pub type_spec: TypeSpec,
     pub locals: Vec<Local>,      // Indexed by LocalId
     pub blocks: Vec<BasicBlock>, // Indexed by BlockId
+    // TODO: do I even need this? Right now the BasicBlocks all live inside the function. Does it
+    // make sense to have all the basic blocks live together than then only have the functions
+    // index into that larger store? My current implementation always set's this to 1
     pub entry_block: BlockId,
 }
 
 impl MirFunction {
-    pub fn new(
-        name: StrID,
-        params: Vec<(StrID, TypeSpec)>,
-        return_type: TypeSpec,
-        entry_block: BlockId,
-    ) -> Self {
+    pub fn new(name: StrID, params: Vec<StrID>, type_spec: TypeSpec, entry_block: BlockId) -> Self {
         MirFunction {
             name,
             params,
-            return_type,
+            type_spec,
             locals: Vec::new(),
             blocks: Vec::new(),
             entry_block,
@@ -238,14 +239,6 @@ impl MirFunction {
         self.locals.get(id.as_idx())
     }
 
-    /// Gets a mutable reference to a local by LocalId.
-    pub fn get_local_mut(&mut self, id: LocalId) -> Option<&mut Local> {
-        if id.is_nil() {
-            return None;
-        }
-        self.locals.get_mut(id.as_idx())
-    }
-
     /// Gets a block by BlockId.
     pub fn get_block(&self, id: BlockId) -> Option<&BasicBlock> {
         if id.is_nil() {
@@ -253,50 +246,17 @@ impl MirFunction {
         }
         self.blocks.get((id.as_u32() - 1) as usize)
     }
-
-    /// Gets a mutable reference to a block by BlockId.
-    pub fn get_block_mut(&mut self, id: BlockId) -> Option<&mut BasicBlock> {
-        if id.is_nil() {
-            return None;
-        }
-        self.blocks.get_mut(id.as_idx())
-    }
-
-    /// Adds a new local and returns its LocalId.
-    pub fn add_local(&mut self, name: StrID, type_spec: TypeSpec) -> LocalId {
-        let id = LocalId::from_u32(self.locals.len() as u32 + 1);
-        self.locals.push(Local {
-            id,
-            type_spec,
-            name,
-        });
-        id
-    }
-
-    /// Adds a new block and returns its BlockId.
-    pub fn add_block(&mut self, terminator: Terminator) -> BlockId {
-        let id = BlockId::from_u32(self.blocks.len() as u32 + 1);
-        self.blocks.push(BasicBlock::new(id, terminator));
-        id
-    }
 }
 
 /// A collection of MIR functions (represents the entire program at the MIR level).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct MirModule {
+    pub init: MirFunction,
     pub functions: Vec<MirFunction>,
 }
 
 impl MirModule {
-    pub fn new() -> Self {
-        MirModule {
-            functions: Vec::new(),
-        }
-    }
-
-    /// Adds a new function and returns its index.
-    pub fn add_function(&mut self, func: MirFunction) -> usize {
-        self.functions.push(func);
-        self.functions.len() - 1
+    pub fn new(init: MirFunction, functions: Vec<MirFunction>) -> Self {
+        MirModule { init, functions }
     }
 }
