@@ -25,7 +25,8 @@
         "terminator": "Unreachable"
       }
     ],
-    "entry_block": 1
+    "entry_block": 1,
+    "value_types": []
   },
   "functions": [
     {
@@ -49,7 +50,9 @@
       "locals": [],
       "blocks": [
         {
-          "block_args": [],
+          "block_args": [
+            1
+          ],
           "instructions": [
             {
               "Const": {
@@ -63,7 +66,10 @@
           "terminator": "Unreachable"
         }
       ],
-      "entry_block": 1
+      "entry_block": 1,
+      "value_types": [
+        "String"
+      ]
     },
     {
       "name": 23,
@@ -86,7 +92,9 @@
       "locals": [],
       "blocks": [
         {
-          "block_args": [],
+          "block_args": [
+            1
+          ],
           "instructions": [
             {
               "Const": {
@@ -100,7 +108,15 @@
           "terminator": "Unreachable"
         }
       ],
-      "entry_block": 1
+      "entry_block": 1,
+      "value_types": [
+        {
+          "Named": {
+            "module": null,
+            "name": 10
+          }
+        }
+      ]
     },
     {
       "name": 26,
@@ -128,7 +144,9 @@
       "locals": [],
       "blocks": [
         {
-          "block_args": [],
+          "block_args": [
+            1
+          ],
           "instructions": [
             {
               "Const": {
@@ -142,7 +160,15 @@
           "terminator": "Unreachable"
         }
       ],
-      "entry_block": 1
+      "entry_block": 1,
+      "value_types": [
+        {
+          "Named": {
+            "module": null,
+            "name": 10
+          }
+        }
+      ]
     },
     {
       "name": 27,
@@ -160,7 +186,9 @@
       "locals": [],
       "blocks": [
         {
-          "block_args": [],
+          "block_args": [
+            1
+          ],
           "instructions": [
             {
               "Const": {
@@ -174,7 +202,10 @@
           "terminator": "Unreachable"
         }
       ],
-      "entry_block": 1
+      "entry_block": 1,
+      "value_types": [
+        "String"
+      ]
     },
     {
       "name": 32,
@@ -197,7 +228,9 @@
       "locals": [],
       "blocks": [
         {
-          "block_args": [],
+          "block_args": [
+            1
+          ],
           "instructions": [
             {
               "Const": {
@@ -211,7 +244,10 @@
           "terminator": "Unreachable"
         }
       ],
-      "entry_block": 1
+      "entry_block": 1,
+      "value_types": [
+        "String"
+      ]
     },
     {
       "name": 1,
@@ -239,7 +275,8 @@
           "terminator": "Unreachable"
         }
       ],
-      "entry_block": 1
+      "entry_block": 1,
+      "value_types": []
     }
   ]
 }

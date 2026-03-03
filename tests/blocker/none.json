@@ -25,7 +25,8 @@
         "terminator": "Unreachable"
       }
     ],
-    "entry_block": 1
+    "entry_block": 1,
+    "value_types": []
   },
   "functions": [
     {
@@ -46,7 +47,9 @@
       "locals": [],
       "blocks": [
         {
-          "block_args": [],
+          "block_args": [
+            1
+          ],
           "instructions": [
             {
               "Const": {
@@ -60,7 +63,12 @@
           "terminator": "Unreachable"
         }
       ],
-      "entry_block": 1
+      "entry_block": 1,
+      "value_types": [
+        {
+          "Pointer": "Int32"
+        }
+      ]
     },
     {
       "name": 17,
@@ -78,7 +86,9 @@
       "locals": [],
       "blocks": [
         {
-          "block_args": [],
+          "block_args": [
+            1
+          ],
           "instructions": [
             {
               "Const": {
@@ -92,7 +102,10 @@
           "terminator": "Unreachable"
         }
       ],
-      "entry_block": 1
+      "entry_block": 1,
+      "value_types": [
+        "String"
+      ]
     },
     {
       "name": 24,
@@ -115,7 +128,9 @@
       "locals": [],
       "blocks": [
         {
-          "block_args": [],
+          "block_args": [
+            1
+          ],
           "instructions": [
             {
               "Const": {
@@ -129,7 +144,10 @@
           "terminator": "Unreachable"
         }
       ],
-      "entry_block": 1
+      "entry_block": 1,
+      "value_types": [
+        "Bool"
+      ]
     },
     {
       "name": 1,
@@ -157,7 +175,8 @@
           "terminator": "Unreachable"
         }
       ],
-      "entry_block": 1
+      "entry_block": 1,
+      "value_types": []
     }
   ]
 }

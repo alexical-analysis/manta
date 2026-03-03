@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use crate::ast::{BinaryOp, TypeSpec, UnaryOp};
 use crate::str_store::StrID;
 use serde::Serialize;
@@ -217,6 +219,7 @@ pub struct MirFunction {
     // make sense to have all the basic blocks live together than then only have the functions
     // index into that larger store? My current implementation always set's this to 1
     pub entry_block: BlockId,
+    pub value_types: Vec<TypeSpec>,
 }
 
 impl MirFunction {
@@ -225,9 +228,10 @@ impl MirFunction {
             name,
             params,
             type_spec,
-            locals: Vec::new(),
-            blocks: Vec::new(),
+            locals: vec![],
+            blocks: vec![],
             entry_block,
+            value_types: vec![],
         }
     }
 
