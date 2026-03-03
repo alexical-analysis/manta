@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use crate::ast::{FunctionType, TypeSpec};
 use crate::hir::{Node, NodeID};
 use crate::mir::{
@@ -14,9 +16,9 @@ pub struct BlockBuilder {
 }
 
 impl BlockBuilder {
-    fn new() -> Self {
+    fn new(block_args: Vec<ValueId>) -> Self {
         BlockBuilder {
-            block_args: vec![],
+            block_args,
             instructions: vec![],
             terminator: None,
         }
@@ -62,8 +64,9 @@ pub struct FunctionBuilder {
     // TODO: the MIR probably needs it's own TypeSpec type that's more focused on the low level
     // details of the type (e.g. byte-size, layout, etc.)
     type_spec: TypeSpec,
-    locals: Vec<Local>,        // Indexed by LocalId
-    blocks: Vec<BlockBuilder>, // Indexed by BlockId
+    locals: Vec<Local>,         // Indexed by LocalId
+    blocks: Vec<BlockBuilder>,  // Indexed by BlockId
+    value_types: Vec<TypeSpec>, // Indexed by ValueId
 }
 
 impl FunctionBuilder {
@@ -74,6 +77,7 @@ impl FunctionBuilder {
             params,
             locals: vec![],
             blocks: vec![],
+            value_types: vec![],
         }
     }
 
@@ -87,11 +91,16 @@ impl FunctionBuilder {
         block.set_terminator(term);
     }
 
-    fn add_block(&mut self) -> BlockId {
-        // TODO: need a block builder so we don't have to have a bunch of placeholdrs like this
-        self.blocks.push(BlockBuilder::new());
+    fn add_block(&mut self, block_args: Vec<ValueId>) -> BlockId {
+        let block_builder = BlockBuilder::new(block_args);
 
+        self.blocks.push(block_builder);
         BlockId::from_u32(self.blocks.len() as u32)
+    }
+
+    fn add_value(&mut self, type_spec: TypeSpec) -> ValueId {
+        self.value_types.push(type_spec);
+        ValueId::from_u32(self.value_types.len() as u32)
     }
 
     fn get_block(&self, block_id: BlockId) -> &BlockBuilder {
@@ -126,6 +135,7 @@ impl FunctionBuilder {
             blocks,
             entry_block: BlockId::from_u32(1),
             locals: self.locals.clone(),
+            value_types: self.value_types.clone(),
         }
     }
 }
@@ -141,7 +151,7 @@ pub fn block_hir(node_tree: &NodeTree) -> MirModule {
         }),
     );
 
-    let block_id = fn_builder.add_block();
+    let block_id = fn_builder.add_block(vec![]);
 
     for node_id in &node_tree.roots {
         block_function(node_tree, *node_id, &mut fn_builder, block_id);
@@ -238,7 +248,7 @@ pub fn block_root_node(node_tree: &NodeTree, node_id: NodeID) -> Option<MirFunct
                 _ => panic!("function name wasn't an identifier"),
             };
 
-            let params = params
+            let params: Vec<StrID> = params
                 .iter()
                 .map(|node_id| {
                     let node = node_tree
@@ -268,8 +278,21 @@ pub fn block_root_node(node_tree: &NodeTree, node_id: NodeID) -> Option<MirFunct
                 None => panic!("missing type for function decl"),
             };
 
-            let mut fn_builder = FunctionBuilder::new(*name, params, func_type);
-            let init_block = fn_builder.add_block();
+            let mut fn_builder = FunctionBuilder::new(*name, params, func_type.clone());
+
+            let block_args = match func_type {
+                TypeSpec::Function(f) => {
+                    let mut block_args = vec![];
+                    for param in f.params {
+                        let value_id = fn_builder.add_value(param);
+                        block_args.push(value_id);
+                    }
+                    block_args
+                }
+                _ => panic!("invalid type spec for function"),
+            };
+
+            let init_block = fn_builder.add_block(block_args);
             for stmt in body {
                 block_function(node_tree, *stmt, &mut fn_builder, init_block);
             }
