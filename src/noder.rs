@@ -5,8 +5,8 @@ use std::fmt::Debug;
 use std::ops::Deref;
 
 use crate::ast::{
-    BlockStmt, Decl, Expr, FunctionType, LetExcept, LetStmt, Pattern, Stmt, StructField,
-    StructType, TypeSpec, UnaryOp,
+    BlockStmt, Decl, Expr, FunctionType, LetExcept, LetStmt, Pattern, ReturnStmt, Stmt,
+    StructField, StructType, TypeSpec, UnaryOp,
 };
 use crate::hir::{Node, NodeID, PatternNode};
 use crate::parser::module::{BindingType, Module, SymID};
@@ -147,7 +147,7 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 node_tree.symbol_map.add(binding.id, ident_id);
             }
 
-            let body_id = node_block(node_tree, module, &decl.body);
+            let body_id = node_fn_body(node_tree, module, &decl.body);
 
             let ident_id = node_tree.add_node(Node::Identifier(decl.name));
             let func_id = node_tree.add_root_node(Node::FunctionDecl {
@@ -232,17 +232,33 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
     }
 }
 
-fn node_block(node_tree: &mut NodeTree, module: &Module, block: &BlockStmt) -> NodeID {
+fn node_fn_body(node_tree: &mut NodeTree, module: &Module, block: &BlockStmt) -> NodeID {
     let mut stmt_ids = vec![];
     for stmt in &block.statements {
         let ids = node_stmt(node_tree, module, stmt);
         stmt_ids.extend(ids);
     }
 
-    if stmt_ids.is_empty() {
-        // fn my_func() {} is technically semantic sugar for fn my_func() { return }
-        // so we need to make sure we represent that here
-        stmt_ids.push(node_tree.add_node(Node::Return { value: None }))
+    // we allow the final return in a function to be omitted but we need to ensure we add
+    // it here if it's missing so the HIR is well constructed for the next steps
+    match block.statements.last() {
+        Some(Stmt::Return(_)) => { /* we're good, the final statement is a return */ }
+        Some(_) | None => {
+            let return_id = node_stmt(node_tree, module, &Stmt::Return(ReturnStmt { value: None }));
+            stmt_ids.push(*return_id.first().expect("failed to node statement"))
+        }
+    }
+
+    node_tree.add_node(Node::Block {
+        statements: stmt_ids,
+    })
+}
+
+fn node_block(node_tree: &mut NodeTree, module: &Module, block: &BlockStmt) -> NodeID {
+    let mut stmt_ids = vec![];
+    for stmt in &block.statements {
+        let ids = node_stmt(node_tree, module, stmt);
+        stmt_ids.extend(ids);
     }
 
     node_tree.add_node(Node::Block {
@@ -587,7 +603,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                     // TODO: this needs to be the type of the expression that's being matched or an
                     // any type like in Go, just pick a random type for now
                     params: vec![TypeSpec::String],
-                    return_type: Some(Box::new(TypeSpec::Panic)),
+                    return_type: Box::new(TypeSpec::Panic),
                 }),
             );
 
@@ -623,7 +639,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                     // TODO: this needs to be the type of the expression that's being matched or an
                     // any type like in Go, just pick a random type for now
                     params: vec![TypeSpec::String],
-                    return_type: Some(Box::new(TypeSpec::Panic)),
+                    return_type: Box::new(TypeSpec::Panic),
                 }),
             );
 
@@ -947,7 +963,7 @@ fn check_node_tree_types(node_tree: &mut NodeTree) {
     }
 }
 
-fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec> {
+fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> TypeSpec {
     let node = match node_tree.get_node(node_id) {
         Some(n) => n,
         None => panic!("type checking unknown node"),
@@ -1088,7 +1104,7 @@ fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec
         Node::Call { func, args: _ } => {
             let func_type = check_node_type(node_tree, func)?;
             match func_type {
-                TypeSpec::Function(ft) => ft.return_type.map(|f| *f),
+                TypeSpec::Function(t) => t.return_type,
                 _ => panic!("cannot call non-function type"),
             }
         }

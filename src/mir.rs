@@ -107,7 +107,7 @@ pub struct Local {
 #[derive(Debug, Clone, Serialize)]
 pub enum ConstValue {
     ConstString(StrID),
-    ConstInt(u64),
+    ConstInt(i64),
     ConstFloat(f64),
     ConstBool(bool),
     ConstArray(Vec<ConstValue>),
@@ -138,7 +138,8 @@ pub enum Instruction {
     StoreLocal { local: LocalId, value: ValueId },
     /// call(func, args...) -> ValueId
     Call {
-        result: ValueId,
+        // TODO: maybe we need to add a unit type
+        result: Option<ValueId>,
         func: StrID, // Function name or identifier
         args: Vec<ValueId>,
     },
@@ -185,7 +186,8 @@ pub enum Terminator {
     /// SwitchVariant(value, {(variant_id, target), ...})
     SwitchVariant {
         value: ValueId,
-        arms: Vec<(u32, BlockId)>, // (variant_id, target_block)
+        arm_variants: Vec<u32>, // this is the variant tag id
+        arm_blocks: Vec<BlockId>,
     },
     /// Unreachable (for proven-unreachable code)
     Unreachable,

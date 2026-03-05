@@ -228,7 +228,7 @@ pub fn block_hir(node_tree: &NodeTree) -> MirModule {
         block_id = block_statement(node_tree, *node_id, &mut fn_builder, block_id);
     }
 
-    // Ensure the final block has a terminator
+    // TODO: need to actually close block correctly
     if !fn_builder.block_is_closed(block_id) {
         fn_builder.set_terminator(block_id, Terminator::Return { value: None });
     }
@@ -302,12 +302,12 @@ pub fn block_root_node(node_tree: &NodeTree, node_id: NodeID) -> Option<MirFunct
             let mut fn_builder = FunctionBuilder::new(*name, params, func_type.clone());
 
             let mut block_id = fn_builder.add_block();
-            let body = get_block_stmts(node_tree, body).clone();
+            let body = get_block_stmts(node_tree, body);
             for stmt in body {
-                block_id = block_statement(node_tree, stmt, &mut fn_builder, block_id);
+                block_id = block_statement(node_tree, *stmt, &mut fn_builder, block_id);
             }
 
-            // Ensure the final block has a terminator
+            // TODO: this is a hack and we need to do things correctly
             if !fn_builder.block_is_closed(block_id) {
                 fn_builder.set_terminator(block_id, Terminator::Return { value: None });
             }
@@ -332,7 +332,7 @@ pub fn block_statement(
 
     let node = match node_tree.get_node(node_id) {
         Some(n) => n,
-        None => panic!("type checking unknown node"),
+        None => panic!("trying to block unknown node"),
     };
     let node = node.clone();
 
@@ -360,13 +360,15 @@ pub fn block_statement(
         } => {
             let expr_value = block_expression(node_tree, condition, fn_builder, block_id);
 
-            let true_block_id = fn_builder.add_block();
-            let false_block_id = fn_builder.add_block();
+            let mut true_block_id = fn_builder.add_block();
+            let mut false_block_id = fn_builder.add_block();
             let merge_block_id = fn_builder.add_block();
 
-            let stmts = get_block_stmts(node_tree, then_block).clone();
+            let stmts = get_block_stmts(node_tree, then_block);
             for stmt in stmts {
-                block_statement(node_tree, stmt, fn_builder, true_block_id);
+                // this block might be terminated by a seperate statement in which case we'll get a
+                // new block to work on so handle that here
+                true_block_id = block_statement(node_tree, *stmt, fn_builder, true_block_id);
             }
 
             fn_builder.set_terminator(
@@ -379,29 +381,37 @@ pub fn block_statement(
             );
 
             if let Some(n) = else_block {
-                let stmts = get_block_stmts(node_tree, n).clone();
+                let stmts = get_block_stmts(node_tree, n);
                 for stmt in stmts {
-                    block_statement(node_tree, stmt, fn_builder, false_block_id);
+                    // this block might be terminated by a seperate statement in which case we'll get a
+                    // new block to work on so handle that here
+                    false_block_id = block_statement(node_tree, *stmt, fn_builder, false_block_id);
                 }
             }
 
-            if !fn_builder.block_is_closed(true_block_id) {
-                fn_builder.set_terminator(
-                    true_block_id,
-                    Terminator::Jump {
-                        target: merge_block_id,
-                    },
-                );
-            }
-            
-            if !fn_builder.block_is_closed(false_block_id) {
-                fn_builder.set_terminator(
-                    false_block_id,
-                    Terminator::Jump {
-                        target: merge_block_id,
-                    },
-                );
-            }
+            // TODO: this block might have been terminated with a Terminator::Unreachable (for
+            // example if there's a panic inside the if statment). If that's the case we don't want
+            // to overwrite that terminator. That's the only valid case though, all other cases
+            // should result in us getting an unterminated brach. There are 2 ways I can see to
+            // solve this
+            // 1) is to NEVER hand back a terminated block from 'block_statement' which means we
+            //    need to figure out what to do with panics
+            // 2) is to explicitly check for that case either here in or set_terminator.
+            // I'm not yet sure which one I prefer so I'll have to come back to it.
+            fn_builder.set_terminator(
+                true_block_id,
+                Terminator::Jump {
+                    target: merge_block_id,
+                },
+            );
+
+            // TODO: same here as above
+            fn_builder.set_terminator(
+                false_block_id,
+                Terminator::Jump {
+                    target: merge_block_id,
+                },
+            );
 
             merge_block_id
         }
@@ -465,45 +475,55 @@ pub fn block_statement(
                     let _index_value = block_expression(node_tree, index, fn_builder, block_id);
                     // TODO: Implement proper index assignment
                 }
-                Node::FieldAccess { target: obj, field: _ } => {
+                Node::FieldAccess {
+                    target: obj,
+                    field: _,
+                } => {
                     // Field assignment: obj.field = value
-                    let _obj_value = obj.map(|o| block_expression(node_tree, o, fn_builder, block_id));
+                    let _obj_value =
+                        obj.map(|o| block_expression(node_tree, o, fn_builder, block_id));
                     // TODO: Implement proper field assignment
                 }
-                _ => panic!("assignment target must be assignable (identifier, dereference, index, or field access), got: {:?}", target_node),
+                _ => panic!(
+                    "assignment target must be assignable (identifier, dereference, index, or field access), got: {:?}",
+                    target_node
+                ),
             }
 
             block_id
         }
         Node::Return { value } => {
             let return_value = value.map(|v| block_expression(node_tree, v, fn_builder, block_id));
-            fn_builder.set_terminator(block_id, Terminator::Return { value: return_value });
+            fn_builder.set_terminator(
+                block_id,
+                Terminator::Return {
+                    value: return_value,
+                },
+            );
             block_id
         }
         Node::Defer { block } => {
-            // For now, just process the block statements (proper defer handling would need more context)
+            // TODO: For now, just process the block statements (proper defer handling would need more context)
+            let mut defer_block_id = fn_builder.add_block();
             let stmts = get_block_stmts(node_tree, block).clone();
-            let mut current_block = block_id;
             for stmt in stmts {
-                current_block = block_statement(node_tree, stmt, fn_builder, current_block);
+                defer_block_id = block_statement(node_tree, stmt, fn_builder, defer_block_id);
             }
-            current_block
-        }
-        Node::Match {
-            target,
-            arms,
-        } => {
-            let target_value = block_expression(node_tree, target, fn_builder, block_id);
 
-            let mut arm_blocks = vec![];
-            for _arm_id in &arms {
-                let arm_block_id = fn_builder.add_block();
-                arm_blocks.push(arm_block_id);
-            }
+            // TODO: just returning the original block for now while we figure out how defer should
+            // actually work
+            block_id
+        }
+        Node::Match { target, arms } => {
+            let target_value = block_expression(node_tree, target, fn_builder, block_id);
 
             let merge_block_id = fn_builder.add_block();
 
-            for (i, arm_id) in arms.iter().enumerate() {
+            let mut arm_blocks = vec![];
+            for arm_id in arms.iter() {
+                let mut arm_block_id = fn_builder.add_block();
+                arm_blocks.push(arm_block_id);
+
                 let (pattern, stmts) = match node_tree.get_node(*arm_id) {
                     Some(Node::MatchArm { pattern, body }) => {
                         let stmts = get_block_stmts(node_tree, *body).clone();
@@ -512,14 +532,16 @@ pub fn block_statement(
                     _ => panic!("match arm must be a MatchArm node"),
                 };
 
-                // Extract variables from the pattern and add them as locals
+                // TODO: Extract variables from the pattern and add them as locals
+                // do we need these bindings?
                 let _bindings = extract_pattern_variables(node_tree, pattern, fn_builder);
 
-                let arm_block_id = arm_blocks[i];
                 for stmt in stmts {
-                    block_statement(node_tree, stmt, fn_builder, arm_block_id);
+                    arm_block_id = block_statement(node_tree, stmt, fn_builder, arm_block_id);
                 }
 
+                // TODO: So the block could be terminated already...
+                // what do we do here? This is popping up alot
                 fn_builder.set_terminator(
                     arm_block_id,
                     Terminator::Jump {
@@ -528,11 +550,13 @@ pub fn block_statement(
                 );
             }
 
+            let arm_variants = (0..arms.len()).map(|i| i as u32).collect();
             fn_builder.set_terminator(
                 block_id,
                 Terminator::SwitchVariant {
                     value: target_value,
-                    arms: (0..arms.len()).map(|i| (i as u32, arm_blocks[i])).collect(),
+                    arm_variants, // this is the variant tag id
+                    arm_blocks,
                 },
             );
 
@@ -545,7 +569,10 @@ pub fn block_statement(
             }
             current_block
         }
-        Node::FunctionDecl { .. } | Node::TypeDecl { .. } | Node::UseDecl { .. } | Node::ModDecl { .. } => {
+        Node::FunctionDecl { .. }
+        | Node::TypeDecl { .. }
+        | Node::UseDecl { .. }
+        | Node::ModDecl { .. } => {
             // These are top-level declarations and shouldn't appear as statements
             block_id
         }
@@ -569,7 +596,7 @@ fn block_expression(
 
     let node = match node_tree.get_node(node_id) {
         Some(n) => n,
-        None => panic!("type checking unknown node"),
+        None => panic!("trying to block unknown node"),
     };
     let node = node.clone();
 
@@ -580,7 +607,7 @@ fn block_expression(
                 block_id,
                 Instruction::Const {
                     result,
-                    value: ConstValue::ConstInt(n as u64),
+                    value: ConstValue::ConstInt(n),
                 },
             );
             result
@@ -619,6 +646,7 @@ fn block_expression(
             result
         }
         Node::Identifier(s) => {
+            // TODO: this should be a fn_build.find_local call
             // Look up the local variable for this identifier
             let (local_id, type_spec) = {
                 match fn_builder.locals.iter().find(|l| l.name == s) {
@@ -671,6 +699,8 @@ fn block_expression(
         Node::Call { func, args } => {
             let func_name = match node_tree.get_node(func) {
                 Some(Node::Identifier(s)) => *s,
+                // TODO: this is only true for now, once we add closures we'll probably have to
+                // rethink this since many expressions might return a callable closure
                 _ => panic!("function in call must be an identifier"),
             };
 
@@ -679,7 +709,18 @@ fn block_expression(
                 .map(|arg| block_expression(node_tree, *arg, fn_builder, block_id))
                 .collect();
 
-            let result = fn_builder.add_value(TypeSpec::Int64);
+            // TODO: we actually need to get the functions type spec
+            let return_type = match node_tree.get_type(node_id) {
+                Some(TypeSpec::Function(f)) => f.return_type.clone(),
+                _ => panic!("missing type for function"),
+            };
+
+            let result = if let Some(t) = return_type {
+                Some(fn_builder.add_value(*t))
+            } else {
+                None
+            };
+
             fn_builder.add_instruction(
                 block_id,
                 Instruction::Call {
@@ -688,6 +729,7 @@ fn block_expression(
                     args: arg_values,
                 },
             );
+
             result
         }
         Node::Index { target, index } => {
@@ -731,7 +773,8 @@ fn block_expression(
                 }
             });
 
-            let _payload_val = payload.map(|p| block_expression(node_tree, p, fn_builder, block_id));
+            let _payload_val =
+                payload.map(|p| block_expression(node_tree, p, fn_builder, block_id));
             let result = fn_builder.add_value(TypeSpec::Int64);
             fn_builder.add_instruction(
                 block_id,
@@ -808,7 +851,7 @@ fn extract_pattern_variables(
 ) -> Vec<(StrID, LocalId)> {
     // Returns list of (identifier, local_id) pairs for variables bound by this pattern
     let mut bindings = vec![];
-    
+
     let pattern_node = match node_tree.get_node(pattern_id) {
         Some(n) => n,
         None => return bindings,
@@ -869,7 +912,7 @@ fn extract_pattern_variables(
         // Literal and TypeSpec patterns don't bind variables
         _ => {}
     }
-    
+
     bindings
 }
 
