@@ -12,23 +12,16 @@
     "blocks": [
       {
         "block_args": [],
-        "instructions": [
-          {
-            "Const": {
-              "result": 1,
-              "value": {
-                "ConstInt": 1
-              }
-            }
+        "instructions": [],
+        "terminator": {
+          "Return": {
+            "value": null
           }
-        ],
-        "terminator": "Unreachable"
+        }
       }
     ],
     "entry_block": 1,
-    "value_types": [
-      "Int64"
-    ]
+    "value_types": []
   },
   "functions": [
     {
@@ -48,23 +41,16 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [
-            {
-              "Const": {
-                "result": 1,
-                "value": {
-                  "ConstInt": 1
-                }
-              }
+          "instructions": [],
+          "terminator": {
+            "Return": {
+              "value": null
             }
-          ],
-          "terminator": "Unreachable"
+          }
         }
       ],
       "entry_block": 1,
-      "value_types": [
-        "Int64"
-      ]
+      "value_types": []
     },
     {
       "name": 1,
@@ -75,25 +61,238 @@
           "return_type": null
         }
       },
-      "locals": [],
+      "locals": [
+        {
+          "id": 1,
+          "type_spec": "Int64",
+          "name": 9
+        },
+        {
+          "id": 2,
+          "type_spec": "Int64",
+          "name": 15
+        },
+        {
+          "id": 3,
+          "type_spec": "Int64",
+          "name": 17
+        }
+      ],
       "blocks": [
         {
           "block_args": [],
           "instructions": [
             {
+              "DeclareLocal": {
+                "local": 1
+              }
+            },
+            {
               "Const": {
                 "result": 1,
                 "value": {
-                  "ConstInt": 1
+                  "ConstInt": 42
                 }
+              }
+            },
+            {
+              "StoreLocal": {
+                "local": 1,
+                "value": 1
+              }
+            },
+            {
+              "DeclareLocal": {
+                "local": 2
+              }
+            },
+            {
+              "Const": {
+                "result": 2,
+                "value": {
+                  "ConstInt": 2701
+                }
+              }
+            },
+            {
+              "StoreLocal": {
+                "local": 2,
+                "value": 2
+              }
+            },
+            {
+              "DeclareLocal": {
+                "local": 3
+              }
+            },
+            {
+              "LoadLocal": {
+                "result": 3,
+                "local": 1
+              }
+            },
+            {
+              "UnaryOp": {
+                "result": 4,
+                "op": "AddressOf",
+                "operand": 3
+              }
+            },
+            {
+              "StoreLocal": {
+                "local": 3,
+                "value": 4
+              }
+            },
+            {
+              "LoadLocal": {
+                "result": 5,
+                "local": 3
+              }
+            },
+            {
+              "UnaryOp": {
+                "result": 6,
+                "op": "Dereference",
+                "operand": 5
+              }
+            },
+            {
+              "Call": {
+                "result": 7,
+                "func": 8,
+                "args": [
+                  6
+                ]
+              }
+            },
+            {
+              "Const": {
+                "result": 8,
+                "value": {
+                  "ConstInt": 21
+                }
+              }
+            },
+            {
+              "LoadLocal": {
+                "result": 9,
+                "local": 3
+              }
+            },
+            {
+              "LoadLocal": {
+                "result": 10,
+                "local": 1
+              }
+            },
+            {
+              "Call": {
+                "result": 11,
+                "func": 8,
+                "args": [
+                  10
+                ]
+              }
+            },
+            {
+              "LoadLocal": {
+                "result": 12,
+                "local": 2
+              }
+            },
+            {
+              "UnaryOp": {
+                "result": 13,
+                "op": "AddressOf",
+                "operand": 12
+              }
+            },
+            {
+              "StoreLocal": {
+                "local": 3,
+                "value": 13
+              }
+            },
+            {
+              "LoadLocal": {
+                "result": 14,
+                "local": 3
+              }
+            },
+            {
+              "UnaryOp": {
+                "result": 15,
+                "op": "Dereference",
+                "operand": 14
+              }
+            },
+            {
+              "Const": {
+                "result": 16,
+                "value": {
+                  "ConstInt": 37
+                }
+              }
+            },
+            {
+              "BinaryOp": {
+                "result": 17,
+                "op": "Divide",
+                "lhs": 15,
+                "rhs": 16
+              }
+            },
+            {
+              "LoadLocal": {
+                "result": 18,
+                "local": 3
+              }
+            },
+            {
+              "LoadLocal": {
+                "result": 19,
+                "local": 2
+              }
+            },
+            {
+              "Call": {
+                "result": 20,
+                "func": 8,
+                "args": [
+                  19
+                ]
               }
             }
           ],
-          "terminator": "Unreachable"
+          "terminator": {
+            "Return": {
+              "value": null
+            }
+          }
         }
       ],
       "entry_block": 1,
       "value_types": [
+        "Int64",
+        "Int64",
+        "Int64",
+        "Int64",
+        "Int64",
+        "Int64",
+        "Int64",
+        "Int64",
+        "Int64",
+        "Int64",
+        "Int64",
+        "Int64",
+        "Int64",
+        "Int64",
+        "Int64",
+        "Int64",
+        "Int64",
+        "Int64",
+        "Int64",
         "Int64"
       ]
     }

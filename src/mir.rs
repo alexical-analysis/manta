@@ -1,5 +1,3 @@
-use std::collections::BTreeMap;
-
 use crate::ast::{BinaryOp, TypeSpec, UnaryOp};
 use crate::str_store::StrID;
 use serde::Serialize;
