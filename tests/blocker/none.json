@@ -15,7 +15,7 @@
         "instructions": [
           {
             "Const": {
-              "type_spec": "Int64",
+              "result": 1,
               "value": {
                 "ConstInt": 1
               }
@@ -26,7 +26,9 @@
       }
     ],
     "entry_block": 1,
-    "value_types": []
+    "value_types": [
+      "Int64"
+    ]
   },
   "functions": [
     {
@@ -47,13 +49,11 @@
       "locals": [],
       "blocks": [
         {
-          "block_args": [
-            1
-          ],
+          "block_args": [],
           "instructions": [
             {
               "Const": {
-                "type_spec": "Int64",
+                "result": 1,
                 "value": {
                   "ConstInt": 1
                 }
@@ -65,9 +65,7 @@
       ],
       "entry_block": 1,
       "value_types": [
-        {
-          "Pointer": "Int32"
-        }
+        "Int64"
       ]
     },
     {
@@ -86,13 +84,11 @@
       "locals": [],
       "blocks": [
         {
-          "block_args": [
-            1
-          ],
+          "block_args": [],
           "instructions": [
             {
               "Const": {
-                "type_spec": "Int64",
+                "result": 1,
                 "value": {
                   "ConstInt": 1
                 }
@@ -104,7 +100,7 @@
       ],
       "entry_block": 1,
       "value_types": [
-        "String"
+        "Int64"
       ]
     },
     {
@@ -128,13 +124,49 @@
       "locals": [],
       "blocks": [
         {
-          "block_args": [
-            1
-          ],
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Branch": {
+              "cond": 0,
+              "true_target": 2,
+              "false_target": 3
+            }
+          }
+        },
+        {
+          "block_args": [],
           "instructions": [
             {
               "Const": {
-                "type_spec": "Int64",
+                "result": 1,
+                "value": {
+                  "ConstInt": 1
+                }
+              }
+            }
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 4
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 4
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [
+            {
+              "Const": {
+                "result": 2,
                 "value": {
                   "ConstInt": 1
                 }
@@ -146,7 +178,8 @@
       ],
       "entry_block": 1,
       "value_types": [
-        "Bool"
+        "Int64",
+        "Int64"
       ]
     },
     {
@@ -165,7 +198,7 @@
           "instructions": [
             {
               "Const": {
-                "type_spec": "Int64",
+                "result": 1,
                 "value": {
                   "ConstInt": 1
                 }
@@ -176,7 +209,9 @@
         }
       ],
       "entry_block": 1,
-      "value_types": []
+      "value_types": [
+        "Int64"
+      ]
     }
   ]
 }

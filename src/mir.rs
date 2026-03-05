@@ -120,29 +120,33 @@ pub enum ConstValue {
 #[derive(Debug, Clone, Serialize)]
 pub enum Instruction {
     /// const ty, value -> ValueId
-    Const {
-        type_spec: TypeSpec,
-        value: ConstValue,
-    },
+    Const { result: ValueId, value: ConstValue },
     /// unary op, value -> ValueId
-    UnaryOp { op: UnaryOp, operand: ValueId },
+    UnaryOp {
+        result: ValueId,
+        op: UnaryOp,
+        operand: ValueId,
+    },
     /// binary op, lhs, rhs -> ValueId
     BinaryOp {
+        result: ValueId,
         op: BinaryOp,
         lhs: ValueId,
         rhs: ValueId,
     },
     /// load_local(LocalId) -> ValueId
-    LoadLocal { local: LocalId },
+    LoadLocal { result: ValueId, local: LocalId },
     /// store_local(LocalId, ValueId)
     StoreLocal { local: LocalId, value: ValueId },
     /// call(func, args...) -> ValueId
     Call {
+        result: ValueId,
         func: StrID, // Function name or identifier
         args: Vec<ValueId>,
     },
     /// call_try(func, args..., handler: BlockId) -> ValueId
     CallTry {
+        result: ValueId,
         func: StrID,
         args: Vec<ValueId>,
         handler: BlockId,
@@ -150,7 +154,11 @@ pub enum Instruction {
     /// variant_get_payload(src: ValueId, variant_id) -> ValueId
     /// variants can only ever contain a single value in Manta so there's no need to extract a
     /// specific field
-    VariantGetPayload { src: ValueId, variant_id: u32 },
+    VariantGetPayload {
+        result: ValueId,
+        src: ValueId,
+        variant_id: u32,
+    },
     /// move(dst_local, src_value)
     Move { dst: LocalId, src: ValueId },
     /// copy(dst_local, src_value)
