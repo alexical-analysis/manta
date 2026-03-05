@@ -10,15 +10,13 @@ use crate::noder::NodeTree;
 use crate::str_store::{self, StrID};
 
 pub struct BlockBuilder {
-    block_args: Vec<ValueId>,
     instructions: Vec<Instruction>,
     terminator: Option<Terminator>,
 }
 
 impl BlockBuilder {
-    fn new(block_args: Vec<ValueId>) -> Self {
+    fn new() -> Self {
         BlockBuilder {
-            block_args,
             instructions: vec![],
             terminator: None,
         }
@@ -49,8 +47,10 @@ impl BlockBuilder {
             panic!("basic block is empty")
         }
 
+        // TODO: need to figure out what the blocks are by walking the instructions
+        // and looking at the values that are referenced but not defined in this block
         BasicBlock {
-            block_args: self.block_args.clone(),
+            block_args: vec![],
             instructions: self.instructions.clone(),
             terminator: term.clone(),
         }
@@ -91,8 +91,8 @@ impl FunctionBuilder {
         block.set_terminator(term);
     }
 
-    fn add_block(&mut self, block_args: Vec<ValueId>) -> BlockId {
-        let block_builder = BlockBuilder::new(block_args);
+    fn add_block(&mut self) -> BlockId {
+        let block_builder = BlockBuilder::new();
 
         self.blocks.push(block_builder);
         BlockId::from_u32(self.blocks.len() as u32)
@@ -151,10 +151,10 @@ pub fn block_hir(node_tree: &NodeTree) -> MirModule {
         }),
     );
 
-    let block_id = fn_builder.add_block(vec![]);
+    let mut block_id = fn_builder.add_block();
 
     for node_id in &node_tree.roots {
-        block_function(node_tree, *node_id, &mut fn_builder, block_id);
+        block_id = block_statement(node_tree, *node_id, &mut fn_builder, block_id);
     }
 
     let init = fn_builder.to_mir_function();
@@ -225,22 +225,10 @@ pub fn block_root_node(node_tree: &NodeTree, node_id: NodeID) -> Option<MirFunct
 
             let mut fn_builder = FunctionBuilder::new(*name, params, func_type.clone());
 
-            let block_args = match func_type {
-                TypeSpec::Function(f) => {
-                    let mut block_args = vec![];
-                    for param in f.params {
-                        let value_id = fn_builder.add_value(param);
-                        block_args.push(value_id);
-                    }
-                    block_args
-                }
-                _ => panic!("invalid type spec for function"),
-            };
-
-            let init_block = fn_builder.add_block(block_args);
+            let mut block_id = fn_builder.add_block();
             let body = get_block_stmts(node_tree, body);
             for stmt in body {
-                block_function(node_tree, *stmt, &mut fn_builder, init_block);
+                block_id = block_statement(node_tree, *stmt, &mut fn_builder, block_id);
             }
 
             Some(fn_builder.to_mir_function())
@@ -249,16 +237,16 @@ pub fn block_root_node(node_tree: &NodeTree, node_id: NodeID) -> Option<MirFunct
     }
 }
 
-pub fn block_function(
+pub fn block_statement(
     node_tree: &NodeTree,
     node_id: NodeID,
     fn_builder: &mut FunctionBuilder,
     block_id: BlockId,
-) -> Option<ValueId> {
+) -> BlockId {
     if fn_builder.block_is_closed(block_id) {
         // if the block is closed just skip all the remaining instructions as they are no longer
         // reachable, trying to adding them would cause a panic
-        return None;
+        return block_id;
     }
 
     let node = match node_tree.get_node(node_id) {
@@ -280,7 +268,7 @@ pub fn block_function(
             );
             fn_builder.set_terminator(block_id, Terminator::Unreachable);
 
-            None
+            block_id
         }
         Node::If {
             condition,
@@ -289,17 +277,16 @@ pub fn block_function(
         } => {
             // the condition needs to be computed in the previous block, expressions can trigger
             // control flow so this should never create a new block
-            let expr_value = block_function(node_tree, condition, fn_builder, block_id)
-                .expect("blocking the expression for an if statment must return a valueId");
+            let expr_value = block_expression(node_tree, condition, fn_builder, block_id);
 
             // TODO: how do I get the block_args for these blocks?
-            let true_block_id = fn_builder.add_block(vec![]);
-            let false_block_id = fn_builder.add_block(vec![]);
+            let true_block_id = fn_builder.add_block();
+            let false_block_id = fn_builder.add_block();
 
             let block = get_block_stmts(node_tree, then_block);
 
             for stmt in block {
-                block_function(node_tree, *stmt, fn_builder, true_block_id);
+                block_statement(node_tree, *stmt, fn_builder, true_block_id);
             }
 
             fn_builder.set_terminator(
@@ -315,12 +302,13 @@ pub fn block_function(
                 let block = get_block_stmts(node_tree, n);
 
                 for stmt in block {
-                    block_function(node_tree, *stmt, fn_builder, false_block_id);
+                    block_statement(node_tree, *stmt, fn_builder, false_block_id);
                 }
             }
 
-            // TODO: how do I set the new block to be the false_block_id here
-            None
+            let next_block_id = fn_builder.add_block();
+
+            next_block_id
         }
         _ => {
             // TODO: remove me once all the nodes have been covered.
@@ -334,7 +322,33 @@ pub fn block_function(
             );
             fn_builder.set_terminator(block_id, Terminator::Unreachable);
 
-            None
+            block_id
+        }
+    }
+}
+
+fn block_expression(
+    node_tree: &NodeTree,
+    node_id: NodeID,
+    fn_builder: &mut FunctionBuilder,
+    block_id: BlockId,
+) -> ValueId {
+    if fn_builder.block_is_closed(block_id) {
+        // if the block is closed just skip all the remaining instructions as they are no longer
+        // reachable, trying to adding them would cause a panic
+        panic!("can not block expressions on a closed block");
+    }
+
+    let node = match node_tree.get_node(node_id) {
+        Some(n) => n,
+        None => panic!("type checking unknown node"),
+    };
+    let node = node.clone();
+
+    match node {
+        _ => {
+            // TODO: implement this
+            ValueId::nil()
         }
     }
 }
@@ -346,7 +360,7 @@ fn get_block_stmts(node_tree: &NodeTree, node_id: NodeID) -> &Vec<NodeID> {
 
     match node {
         Node::Block { statements } => statements,
-        _ => panic!("then bock was not a valid block"),
+        _ => panic!("the node was not a valid block"),
     }
 }
 
