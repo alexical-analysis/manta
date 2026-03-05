@@ -426,7 +426,7 @@
           "params": [
             "Int32"
           ],
-          "return_type": null
+          "return_type": "Unit"
         }
       },
       {
@@ -434,7 +434,7 @@
           "params": [
             "Int32"
           ],
-          "return_type": null
+          "return_type": "Unit"
         }
       },
       {
@@ -514,13 +514,13 @@
       {
         "Function": {
           "params": [],
-          "return_type": null
+          "return_type": "Unit"
         }
       },
       {
         "Function": {
           "params": [],
-          "return_type": null
+          "return_type": "Unit"
         }
       },
       "Float64",

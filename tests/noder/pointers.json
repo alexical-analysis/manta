@@ -226,7 +226,7 @@
           "params": [
             "Int64"
           ],
-          "return_type": null
+          "return_type": "Unit"
         }
       },
       {
@@ -234,7 +234,7 @@
           "params": [
             "Int64"
           ],
-          "return_type": null
+          "return_type": "Unit"
         }
       },
       "Int64",
@@ -244,13 +244,13 @@
       {
         "Function": {
           "params": [],
-          "return_type": null
+          "return_type": "Unit"
         }
       },
       {
         "Function": {
           "params": [],
-          "return_type": null
+          "return_type": "Unit"
         }
       },
       "Int64",

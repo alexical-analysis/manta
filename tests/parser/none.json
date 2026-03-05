@@ -50,7 +50,7 @@
               "Pointer": "Int32"
             }
           ],
-          "return_type": null
+          "return_type": "Unit"
         }
       }
     },
@@ -72,7 +72,7 @@
           "params": [
             "String"
           ],
-          "return_type": null
+          "return_type": "Unit"
         }
       }
     },
@@ -358,7 +358,7 @@
         },
         "function_type": {
           "params": [],
-          "return_type": null
+          "return_type": "Unit"
         }
       }
     }
