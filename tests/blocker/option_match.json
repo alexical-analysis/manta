@@ -5,7 +5,7 @@
     "type_spec": {
       "Function": {
         "params": [],
-        "return_type": null
+        "return_type": "Unit"
       }
     },
     "locals": [],
@@ -41,7 +41,7 @@
           "params": [
             "String"
           ],
-          "return_type": null
+          "return_type": "Unit"
         }
       },
       "locals": [],
@@ -153,7 +153,7 @@
       "type_spec": {
         "Function": {
           "params": [],
-          "return_type": null
+          "return_type": "Unit"
         }
       },
       "locals": [],

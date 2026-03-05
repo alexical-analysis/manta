@@ -5,7 +5,7 @@
     "type_spec": {
       "Function": {
         "params": [],
-        "return_type": null
+        "return_type": "Unit"
       }
     },
     "locals": [],
@@ -86,7 +86,7 @@
               }
             }
           ],
-          "return_type": null
+          "return_type": "Unit"
         }
       },
       "locals": [],
@@ -130,7 +130,7 @@
               "Slice": "UInt8"
             }
           ],
-          "return_type": null
+          "return_type": "Unit"
         }
       },
       "locals": [],

@@ -114,7 +114,7 @@
               }
             }
           ],
-          "return_type": null
+          "return_type": "Unit"
         }
       }
     },
@@ -179,7 +179,7 @@
               "Slice": "UInt8"
             }
           ],
-          "return_type": null
+          "return_type": "Unit"
         }
       }
     },

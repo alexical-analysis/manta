@@ -81,7 +81,7 @@
           "params": [
             "String"
           ],
-          "return_type": null
+          "return_type": "Unit"
         }
       },
       {
@@ -89,20 +89,20 @@
           "params": [
             "String"
           ],
-          "return_type": null
+          "return_type": "Unit"
         }
       },
       "String",
       {
         "Function": {
           "params": [],
-          "return_type": null
+          "return_type": "Unit"
         }
       },
       {
         "Function": {
           "params": [],
-          "return_type": null
+          "return_type": "Unit"
         }
       }
     ]
