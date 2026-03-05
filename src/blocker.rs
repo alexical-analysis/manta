@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 
 use crate::ast::{FunctionType, TypeSpec};
 use crate::hir::{Node, NodeID};
@@ -43,14 +43,85 @@ impl BlockBuilder {
             None => panic!("basic block must have a terminator"),
         };
 
-        if self.instructions.is_empty() {
-            panic!("basic block is empty")
+        let mut created_values = HashSet::new();
+        let mut block_args = vec![];
+        for inst in self.instructions.clone() {
+            match inst {
+                Instruction::Const { result, .. } => {
+                    created_values.insert(result);
+                }
+                Instruction::UnaryOp {
+                    result, operand, ..
+                } => {
+                    created_values.insert(result);
+
+                    if !created_values.contains(&operand) {
+                        block_args.push(operand)
+                    }
+                }
+                Instruction::BinaryOp {
+                    result, lhs, rhs, ..
+                } => {
+                    created_values.insert(result);
+
+                    if !created_values.contains(&lhs) {
+                        block_args.push(lhs)
+                    }
+                    if !created_values.contains(&rhs) {
+                        block_args.push(rhs);
+                    }
+                }
+                Instruction::LoadLocal { result, .. } => {
+                    created_values.insert(result);
+                }
+                Instruction::StoreLocal { value, .. } => {
+                    if !created_values.contains(&value) {
+                        block_args.push(value)
+                    }
+                }
+                Instruction::Call { result, args, .. } => {
+                    created_values.insert(result);
+
+                    for arg in args {
+                        if !created_values.contains(&arg) {
+                            block_args.push(arg)
+                        }
+                    }
+                }
+                Instruction::CallTry { result, args, .. } => {
+                    created_values.insert(result);
+
+                    for arg in args {
+                        if !created_values.contains(&arg) {
+                            block_args.push(arg)
+                        }
+                    }
+                }
+                Instruction::VariantGetPayload { result, src, .. } => {
+                    created_values.insert(result);
+
+                    if !created_values.contains(&src) {
+                        block_args.push(src)
+                    }
+                }
+                Instruction::Move { src, .. } => {
+                    if !created_values.contains(&src) {
+                        block_args.push(src)
+                    }
+                }
+                Instruction::Copy { src, .. } => {
+                    if !created_values.contains(&src) {
+                        block_args.push(src)
+                    }
+                }
+                Instruction::DropLocal { .. } => { /* no value IDs here */ }
+                Instruction::DeclareLocal { .. } => { /* no value IDs here */ }
+                Instruction::SetInitialized { .. } => { /* no value IDs here */ }
+            }
         }
 
-        // TODO: need to figure out what the blocks are by walking the instructions
-        // and looking at the values that are referenced but not defined in this block
         BasicBlock {
-            block_args: vec![],
+            block_args,
             instructions: self.instructions.clone(),
             terminator: term.clone(),
         }
@@ -257,9 +328,11 @@ pub fn block_statement(
 
     match node {
         Node::Invalid => {
+            let result = fn_builder.add_value(TypeSpec::Panic);
             fn_builder.add_instruction(
                 block_id,
                 Instruction::Call {
+                    result,
                     func: str_store::PANIC,
                     // TODO: what are the args here? Should the 'Node::Invalid' have associated error
                     // info so that we panic with a syntax error or something?
@@ -279,7 +352,6 @@ pub fn block_statement(
             // control flow so this should never create a new block
             let expr_value = block_expression(node_tree, condition, fn_builder, block_id);
 
-            // TODO: how do I get the block_args for these blocks?
             let true_block_id = fn_builder.add_block();
             let false_block_id = fn_builder.add_block();
 
@@ -306,17 +378,30 @@ pub fn block_statement(
                 }
             }
 
-            let next_block_id = fn_builder.add_block();
+            let new_block_id = fn_builder.add_block();
+            fn_builder.set_terminator(
+                true_block_id,
+                Terminator::Jump {
+                    target: new_block_id,
+                },
+            );
+            fn_builder.set_terminator(
+                false_block_id,
+                Terminator::Jump {
+                    target: new_block_id,
+                },
+            );
 
-            next_block_id
+            new_block_id
         }
         _ => {
             // TODO: remove me once all the nodes have been covered.
             // for now just create a default block
+            let result = fn_builder.add_value(TypeSpec::Int64);
             fn_builder.add_instruction(
                 block_id,
                 Instruction::Const {
-                    type_spec: TypeSpec::Int64,
+                    result,
                     value: ConstValue::ConstInt(1),
                 },
             );
