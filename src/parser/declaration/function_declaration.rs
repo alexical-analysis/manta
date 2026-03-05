@@ -49,10 +49,11 @@ impl DeclParselet for FunctionDeclParselet {
 
         // Parse optional return type
         let return_type = if lexer.peek().kind == TokenKind::OpenBrace {
-            None
+            Box::new(TypeSpec::Unit)
         } else {
             let next = lexer.next_token();
-            Some(Box::new(types::parse_type(lexer, next)?))
+            let t = types::parse_type(lexer, next)?;
+            Box::new(t)
         };
 
         // Parse function body
