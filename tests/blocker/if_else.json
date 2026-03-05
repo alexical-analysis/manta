@@ -12,23 +12,16 @@
     "blocks": [
       {
         "block_args": [],
-        "instructions": [
-          {
-            "Const": {
-              "result": 1,
-              "value": {
-                "ConstInt": 1
-              }
-            }
+        "instructions": [],
+        "terminator": {
+          "Return": {
+            "value": null
           }
-        ],
-        "terminator": "Unreachable"
+        }
       }
     ],
     "entry_block": 1,
-    "value_types": [
-      "Int64"
-    ]
+    "value_types": []
   },
   "functions": [
     {
@@ -48,23 +41,16 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [
-            {
-              "Const": {
-                "result": 1,
-                "value": {
-                  "ConstInt": 1
-                }
-              }
+          "instructions": [],
+          "terminator": {
+            "Return": {
+              "value": null
             }
-          ],
-          "terminator": "Unreachable"
+          }
         }
       ],
       "entry_block": 1,
-      "value_types": [
-        "Int64"
-      ]
+      "value_types": []
     },
     {
       "name": 1,
@@ -75,25 +61,222 @@
           "return_type": null
         }
       },
-      "locals": [],
+      "locals": [
+        {
+          "id": 1,
+          "type_spec": "Int64",
+          "name": 13
+        },
+        {
+          "id": 2,
+          "type_spec": "Int64",
+          "name": 18
+        }
+      ],
       "blocks": [
         {
           "block_args": [],
           "instructions": [
             {
+              "DeclareLocal": {
+                "local": 1
+              }
+            },
+            {
               "Const": {
                 "result": 1,
                 "value": {
-                  "ConstInt": 1
+                  "ConstBool": true
                 }
+              }
+            },
+            {
+              "StoreLocal": {
+                "local": 1,
+                "value": 1
+              }
+            },
+            {
+              "LoadLocal": {
+                "result": 2,
+                "local": 1
               }
             }
           ],
-          "terminator": "Unreachable"
+          "terminator": {
+            "Branch": {
+              "cond": 2,
+              "true_target": 2,
+              "false_target": 3
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [
+            {
+              "Const": {
+                "result": 3,
+                "value": {
+                  "ConstString": 17
+                }
+              }
+            },
+            {
+              "Call": {
+                "result": 4,
+                "func": 8,
+                "args": [
+                  3
+                ]
+              }
+            }
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 4
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 4
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [
+            {
+              "DeclareLocal": {
+                "local": 2
+              }
+            },
+            {
+              "Const": {
+                "result": 5,
+                "value": {
+                  "ConstInt": 9
+                }
+              }
+            },
+            {
+              "StoreLocal": {
+                "local": 2,
+                "value": 5
+              }
+            },
+            {
+              "LoadLocal": {
+                "result": 6,
+                "local": 2
+              }
+            },
+            {
+              "Const": {
+                "result": 7,
+                "value": {
+                  "ConstInt": 10
+                }
+              }
+            },
+            {
+              "BinaryOp": {
+                "result": 8,
+                "op": "GreaterThan",
+                "lhs": 6,
+                "rhs": 7
+              }
+            }
+          ],
+          "terminator": {
+            "Branch": {
+              "cond": 8,
+              "true_target": 5,
+              "false_target": 6
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [
+            {
+              "Const": {
+                "result": 9,
+                "value": {
+                  "ConstString": 22
+                }
+              }
+            },
+            {
+              "Call": {
+                "result": 10,
+                "func": 8,
+                "args": [
+                  9
+                ]
+              }
+            }
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 7
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [
+            {
+              "Const": {
+                "result": 11,
+                "value": {
+                  "ConstString": 17
+                }
+              }
+            },
+            {
+              "Call": {
+                "result": 12,
+                "func": 8,
+                "args": [
+                  11
+                ]
+              }
+            }
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 7
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Return": {
+              "value": null
+            }
+          }
         }
       ],
       "entry_block": 1,
       "value_types": [
+        "Bool",
+        "Int64",
+        "String",
+        "Int64",
+        "Int64",
+        "Int64",
+        "Int64",
+        "Int64",
+        "String",
+        "Int64",
+        "String",
         "Int64"
       ]
     }

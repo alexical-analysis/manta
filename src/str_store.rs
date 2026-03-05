@@ -173,6 +173,9 @@ impl StrStore {
                 self.next_id += 1;
                 self.strings.insert(s.to_string(), id);
                 self.reverse_strings.push(s.to_string());
+                if id.0 == 20 {
+                    eprintln!("Sring[{:?}] {:?}", id, s)
+                }
                 id
             }
         }
