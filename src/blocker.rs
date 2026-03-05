@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashSet};
+use std::collections::HashSet;
 
 use crate::ast::{FunctionType, TypeSpec};
 use crate::hir::{Node, NodeID};
@@ -218,7 +218,7 @@ pub fn block_hir(node_tree: &NodeTree) -> MirModule {
         vec![],
         TypeSpec::Function(FunctionType {
             params: vec![],
-            return_type: None,
+            return_type: Box::new(TypeSpec::Unit),
         }),
     );
 

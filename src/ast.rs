@@ -125,6 +125,8 @@ pub enum TypeSpec {
     UnsafePtr,
     // Panic is the type used for expressions that panic
     Panic,
+    // Unit type for functions that don't return anything
+    Unit,
 }
 
 /// MetaType
@@ -162,7 +164,7 @@ pub struct EnumType {
 #[derive(Debug, PartialEq, Clone, Serialize)]
 pub struct FunctionType {
     pub params: Vec<TypeSpec>,
-    pub return_type: Option<Box<TypeSpec>>,
+    pub return_type: Box<TypeSpec>,
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize)]

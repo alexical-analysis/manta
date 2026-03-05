@@ -587,7 +587,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                     // TODO: this needs to be the type of the expression that's being matched or an
                     // any type like in Go, just pick a random type for now
                     params: vec![TypeSpec::String],
-                    return_type: Some(Box::new(TypeSpec::Panic)),
+                    return_type: Box::new(TypeSpec::Panic),
                 }),
             );
 
@@ -623,7 +623,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                     // TODO: this needs to be the type of the expression that's being matched or an
                     // any type like in Go, just pick a random type for now
                     params: vec![TypeSpec::String],
-                    return_type: Some(Box::new(TypeSpec::Panic)),
+                    return_type: Box::new(TypeSpec::Panic),
                 }),
             );
 
@@ -1088,7 +1088,7 @@ fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec
         Node::Call { func, args: _ } => {
             let func_type = check_node_type(node_tree, func)?;
             match func_type {
-                TypeSpec::Function(ft) => ft.return_type.map(|f| *f),
+                TypeSpec::Function(ft) => Some(*ft.return_type),
                 _ => panic!("cannot call non-function type"),
             }
         }

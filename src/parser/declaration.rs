@@ -143,7 +143,7 @@ mod tests {
                     ],
                     function_type: FunctionType {
                         params: vec![TypeSpec::Int32, TypeSpec::Int32],
-                        return_type: Some(Box::new(TypeSpec::Int32)),
+                        return_type: Box::new(TypeSpec::Int32),
                     },
                     body: BlockStmt {
                         id: SourceID::from_usize(21),
@@ -179,7 +179,7 @@ mod tests {
                     params: vec![],
                     function_type: FunctionType {
                         params: vec![],
-                        return_type: None,
+                        return_type: Box::new(TypeSpec::Unit),
                     },
                     body: BlockStmt {
                         id: SourceID::from_usize(10),
@@ -222,7 +222,7 @@ mod tests {
                     ],
                     function_type: FunctionType {
                         params: vec![TypeSpec::Int32, TypeSpec::String],
-                        return_type: Some(Box::new(TypeSpec::Bool)),
+                        return_type: Box::new(TypeSpec::Bool),
                     },
                     body: BlockStmt {
                         id: SourceID::from_usize(32),
@@ -249,7 +249,7 @@ mod tests {
                     }],
                     function_type: FunctionType {
                         params: vec![TypeSpec::String],
-                        return_type: None,
+                        return_type: Box::new(TypeSpec::Unit),
                     },
                     body: BlockStmt {
                         id: SourceID::from_usize(19),
@@ -295,7 +295,7 @@ mod tests {
                     ],
                     function_type: FunctionType {
                         params: vec![TypeSpec::Int32, TypeSpec::Int32],
-                        return_type: Some(Box::new(TypeSpec::Int32)),
+                        return_type: Box::new(TypeSpec::Int32),
                     },
                     body: BlockStmt {
                         id: SourceID::from_usize(27),
@@ -350,10 +350,10 @@ mod tests {
                     params: vec![],
                     function_type: FunctionType {
                         params: vec![],
-                        return_type: Some(Box::new(TypeSpec::Named {
+                        return_type: Box::new(TypeSpec::Named {
                             module: Some(StrID::from_usize(4)),
                             name: StrID::from_usize(6),
-                        })),
+                        }),
                     },
                     body: BlockStmt {
                         id: SourceID::from_usize(26),
@@ -385,7 +385,7 @@ mod tests {
                     }],
                     function_type: FunctionType {
                         params: vec![TypeSpec::Slice(Box::new(TypeSpec::Int32))],
-                        return_type: None,
+                        return_type: Box::new(TypeSpec::Unit),
                     },
                     body: BlockStmt {
                         id: SourceID::from_usize(28),
