@@ -273,6 +273,18 @@ impl Module {
         &self.decls
     }
 
+    pub fn get_named_type(&self, name: StrID) -> Option<&TypeSpec> {
+        for decl in &self.decls {
+            if let Decl::Type(type_decl) = decl
+                && type_decl.name == name
+            {
+                return Some(&type_decl.type_spec);
+            }
+        }
+
+        None
+    }
+
     pub fn find_binding(&self, scope_pos: ScopePos, name: StrID) -> Option<&Binding> {
         self.sym_table.find_binding_in_scope(scope_pos, name)
     }

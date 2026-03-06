@@ -98,7 +98,6 @@ impl LocalId {
 /// Metadata about a local variable.
 #[derive(Debug, Clone, Serialize)]
 pub struct Local {
-    pub id: LocalId,
     pub type_spec: TypeSpec,
     pub name: StrID,
 }
@@ -171,6 +170,23 @@ pub enum Instruction {
     SetInitialized { local: LocalId },
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub enum SwitchMatch {
+    IntLiteral(i64),
+    FloatLiteral(f64),
+    BoolLiteral(bool),
+    StrLiteral(StrID),
+
+    Variant(u32),
+    Default,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct SwitchArm {
+    pub matcher: SwitchMatch,
+    pub block: BlockId,
+}
+
 /// A terminator instruction that ends a basic block and directs control flow.
 #[derive(Debug, Clone, Serialize)]
 pub enum Terminator {
@@ -187,7 +203,7 @@ pub enum Terminator {
     /// SwitchVariant(value, {(variant_id, target), ...})
     SwitchVariant {
         value: ValueId,
-        arms: Vec<(u32, BlockId)>, // (variant_id, target_block)
+        arms: Vec<SwitchArm>,
     },
     /// Unreachable (for proven-unreachable code)
     Unreachable,

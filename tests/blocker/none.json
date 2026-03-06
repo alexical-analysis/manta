@@ -12,23 +12,16 @@
     "blocks": [
       {
         "block_args": [],
-        "instructions": [
-          {
-            "Const": {
-              "result": 1,
-              "value": {
-                "ConstInt": 1
-              }
-            }
+        "instructions": [],
+        "terminator": {
+          "Return": {
+            "value": null
           }
-        ],
-        "terminator": "Unreachable"
+        }
       }
     ],
     "entry_block": 1,
-    "value_types": [
-      "Int64"
-    ]
+    "value_types": []
   },
   "functions": [
     {
@@ -50,23 +43,16 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [
-            {
-              "Const": {
-                "result": 1,
-                "value": {
-                  "ConstInt": 1
-                }
-              }
+          "instructions": [],
+          "terminator": {
+            "Return": {
+              "value": null
             }
-          ],
-          "terminator": "Unreachable"
+          }
         }
       ],
       "entry_block": 1,
-      "value_types": [
-        "Int64"
-      ]
+      "value_types": []
     },
     {
       "name": 17,
@@ -85,23 +71,16 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [
-            {
-              "Const": {
-                "result": 1,
-                "value": {
-                  "ConstInt": 1
-                }
-              }
+          "instructions": [],
+          "terminator": {
+            "Return": {
+              "value": null
             }
-          ],
-          "terminator": "Unreachable"
+          }
         }
       ],
       "entry_block": 1,
-      "value_types": [
-        "Int64"
-      ]
+      "value_types": []
     },
     {
       "name": 24,
@@ -136,16 +115,7 @@
         },
         {
           "block_args": [],
-          "instructions": [
-            {
-              "Const": {
-                "result": 1,
-                "value": {
-                  "ConstInt": 1
-                }
-              }
-            }
-          ],
+          "instructions": [],
           "terminator": {
             "Jump": {
               "target": 4
@@ -156,31 +126,23 @@
           "block_args": [],
           "instructions": [],
           "terminator": {
-            "Jump": {
-              "target": 4
+            "Return": {
+              "value": 0
             }
           }
         },
         {
           "block_args": [],
-          "instructions": [
-            {
-              "Const": {
-                "result": 2,
-                "value": {
-                  "ConstInt": 1
-                }
-              }
+          "instructions": [],
+          "terminator": {
+            "Return": {
+              "value": 0
             }
-          ],
-          "terminator": "Unreachable"
+          }
         }
       ],
       "entry_block": 1,
-      "value_types": [
-        "Int64",
-        "Int64"
-      ]
+      "value_types": []
     },
     {
       "name": 1,
@@ -195,23 +157,16 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [
-            {
-              "Const": {
-                "result": 1,
-                "value": {
-                  "ConstInt": 1
-                }
-              }
+          "instructions": [],
+          "terminator": {
+            "Return": {
+              "value": null
             }
-          ],
-          "terminator": "Unreachable"
+          }
         }
       ],
       "entry_block": 1,
-      "value_types": [
-        "Int64"
-      ]
+      "value_types": []
     }
   ]
 }
