@@ -1,10 +1,10 @@
 use std::collections::HashSet;
 
 use crate::ast::{FunctionType, TypeSpec};
-use crate::hir::{Node, NodeID};
+use crate::hir::{Node, NodeID, PatternNode};
 use crate::mir::{
-    BasicBlock, BlockId, ConstValue, Instruction, Local, MirFunction, MirModule, Terminator,
-    ValueId,
+    BasicBlock, BlockId, ConstValue, Instruction, Local, LocalId, MirFunction, MirModule,
+    SwitchArm, SwitchMatch, Terminator, ValueId,
 };
 use crate::noder::NodeTree;
 use crate::str_store::{self, StrID};
@@ -181,6 +181,15 @@ impl FunctionBuilder {
         ValueId::from_u32(self.value_types.len() as u32)
     }
 
+    fn add_local(&mut self, name: StrID, type_spec: TypeSpec) -> LocalId {
+        let local_id = LocalId::from_u32(self.locals.len() as u32);
+        let local = Local { name, type_spec };
+
+        self.locals.push(local);
+
+        local_id
+    }
+
     fn get_block(&self, block_id: BlockId) -> &BlockBuilder {
         match self.blocks.get(block_id.as_idx()) {
             Some(block) => block,
@@ -236,8 +245,8 @@ impl FunctionBuilder {
                     block_que.push(false_target);
                 }
                 Terminator::SwitchVariant { ref arms, .. } => {
-                    for (_, arm) in arms {
-                        block_que.push(*arm);
+                    for arm in arms {
+                        block_que.push(arm.block);
                     }
                 }
             }
@@ -331,15 +340,7 @@ pub fn block_root_node(node_tree: &NodeTree, node_id: NodeID) -> Option<MirFunct
             params,
             body,
         } => {
-            let name = match node_tree.get_node(ident) {
-                Some(n) => n,
-                None => panic!("missing function name (can not find node)"),
-            };
-
-            let name = match name {
-                Node::Identifier(ident) => ident,
-                _ => panic!("function name wasn't an identifier"),
-            };
+            let name = get_ident_name(node_tree, ident);
 
             let params: Vec<StrID> = params
                 .iter()
@@ -371,7 +372,7 @@ pub fn block_root_node(node_tree: &NodeTree, node_id: NodeID) -> Option<MirFunct
                 None => panic!("missing type for function decl"),
             };
 
-            let mut fn_builder = FunctionBuilder::new(*name, params, func_type.clone());
+            let mut fn_builder = FunctionBuilder::new(name, params, func_type.clone());
 
             let mut block_id = fn_builder.add_block();
             let body = get_block_stmts(node_tree, body);
@@ -511,8 +512,149 @@ pub fn block_statement(
         }
         Node::Match { target, arms } => {
             // TODO: this is going to be really complicated...
+            // (x) block out the target expression
+            // (x) loop through all the arms and create a block
+            // (x) for each arm loop through all the statments in the block
+            // (x) jump from that block, back to the merge block (handle early return/panic)
+            // (_) Set up the switch terminator to jump from the original block into the
+            //  correct block arm based on the pattern/ variant_id
+
+            let target_id = block_expression(node_tree, target, fn_builder, block_id);
+
+            let mut term_arms = vec![];
             let merge_block_id = fn_builder.add_block();
-            Some(merge_block_id);
+            for arm in arms {
+                let mut arm_block = fn_builder.add_block();
+
+                // need to look up the variant I'm trying to match to get the variant id
+                let arm_node = node_tree.get_node(arm).expect("missing arm node");
+                match arm_node {
+                    Node::MatchArm { pattern, .. } => {
+                        let pattern_node = node_tree
+                            .get_node(*pattern)
+                            .expect("missing pattern node for arm");
+                        match pattern_node {
+                            // we should have validated the types in the HIR so we can just assume
+                            // that all the pattern arms here are correct.
+                            Node::Pattern(p) => match p {
+                                PatternNode::IntLiteral(i) => term_arms.push(SwitchArm {
+                                    matcher: SwitchMatch::IntLiteral(*i),
+                                    block: arm_block,
+                                }),
+                                PatternNode::FloatLiteral(f) => term_arms.push(SwitchArm {
+                                    matcher: SwitchMatch::FloatLiteral(*f),
+                                    block: arm_block,
+                                }),
+                                PatternNode::StringLiteral(s) => term_arms.push(SwitchArm {
+                                    matcher: SwitchMatch::StrLiteral(*s),
+                                    block: arm_block,
+                                }),
+                                PatternNode::BoolLiteral(b) => term_arms.push(SwitchArm {
+                                    matcher: SwitchMatch::BoolLiteral(*b),
+                                    block: arm_block,
+                                }),
+                                PatternNode::TypeSpec => {
+                                    // TODO: right now the only way for a TypeSpec pattern to match
+                                    // is if we're trying to check an unsafe::ptr which we don't
+                                    // actually have support for yet. So for now this isn't really
+                                    // possible to have in valid manta code
+                                    todo!(
+                                        "this isn't really supported untill unsafe::ptr is in play"
+                                    )
+                                }
+                                PatternNode::Payload { pat, payload_ident } => {
+                                    // TODO: need to recurse here somehow and set up the match arm
+                                    // for the pattern node id, that probably means we need to
+                                    // break this out into it's own function which makes sense
+
+                                    // need to set the payload up
+                                    let name = get_ident_name(node_tree, *payload_ident);
+                                    let type_spec = node_tree
+                                        .get_type(*payload_ident)
+                                        .expect("missing type for pattern identifier");
+
+                                    let local_id = fn_builder.add_local(name, type_spec.clone());
+                                    fn_builder.add_instruction(
+                                        arm_block,
+                                        Instruction::DeclareLocal { local: local_id },
+                                    );
+
+                                    // TODO: need to extract the variant value here and assign it
+                                    // to the local
+                                }
+                                // this is a variant
+                                PatternNode::ModuleAccess { module, pat } => {
+                                    todo!("moduls are not supported yet")
+                                }
+                                PatternNode::DotAccess { target, field } => {
+                                    // we're going to assume the target is valid since type
+                                    // checking was done in the HIR
+
+                                    // TODO: need to get the actual variant id here, just use 0 for
+                                    // everything for now but eventually we'll comput it using the
+                                    // order of varients in the enum decl.
+                                    term_arms.push(SwitchArm {
+                                        matcher: SwitchMatch::Variant(0),
+                                        block: arm_block,
+                                    })
+                                }
+                                PatternNode::Identifier(ident) => {
+                                    term_arms.push(SwitchArm {
+                                        matcher: SwitchMatch::Default,
+                                        block: arm_block,
+                                    });
+
+                                    // need to set the identifier up
+                                    let name = get_ident_name(node_tree, *ident);
+                                    let type_spec = node_tree
+                                        .get_type(*ident)
+                                        .expect("missing type for pattern identifier");
+
+                                    let local_id = fn_builder.add_local(name, type_spec.clone());
+                                    fn_builder.add_instruction(
+                                        arm_block,
+                                        Instruction::DeclareLocal { local: local_id },
+                                    );
+
+                                    // TODO: need to extract the variant value here and assign it
+                                    // to the local
+                                }
+                                PatternNode::Default => term_arms.push(SwitchArm {
+                                    matcher: SwitchMatch::Default,
+                                    block: arm_block,
+                                }),
+                            },
+                            _ => panic!("invalid pattern!"),
+                        }
+                    }
+                    _ => panic!("arm node was not a match arm"),
+                };
+
+                let stmts = get_block_stmts(node_tree, arm);
+                for stmt in stmts {
+                    match block_statement(node_tree, *stmt, fn_builder, arm_block) {
+                        Some(b) => arm_block = b,
+                        None => break,
+                    }
+                }
+
+                fn_builder.set_terminator(
+                    arm_block,
+                    Terminator::Jump {
+                        target: merge_block_id,
+                    },
+                );
+            }
+
+            fn_builder.set_terminator(
+                block_id,
+                Terminator::SwitchVariant {
+                    value: target_id,
+                    arms: term_arms,
+                },
+            );
+
+            Some(merge_block_id)
         }
         Node::Return { value } => {
             let ret = if let Some(v) = value {
@@ -561,13 +703,22 @@ fn block_expression(
 }
 
 fn get_block_stmts(node_tree: &NodeTree, node_id: NodeID) -> &Vec<NodeID> {
-    let node = node_tree
-        .get_node(node_id)
-        .expect("missing then block of the if statement");
+    let node = node_tree.get_node(node_id).expect("missing block node");
 
     match node {
         Node::Block { statements } => statements,
         _ => panic!("the node was not a valid block"),
+    }
+}
+
+fn get_ident_name(node_tree: &NodeTree, node_id: NodeID) -> StrID {
+    let node = node_tree
+        .get_node(node_id)
+        .expect("missing identifier node");
+
+    match node {
+        Node::Identifier(ident) => *ident,
+        _ => panic!("node was not an identifier"),
     }
 }
 
