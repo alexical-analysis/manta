@@ -10,7 +10,7 @@ use crate::ast::{
 };
 use crate::hir::{Node, NodeID, PatternNode};
 use crate::parser::module::{BindingType, Module, SymID};
-use crate::str_store;
+use crate::str_store::{self, StrID};
 
 #[derive(Serialize)]
 struct SideTable<K, V> {
@@ -118,7 +118,7 @@ pub fn node_module(module: Module) -> NodeTree {
     }
 
     // TODO: gather errors here instead of just panicing
-    check_node_tree_types(&mut node_tree);
+    check_node_tree_types(&mut node_tree, &module);
 
     node_tree
 }
@@ -460,7 +460,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             //     e                { ... }
             // }
 
-            let _type_spec = match pat.pat.deref() {
+            let type_spec = match pat.pat.deref() {
                 Pattern::TypeSpec(ts) => Some(ts.clone()),
                 _ => {
                     // TODO: we actually need to handle all the different cases here. For example
@@ -476,6 +476,11 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             let name = pat.payload.name;
             let ident_id = node_tree.add_node(Node::Identifier(name));
             nodes.push(node_tree.add_node(Node::VarDecl { ident: ident_id }));
+
+            // If we determined a type spec from the pattern, add it to the type_map
+            if let Some(ts) = type_spec.clone() {
+                node_tree.type_map.add(ident_id, ts);
+            }
 
             let scope_pos = module
                 .get_scope_pos(pat.payload.id)
@@ -493,6 +498,11 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                 pat: inner_pat_id,
                 payload_ident: inner_ident_id,
             }));
+
+            // If we have a type spec, also add it to the inner identifier so that pattern matching works
+            if let Some(ts) = type_spec {
+                node_tree.type_map.add(inner_ident_id, ts);
+            }
 
             // set up the inner assignment using the identifer node created above
             let assign_id = node_tree.add_node(Node::Assign {
@@ -971,13 +981,132 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
     }
 }
 
-fn check_node_tree_types(node_tree: &mut NodeTree) {
+fn check_node_tree_types(node_tree: &mut NodeTree, module: &Module) {
     for node in &node_tree.roots.clone() {
-        check_node_type(node_tree, *node);
+        check_node_type(node_tree, module, *node);
     }
 }
 
-fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec> {
+/// Extracts the field/variant name from a pattern node
+fn get_pattern_variant_name(node_tree: &NodeTree, pattern_id: NodeID) -> Option<StrID> {
+    if let Some(Node::Pattern(pattern)) = node_tree.get_node(pattern_id) {
+        match pattern {
+            PatternNode::DotAccess { field, .. } => Some(*field),
+            _ => None,
+        }
+    } else {
+        None
+    }
+}
+
+/// Type checks pattern identifiers in a match arm, assigning types based on the target type
+fn check_match_arm_patterns(
+    node_tree: &mut NodeTree,
+    module: &Module,
+    arm_id: NodeID,
+    target_type: &TypeSpec,
+) {
+    if let Some(Node::MatchArm {
+        pattern: pattern_id,
+        ..
+    }) = node_tree.get_node(arm_id)
+    {
+        let pattern_id = *pattern_id;
+        check_pattern_types(node_tree, module, pattern_id, target_type);
+    }
+}
+
+/// Recursively assigns types to pattern identifiers based on the target type
+fn check_pattern_types(
+    node_tree: &mut NodeTree,
+    module: &Module,
+    pattern_id: NodeID,
+    target_type: &TypeSpec,
+) {
+    if let Some(Node::Pattern(pattern)) = node_tree.get_node(pattern_id) {
+        let pattern = pattern.clone();
+        match pattern {
+            PatternNode::Payload {
+                pat: inner_pattern_id,
+                payload_ident,
+            } => {
+                // TODO: this is a total mess (thanks copilot). I need to think through this way
+                // more carefully
+
+                // For a Payload pattern, we need to:
+                // 1. Get the variant name from the inner pattern (if it's DotAccess)
+                // 2. Or get the type spec directly (if inner pattern is TypeSpec)
+                // 3. Find that variant in the target type's enum definition
+                // 4. Extract the payload type and assign it to the identifier
+                // 5. Recursively check the inner pattern against the payload type
+
+                let mut payload_type = None;
+
+                // Check if the inner pattern is a TypeSpec (like `i32(x)`)
+                if let Some(Node::Pattern(inner_pat)) = node_tree.get_node(inner_pattern_id)
+                    && let PatternNode::TypeSpec = inner_pat
+                {
+                    // The type should be explicitly specified in the pattern
+                    // For now, we can't determine it from the node tree alone
+                    // We would need to pass the type through from parsing
+                    // This case should be handled specially during parsing
+                    payload_type = None;
+                }
+
+                // If not a TypeSpec, try to resolve through enum variants
+                if payload_type.is_none() {
+                    let resolved_type = if let TypeSpec::Named { name, .. } = target_type {
+                        module.get_named_type(*name).cloned()
+                    } else {
+                        Some(target_type.clone())
+                    };
+
+                    if let Some(tt) = &resolved_type {
+                        if let Some(variant_name) =
+                            get_pattern_variant_name(node_tree, inner_pattern_id)
+                        {
+                            if let TypeSpec::Enum(enum_type) = &tt {
+                                // Find the variant with matching name
+                                for variant in &enum_type.variants {
+                                    if variant.name == variant_name {
+                                        if let Some(ptype) = &variant.payload {
+                                            // Add the payload type to the identifier
+                                            node_tree.type_map.add(payload_ident, ptype.clone());
+                                            payload_type = Some(ptype.clone());
+                                        }
+                                        break;
+                                    }
+                                }
+                            } else {
+                            }
+                        } else {
+                        }
+                    } else {
+                    }
+                }
+
+                // Recursively check the inner pattern using the payload type, not the original target type
+                if let Some(ptype) = payload_type {
+                    check_pattern_types(node_tree, module, inner_pattern_id, &ptype);
+                } else {
+                }
+            }
+            PatternNode::DotAccess { target: _, field } => {
+                // For DotAccess patterns (like `.Ok` without a payload),
+                // we don't need to assign a type to an identifier since there's no binding
+            }
+            PatternNode::Identifier(_) => {
+                // Catch-all patterns don't need special type handling
+                // Their type is the full target type
+            }
+            _ => {
+                // Other patterns (literals, default, etc.) don't have identifiers to type
+            }
+        }
+    }
+}
+
+fn check_node_type(node_tree: &mut NodeTree, module: &Module, node_id: NodeID) -> Option<TypeSpec> {
     let node = match node_tree.get_node(node_id) {
         Some(n) => n,
         None => panic!("type checking unknown node"),
@@ -990,7 +1119,18 @@ fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec
         Node::ModDecl { .. } => None,
         Node::Defer { .. } => None,
         Node::If { .. } => None,
-        Node::Match { .. } => None,
+        Node::Match { target, arms } => {
+            let target_type = check_node_type(node_tree, module, target);
+
+            if let Some(tt) = &target_type {
+                // Type check all match arms and assign types to pattern identifiers
+                for arm_id in arms {
+                    check_match_arm_patterns(node_tree, module, arm_id, tt);
+                }
+            }
+
+            None
+        }
         Node::MatchArm { .. } => None,
         Node::Return { .. } => None,
         Node::Free { .. } => None,
@@ -1015,12 +1155,12 @@ fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec
 
         Node::Block { statements } => {
             for node in statements {
-                check_node_type(node_tree, node);
+                check_node_type(node_tree, module, node);
             }
             None
         }
         Node::FunctionDecl { body, .. } => {
-            check_node_type(node_tree, body);
+            check_node_type(node_tree, module, body);
 
             // TODO: actually type check the function types beyond just checking the body
 
@@ -1028,7 +1168,7 @@ fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec
         }
         Node::VarDecl { ident } => node_tree.type_map.get(ident).cloned(),
         Node::Assign { target, value } => {
-            let r_type = match check_node_type(node_tree, value) {
+            let r_type = match check_node_type(node_tree, module, value) {
                 Some(t) => t,
                 None => {
                     // TODO: remove me after done testing
@@ -1042,7 +1182,7 @@ fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec
                 }
             };
 
-            let l_type = match check_node_type(node_tree, target) {
+            let l_type = match check_node_type(node_tree, module, target) {
                 Some(t) => t,
                 None => {
                     if let Some(Node::Identifier { .. }) = node_tree.get_node(target) {
@@ -1051,7 +1191,7 @@ fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec
                         // a problem with the type checker itself.
                         //
                         // If it is an identifier we need to infer the type from the RHS and add
-                        // it to the type_map
+                        // it to the type_map.
                         node_tree.type_map.add(target, r_type.clone());
                         r_type.clone()
                     } else {
@@ -1069,7 +1209,7 @@ fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec
         Node::Identifier(_) => node_tree.type_map.get(node_id).cloned(),
 
         Node::Unary { operator, operand } => {
-            let operand_type = check_node_type(node_tree, operand)?;
+            let operand_type = check_node_type(node_tree, module, operand)?;
             match operator {
                 UnaryOp::AddressOf => {
                     // &T -> Pointer(T)
@@ -1102,10 +1242,10 @@ fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec
             operator: _,
             right,
         } => {
-            let l_type = check_node_type(node_tree, left)
+            let l_type = check_node_type(node_tree, module, left)
                 .expect("failed to get the type of the left hand side of the expression");
 
-            let r_type = check_node_type(node_tree, right)
+            let r_type = check_node_type(node_tree, module, right)
                 .expect("failed to get the type of the right hand side of the expression");
 
             if l_type != r_type {
@@ -1116,7 +1256,7 @@ fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec
         }
 
         Node::Call { func, args: _ } => {
-            let func_type = check_node_type(node_tree, func)?;
+            let func_type = check_node_type(node_tree, module, func)?;
             match func_type {
                 TypeSpec::Function(ft) => Some(*ft.return_type),
                 _ => panic!("cannot call non-function type"),
@@ -1124,7 +1264,7 @@ fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec
         }
 
         Node::Index { target, index: _ } => {
-            let target_type = check_node_type(node_tree, target)?;
+            let target_type = check_node_type(node_tree, module, target)?;
             match target_type {
                 TypeSpec::Array(arr) => Some(*arr.type_spec),
                 TypeSpec::Slice(elem_type) => Some(*elem_type),
