@@ -111,7 +111,7 @@ pub enum TypeSpec {
     String,
     Bool,
     // User-defined types
-    Named { module: Option<StrID>, name: StrID },
+    Named(NamedType),
     // Composite types
     Pointer(Box<TypeSpec>),
     Slice(Box<TypeSpec>),
@@ -119,14 +119,15 @@ pub enum TypeSpec {
     Struct(StructType),
     Enum(EnumType),
     Function(FunctionType),
-    // Type alias to another type
-    Alias(Box<TypeSpec>),
-    // UnsafePtr is the intermediary between types used by alloc
-    UnsafePtr,
-    // Panic is the type used for expressions that panic
-    Panic,
-    // Unit type for functions that don't return anything
     Unit,
+}
+
+/// Used defined named type
+#[derive(Debug, PartialEq, Clone, Serialize)]
+pub struct NamedType {
+    pub id: SourceID,
+    pub module: Option<StrID>,
+    pub name: StrID,
 }
 
 /// MetaType

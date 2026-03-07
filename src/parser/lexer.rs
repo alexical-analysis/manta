@@ -250,11 +250,12 @@ impl<'a> Lexer<'a> {
     fn skip_whitespace_and_comments(&mut self) {
         loop {
             // check if this should be a synthetic semicolon
-            if let Some(ch) = self.current_char() {
-                if ch == '\n' && self.is_end_of_statement() {
-                    break;
-                }
-            };
+            if let Some(ch) = self.current_char()
+                && ch == '\n'
+                && self.is_end_of_statement()
+            {
+                break;
+            }
 
             // skip whitespace
             let mut progressed = false;
@@ -380,12 +381,12 @@ impl<'a> Lexer<'a> {
             }
             if ch == '.' && !seen_dot {
                 // check next char to avoid treating '.' in '..' as float
-                if let Some(nc) = self.peek_char_n(1) {
-                    if nc.is_ascii_digit() {
-                        seen_dot = true;
-                        self.bump();
-                        continue;
-                    }
+                if let Some(nc) = self.peek_char_n(1)
+                    && nc.is_ascii_digit()
+                {
+                    seen_dot = true;
+                    self.bump();
+                    continue;
                 }
             }
             break;

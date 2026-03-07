@@ -95,7 +95,8 @@ mod tests {
     use crate::ast::{
         AllocExpr, BinaryExpr, BinaryOp, BlockStmt, CallExpr, ConstDecl, EnumType, EnumVariant,
         Expr, ExprStmt, FunctionDecl, FunctionType, IdentifierExpr, IfStmt, MetaTypeExpr,
-        Parameter, ReturnStmt, Stmt, StructField, StructType, TypeDecl, TypeSpec, UseDecl,
+        NamedType, Parameter, ReturnStmt, Stmt, StructField, StructType, TypeDecl, TypeSpec,
+        UseDecl,
     };
     use crate::parser::lexer::{Lexer, SourceID};
     use crate::str_store::{StrID, StrStore};
@@ -350,10 +351,11 @@ mod tests {
                     params: vec![],
                     function_type: FunctionType {
                         params: vec![],
-                        return_type: Box::new(TypeSpec::Named {
+                        return_type: Box::new(TypeSpec::Named(NamedType {
+                            id: SourceID::from_usize(14),
                             module: Some(StrID::from_usize(4)),
                             name: StrID::from_usize(6),
-                        }),
+                        })),
                     },
                     body: BlockStmt {
                         id: SourceID::from_usize(26),
@@ -447,10 +449,11 @@ mod tests {
                         variants: vec![
                             EnumVariant {
                                 name: StrID::from_usize(4),
-                                payload: Some(TypeSpec::Named {
+                                payload: Some(TypeSpec::Named(NamedType {
+                                    id: SourceID::from_usize(26),
                                     module: Some(StrID::from_usize(6)),
                                     name: StrID::from_usize(8)
-                                }),
+                                })),
                             },
                             EnumVariant {
                                 name: StrID::from_usize(11),
@@ -473,10 +476,13 @@ mod tests {
                         variants: vec![
                             EnumVariant {
                                 name: StrID::from_usize(4),
-                                payload: Some(TypeSpec::Pointer(Box::new(TypeSpec::Named {
-                                    module: None,
-                                    name: StrID::from_usize(1)
-                                }))),
+                                payload: Some(TypeSpec::Pointer(Box::new(TypeSpec::Named(
+                                    NamedType {
+                                        id: SourceID::from_usize(24),
+                                        module: None,
+                                        name: StrID::from_usize(1)
+                                    }
+                                )))),
                             },
                             EnumVariant {
                                 name: StrID::from_usize(9),

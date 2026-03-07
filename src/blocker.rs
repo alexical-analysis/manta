@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 
-use crate::ast::{FunctionType, TypeSpec};
-use crate::hir::{Node, NodeID};
+use crate::hir::{FunctionType, Node, NodeID, TypeSpec};
 use crate::mir::{
     BasicBlock, BlockId, ConstValue, Instruction, Local, MirFunction, MirModule, Terminator,
     ValueId,
