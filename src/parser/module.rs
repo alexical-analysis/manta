@@ -666,9 +666,7 @@ impl Module {
                 }
 
                 match sym_table.find_binding(t.name) {
-                    Some(b) => {
-                        b.used = true;
-                    }
+                    Some(b) => b.used = true,
                     None => errors.push(ParseError::Custom(
                         Token {
                             kind: TokenKind::Identifier,
@@ -708,7 +706,19 @@ impl Module {
                     }
                 }
             }
-            _ => { /* nothing to do */ }
+            TypeSpec::Int8 => {}
+            TypeSpec::Int16 => {}
+            TypeSpec::Int32 => {}
+            TypeSpec::Int64 => {}
+            TypeSpec::UInt8 => {}
+            TypeSpec::UInt16 => {}
+            TypeSpec::UInt32 => {}
+            TypeSpec::UInt64 => {}
+            TypeSpec::Float32 => {}
+            TypeSpec::Float64 => {}
+            TypeSpec::String => {}
+            TypeSpec::Bool => {}
+            TypeSpec::Unit => {}
         }
     }
 }
