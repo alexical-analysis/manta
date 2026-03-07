@@ -381,15 +381,16 @@ impl Module {
                                 continue;
                             }
 
-                            let binding_type = match sym_table.find_binding(t.name) {
-                                Some(b) => {
-                                    b.used = true;
-                                    b.binding_type.clone()
-                                }
+                            match sym_table.find_binding(t.name) {
+                                Some(b) => b.used = true,
                                 None => panic!("unknown type (return this error)"),
-                            };
+                            }
 
-                            sym_table.add_binding(decl.name, binding_type);
+                            sym_table.add_binding(
+                                decl.name,
+                                BindingType::TypeDecl(decl.type_spec.clone()),
+                            );
+                            sym_table.add_scope_pos(t.id);
                         }
                         TypeSpec::Pointer(p) => {
                             sym_table.add_binding(
@@ -665,7 +666,9 @@ impl Module {
                 }
 
                 match sym_table.find_binding(t.name) {
-                    Some(b) => b.used = true,
+                    Some(b) => {
+                        b.used = true;
+                    }
                     None => errors.push(ParseError::Custom(
                         Token {
                             kind: TokenKind::Identifier,
@@ -675,6 +678,14 @@ impl Module {
                         "use of unknown type".to_string(),
                     )),
                 }
+
+                sym_table.add_scope_pos(t.id);
+            }
+            TypeSpec::Function(ts) => {
+                for param in &ts.params {
+                    Self::build_sym_table_type_spec(errors, sym_table, param);
+                }
+                Self::build_sym_table_type_spec(errors, sym_table, &ts.return_type);
             }
             TypeSpec::Pointer(ts) => {
                 Self::build_sym_table_type_spec(errors, sym_table, ts);

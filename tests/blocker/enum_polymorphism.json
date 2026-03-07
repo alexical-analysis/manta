@@ -1,0 +1,155 @@
+{
+  "init": {
+    "name": 18446744073709551596,
+    "params": [],
+    "type_spec": {
+      "Function": {
+        "params": [],
+        "return_type": "Unit"
+      }
+    },
+    "locals": [],
+    "blocks": [
+      {
+        "block_args": [],
+        "instructions": [
+          {
+            "Const": {
+              "result": 1,
+              "value": {
+                "ConstInt": 1
+              }
+            }
+          }
+        ],
+        "terminator": "Unreachable"
+      }
+    ],
+    "entry_block": 1,
+    "value_types": [
+      "Int64"
+    ]
+  },
+  "functions": [
+    {
+      "name": 13,
+      "params": [
+        14
+      ],
+      "type_spec": {
+        "Function": {
+          "params": [
+            "Int32"
+          ],
+          "return_type": "Unit"
+        }
+      },
+      "locals": [],
+      "blocks": [
+        {
+          "block_args": [],
+          "instructions": [
+            {
+              "Const": {
+                "result": 1,
+                "value": {
+                  "ConstInt": 1
+                }
+              }
+            }
+          ],
+          "terminator": "Unreachable"
+        }
+      ],
+      "entry_block": 1,
+      "value_types": [
+        "Int64"
+      ]
+    },
+    {
+      "name": 22,
+      "params": [
+        23
+      ],
+      "type_spec": {
+        "Function": {
+          "params": [
+            {
+              "Named": {
+                "module": null,
+                "name": 18,
+                "type_spec": {
+                  "Enum": {
+                    "variants": [
+                      {
+                        "name": 20,
+                        "payload": "Int32"
+                      },
+                      {
+                        "name": 21,
+                        "payload": "Int32"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ],
+          "return_type": "Int32"
+        }
+      },
+      "locals": [],
+      "blocks": [
+        {
+          "block_args": [],
+          "instructions": [
+            {
+              "Const": {
+                "result": 1,
+                "value": {
+                  "ConstInt": 1
+                }
+              }
+            }
+          ],
+          "terminator": "Unreachable"
+        }
+      ],
+      "entry_block": 1,
+      "value_types": [
+        "Int64"
+      ]
+    },
+    {
+      "name": 1,
+      "params": [],
+      "type_spec": {
+        "Function": {
+          "params": [],
+          "return_type": "Unit"
+        }
+      },
+      "locals": [],
+      "blocks": [
+        {
+          "block_args": [],
+          "instructions": [
+            {
+              "Const": {
+                "result": 1,
+                "value": {
+                  "ConstInt": 1
+                }
+              }
+            }
+          ],
+          "terminator": "Unreachable"
+        }
+      ],
+      "entry_block": 1,
+      "value_types": [
+        "Int64"
+      ]
+    }
+  ]
+}

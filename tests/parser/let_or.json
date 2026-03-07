@@ -873,7 +873,7 @@
                 }
               }
             },
-            "used": false
+            "used": true
           },
           {
             "id": 24,
@@ -1050,6 +1050,10 @@
         "scope_id": 0,
         "scope_depth": 14
       },
+      "250": {
+        "scope_id": 0,
+        "scope_depth": 14
+      },
       "341": {
         "scope_id": 1,
         "scope_depth": 0
@@ -1057,6 +1061,10 @@
       "352": {
         "scope_id": 1,
         "scope_depth": 1
+      },
+      "362": {
+        "scope_id": 0,
+        "scope_depth": 15
       },
       "369": {
         "scope_id": 2,
@@ -1069,6 +1077,10 @@
       "476": {
         "scope_id": 3,
         "scope_depth": 1
+      },
+      "478": {
+        "scope_id": 0,
+        "scope_depth": 16
       },
       "484": {
         "scope_id": 4,
@@ -1085,6 +1097,14 @@
       "715": {
         "scope_id": 5,
         "scope_depth": 1
+      },
+      "717": {
+        "scope_id": 0,
+        "scope_depth": 18
+      },
+      "723": {
+        "scope_id": 0,
+        "scope_depth": 18
       },
       "738": {
         "scope_id": 6,
@@ -1106,6 +1126,14 @@
         "scope_id": 0,
         "scope_depth": 20
       },
+      "966": {
+        "scope_id": 0,
+        "scope_depth": 20
+      },
+      "986": {
+        "scope_id": 0,
+        "scope_depth": 20
+      },
       "1051": {
         "scope_id": 9,
         "scope_depth": 0
@@ -1113,6 +1141,10 @@
       "1064": {
         "scope_id": 9,
         "scope_depth": 1
+      },
+      "1074": {
+        "scope_id": 0,
+        "scope_depth": 21
       },
       "1083": {
         "scope_id": 10,

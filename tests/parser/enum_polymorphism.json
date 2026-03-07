@@ -701,6 +701,10 @@
         "scope_id": 3,
         "scope_depth": 1
       },
+      "403": {
+        "scope_id": 0,
+        "scope_depth": 16
+      },
       "414": {
         "scope_id": 4,
         "scope_depth": 0
