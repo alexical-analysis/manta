@@ -292,7 +292,7 @@ mod tests {
     use super::*;
     use crate::ast::{
         AllocExpr, ArrayType, BinaryExpr, BinaryOp, CallExpr, DotAccessExpr, Expr, FreeExpr,
-        IdentifierExpr, IndexExpr, MetaTypeExpr, TypeSpec, UnaryExpr, UnaryOp,
+        IdentifierExpr, IndexExpr, MetaTypeExpr, NamedType, TypeSpec, UnaryExpr, UnaryOp,
     };
     use crate::parser::lexer::{Lexer, SourceID};
     use crate::str_store::{StrID, StrStore};
@@ -1120,10 +1120,11 @@ mod tests {
             want_value: assert_eq!(
                 expr,
                 MetaTypeExpr {
-                    type_spec: TypeSpec::Slice(Box::new(TypeSpec::Named {
+                    type_spec: TypeSpec::Slice(Box::new(TypeSpec::Named(NamedType {
+                        id: SourceID::from_usize(3),
                         module: None,
                         name: StrID::from_usize(3),
-                    }))
+                    })))
                 },
             ),
         },
@@ -1134,10 +1135,11 @@ mod tests {
                 expr,
                 MetaTypeExpr {
                     type_spec: TypeSpec::Array(ArrayType {
-                        type_spec: Box::new(TypeSpec::Named {
+                        type_spec: Box::new(TypeSpec::Named(NamedType {
+                            id: SourceID::from_usize(5),
                             module: Some(StrID::from_usize(4)),
                             name: StrID::from_usize(6),
-                        }),
+                        })),
                         size: 25,
                     })
                 }

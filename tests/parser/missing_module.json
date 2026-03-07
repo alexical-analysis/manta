@@ -87,85 +87,125 @@
           {
             "id": 0,
             "name": 18446744073709551614,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "UInt8"
+            },
             "used": true
           },
           {
             "id": 1,
             "name": 18446744073709551613,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "UInt16"
+            },
             "used": true
           },
           {
             "id": 2,
             "name": 18446744073709551612,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "UInt32"
+            },
             "used": true
           },
           {
             "id": 3,
             "name": 18446744073709551611,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "UInt64"
+            },
             "used": true
           },
           {
             "id": 4,
             "name": 18446744073709551610,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "Int8"
+            },
             "used": true
           },
           {
             "id": 5,
             "name": 18446744073709551609,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "Int16"
+            },
             "used": true
           },
           {
             "id": 6,
             "name": 18446744073709551608,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "Int32"
+            },
             "used": true
           },
           {
             "id": 7,
             "name": 18446744073709551607,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "Int64"
+            },
             "used": true
           },
           {
             "id": 8,
             "name": 18446744073709551606,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "Float32"
+            },
             "used": true
           },
           {
             "id": 9,
             "name": 18446744073709551605,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "Float64"
+            },
             "used": true
           },
           {
             "id": 10,
             "name": 18446744073709551603,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "Bool"
+            },
             "used": true
           },
           {
             "id": 11,
             "name": 18446744073709551604,
-            "binding_type": "StructType",
+            "binding_type": {
+              "TypeDecl": "String"
+            },
             "used": true
           },
           {
             "id": 12,
             "name": 6,
-            "binding_type": "FuncType",
+            "binding_type": {
+              "FuncDecl": {
+                "Function": {
+                  "params": [
+                    "String"
+                  ],
+                  "return_type": "Unit"
+                }
+              }
+            },
             "used": true
           },
           {
             "id": 14,
             "name": 10,
-            "binding_type": "FuncType",
+            "binding_type": {
+              "FuncDecl": {
+                "Function": {
+                  "params": [],
+                  "return_type": "Unit"
+                }
+              }
+            },
             "used": false
           }
         ]
@@ -176,7 +216,7 @@
           {
             "id": 13,
             "name": 7,
-            "binding_type": "Value",
+            "binding_type": "ValueDecl",
             "used": false
           }
         ]

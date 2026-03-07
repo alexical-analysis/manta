@@ -1,4 +1,4 @@
-use crate::ast::{ArrayType, TypeSpec};
+use crate::ast::{ArrayType, NamedType, TypeSpec};
 use crate::parser::ParseError;
 use crate::parser::lexer::{Lexer, Token, TokenKind};
 
@@ -98,16 +98,18 @@ pub fn parse_type(lexer: &mut Lexer, token: Token) -> Result<TypeSpec, ParseErro
                                 "type name must be an identifier".to_string(),
                             ));
                         } else {
-                            TypeSpec::Named {
+                            TypeSpec::Named(NamedType {
+                                id: token.source_id,
                                 module: Some(token.lexeme_id),
                                 name: type_name.lexeme_id,
-                            }
+                            })
                         }
                     }
-                    _ => TypeSpec::Named {
+                    _ => TypeSpec::Named(NamedType {
+                        id: token.source_id,
                         module: None,
                         name: token.lexeme_id,
-                    },
+                    }),
                 },
             };
             Ok(tyspec)
@@ -123,7 +125,7 @@ pub fn parse_type(lexer: &mut Lexer, token: Token) -> Result<TypeSpec, ParseErro
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::parser::lexer::Lexer;
+    use crate::parser::lexer::{Lexer, SourceID};
     use crate::str_store::{StrID, StrStore};
 
     macro_rules! test_parse_type_spec {
@@ -148,10 +150,11 @@ mod tests {
         },
         parse_type_named_type {
             input: "MyType",
-            want: TypeSpec::Named {
+            want: TypeSpec::Named(NamedType {
+                id: SourceID::from_usize(0),
                 module: None,
                 name: StrID::from_usize(0),
-            },
+            }),
         },
         parse_type_pointer_type {
             input: "*i32",

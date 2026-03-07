@@ -5,10 +5,12 @@ use std::fmt::Debug;
 use std::ops::Deref;
 
 use crate::ast::{
-    BlockStmt, Decl, Expr, FunctionType, LetExcept, LetStmt, Pattern, ReturnStmt, Stmt,
-    StructField, StructType, TypeSpec, UnaryOp,
+    self, BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, ReturnStmt, Stmt, UnaryOp,
 };
-use crate::hir::{Node, NodeID, PatternNode};
+use crate::hir::{
+    ArrayType, EnumType, EnumVariant, FunctionType, NamedType, Node, NodeID, PatternNode,
+    StructField, StructType, TypeSpec,
+};
 use crate::parser::module::{BindingType, Module, SymID};
 use crate::str_store;
 
@@ -123,6 +125,101 @@ pub fn node_module(module: Module) -> NodeTree {
     node_tree
 }
 
+fn node_type_spec(module: &Module, type_spec: &ast::TypeSpec) -> TypeSpec {
+    match type_spec {
+        ast::TypeSpec::Int8 => TypeSpec::Int8,
+        ast::TypeSpec::Int16 => TypeSpec::Int16,
+        ast::TypeSpec::Int32 => TypeSpec::Int32,
+        ast::TypeSpec::Int64 => TypeSpec::Int64,
+        ast::TypeSpec::UInt8 => TypeSpec::UInt8,
+        ast::TypeSpec::UInt16 => TypeSpec::UInt16,
+        ast::TypeSpec::UInt32 => TypeSpec::UInt32,
+        ast::TypeSpec::UInt64 => TypeSpec::UInt64,
+        ast::TypeSpec::Float32 => TypeSpec::Float32,
+        ast::TypeSpec::Float64 => TypeSpec::Float64,
+        ast::TypeSpec::String => TypeSpec::String,
+        ast::TypeSpec::Bool => TypeSpec::Bool,
+        ast::TypeSpec::Unit => TypeSpec::Unit,
+        ast::TypeSpec::Named(t) => {
+            if t.module.is_some() {
+                panic!("modules are not yet supported")
+            }
+
+            // look up the type using it's scope_position and name and extract the underlying type
+            let scope_pos = module
+                .get_scope_pos(t.id)
+                .expect("failed to find type identifier in current scope");
+            let binding = module
+                .find_binding(scope_pos, t.name)
+                .expect("missing binding for type identifier");
+            let type_spec = match &binding.binding_type {
+                BindingType::TypeDecl(t) => t,
+                _ => panic!("this binding was not for a type"),
+            };
+
+            let type_spec = node_type_spec(module, type_spec);
+            let type_spec = Box::new(type_spec);
+            TypeSpec::Named(NamedType {
+                module: t.module,
+                name: t.name,
+                type_spec,
+            })
+        }
+        ast::TypeSpec::Pointer(t) => {
+            let inner = node_type_spec(module, t);
+            TypeSpec::Pointer(Box::new(inner))
+        }
+        ast::TypeSpec::Slice(t) => {
+            let inner = node_type_spec(module, t);
+            TypeSpec::Slice(Box::new(inner))
+        }
+        ast::TypeSpec::Array(t) => {
+            let inner = node_type_spec(module, &t.type_spec);
+            TypeSpec::Array(ArrayType {
+                size: t.size,
+                type_spec: Box::new(inner),
+            })
+        }
+        ast::TypeSpec::Struct(t) => {
+            let mut fields = vec![];
+            for field in &t.fields {
+                let inner = node_type_spec(module, &field.type_spec);
+                fields.push(StructField {
+                    name: field.name,
+                    type_spec: inner,
+                })
+            }
+            TypeSpec::Struct(StructType { fields })
+        }
+        ast::TypeSpec::Enum(t) => {
+            let mut variants: Vec<EnumVariant> = vec![];
+            for variant in &t.variants {
+                let inner = variant.payload.as_ref().map(|t| node_type_spec(module, t));
+                variants.push(EnumVariant {
+                    name: variant.name,
+                    payload: inner,
+                })
+            }
+            TypeSpec::Enum(EnumType { variants })
+        }
+        ast::TypeSpec::Function(t) => {
+            let return_type = node_type_spec(module, &t.return_type);
+            let return_type = Box::new(return_type);
+
+            let mut params = vec![];
+            for param in &t.params {
+                let inner = node_type_spec(module, param);
+                params.push(inner);
+            }
+
+            TypeSpec::Function(FunctionType {
+                params,
+                return_type,
+            })
+        }
+    }
+}
+
 fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
     match decl {
         Decl::Function(decl) => {
@@ -135,7 +232,8 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 let param_id = node_tree.add_node(Node::VarDecl { ident: ident_id });
                 params.push(param_id);
 
-                node_tree.type_map.add(ident_id, param_type.clone());
+                let type_spec = node_type_spec(module, param_type);
+                node_tree.type_map.add(ident_id, type_spec);
 
                 let scope_pos = module
                     .get_scope_pos(param.id)
@@ -147,12 +245,8 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 node_tree.symbol_map.add(binding.id, ident_id);
             }
 
-            let body_id = node_fn_body(
-                node_tree,
-                module,
-                &decl.body,
-                *decl.function_type.return_type.clone(),
-            );
+            let return_type = node_type_spec(module, &decl.function_type.return_type);
+            let body_id = node_fn_body(node_tree, module, &decl.body, return_type);
 
             let ident_id = node_tree.add_node(Node::Identifier(decl.name));
             let func_id = node_tree.add_root_node(Node::FunctionDecl {
@@ -161,7 +255,8 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 body: body_id,
             });
 
-            let func_type = TypeSpec::Function(decl.function_type.clone());
+            let func_type = ast::TypeSpec::Function(decl.function_type.clone());
+            let func_type = node_type_spec(module, &func_type);
             node_tree.type_map.add(ident_id, func_type.clone());
             node_tree.type_map.add(func_id, func_type);
 
@@ -178,8 +273,15 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
             let ident_id = node_tree.add_node(Node::Identifier(decl.name));
             node_tree.add_root_node(Node::TypeDecl { ident: ident_id });
 
-            // Wrap the type in an Alias so it's distinguishable from other uses of the same type
-            let type_alias = TypeSpec::Alias(Box::new(decl.type_spec.clone()));
+            // The resulting type needs to be a named type so it's distinguishable from other types
+            // that might have the same inner type
+            let type_spec = node_type_spec(module, &decl.type_spec);
+            let type_spec = Box::new(type_spec);
+            let type_alias = TypeSpec::Named(NamedType {
+                module: None,
+                name: decl.name,
+                type_spec,
+            });
             node_tree.type_map.add(ident_id, type_alias);
 
             let scope_pos = module
@@ -729,8 +831,11 @@ fn node_wrap_expr(
         .expect("unknown identifier used in dot expression target");
 
     // if the identifier is a declared enum type we know this is a valid enum expression
-    if binding.binding_type != BindingType::EnumType {
-        panic!("can only call wrap with enum types");
+    if !matches!(
+        binding.binding_type,
+        BindingType::TypeDecl(ast::TypeSpec::Enum(_))
+    ) {
+        panic!("can only call wrap with enum types")
     }
 
     let target_node = node_tree.symbol_map.get(binding.id).cloned();
@@ -742,12 +847,12 @@ fn node_wrap_expr(
     });
 
     // Look up the enum type from the symbol map
-    if let Some(type_decl_id) = node_tree.symbol_map.get(binding.id) {
-        if let Some(enum_type) = node_tree.type_map.get(*type_decl_id) {
-            node_tree
-                .type_map
-                .add(enum_constructor_id, enum_type.clone());
-        }
+    if let Some(type_decl_id) = node_tree.symbol_map.get(binding.id)
+        && let Some(enum_type) = node_tree.type_map.get(*type_decl_id)
+    {
+        node_tree
+            .type_map
+            .add(enum_constructor_id, enum_type.clone());
     }
 
     enum_constructor_id
@@ -891,19 +996,19 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
             };
 
             match binding.binding_type {
-                BindingType::EnumType => {
+                BindingType::TypeDecl(ast::TypeSpec::Enum(_)) => {
                     let enum_constructor_id = node_tree.add_node(Node::EnumConstructor {
                         target: Some(target_id),
                         variant: expr.field,
                         payload: None,
                     });
                     // Look up the enum type from the symbol map
-                    if let Some(type_decl_id) = node_tree.symbol_map.get(binding.id) {
-                        if let Some(enum_type) = node_tree.type_map.get(*type_decl_id) {
-                            node_tree
-                                .type_map
-                                .add(enum_constructor_id, enum_type.clone());
-                        }
+                    if let Some(type_decl_id) = node_tree.symbol_map.get(binding.id)
+                        && let Some(enum_type) = node_tree.type_map.get(*type_decl_id)
+                    {
+                        node_tree
+                            .type_map
+                            .add(enum_constructor_id, enum_type.clone());
                     }
                     enum_constructor_id
                 }
@@ -1031,8 +1136,6 @@ fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec
             let r_type = match check_node_type(node_tree, value) {
                 Some(t) => t,
                 None => {
-                    // TODO: remove me after done testing
-
                     let r_node = node_tree.get_node(value);
 
                     panic!(
@@ -1294,17 +1397,15 @@ mod tests {
                 let mut e = NodeTree::new();
 
                 let ident_id = e.add_node(Node::Identifier(StrID::from_usize(1)));
-                e.add_root_node(Node::VarDecl {
-                    ident: ident_id.clone(),
-                });
+                e.add_root_node(Node::VarDecl { ident: ident_id });
 
                 let value_id = e.add_node(Node::IntLiteral(42));
-                e.type_map.add(value_id.clone(), TypeSpec::Int64);
+                e.type_map.add(value_id, TypeSpec::Int64);
                 e.add_root_node(Node::Assign {
-                    target: ident_id.clone(),
-                    value: value_id.clone(),
+                    target: ident_id,
+                    value: value_id,
                 });
-                e.symbol_map.add(12, ident_id.clone());
+                e.symbol_map.add(12, ident_id);
 
                 // type infered from the above assignment
                 e.type_map.add(ident_id, TypeSpec::Int64);
@@ -1322,20 +1423,18 @@ mod tests {
                 let mut e = NodeTree::new();
 
                 let ident_id = e.add_node(Node::Identifier(StrID::from_usize(2)));
-                e.add_root_node(Node::VarDecl {
-                    ident: ident_id.clone(),
-                });
+                e.add_root_node(Node::VarDecl { ident: ident_id });
 
                 let value_id = e.add_node(Node::StringLiteral(StrID::from_usize(3)));
-                e.type_map.add(value_id.clone(), TypeSpec::String);
+                e.type_map.add(value_id, TypeSpec::String);
                 e.add_root_node(Node::Assign {
-                    target: ident_id.clone(),
-                    value: value_id.clone(),
+                    target: ident_id,
+                    value: value_id,
                 });
-                e.symbol_map.add(12, ident_id.clone());
+                e.symbol_map.add(12, ident_id);
 
                 // type infered from the above assignment
-                e.type_map.add(ident_id.clone(), TypeSpec::String);
+                e.type_map.add(ident_id, TypeSpec::String);
 
                 e
             }

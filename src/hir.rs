@@ -172,3 +172,80 @@ pub enum PatternNode {
     Identifier(NodeID),
     Default, // the _ pattern
 }
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub enum TypeSpec {
+    Int32,
+    Int16,
+    Int8,
+    Int64,
+    UInt32,
+    UInt16,
+    UInt8,
+    UInt64,
+    Float32,
+    Float64,
+    String,
+    Bool,
+    // User-defined types
+    Named(NamedType),
+    // Composite types
+    Pointer(Box<TypeSpec>),
+    Slice(Box<TypeSpec>),
+    Array(ArrayType),
+    Struct(StructType),
+    Enum(EnumType),
+    Function(FunctionType),
+    // UnsafePtr is the intermediary between types used by alloc
+    UnsafePtr,
+    // Panic is the type used for expressions that panic
+    Panic,
+    // Unit type for functions that don't return anything
+    Unit,
+}
+
+/// Named type including the underalying type information
+#[derive(Debug, PartialEq, Clone, Serialize)]
+pub struct NamedType {
+    pub module: Option<StrID>,
+    pub name: StrID,
+    pub type_spec: Box<TypeSpec>,
+}
+
+/// Array type with size
+#[derive(Debug, PartialEq, Clone, Serialize)]
+pub struct ArrayType {
+    pub type_spec: Box<TypeSpec>,
+    pub size: usize,
+}
+
+/// Struct type with named fields
+#[derive(Debug, PartialEq, Clone, Serialize)]
+pub struct StructType {
+    pub fields: Vec<StructField>,
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize)]
+pub struct StructField {
+    pub name: StrID,
+    pub type_spec: TypeSpec,
+}
+
+/// Enum type with named variants
+#[derive(Debug, PartialEq, Clone, Serialize)]
+pub struct EnumType {
+    pub variants: Vec<EnumVariant>,
+}
+
+/// Function types with arguments
+#[derive(Debug, PartialEq, Clone, Serialize)]
+pub struct FunctionType {
+    pub params: Vec<TypeSpec>,
+    pub return_type: Box<TypeSpec>,
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize)]
+pub struct EnumVariant {
+    pub name: StrID,
+    pub payload: Option<TypeSpec>,
+}

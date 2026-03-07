@@ -43,6 +43,7 @@
                 "name": 16,
                 "payload": {
                   "Named": {
+                    "id": 250,
                     "module": null,
                     "name": 10
                   }
@@ -88,6 +89,7 @@
           ],
           "return_type": {
             "Named": {
+              "id": 362,
               "module": null,
               "name": 14
             }
@@ -113,6 +115,7 @@
           "params": [
             {
               "Named": {
+                "id": 478,
                 "module": null,
                 "name": 10
               }
@@ -171,6 +174,7 @@
           "params": [
             {
               "Named": {
+                "id": 717,
                 "module": null,
                 "name": 10
               }
@@ -178,6 +182,7 @@
           ],
           "return_type": {
             "Named": {
+              "id": 723,
               "module": null,
               "name": 25
             }
@@ -222,6 +227,7 @@
                 "name": 30,
                 "payload": {
                   "Named": {
+                    "id": 966,
                     "module": null,
                     "name": 14
                   }
@@ -231,6 +237,7 @@
                 "name": 31,
                 "payload": {
                   "Named": {
+                    "id": 986,
                     "module": null,
                     "name": 25
                   }
@@ -409,6 +416,7 @@
           ],
           "return_type": {
             "Named": {
+              "id": 1074,
               "module": null,
               "name": 29
             }
@@ -593,133 +601,312 @@
           {
             "id": 0,
             "name": 18446744073709551614,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "UInt8"
+            },
             "used": true
           },
           {
             "id": 1,
             "name": 18446744073709551613,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "UInt16"
+            },
             "used": true
           },
           {
             "id": 2,
             "name": 18446744073709551612,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "UInt32"
+            },
             "used": true
           },
           {
             "id": 3,
             "name": 18446744073709551611,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "UInt64"
+            },
             "used": true
           },
           {
             "id": 4,
             "name": 18446744073709551610,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "Int8"
+            },
             "used": true
           },
           {
             "id": 5,
             "name": 18446744073709551609,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "Int16"
+            },
             "used": true
           },
           {
             "id": 6,
             "name": 18446744073709551608,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "Int32"
+            },
             "used": true
           },
           {
             "id": 7,
             "name": 18446744073709551607,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "Int64"
+            },
             "used": true
           },
           {
             "id": 8,
             "name": 18446744073709551606,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "Float32"
+            },
             "used": true
           },
           {
             "id": 9,
             "name": 18446744073709551605,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "Float64"
+            },
             "used": true
           },
           {
             "id": 10,
             "name": 18446744073709551603,
-            "binding_type": "UnitType",
+            "binding_type": {
+              "TypeDecl": "Bool"
+            },
             "used": true
           },
           {
             "id": 11,
             "name": 18446744073709551604,
-            "binding_type": "StructType",
+            "binding_type": {
+              "TypeDecl": "String"
+            },
             "used": true
           },
           {
             "id": 12,
             "name": 10,
-            "binding_type": "StructType",
+            "binding_type": {
+              "TypeDecl": {
+                "Struct": {
+                  "fields": []
+                }
+              }
+            },
             "used": true
           },
           {
             "id": 13,
             "name": 14,
-            "binding_type": "EnumType",
+            "binding_type": {
+              "TypeDecl": {
+                "Enum": {
+                  "variants": [
+                    {
+                      "name": 16,
+                      "payload": {
+                        "Named": {
+                          "id": 250,
+                          "module": null,
+                          "name": 10
+                        }
+                      }
+                    },
+                    {
+                      "name": 17,
+                      "payload": null
+                    }
+                  ]
+                }
+              }
+            },
             "used": true
           },
           {
             "id": 14,
             "name": 19,
-            "binding_type": "FuncType",
+            "binding_type": {
+              "FuncDecl": {
+                "Function": {
+                  "params": [
+                    "String"
+                  ],
+                  "return_type": {
+                    "Named": {
+                      "id": 362,
+                      "module": null,
+                      "name": 14
+                    }
+                  }
+                }
+              }
+            },
             "used": true
           },
           {
             "id": 16,
             "name": 23,
-            "binding_type": "FuncType",
+            "binding_type": {
+              "FuncDecl": {
+                "Function": {
+                  "params": [
+                    {
+                      "Named": {
+                        "id": 478,
+                        "module": null,
+                        "name": 10
+                      }
+                    }
+                  ],
+                  "return_type": "Unit"
+                }
+              }
+            },
             "used": true
           },
           {
             "id": 18,
             "name": 25,
-            "binding_type": "EnumType",
+            "binding_type": {
+              "TypeDecl": {
+                "Enum": {
+                  "variants": [
+                    {
+                      "name": 16,
+                      "payload": "String"
+                    },
+                    {
+                      "name": 17,
+                      "payload": null
+                    }
+                  ]
+                }
+              }
+            },
             "used": true
           },
           {
             "id": 19,
             "name": 26,
-            "binding_type": "FuncType",
+            "binding_type": {
+              "FuncDecl": {
+                "Function": {
+                  "params": [
+                    {
+                      "Named": {
+                        "id": 717,
+                        "module": null,
+                        "name": 10
+                      }
+                    }
+                  ],
+                  "return_type": {
+                    "Named": {
+                      "id": 723,
+                      "module": null,
+                      "name": 25
+                    }
+                  }
+                }
+              }
+            },
             "used": true
           },
           {
             "id": 21,
             "name": 27,
-            "binding_type": "FuncType",
+            "binding_type": {
+              "FuncDecl": {
+                "Function": {
+                  "params": [
+                    "String"
+                  ],
+                  "return_type": "Unit"
+                }
+              }
+            },
             "used": true
           },
           {
             "id": 23,
             "name": 29,
-            "binding_type": "EnumType",
+            "binding_type": {
+              "TypeDecl": {
+                "Enum": {
+                  "variants": [
+                    {
+                      "name": 16,
+                      "payload": "String"
+                    },
+                    {
+                      "name": 30,
+                      "payload": {
+                        "Named": {
+                          "id": 966,
+                          "module": null,
+                          "name": 14
+                        }
+                      }
+                    },
+                    {
+                      "name": 31,
+                      "payload": {
+                        "Named": {
+                          "id": 986,
+                          "module": null,
+                          "name": 25
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
             "used": false
           },
           {
             "id": 24,
             "name": 32,
-            "binding_type": "FuncType",
+            "binding_type": {
+              "FuncDecl": {
+                "Function": {
+                  "params": [
+                    "String"
+                  ],
+                  "return_type": {
+                    "Named": {
+                      "id": 1074,
+                      "module": null,
+                      "name": 29
+                    }
+                  }
+                }
+              }
+            },
             "used": true
           },
           {
             "id": 28,
             "name": 1,
-            "binding_type": "FuncType",
+            "binding_type": {
+              "FuncDecl": {
+                "Function": {
+                  "params": [],
+                  "return_type": "Unit"
+                }
+              }
+            },
             "used": false
           }
         ]
@@ -730,7 +917,7 @@
           {
             "id": 15,
             "name": 20,
-            "binding_type": "Value",
+            "binding_type": "ValueDecl",
             "used": false
           }
         ]
@@ -745,7 +932,7 @@
           {
             "id": 17,
             "name": 24,
-            "binding_type": "Value",
+            "binding_type": "ValueDecl",
             "used": false
           }
         ]
@@ -760,7 +947,7 @@
           {
             "id": 20,
             "name": 24,
-            "binding_type": "Value",
+            "binding_type": "ValueDecl",
             "used": false
           }
         ]
@@ -775,7 +962,7 @@
           {
             "id": 22,
             "name": 28,
-            "binding_type": "Value",
+            "binding_type": "ValueDecl",
             "used": false
           }
         ]
@@ -790,7 +977,7 @@
           {
             "id": 25,
             "name": 20,
-            "binding_type": "Value",
+            "binding_type": "ValueDecl",
             "used": true
           }
         ]
@@ -801,13 +988,13 @@
           {
             "id": 26,
             "name": 24,
-            "binding_type": "Value",
+            "binding_type": "ValueDecl",
             "used": true
           },
           {
             "id": 27,
             "name": 28,
-            "binding_type": "Value",
+            "binding_type": "ValueDecl",
             "used": true
           }
         ]
@@ -826,13 +1013,13 @@
           {
             "id": 29,
             "name": 38,
-            "binding_type": "Value",
+            "binding_type": "ValueDecl",
             "used": true
           },
           {
             "id": 31,
             "name": 38,
-            "binding_type": "Value",
+            "binding_type": "ValueDecl",
             "used": true
           }
         ]
@@ -843,7 +1030,7 @@
           {
             "id": 30,
             "name": 41,
-            "binding_type": "Value",
+            "binding_type": "ValueDecl",
             "used": false
           }
         ]
