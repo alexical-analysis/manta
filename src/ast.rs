@@ -267,7 +267,6 @@ pub enum Pattern {
     ModuleAccess(ModuleAccesPat),
     DotAccess(DotAccessPat),
 
-    // TODO: should this just wrap a StrID?
     Identifier(IdentifierPat),
     Default, // the _ pattern
 }
