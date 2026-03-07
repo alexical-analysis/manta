@@ -926,6 +926,10 @@
         "scope_id": 8,
         "scope_depth": 0
       },
+      "969": {
+        "scope_id": 8,
+        "scope_depth": 1
+      },
       "972": {
         "scope_id": 8,
         "scope_depth": 1
@@ -961,6 +965,10 @@
       "1084": {
         "scope_id": 10,
         "scope_depth": 0
+      },
+      "1101": {
+        "scope_id": 8,
+        "scope_depth": 3
       },
       "1104": {
         "scope_id": 8,

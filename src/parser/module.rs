@@ -495,16 +495,7 @@ impl Module {
     fn build_sym_table_stmt(errors: &mut Vec<ParseError>, sym_table: &mut SymTable, stmt: &Stmt) {
         match stmt {
             Stmt::Let(stmt) => {
-                if let Pattern::Payload(pat) = &stmt.pattern {
-                    sym_table.add_binding(pat.payload.name, BindingType::ValueDecl);
-                    sym_table.add_scope_pos(pat.payload.id);
-                }
-
-                if let Pattern::Identifier(ident) = &stmt.pattern {
-                    sym_table.add_binding(ident.name, BindingType::ValueDecl);
-                    sym_table.add_scope_pos(ident.id);
-                }
-
+                Self::build_sym_table_pattern(errors, sym_table, &stmt.pattern);
                 Self::build_sym_table_expr(errors, sym_table, &stmt.value);
 
                 match &stmt.except {
@@ -567,6 +558,65 @@ impl Module {
                 if let Some(fail) = &stmt.fail {
                     Self::build_sym_table_block(errors, sym_table, fail);
                 }
+            }
+        }
+    }
+
+    fn build_sym_table_pattern(
+        errors: &mut Vec<ParseError>,
+        sym_table: &mut SymTable,
+        pat: &Pattern,
+    ) {
+        match pat {
+            Pattern::IntLiteral(_) => { /* no symbols to track */ }
+            Pattern::StringLiteral(_) => { /* no symbols to track */ }
+            Pattern::BoolLiteral(_) => { /* no symbols to track */ }
+            Pattern::FloatLiteral(_) => { /* no symbols to track */ }
+            Pattern::Default => { /* no symbols to track */ }
+            Pattern::TypeSpec(ts) => {
+                Self::build_sym_table_type_spec(errors, sym_table, ts);
+            }
+            Pattern::ModuleAccess(_) => panic!("modules are not yet supported"),
+            Pattern::Payload(pat) => {
+                sym_table.add_binding(pat.payload.name, BindingType::ValueDecl);
+                sym_table.add_scope_pos(pat.payload.id);
+
+                // There are only a couple valid patterns that can appear here so we make sure to
+                // only handle those patterns specifically. Also, their behavior differes slightly
+                // from how the same patterns are treated outside of a payload pattern
+                match &*pat.pat {
+                    Pattern::Identifier(pat) => {
+                        sym_table.add_scope_pos(pat.id);
+                    }
+                    Pattern::ModuleAccess(_) => todo!("modules are not yet supported sorry"),
+                    Pattern::DotAccess(_) => {
+                        Self::build_sym_table_pattern(errors, sym_table, &pat.pat)
+                    }
+                    Pattern::TypeSpec(ts) => {
+                        Self::build_sym_table_type_spec(errors, sym_table, ts);
+                    }
+                    _ => panic!("invalid payload pattern {:?}", pat.pat),
+                }
+            }
+            Pattern::DotAccess(pat) => {
+                if let Some(target) = &pat.target {
+                    match &**target {
+                        Pattern::Identifier(pat) => {
+                            sym_table.add_scope_pos(pat.id);
+                        }
+                        Pattern::ModuleAccess(_) => todo!("modules are not yet supported sorry"),
+                        Pattern::TypeSpec(ts) => {
+                            Self::build_sym_table_type_spec(errors, sym_table, ts);
+                        }
+                        _ => panic!("invalid dot access target"),
+                    }
+                };
+
+                sym_table.add_scope_pos(pat.field.id);
+            }
+            Pattern::Identifier(pat) => {
+                sym_table.add_binding(pat.name, BindingType::ValueDecl);
+                sym_table.add_scope_pos(pat.id);
             }
         }
     }

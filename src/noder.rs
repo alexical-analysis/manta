@@ -562,16 +562,55 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             //     e                { ... }
             // }
 
-            let _type_spec = match pat.pat.deref() {
-                Pattern::TypeSpec(ts) => Some(ts.clone()),
-                _ => {
-                    // TODO: we actually need to handle all the different cases here. For example
-                    // if the pattern is a dot expression we need to look type information and the
-                    // variant to figure out what the identifer type should actually be
-                    // also, a lot of these should actually be errors like
-                    // let 10(v) = 10 is not a valid pattern that we want to support
-                    None
+            match pat.pat.deref() {
+                Pattern::TypeSpec(_) => { /* type specs are valid payload patterns */ }
+                Pattern::DotAccess(dot) => {
+                    // if the dot access has a target, make sure it's for a valid binding
+                    match &dot.target {
+                        Some(pat) => match pat.deref() {
+                            Pattern::Identifier(ident) => {
+                                let scope_pos = module.get_scope_pos(ident.id).expect(
+                                    "missing scope position for identifier payload pattern",
+                                );
+                                let binding = module.find_binding(scope_pos, ident.name).expect(
+                                    "failed to find binding for pattern payload identifier",
+                                );
+                                if !matches!(binding.binding_type, BindingType::TypeDecl(_)) {
+                                    panic!("identifier is not a valid type: binding({:?})", binding)
+                                }
+                            }
+                            Pattern::ModuleAccess(_) => {
+                                todo!("modules are not yet supported in patterns")
+                            }
+                            _ => panic!("invalid type for dot access target"),
+                        },
+                        None => { /* just assume we're good and catch things in the type checker*/ }
+                    }
                 }
+                Pattern::Identifier(ident) => {
+                    // is this identifier a type declaration? Otherwise it's not valid
+                    let scope_pos = module
+                        .get_scope_pos(ident.id)
+                        .expect("missing scope position for identifier payload pattern");
+                    let binding = module
+                        .find_binding(scope_pos, ident.name)
+                        .expect("failed to find binding for pattern payload identifier");
+                    match binding.binding_type {
+                        BindingType::TypeDecl(_) => { /* this identifier references a type so technically it's a TypeSpec pattern */
+                        }
+                        _ => panic!("identifier is not a valid type: binding({:?})", binding),
+                    };
+                }
+                Pattern::Payload(_) => todo!("nested payload patterns are not yet support"),
+                Pattern::ModuleAccess(_) => todo!("modules are not yet supported"),
+
+                Pattern::IntLiteral(_) => panic!("int literals are not valid payload patterns"),
+                Pattern::StringLiteral(_) => {
+                    panic!("string literals are not valid payload patterns")
+                }
+                Pattern::BoolLiteral(_) => panic!("bool literals are not valid payload patterns"),
+                Pattern::FloatLiteral(_) => panic!("float literals are not valid payload patterns"),
+                Pattern::Default => panic!("default pattern can not be used in payload patterns"),
             };
 
             // ouside variable declaration
