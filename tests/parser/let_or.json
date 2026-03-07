@@ -1150,6 +1150,10 @@
         "scope_id": 10,
         "scope_depth": 0
       },
+      "1094": {
+        "scope_id": 10,
+        "scope_depth": 1
+      },
       "1097": {
         "scope_id": 10,
         "scope_depth": 1
@@ -1174,6 +1178,10 @@
         "scope_id": 11,
         "scope_depth": 0
       },
+      "1166": {
+        "scope_id": 10,
+        "scope_depth": 2
+      },
       "1169": {
         "scope_id": 10,
         "scope_depth": 2
@@ -1197,6 +1205,10 @@
       "1271": {
         "scope_id": 13,
         "scope_depth": 0
+      },
+      "1282": {
+        "scope_id": 13,
+        "scope_depth": 1
       },
       "1285": {
         "scope_id": 13,
@@ -1225,6 +1237,10 @@
       "1400": {
         "scope_id": 13,
         "scope_depth": 1
+      },
+      "1481": {
+        "scope_id": 13,
+        "scope_depth": 2
       },
       "1484": {
         "scope_id": 13,
