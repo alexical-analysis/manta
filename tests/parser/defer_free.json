@@ -709,7 +709,7 @@
                 }
               }
             },
-            "used": false
+            "used": true
           },
           {
             "id": 23,
@@ -838,6 +838,10 @@
         "scope_id": 0,
         "scope_depth": 14
       },
+      "232": {
+        "scope_id": 0,
+        "scope_depth": 14
+      },
       "308": {
         "scope_id": 1,
         "scope_depth": 0
@@ -845,6 +849,10 @@
       "319": {
         "scope_id": 1,
         "scope_depth": 1
+      },
+      "329": {
+        "scope_id": 0,
+        "scope_depth": 15
       },
       "336": {
         "scope_id": 2,
@@ -857,6 +865,10 @@
       "429": {
         "scope_id": 3,
         "scope_depth": 1
+      },
+      "431": {
+        "scope_id": 0,
+        "scope_depth": 16
       },
       "437": {
         "scope_id": 4,
@@ -874,6 +886,10 @@
         "scope_id": 5,
         "scope_depth": 1
       },
+      "628": {
+        "scope_id": 0,
+        "scope_depth": 18
+      },
       "634": {
         "scope_id": 5,
         "scope_depth": 2
@@ -886,6 +902,14 @@
         "scope_id": 0,
         "scope_depth": 19
       },
+      "785": {
+        "scope_id": 0,
+        "scope_depth": 19
+      },
+      "806": {
+        "scope_id": 0,
+        "scope_depth": 19
+      },
       "911": {
         "scope_id": 7,
         "scope_depth": 0
@@ -893,6 +917,10 @@
       "932": {
         "scope_id": 7,
         "scope_depth": 1
+      },
+      "942": {
+        "scope_id": 0,
+        "scope_depth": 20
       },
       "958": {
         "scope_id": 8,

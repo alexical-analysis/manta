@@ -148,7 +148,7 @@ fn node_type_spec(module: &Module, type_spec: &ast::TypeSpec) -> TypeSpec {
             // look up the type using it's scope_position and name and extract the underlying type
             let scope_pos = module
                 .get_scope_pos(t.id)
-                .expect("failed to find type identifier in current scope");
+                .expect("failed to find type identifier scope position");
             let binding = module
                 .find_binding(scope_pos, t.name)
                 .expect("missing binding for type identifier");

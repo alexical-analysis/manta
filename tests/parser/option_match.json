@@ -439,7 +439,7 @@
                 }
               }
             },
-            "used": false
+            "used": true
           },
           {
             "id": 15,
@@ -586,6 +586,10 @@
       "341": {
         "scope_id": 3,
         "scope_depth": 2
+      },
+      "348": {
+        "scope_id": 0,
+        "scope_depth": 15
       },
       "352": {
         "scope_id": 4,
