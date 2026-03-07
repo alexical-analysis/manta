@@ -562,15 +562,118 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             //     e                { ... }
             // }
 
-            let _type_spec = match pat.pat.deref() {
-                Pattern::TypeSpec(ts) => Some(ts.clone()),
-                _ => {
-                    // TODO: we actually need to handle all the different cases here. For example
-                    // if the pattern is a dot expression we need to look type information and the
-                    // variant to figure out what the identifer type should actually be
-                    // also, a lot of these should actually be errors like
-                    // let 10(v) = 10 is not a valid pattern that we want to support
-                    None
+            // TODO: this lookup is way to complex, we need to break this out into a function also
+            // this is probably where we'll need to support nested patterns eventually
+            let payload_type_spec = match pat.pat.deref() {
+                Pattern::TypeSpec(ts) => node_type_spec(module, ts),
+                Pattern::DotAccess(pat) => {
+                    // the classic .Ok(v) pattern check
+                    // 1) Lookup the target type to get the variants (this must be an enum)
+                    // 2) Search the enum for the variant
+                    // 3) Extract the type that the variant wraps (the variant must wrap a type)
+
+                    let inner_type = match &pat.target {
+                        Some(t) => match t.deref() {
+                            Pattern::ModuleAccess(_) => {
+                                panic!("modules are not yet support")
+                            }
+                            Pattern::Identifier(t) => {
+                                let scope_pos = module
+                                    .get_scope_pos(t.id)
+                                    .expect("missing scope position for identifier pattern");
+                                let binding = module
+                                    .find_binding(scope_pos, t.name)
+                                    .expect("missing binding for identifier");
+
+                                match &binding.binding_type {
+                                    BindingType::TypeDecl(ast::TypeSpec::Enum(enum_type)) => {
+                                        let mut inner_type = None;
+                                        for variant in &enum_type.variants {
+                                            if variant.name == pat.field.name {
+                                                match &variant.payload {
+                                                    Some(ts) => {
+                                                        inner_type = Some(ts);
+                                                        break;
+                                                    }
+                                                    None => {
+                                                        panic!("matched variant has no payload")
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        match inner_type {
+                                            Some(t) => t,
+                                            None => panic!("no matching variant type"),
+                                        }
+                                    }
+                                    BindingType::TypeDecl(ast::TypeSpec::Named(_)) => {
+                                        // TODO: this is go to require us to recurse to find the
+                                        // underlying type which probably means we need to break
+                                        // some of this logic out into it's own function we can
+                                        // leave this out for now
+                                        todo!(
+                                            "type's that point to other named types are not yet fully supported in the HIR"
+                                        )
+                                    }
+                                    BindingType::TypeDecl(_) => {
+                                        panic!("only enum types are alowed as pattern target")
+                                    }
+                                    BindingType::FuncDecl(_) => {
+                                        panic!("can not use function binding as pattern target")
+                                    }
+                                    BindingType::ValueDecl => {
+                                        panic!("can not use value bindings as pattern target")
+                                    }
+                                }
+                            }
+                            _ => panic!("invalid target pattern"),
+                        },
+                        None => {
+                            // TODO: Need to infer this type based on context, this proabably means
+                            // we need to wait till type checking to actually do all this work
+                            // because the type check is the only place where we can confidently
+                            // infere types like this
+                            todo!("infered types are still in progress")
+                        }
+                    };
+
+                    node_type_spec(module, inner_type)
+                }
+                Pattern::Identifier(ident) => {
+                    // This could be a named type, look it up real quick to see if this should
+                    // actually be a type spec pattern
+                    let scope_pos = module
+                        .get_scope_pos(ident.id)
+                        .expect("missing scope position for identifier pattern");
+                    let binding = module
+                        .find_binding(scope_pos, ident.name)
+                        .expect("missing binding for identifier");
+
+                    match &binding.binding_type {
+                        BindingType::TypeDecl(t) => node_type_spec(module, t),
+                        BindingType::FuncDecl(_) => {
+                            panic!("can not use function binding as pattern target")
+                        }
+                        BindingType::ValueDecl => {
+                            panic!("can not use value bindings as pattern target")
+                        }
+                    }
+                }
+                Pattern::Payload(_) => todo!("nested payload patterns are not yet supported"),
+                Pattern::ModuleAccess(_) => todo!("modules are not yet supported in patterns"),
+                Pattern::Default => panic!("the payload pattern can not be the default pattern"),
+                Pattern::IntLiteral(_) => {
+                    panic!("payload patterns with int literals are not valid")
+                }
+                Pattern::StringLiteral(_) => {
+                    panic!("payload patterns with string literals are not valid")
+                }
+                Pattern::BoolLiteral(_) => {
+                    panic!("payload patterns with bool literals are not valid")
+                }
+                Pattern::FloatLiteral(_) => {
+                    panic!("payload patterns with float literals are not valid")
                 }
             };
 
@@ -578,6 +681,9 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             let name = pat.payload.name;
             let ident_id = node_tree.add_node(Node::Identifier(name));
             nodes.push(node_tree.add_node(Node::VarDecl { ident: ident_id }));
+
+            // make sure that ouside declaration has the correct type (e.g. the payload type)
+            node_tree.type_map.add(ident_id, payload_type_spec.clone());
 
             let scope_pos = module
                 .get_scope_pos(pat.payload.id)
@@ -595,6 +701,9 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                 pat: inner_pat_id,
                 payload_ident: inner_ident_id,
             }));
+
+            // the inner identifier get the type of the payload
+            node_tree.type_map.add(inner_ident_id, payload_type_spec);
 
             // set up the inner assignment using the identifer node created above
             let assign_id = node_tree.add_node(Node::Assign {
