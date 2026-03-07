@@ -565,7 +565,7 @@
             "used": true
           },
           {
-            "id": 21,
+            "id": 22,
             "name": 1,
             "binding_type": {
               "FuncDecl": {
@@ -632,6 +632,12 @@
             "name": 15,
             "binding_type": "ValueDecl",
             "used": true
+          },
+          {
+            "id": 21,
+            "name": 18446744073709551608,
+            "binding_type": "ValueDecl",
+            "used": false
           }
         ]
       },
@@ -647,7 +653,7 @@
         "parent": 9,
         "bindings": [
           {
-            "id": 22,
+            "id": 23,
             "name": 15,
             "binding_type": "ValueDecl",
             "used": true
@@ -729,17 +735,21 @@
         "scope_id": 7,
         "scope_depth": 0
       },
+      "488": {
+        "scope_id": 7,
+        "scope_depth": 2
+      },
       "492": {
         "scope_id": 7,
         "scope_depth": 1
       },
       "536": {
         "scope_id": 7,
-        "scope_depth": 1
+        "scope_depth": 2
       },
       "562": {
         "scope_id": 7,
-        "scope_depth": 1
+        "scope_depth": 2
       },
       "603": {
         "scope_id": 8,
@@ -787,7 +797,7 @@
       }
     },
     "id_tracker": {
-      "id": 23
+      "id": 24
     }
   }
 }

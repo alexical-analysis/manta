@@ -664,6 +664,12 @@
           },
           {
             "id": 24,
+            "name": 18,
+            "binding_type": "ValueDecl",
+            "used": false
+          },
+          {
+            "id": 25,
             "name": 36,
             "binding_type": "ValueDecl",
             "used": true
@@ -793,33 +799,37 @@
         "scope_id": 10,
         "scope_depth": 2
       },
+      "704": {
+        "scope_id": 10,
+        "scope_depth": 4
+      },
       "710": {
         "scope_id": 10,
         "scope_depth": 3
       },
       "739": {
         "scope_id": 10,
-        "scope_depth": 4
+        "scope_depth": 5
       },
       "753": {
         "scope_id": 10,
-        "scope_depth": 4
+        "scope_depth": 5
       },
       "758": {
         "scope_id": 10,
-        "scope_depth": 4
+        "scope_depth": 5
       },
       "770": {
         "scope_id": 10,
-        "scope_depth": 4
+        "scope_depth": 5
       },
       "782": {
         "scope_id": 10,
-        "scope_depth": 4
+        "scope_depth": 5
       }
     },
     "id_tracker": {
-      "id": 25
+      "id": 26
     }
   }
 }
