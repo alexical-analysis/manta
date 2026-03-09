@@ -224,16 +224,18 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
     match decl {
         Decl::Function(decl) => {
             let mut params = vec![];
-            for i in 0..decl.params.len() {
-                let param = &decl.params[i];
-                let param_type = &decl.function_type.params[i];
+            if decl.params.len() != decl.function_type.params.len() {
+                panic!("arity missmatching while noding function decl")
+            }
 
+            for (param, param_type) in decl.params.iter().zip(decl.function_type.params.iter()) {
                 let ident_id = node_tree.add_node(Node::Identifier(param.name));
                 let param_id = node_tree.add_node(Node::VarDecl { ident: ident_id });
                 params.push(param_id);
 
                 let type_spec = node_type_spec(module, param_type);
-                node_tree.type_map.add(ident_id, type_spec);
+                node_tree.type_map.add(ident_id, type_spec.clone());
+                node_tree.type_map.add(param_id, type_spec);
 
                 let scope_pos = module
                     .get_scope_pos(param.id)
@@ -496,9 +498,9 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
                 .clone()
                 .map(|t| node_pattern(node_tree, module, &t));
 
-            node_tree.add_node(Node::Pattern(PatternNode::DotAccess {
+            node_tree.add_node(Node::Pattern(PatternNode::EnumConstructor {
                 target: target_id,
-                field: pat.field.name,
+                variant: pat.field.name,
             }))
         }
         Pattern::Identifier(pat) => {
@@ -1028,7 +1030,7 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
                 _ => {
                     // non-identifier targets can only be field access expressions
                     return node_tree.add_node(Node::FieldAccess {
-                        target: Some(target_id),
+                        target: target_id,
                         field: expr.field,
                     });
                 }
@@ -1055,7 +1057,7 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
                     // identifiers can still be field access expressions of the identifier is
                     // not an enum type
                     node_tree.add_node(Node::FieldAccess {
-                        target: Some(target_id),
+                        target: target_id,
                         field: expr.field,
                     })
                 }
@@ -1117,15 +1119,14 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
 
 struct TypeContext {
     return_type: Vec<TypeSpec>,
-    // TODO: should this be an Option<TypeSpec>?
-    infer_type: Vec<TypeSpec>,
+    infer_type: Option<TypeSpec>,
 }
 
 impl TypeContext {
     fn new() -> Self {
         TypeContext {
             return_type: vec![],
-            infer_type: vec![],
+            infer_type: None,
         }
     }
 }
@@ -1142,11 +1143,12 @@ fn check_node_type(ctx: &mut TypeContext, node_tree: &mut NodeTree, node_id: Nod
         .get_node(node_id)
         .expect("failed to find statement node for type checking");
     let node = node.clone();
+    eprintln!("checking node type {:?}", node);
+
+    // ensure this type is not passed to nested types
+    ctx.infer_type = None;
 
     match node {
-        // TODO: maybe Invalid should be an expression... what would the type be though?
-        // I could use the panic type? Or maybe an Invalid type? A never type?
-        Node::Invalid => {}
         Node::UseDecl { .. } => {}
         Node::ModDecl { .. } => {}
         Node::Defer { block } => {
@@ -1170,9 +1172,24 @@ fn check_node_type(ctx: &mut TypeContext, node_tree: &mut NodeTree, node_id: Nod
             }
         }
         Node::Return { value } => {
-            // TODO: ensure this matches the return type (and that we're in a function)
-            if let Some(v) = value {
-                check_expr_node_type(ctx, node_tree, v);
+            let return_type = ctx
+                .return_type
+                .last()
+                .expect("can not use return statement ouside of function context")
+                .clone();
+
+            match value {
+                Some(v) => {
+                    let type_spec = check_expr_node_type(ctx, node_tree, v);
+                    if return_type != type_spec {
+                        panic!("return value has incorrect type")
+                    }
+                }
+                None => {
+                    if return_type != TypeSpec::Unit {
+                        panic!("missing return value for function that expects return")
+                    }
+                }
             }
         }
         Node::Free { expr } => {
@@ -1191,7 +1208,11 @@ fn check_node_type(ctx: &mut TypeContext, node_tree: &mut NodeTree, node_id: Nod
             check_node_type(ctx, node_tree, body);
             todo!("need to update ctx so patters know the type they are matching");
         }
-        Node::Pattern(pat) => check_pattern_type(&pat),
+        Node::Pattern(pat) => {
+            // TODO: need to add a `match_type` to the ctx and treat it like function return types
+            check_pattern_type(ctx, node_tree, node_id, &pat);
+            todo!("get pattern type checking fully working");
+        }
         Node::Range { .. } => todo!("ranges are not yet supported"),
         Node::Block { statements } => {
             for node in statements {
@@ -1212,7 +1233,7 @@ fn check_node_type(ctx: &mut TypeContext, node_tree: &mut NodeTree, node_id: Nod
                 node_tree
                     .type_map
                     .get(param)
-                    .expect("missing type for function params");
+                    .expect("missing type for function param");
             }
             let fn_type = node_tree
                 .type_map
@@ -1233,20 +1254,23 @@ fn check_node_type(ctx: &mut TypeContext, node_tree: &mut NodeTree, node_id: Nod
             let r_type = check_expr_node_type(ctx, node_tree, value);
 
             // TODO: validate that l_type is assignable (i.e. has a definite address)
-            ctx.infer_type.push(r_type.clone());
+            ctx.infer_type = Some(r_type.clone());
             let l_type = check_expr_node_type(ctx, node_tree, target);
-            ctx.infer_type.pop();
 
             if l_type != r_type {
                 panic!("l_type {:?} does not equal r_type {:?}", l_type, r_type)
             }
         }
-        Node::ModuleAccess { .. }
+        Node::VarDecl { .. } => {
+            // VarDecl's may not be typed untill their first assignment so we skip typing this
+            // node for now an expect it will be typed later
+        }
+        Node::Invalid
+        | Node::ModuleAccess { .. }
         | Node::IntLiteral(_)
         | Node::FloatLiteral(_)
         | Node::StringLiteral(_)
         | Node::BoolLiteral(_)
-        | Node::VarDecl { .. }
         | Node::Identifier(_)
         | Node::Unary { .. }
         | Node::Binary { .. }
@@ -1276,36 +1300,47 @@ fn check_expr_node_type(
         .get_node(node_id)
         .expect("failed to find node for type checking");
     let node = node.clone();
+    eprintln!("\tchecking expression node type {:?}", node);
+
+    // reset the infer_type context here to ensure it's not accidentially passed to a deeper
+    // checking check
+    let infer_type = ctx.infer_type.clone();
+    ctx.infer_type = None;
 
     match node {
+        Node::Invalid => {
+            let type_spec = TypeSpec::Panic;
+            node_tree.type_map.add(node_id, type_spec.clone());
+            type_spec
+        }
         Node::ModuleAccess { .. } => todo!("modules are not yet supported"),
         Node::IntLiteral(_) => {
             let type_spec = TypeSpec::Int64;
-            node_tree.type_map.set(node_id, type_spec.clone());
+            node_tree.type_map.add(node_id, type_spec.clone());
             type_spec
         }
         Node::FloatLiteral(_) => {
             let type_spec = TypeSpec::Float64;
-            node_tree.type_map.set(node_id, type_spec.clone());
+            node_tree.type_map.add(node_id, type_spec.clone());
             type_spec
         }
         Node::StringLiteral(_) => {
             let type_spec = TypeSpec::String;
-            node_tree.type_map.set(node_id, type_spec.clone());
+            node_tree.type_map.add(node_id, type_spec.clone());
             type_spec
         }
         Node::BoolLiteral(_) => {
             let type_spec = TypeSpec::Bool;
-            node_tree.type_map.set(node_id, type_spec.clone());
+            node_tree.type_map.add(node_id, type_spec.clone());
             type_spec
         }
         Node::VarDecl { ident } => match node_tree.type_map.get(ident) {
             Some(ts) => ts.clone(),
-            None => match ctx.infer_type.last() {
+            None => match infer_type {
                 Some(ts) => {
                     let ts = ts.clone();
-                    node_tree.type_map.set(node_id, ts.clone());
-                    node_tree.type_map.set(ident, ts.clone());
+                    node_tree.type_map.add(node_id, ts.clone());
+                    node_tree.type_map.add(ident, ts.clone());
                     ts
                 }
                 None => panic!("failed to inferr a type for the var decl"),
@@ -1313,10 +1348,10 @@ fn check_expr_node_type(
         },
         Node::Identifier(_) => match node_tree.type_map.get(node_id) {
             Some(ts) => ts.clone(),
-            None => match ctx.infer_type.last() {
+            None => match infer_type {
                 Some(ts) => {
                     let ts = ts.clone();
-                    node_tree.type_map.set(node_id, ts.clone());
+                    node_tree.type_map.add(node_id, ts.clone());
                     ts
                 }
                 None => panic!("failed to infer a type for the identifier"),
@@ -1328,7 +1363,7 @@ fn check_expr_node_type(
                 UnaryOp::AddressOf => {
                     // &T -> Pointer(T)
                     let type_spec = TypeSpec::Pointer(Box::new(operand_type.clone()));
-                    node_tree.type_map.set(node_id, type_spec.clone());
+                    node_tree.type_map.add(node_id, type_spec.clone());
                     type_spec
                 }
                 UnaryOp::Dereference => {
@@ -1336,7 +1371,7 @@ fn check_expr_node_type(
                     match operand_type {
                         TypeSpec::Pointer(inner) => {
                             let type_spec = inner.deref().clone();
-                            node_tree.type_map.set(node_id, type_spec.clone());
+                            node_tree.type_map.add(node_id, type_spec.clone());
                             type_spec
                         }
                         _ => panic!("cannot dereference non-pointer type"),
@@ -1346,21 +1381,21 @@ fn check_expr_node_type(
                     // !T -> T
 
                     // TODO: validate that this is a boolean type or an alias to a boolean type
-                    node_tree.type_map.set(node_id, operand_type.clone());
+                    node_tree.type_map.add(node_id, operand_type.clone());
                     operand_type
                 }
                 UnaryOp::Negate => {
                     // -T -> T
 
                     // TODO: validate that this is a numeric type or an alis to a numeric type
-                    node_tree.type_map.set(node_id, operand_type.clone());
+                    node_tree.type_map.add(node_id, operand_type.clone());
                     operand_type
                 }
                 UnaryOp::Positive => {
                     // +T -> T
 
                     // TODO: validate that this is a numeric type or an alis to a numeric type
-                    node_tree.type_map.set(node_id, operand_type.clone());
+                    node_tree.type_map.add(node_id, operand_type.clone());
                     operand_type
                 }
             }
@@ -1379,16 +1414,14 @@ fn check_expr_node_type(
             let (l_type, r_type) = match (l_type, r_type) {
                 (Some(a), Some(b)) => (a.clone(), b.clone()),
                 (Some(a), None) => {
-                    ctx.infer_type.push(a.clone());
+                    ctx.infer_type = Some(a.clone());
                     let b = check_expr_node_type(ctx, node_tree, right);
-                    ctx.infer_type.pop();
 
                     (a.clone(), b)
                 }
                 (None, Some(b)) => {
-                    ctx.infer_type.push(b.clone());
+                    ctx.infer_type = Some(b.clone());
                     let a = check_expr_node_type(ctx, node_tree, left);
-                    ctx.infer_type.pop();
 
                     (a, b.clone())
                 }
@@ -1420,7 +1453,7 @@ fn check_expr_node_type(
                 BinaryOp::BitwiseXor => { /*TODO: validate the types vs operator*/ }
             }
 
-            node_tree.type_map.set(node_id, l_type.clone());
+            node_tree.type_map.add(node_id, l_type.clone());
             l_type
         }
         Node::Call { func, args, .. } => {
@@ -1436,9 +1469,8 @@ fn check_expr_node_type(
             }
 
             for (param, arg) in func_type.params.iter().zip(args.iter()) {
-                ctx.infer_type.push(param.clone());
+                ctx.infer_type = Some(param.clone());
                 let arg = check_expr_node_type(ctx, node_tree, *arg);
-                ctx.infer_type.pop();
 
                 if param != &arg {
                     panic!("argument in function call is an invalid type")
@@ -1446,7 +1478,7 @@ fn check_expr_node_type(
             }
 
             let return_type = func_type.return_type.deref().clone();
-            node_tree.type_map.set(node_id, return_type.clone());
+            node_tree.type_map.add(node_id, return_type.clone());
             return_type
         }
         Node::Index { target, index } => {
@@ -1456,12 +1488,12 @@ fn check_expr_node_type(
             match target_type {
                 TypeSpec::Array(arr) => {
                     let type_spec = arr.type_spec.deref().clone();
-                    node_tree.type_map.set(node_id, type_spec.clone());
+                    node_tree.type_map.add(node_id, type_spec.clone());
                     type_spec
                 }
                 TypeSpec::Slice(elem_type) => {
                     let type_spec = elem_type.deref().clone();
-                    node_tree.type_map.set(node_id, type_spec.clone());
+                    node_tree.type_map.add(node_id, type_spec.clone());
                     type_spec
                 }
                 _ => panic!("cannot index non-array/slice types"),
@@ -1474,19 +1506,20 @@ fn check_expr_node_type(
         } => {
             let target = match target {
                 Some(t) => check_expr_node_type(ctx, node_tree, t),
-                None => match ctx.infer_type.last() {
+                None => match infer_type {
                     Some(t) => t.clone(),
                     None => panic!("failed to infer type for enum"),
                 },
             };
 
+            let target = resolve_type(&target);
             match target.clone() {
                 TypeSpec::Enum(e) => {
                     let mut valid_variant = false;
                     let mut target_payload = None;
                     for v in e.variants {
                         if v.name == variant {
-                            valid_variant = false;
+                            valid_variant = true;
                             target_payload = v.payload;
                         }
                     }
@@ -1513,10 +1546,32 @@ fn check_expr_node_type(
                 _ => panic!("invalid target type for enum constructor"),
             }
 
-            target
+            target.clone()
         }
-        Node::FieldAccess { .. } => {
-            todo!("in progress")
+        Node::FieldAccess { target, field } => {
+            let target = check_expr_node_type(ctx, node_tree, target);
+
+            let target = resolve_type(&target);
+            match target.clone() {
+                TypeSpec::Struct(ts) => {
+                    let mut field_type = None;
+                    for f in ts.fields {
+                        if f.name == field {
+                            field_type = Some(f.type_spec);
+                            break;
+                        }
+                    }
+
+                    match field_type {
+                        Some(ts) => {
+                            node_tree.type_map.add(node_id, ts.clone());
+                            ts
+                        }
+                        None => panic!(),
+                    }
+                }
+                _ => panic!("invalid target for field access"),
+            }
         }
         Node::MetaType => {
             let type_spec = TypeSpec::Struct(StructType {
@@ -1541,16 +1596,15 @@ fn check_expr_node_type(
                     },
                 ],
             });
-            node_tree.type_map.set(node_id, type_spec.clone());
+            node_tree.type_map.add(node_id, type_spec.clone());
             type_spec
         }
         Node::Alloc { .. } => {
             let type_spec = TypeSpec::UnsafePtr;
-            node_tree.type_map.set(node_id, type_spec.clone());
+            node_tree.type_map.add(node_id, type_spec.clone());
             type_spec
         }
-        Node::Invalid
-        | Node::UseDecl { .. }
+        Node::UseDecl { .. }
         | Node::ModDecl { .. }
         | Node::Defer { .. }
         | Node::If { .. }
@@ -1567,20 +1621,53 @@ fn check_expr_node_type(
     }
 }
 
-fn check_pattern_type(pat: &PatternNode) {
+fn check_pattern_type(
+    ctx: &mut TypeContext,
+    node_tree: &mut NodeTree,
+    node_id: NodeID,
+    pat: &PatternNode,
+) {
+    eprintln!("\t\tchecking pattern type {:?}", pat);
     match pat {
-        PatternNode::IntLiteral(_) => {}
-        PatternNode::StringLiteral(_) => {}
-        PatternNode::BoolLiteral(_) => {}
-        PatternNode::FloatLiteral(_) => {}
-        PatternNode::TypeSpec => {}
-        PatternNode::Payload { .. } => {}
-        PatternNode::ModuleAccess { .. } => {}
-        PatternNode::DotAccess { .. } => {}
-        PatternNode::Identifier(_) => {}
-        PatternNode::Default => {}
+        PatternNode::IntLiteral(_) => node_tree.type_map.add(node_id, TypeSpec::Int64),
+        PatternNode::StringLiteral(_) => node_tree.type_map.add(node_id, TypeSpec::String),
+        PatternNode::BoolLiteral(_) => node_tree.type_map.add(node_id, TypeSpec::Bool),
+        PatternNode::FloatLiteral(_) => node_tree.type_map.add(node_id, TypeSpec::Float64),
+        PatternNode::TypeSpec => {
+            // TypeSpec's must already have the type set since we don't track type information in
+            // the nodes. We check that here
+            node_tree
+                .type_map
+                .get(node_id)
+                .expect("missing type for pattern type spec");
+        }
+        PatternNode::Payload { pat, payload_ident } => {
+            // first we need to get the
+            todo!("implement type checking on the Payload pattern")
+        }
+        PatternNode::ModuleAccess { .. } => todo!("module are not yet supported"),
+        PatternNode::EnumConstructor { target, variant } => {
+            // If the target is missing we need the context to figure out what it should be
+            // Then once we have the target we need to verify it resolves to an enum type
+            // Then we check that the variant is a valid variant of that enum
+            // Last we need to figure out how to validate that the payload is correct (e.g. should
+            // you have a payload given this enum and variant?)
+            todo!("implement type checking on the EnumConstructor pattern")
+        }
+        PatternNode::Identifier(_) => {
+            todo!("identifier patterns need to get the type from the context")
+        }
+        PatternNode::Default => todo!("default patterns need to get the type from the context"),
     }
     todo!("this was suposed to be all I was doing in the PR and I still haven't gotten to it AHHHH")
+}
+
+// resolve_type will unwrap named type aliases to find the underlying type
+fn resolve_type(ts: &TypeSpec) -> &TypeSpec {
+    match ts {
+        TypeSpec::Named(t) => resolve_type(t.type_spec.deref()),
+        _ => ts,
+    }
 }
 
 #[cfg(test)]
