@@ -16,7 +16,8 @@ impl InfixPatternParselet for ModPatternParselet {
         left: Pattern,
         token: Token,
     ) -> Result<Pattern, ParseError> {
-        let left = match left {
+        eprintln!("parsing a module {:?} {:?}", left, token);
+        let (name, id) = match left {
             Pattern::Identifier(ident) => {
                 if ident.payload.is_some() {
                     return Err(ParseError::UnexpectedToken(
@@ -28,11 +29,11 @@ impl InfixPatternParselet for ModPatternParselet {
                 if ident.module.is_some() {
                     return Err(ParseError::UnexpectedToken(
                         token,
-                        "unexpected module on modulel name".to_string(),
+                        "unexpected module in module name".to_string(),
                     ));
                 }
 
-                ident.name
+                (ident.name, ident.id)
             }
             _ => {
                 return Err(ParseError::InvalidExpression(
@@ -41,6 +42,11 @@ impl InfixPatternParselet for ModPatternParselet {
                 ));
             }
         };
+
+        let module = lexer.next_token();
+        if module.kind != TokenKind::Identifier {
+            panic!("module name must be an identifier")
+        }
 
         let mut payload = None;
         if lexer.peek().kind == TokenKind::OpenParen {
@@ -64,12 +70,10 @@ impl InfixPatternParselet for ModPatternParselet {
             payload = Some(payload_token.lexeme_id);
         }
 
-        let name = token.lexeme_id;
-
         Ok(Pattern::Identifier(IdentifierPat {
-            id: token.source_id,
-            module: Some(left),
+            id,
             name,
+            module: Some(module.lexeme_id),
             payload,
         }))
     }

@@ -83,6 +83,7 @@
                     "left": {
                       "Identifier": {
                         "id": 361,
+                        "module": null,
                         "name": 20
                       }
                     },
@@ -126,6 +127,7 @@
                           "left": {
                             "Identifier": {
                               "id": 417,
+                              "module": null,
                               "name": 18
                             }
                           },
@@ -133,6 +135,7 @@
                           "right": {
                             "Identifier": {
                               "id": 421,
+                              "module": null,
                               "name": 20
                             }
                           }
@@ -173,7 +176,9 @@
                 "pattern": {
                   "Identifier": {
                     "id": 447,
-                    "name": 28
+                    "name": 28,
+                    "module": null,
+                    "payload": null
                   }
                 },
                 "value": {
@@ -181,6 +186,7 @@
                     "func": {
                       "Identifier": {
                         "id": 451,
+                        "module": null,
                         "name": 17
                       }
                     },
@@ -202,6 +208,7 @@
                 "target": {
                   "Identifier": {
                     "id": 472,
+                    "module": null,
                     "name": 28
                   }
                 },
@@ -209,20 +216,10 @@
                   {
                     "id": 484,
                     "pattern": {
-                      "Payload": {
-                        "pat": {
-                          "DotAccess": {
-                            "target": null,
-                            "field": {
-                              "id": 485,
-                              "name": 15
-                            }
-                          }
-                        },
-                        "payload": {
-                          "id": 488,
-                          "name": 33
-                        }
+                      "EnumVariant": {
+                        "target": null,
+                        "variant": 15,
+                        "payload": 33
                       }
                     },
                     "body": {
@@ -235,6 +232,7 @@
                                 "func": {
                                   "Identifier": {
                                     "id": 493,
+                                    "module": null,
                                     "name": 8
                                   }
                                 },
@@ -245,6 +243,7 @@
                                   {
                                     "Identifier": {
                                       "id": 517,
+                                      "module": null,
                                       "name": 33
                                     }
                                   }
@@ -259,12 +258,10 @@
                   {
                     "id": 530,
                     "pattern": {
-                      "DotAccess": {
+                      "EnumVariant": {
                         "target": null,
-                        "field": {
-                          "id": 531,
-                          "name": 16
-                        }
+                        "variant": 16,
+                        "payload": null
                       }
                     },
                     "body": {
@@ -277,6 +274,7 @@
                                 "func": {
                                   "Identifier": {
                                     "id": 543,
+                                    "module": null,
                                     "name": 8
                                   }
                                 },
@@ -634,10 +632,6 @@
       "484": {
         "scope_id": 8,
         "scope_depth": 0
-      },
-      "488": {
-        "scope_id": 8,
-        "scope_depth": 1
       },
       "491": {
         "scope_id": 9,

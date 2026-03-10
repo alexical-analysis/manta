@@ -1057,7 +1057,7 @@ mod test {
                 stmt,
                 ExprStmt {
                     expr: Expr::Identifier(IdentifierExpr {
-                        id: SourceID::from_usize(5),
+                        id: SourceID::from_usize(3),
                         module: Some(StrID::from_usize(0)),
                         name: StrID::from_usize(2)
                     }),
@@ -1072,7 +1072,7 @@ mod test {
                 ExprStmt {
                     expr: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                            id: SourceID::from_usize(5),
+                            id: SourceID::from_usize(3),
                             module: Some(StrID::from_usize(0)),
                             name: StrID::from_usize(2)
                         })),
@@ -1088,7 +1088,7 @@ mod test {
                 stmt,
                 ExprStmt {
                     expr: Expr::Identifier(IdentifierExpr {
-                        id: SourceID::from_usize(6),
+                        id: SourceID::from_usize(4),
                         module: Some(StrID::from_usize(0)),
                         name: StrID::from_usize(2)
                     }),

@@ -293,9 +293,9 @@ mod test {
         parse_pattern_module_access_identifier {
             input: "math::Vec3 =",
             want: Pattern::Identifier(IdentifierPat {
-                id: SourceID::from_usize(6),
-                module: Some(StrID::from_usize(0)),
-                name: StrID::from_usize(2),
+                id: SourceID::from_usize(0),
+                name: StrID::from_usize(0),
+                module: Some(StrID::from_usize(2)),
                 payload: None,
             }),
         },
@@ -303,9 +303,9 @@ mod test {
             input: "result::Ret.Ok =",
             want: Pattern::EnumVariant(EnumVariantPat {
                 target: Some(IdentifierExpr {
-                    id: SourceID::from_usize(8),
-                    module: Some(StrID::from_usize(0)),
-                    name: StrID::from_usize(2),
+                    id: SourceID::from_usize(0),
+                    module: Some(StrID::from_usize(2)),
+                    name: StrID::from_usize(0),
                 }),
                 variant: StrID::from_usize(4),
                 payload: None,
@@ -316,8 +316,8 @@ mod test {
             want: Pattern::EnumVariant(EnumVariantPat {
                 target: Some(IdentifierExpr {
                     id: SourceID::from_usize(0),
-                    module: Some(StrID::from_usize(0)),
-                    name: StrID::from_usize(4)
+                    module: Some(StrID::from_usize(2)),
+                    name: StrID::from_usize(0)
                 }),
                 variant: StrID::from_usize(4),
                 payload: Some(StrID::from_usize(6)),
@@ -329,7 +329,7 @@ mod test {
                 id: SourceID::from_usize(0),
                 module: None,
                 name: StrID::from_usize(0),
-                payload: Some(StrID::from_usize(7)),
+                payload: Some(StrID::from_usize(2)),
             }),
         },
         parse_pattern_payload_dot_access {

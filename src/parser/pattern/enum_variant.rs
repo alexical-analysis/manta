@@ -29,6 +29,14 @@ impl PrefixPatternParselet for PrefixEnumVariantParselet {
                     "invalid payload for enum constructor".to_string(),
                 ));
             }
+
+            let close = lexer.next_token();
+            if close.kind != TokenKind::CloseParen {
+                return Err(ParseError::InvalidExpression(
+                    payload_token,
+                    "missing closing paran for pattern payload".to_string(),
+                ));
+            }
             payload = Some(payload_token.lexeme_id);
         }
 
@@ -54,6 +62,7 @@ impl InfixPatternParselet for InfixEnumVariantParselet {
         left: Pattern,
         token: Token,
     ) -> Result<Pattern, ParseError> {
+        eprintln!("parsing enum variant {:?} {:?}", left, token);
         let variant_token = lexer.next_token();
         if variant_token.kind != TokenKind::Identifier {
             return Err(ParseError::UnexpectedToken(

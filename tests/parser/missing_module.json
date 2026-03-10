@@ -58,6 +58,7 @@
                     "func": {
                       "Identifier": {
                         "id": 129,
+                        "module": null,
                         "name": 6
                       }
                     },

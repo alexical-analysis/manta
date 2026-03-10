@@ -126,6 +126,7 @@
                 "check": {
                   "Identifier": {
                     "id": 469,
+                    "module": null,
                     "name": 25
                   }
                 },
@@ -135,17 +136,11 @@
                     {
                       "Let": {
                         "pattern": {
-                          "Payload": {
-                            "pat": {
-                              "Identifier": {
-                                "id": 488,
-                                "name": 18446744073709551608
-                              }
-                            },
-                            "payload": {
-                              "id": 492,
-                              "name": 15
-                            }
+                          "Identifier": {
+                            "id": 488,
+                            "name": 18446744073709551608,
+                            "module": null,
+                            "payload": 15
                           }
                         },
                         "value": {
@@ -176,6 +171,7 @@
                             "operand": {
                               "Identifier": {
                                 "id": 536,
+                                "module": null,
                                 "name": 15
                               }
                             }
@@ -200,6 +196,7 @@
                               {
                                 "Identifier": {
                                   "id": 562,
+                                  "module": null,
                                   "name": 15
                                 }
                               }
@@ -254,6 +251,7 @@
                     "func": {
                       "Identifier": {
                         "id": 625,
+                        "module": null,
                         "name": 24
                       }
                     },
@@ -268,20 +266,10 @@
                   {
                     "id": 654,
                     "pattern": {
-                      "Payload": {
-                        "pat": {
-                          "DotAccess": {
-                            "target": null,
-                            "field": {
-                              "id": 655,
-                              "name": 21
-                            }
-                          }
-                        },
-                        "payload": {
-                          "id": 658,
-                          "name": 15
-                        }
+                      "EnumVariant": {
+                        "target": null,
+                        "variant": 21,
+                        "payload": 15
                       }
                     },
                     "body": {
@@ -294,6 +282,7 @@
                                 "func": {
                                   "Identifier": {
                                     "id": 663,
+                                    "module": null,
                                     "name": 14
                                   }
                                 },
@@ -304,6 +293,7 @@
                                       "operand": {
                                         "Identifier": {
                                           "id": 680,
+                                          "module": null,
                                           "name": 15
                                         }
                                       }
@@ -320,12 +310,10 @@
                   {
                     "id": 693,
                     "pattern": {
-                      "DotAccess": {
+                      "EnumVariant": {
                         "target": null,
-                        "field": {
-                          "id": 694,
-                          "name": 22
-                        }
+                        "variant": 22,
+                        "payload": null
                       }
                     },
                     "body": {
@@ -338,6 +326,7 @@
                                 "func": {
                                   "Identifier": {
                                     "id": 708,
+                                    "module": null,
                                     "name": 17
                                   }
                                 },
@@ -733,10 +722,6 @@
         "scope_id": 7,
         "scope_depth": 1
       },
-      "492": {
-        "scope_id": 7,
-        "scope_depth": 1
-      },
       "536": {
         "scope_id": 7,
         "scope_depth": 1
@@ -760,10 +745,6 @@
       "654": {
         "scope_id": 10,
         "scope_depth": 0
-      },
-      "658": {
-        "scope_id": 10,
-        "scope_depth": 1
       },
       "661": {
         "scope_id": 11,
