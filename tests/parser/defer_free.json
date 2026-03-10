@@ -323,17 +323,12 @@
             {
               "Let": {
                 "pattern": {
-                  "Payload": {
-                    "pat": {
-                      "TypeSpec": {
-                        "Slice": "UInt8"
-                      }
+                  "TypeSpec": {
+                    "id": 1040,
+                    "type_spec": {
+                      "Slice": "UInt8"
                     },
-                    "payload": {
-                      "id": 1045,
-                      "module": null,
-                      "name": 26
-                    }
+                    "payload": 26
                   }
                 },
                 "value": {
@@ -967,7 +962,7 @@
         "scope_id": 9,
         "scope_depth": 0
       },
-      "1045": {
+      "1040": {
         "scope_id": 8,
         "scope_depth": 2
       },
