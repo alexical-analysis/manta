@@ -493,6 +493,8 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
             }))
         }
         Pattern::DotAccess(pat) => {
+            // TODO: this pattern is a mess and we need to fix stuff in the AST pattern types
+
             let target_id = pat
                 .target
                 .clone()
@@ -1119,6 +1121,7 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
 
 struct TypeContext {
     return_type: Vec<TypeSpec>,
+    match_type: Vec<TypeSpec>,
     infer_type: Option<TypeSpec>,
 }
 
@@ -1126,6 +1129,7 @@ impl TypeContext {
     fn new() -> Self {
         TypeContext {
             return_type: vec![],
+            match_type: vec![],
             infer_type: None,
         }
     }
@@ -1166,10 +1170,13 @@ fn check_node_type(ctx: &mut TypeContext, node_tree: &mut NodeTree, node_id: Nod
             }
         }
         Node::Match { target, arms } => {
-            check_node_type(ctx, node_tree, target);
+            let target_type = check_expr_node_type(ctx, node_tree, target);
+
+            ctx.match_type.push(target_type);
             for arm in arms {
                 check_node_type(ctx, node_tree, arm);
             }
+            ctx.match_type.pop();
         }
         Node::Return { value } => {
             let return_type = ctx
@@ -1180,7 +1187,10 @@ fn check_node_type(ctx: &mut TypeContext, node_tree: &mut NodeTree, node_id: Nod
 
             match value {
                 Some(v) => {
+                    ctx.infer_type = Some(return_type.clone());
+                    eprintln!("\t\t-infer type {:?}", return_type);
                     let type_spec = check_expr_node_type(ctx, node_tree, v);
+                    eprintln!("\t\t-got type {:?}", type_spec);
                     if return_type != type_spec {
                         panic!("return value has incorrect type")
                     }
@@ -1206,12 +1216,9 @@ fn check_node_type(ctx: &mut TypeContext, node_tree: &mut NodeTree, node_id: Nod
         Node::MatchArm { pattern, body } => {
             check_node_type(ctx, node_tree, pattern);
             check_node_type(ctx, node_tree, body);
-            todo!("need to update ctx so patters know the type they are matching");
         }
         Node::Pattern(pat) => {
-            // TODO: need to add a `match_type` to the ctx and treat it like function return types
             check_pattern_type(ctx, node_tree, node_id, &pat);
-            todo!("get pattern type checking fully working");
         }
         Node::Range { .. } => todo!("ranges are not yet supported"),
         Node::Block { statements } => {
@@ -1512,8 +1519,8 @@ fn check_expr_node_type(
                 },
             };
 
-            let target = resolve_type(&target);
-            match target.clone() {
+            let resolved_target = resolve_type(&target);
+            match resolved_target.clone() {
                 TypeSpec::Enum(e) => {
                     let mut valid_variant = false;
                     let mut target_payload = None;
@@ -1546,6 +1553,7 @@ fn check_expr_node_type(
                 _ => panic!("invalid target type for enum constructor"),
             }
 
+            node_tree.type_map.add(node_id, target.clone());
             target.clone()
         }
         Node::FieldAccess { target, field } => {
@@ -1629,37 +1637,101 @@ fn check_pattern_type(
 ) {
     eprintln!("\t\tchecking pattern type {:?}", pat);
     match pat {
-        PatternNode::IntLiteral(_) => node_tree.type_map.add(node_id, TypeSpec::Int64),
-        PatternNode::StringLiteral(_) => node_tree.type_map.add(node_id, TypeSpec::String),
-        PatternNode::BoolLiteral(_) => node_tree.type_map.add(node_id, TypeSpec::Bool),
-        PatternNode::FloatLiteral(_) => node_tree.type_map.add(node_id, TypeSpec::Float64),
+        PatternNode::IntLiteral(_) => {
+            let match_type = ctx
+                .match_type
+                .last()
+                .expect("missing match type for pattern");
+            if *match_type != TypeSpec::Int64 {
+                panic!("target type is not valid for the given match")
+            }
+            node_tree.type_map.add(node_id, TypeSpec::Int64);
+        }
+        PatternNode::StringLiteral(_) => {
+            let match_type = ctx
+                .match_type
+                .last()
+                .expect("missing match type for pattern");
+            if *match_type != TypeSpec::String {
+                panic!("target type is not valid for the given match")
+            }
+            node_tree.type_map.add(node_id, TypeSpec::String);
+        }
+        PatternNode::BoolLiteral(_) => {
+            let match_type = ctx
+                .match_type
+                .last()
+                .expect("missing match type for pattern");
+            if *match_type != TypeSpec::Bool {
+                panic!("target type is not valid for the given match")
+            }
+            node_tree.type_map.add(node_id, TypeSpec::Bool);
+        }
+        PatternNode::FloatLiteral(_) => {
+            let match_type = ctx
+                .match_type
+                .last()
+                .expect("missing match type for pattern");
+            if *match_type != TypeSpec::Float64 {
+                panic!("target type is not valid for the given match")
+            }
+            node_tree.type_map.add(node_id, TypeSpec::Float64);
+        }
         PatternNode::TypeSpec => {
+            // The only expression type that supports matching type specs is UnsafePtr for now
+            let match_type = ctx
+                .match_type
+                .last()
+                .expect("missing match type for pattern");
+
+            if *match_type != TypeSpec::UnsafePtr {
+                panic!("type specs are only allowed on unsafe pointers")
+            }
+
             // TypeSpec's must already have the type set since we don't track type information in
-            // the nodes. We check that here
+            // the hir nodes directly. We verify that the type has been set here
             node_tree
                 .type_map
                 .get(node_id)
                 .expect("missing type for pattern type spec");
         }
-        PatternNode::Payload { pat, payload_ident } => {
-            // first we need to get the
-            todo!("implement type checking on the Payload pattern")
+        PatternNode::Payload {
+            pat: _,
+            payload_ident: _,
+        } => {
+            // TODO: this is non-trivial until we fix patterns in the AST. Leaving this unfinished
+            // for now
         }
         PatternNode::ModuleAccess { .. } => todo!("module are not yet supported"),
-        PatternNode::EnumConstructor { target, variant } => {
-            // If the target is missing we need the context to figure out what it should be
-            // Then once we have the target we need to verify it resolves to an enum type
-            // Then we check that the variant is a valid variant of that enum
-            // Last we need to figure out how to validate that the payload is correct (e.g. should
-            // you have a payload given this enum and variant?)
-            todo!("implement type checking on the EnumConstructor pattern")
+        PatternNode::EnumConstructor { target, variant: _ } => {
+            let match_type = ctx
+                .match_type
+                .last()
+                .expect("missing match type for pattern");
+            let target = match target {
+                Some(_) => todo!("this is non-trivial until we fix patterns in the AST"),
+                None => match_type,
+            };
+
+            if target != match_type {
+                panic!("match expression type and pattern type do not match")
+            }
+
+            // TODO: need to type check the variant but we can't really do that untill we
+            // fix up the issues in the ast pattern type
         }
-        PatternNode::Identifier(_) => {
-            todo!("identifier patterns need to get the type from the context")
-        }
-        PatternNode::Default => todo!("default patterns need to get the type from the context"),
+        PatternNode::Identifier(ident) => match ctx.match_type.last() {
+            Some(ts) => {
+                node_tree.type_map.add(node_id, ts.clone());
+                node_tree.type_map.add(*ident, ts.clone());
+            }
+            None => panic!("default pattern can not appear outisde the context of a match"),
+        },
+        PatternNode::Default => match ctx.match_type.last() {
+            Some(ts) => node_tree.type_map.add(node_id, ts.clone()),
+            None => panic!("default pattern can not appear outisde the context of a match"),
+        },
     }
-    todo!("this was suposed to be all I was doing in the PR and I still haven't gotten to it AHHHH")
 }
 
 // resolve_type will unwrap named type aliases to find the underlying type
