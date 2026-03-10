@@ -573,8 +573,13 @@ impl Module {
             Pattern::BoolLiteral(_) => { /* no symbols to track */ }
             Pattern::FloatLiteral(_) => { /* no symbols to track */ }
             Pattern::Default => { /* no symbols to track */ }
-            Pattern::TypeSpec(ts) => {
-                Self::build_sym_table_type_spec(errors, sym_table, ts);
+            Pattern::TypeSpec(pat) => {
+                if let Some(p) = pat.payload {
+                    sym_table.add_binding(p, BindingType::ValueDecl);
+                    sym_table.add_scope_pos(pat.id);
+                }
+
+                Self::build_sym_table_type_spec(errors, sym_table, &pat.type_spec);
             }
             Pattern::Payload(pat) => {
                 sym_table.add_binding(pat.payload.name, BindingType::ValueDecl);
@@ -590,8 +595,8 @@ impl Module {
                     Pattern::DotAccess(_) => {
                         Self::build_sym_table_pattern(errors, sym_table, &pat.pat)
                     }
-                    Pattern::TypeSpec(ts) => {
-                        Self::build_sym_table_type_spec(errors, sym_table, ts);
+                    Pattern::TypeSpec(pat) => {
+                        Self::build_sym_table_type_spec(errors, sym_table, &pat.type_spec);
                     }
                     _ => panic!("invalid payload pattern {:?}", pat.pat),
                 }
@@ -602,8 +607,8 @@ impl Module {
                         Pattern::Identifier(pat) => {
                             sym_table.add_scope_pos(pat.id);
                         }
-                        Pattern::TypeSpec(ts) => {
-                            Self::build_sym_table_type_spec(errors, sym_table, ts);
+                        Pattern::TypeSpec(pat) => {
+                            Self::build_sym_table_type_spec(errors, sym_table, &pat.type_spec);
                         }
                         _ => panic!("invalid dot access target"),
                     }

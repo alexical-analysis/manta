@@ -463,7 +463,23 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
         Pattern::FloatLiteral(pat) => {
             node_tree.add_node(Node::Pattern(PatternNode::FloatLiteral(*pat)))
         }
-        Pattern::TypeSpec(_) => node_tree.add_node(Node::Pattern(PatternNode::TypeSpec)),
+        Pattern::TypeSpec(pat) => {
+            if let Some(p) = pat.payload {
+                let payload_id = node_tree.add_node(Node::Identifier(p));
+                node_tree.add_root_node(Node::VarDecl { ident: payload_id });
+
+                let scope_pos = module
+                    .get_scope_pos(pat.id)
+                    .expect("missing scope_posfor var decl");
+                let binding = module
+                    .find_binding(scope_pos, p)
+                    .expect("missing binding for var decl");
+
+                node_tree.symbol_map.add(binding.id, payload_id);
+            }
+
+            node_tree.add_node(Node::Pattern(PatternNode::TypeSpec))
+        }
         Pattern::Payload(pat) => {
             let payload = &pat.payload;
             let ident_id = node_tree.add_node(Node::Identifier(payload.name));
@@ -924,7 +940,7 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
             let ident_id = node_tree
                 .symbol_map
                 .get(binding.id)
-                .expect("unknown identifier in expression check");
+                .expect("identifier declaration missing from symbol map");
 
             *ident_id
         }

@@ -115,6 +115,7 @@ mod test {
     use super::*;
     use crate::ast::{
         ArrayType, DotAccessPat, IdentifierPat, NamedType, Pattern, PayloadPat, TypeSpec,
+        TypeSpecPat,
     };
     use crate::parser::lexer::{Lexer, SourceID};
     use crate::str_store::{self, StrID, StrStore};
@@ -185,55 +186,75 @@ mod test {
         },
         parse_pattern_pointer {
             input: "*foo =",
-            want: Pattern::TypeSpec(TypeSpec::Pointer(Box::new(TypeSpec::Named(NamedType {
-                id: SourceID::from_usize(1),
-                module: None,
-                name: StrID::from_usize(1),
-            })))),
+            want: Pattern::TypeSpec(TypeSpecPat {
+                id: SourceID::from_usize(0),
+                type_spec: TypeSpec::Pointer(Box::new(TypeSpec::Named(NamedType {
+                    id: SourceID::from_usize(1),
+                    module: None,
+                    name: StrID::from_usize(1),
+                }))),
+                payload: None,
+            }),
         },
         parse_pattern_double_pointer {
             input: "**bar {",
-            want: Pattern::TypeSpec(TypeSpec::Pointer(Box::new(TypeSpec::Pointer(Box::new(
-                TypeSpec::Named(NamedType {
-                    id: SourceID::from_usize(2),
-                    module: None,
-                    name: StrID::from_usize(1),
-                })
-            ))))),
+            want: Pattern::TypeSpec(TypeSpecPat {
+                id: SourceID::from_usize(0),
+                type_spec: TypeSpec::Pointer(Box::new(TypeSpec::Pointer(Box::new(
+                    TypeSpec::Named(NamedType {
+                        id: SourceID::from_usize(2),
+                        module: None,
+                        name: StrID::from_usize(1),
+                    })
+                )))),
+                payload: None,
+            }),
         },
         parse_pattern_slice {
             input: "[]Vec2 =",
-            want: Pattern::TypeSpec(TypeSpec::Slice(Box::new(TypeSpec::Named(NamedType {
-                id: SourceID::from_usize(2),
-                module: None,
-                name: StrID::from_usize(2),
-            })))),
+            want: Pattern::TypeSpec(TypeSpecPat {
+                id: SourceID::from_usize(0),
+                type_spec: TypeSpec::Slice(Box::new(TypeSpec::Named(NamedType {
+                    id: SourceID::from_usize(2),
+                    module: None,
+                    name: StrID::from_usize(2),
+                }))),
+                payload: None,
+            }),
         },
         parse_pattern_3d_array {
             input: "[10][11][12]bool =",
-            want: Pattern::TypeSpec(TypeSpec::Array(ArrayType {
-                size: 10,
-                type_spec: Box::new(TypeSpec::Array(ArrayType {
-                    size: 11,
+            want: Pattern::TypeSpec(TypeSpecPat {
+                id: SourceID::from_usize(0),
+                type_spec: TypeSpec::Array(ArrayType {
+                    size: 10,
                     type_spec: Box::new(TypeSpec::Array(ArrayType {
-                        size: 12,
-                        type_spec: Box::new(TypeSpec::Bool),
+                        size: 11,
+                        type_spec: Box::new(TypeSpec::Array(ArrayType {
+                            size: 12,
+                            type_spec: Box::new(TypeSpec::Bool),
+                        })),
                     })),
-                })),
-            })),
+                }),
+                payload: None,
+            }),
         },
         parse_pattern_array_pointer_slice_pointer {
             input: "[3]*[]*pet::Dog =",
-            want: Pattern::TypeSpec(TypeSpec::Array(ArrayType {
-                size: 3,
-                type_spec: Box::new(TypeSpec::Pointer(Box::new(TypeSpec::Slice(Box::new(
-                    TypeSpec::Pointer(Box::new(TypeSpec::Named(NamedType {
-                        id: SourceID::from_usize(7),
-                        module: Some(StrID::from_usize(4)),
-                        name: StrID::from_usize(6),
-                    })))
-                ))))),
-            }),),
+            want: Pattern::TypeSpec(TypeSpecPat {
+                id: SourceID::from_usize(0),
+                type_spec: TypeSpec::Array(ArrayType {
+                    size: 3,
+                    type_spec: Box::new(TypeSpec::Pointer(Box::new(TypeSpec::Slice(Box::new(
+                        TypeSpec::Pointer(Box::new(TypeSpec::Named(NamedType {
+                            id: SourceID::from_usize(7),
+                            module: Some(StrID::from_usize(4)),
+                            name: StrID::from_usize(6),
+                        })))
+                    ))))),
+                }),
+                payload: None,
+            }),
         },
         parse_pattern_simple_identifier {
             input: "foo {",

@@ -260,11 +260,18 @@ pub enum Pattern {
     StringLiteral(StrID),
     BoolLiteral(bool),
     FloatLiteral(f64),
-    TypeSpec(TypeSpec),
+    TypeSpec(TypeSpecPat),
     Payload(PayloadPat),
     DotAccess(DotAccessPat),
     Identifier(IdentifierPat),
     Default,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct TypeSpecPat {
+    pub id: SourceID,
+    pub type_spec: TypeSpec,
+    pub payload: Option<StrID>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -334,7 +341,7 @@ pub enum Expr {
     Free(FreeExpr),
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct IdentifierExpr {
     pub id: SourceID,
     pub module: Option<StrID>,
