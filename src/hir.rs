@@ -119,7 +119,7 @@ pub enum Node {
     },
 
     FieldAccess {
-        target: Option<NodeID>,
+        target: NodeID,
         field: StrID,
     },
 
@@ -162,10 +162,10 @@ pub enum PatternNode {
         // Always a Pattern Node
         pat: NodeID,
     },
-    DotAccess {
+    EnumVariant {
         // Always a Pattern node
         target: Option<NodeID>,
-        field: StrID,
+        variant: StrID,
     },
 
     // Always points to an identifier expression

@@ -260,15 +260,15 @@ pub enum Pattern {
     StringLiteral(StrID),
     BoolLiteral(bool),
     FloatLiteral(f64),
-
     TypeSpec(TypeSpec),
-
     Payload(PayloadPat),
-    ModuleAccess(ModuleAccesPat),
     DotAccess(DotAccessPat),
-
     Identifier(IdentifierPat),
-    Default, // the _ pattern
+    Default,
+
+    // TODO: I actually want to get rid of this an just put an optional module on everything. We
+    // don't support modules at all currently so why have this anyway
+    ModuleAccess(ModuleAccesPat),
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -287,13 +287,6 @@ pub struct DotAccessPat {
 pub struct PayloadPat {
     pub pat: Box<Pattern>,
     pub payload: IdentifierPat,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize)]
-pub struct EnumVariantPat {
-    pub type_name: Option<StrID>,
-    pub name: StrID,
-    pub payload_binding: Option<StrID>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
