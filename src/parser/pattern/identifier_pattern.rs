@@ -15,6 +15,7 @@ impl PrefixPatternParselet for IdentifierPatternParselet {
             "_" => Ok(Pattern::Default),
             _ => Ok(Pattern::Identifier(IdentifierPat {
                 id: token.source_id,
+                module: None,
                 name,
             })),
         }

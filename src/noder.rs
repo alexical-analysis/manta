@@ -483,13 +483,6 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
                 payload_ident: ident_id,
             }))
         }
-        Pattern::ModuleAccess(pat) => {
-            let pat_id = node_pattern(node_tree, module, &pat.pat);
-            node_tree.add_node(Node::Pattern(PatternNode::ModuleAccess {
-                module: pat.module.name,
-                pat: pat_id,
-            }))
-        }
         Pattern::DotAccess(pat) => {
             let target_id = pat
                 .target
@@ -579,9 +572,6 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                                     panic!("identifier is not a valid type: binding({:?})", binding)
                                 }
                             }
-                            Pattern::ModuleAccess(_) => {
-                                todo!("modules are not yet supported in patterns")
-                            }
                             _ => panic!("invalid type for dot access target"),
                         },
                         None => { /* just assume we're good and catch things in the type checker*/ }
@@ -602,7 +592,6 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                     };
                 }
                 Pattern::Payload(_) => todo!("nested payload patterns are not yet support"),
-                Pattern::ModuleAccess(_) => todo!("modules are not yet supported"),
 
                 Pattern::IntLiteral(_) => panic!("int literals are not valid payload patterns"),
                 Pattern::StringLiteral(_) => {
@@ -1061,7 +1050,6 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
                 }
             }
         }
-        Expr::ModuleAccess(_expr) => todo!("modules are not yet supported"),
         Expr::MetaType(_expr) => {
             let node_id = node_tree.add_node(Node::MetaType);
             node_tree.type_map.add(

@@ -260,15 +260,11 @@ pub enum Pattern {
     StringLiteral(StrID),
     BoolLiteral(bool),
     FloatLiteral(f64),
-
     TypeSpec(TypeSpec),
-
     Payload(PayloadPat),
-    ModuleAccess(ModuleAccesPat),
     DotAccess(DotAccessPat),
-
     Identifier(IdentifierPat),
-    Default, // the _ pattern
+    Default,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -299,6 +295,7 @@ pub struct EnumVariantPat {
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct IdentifierPat {
     pub id: SourceID,
+    pub module: Option<StrID>,
     pub name: StrID,
 }
 
@@ -329,9 +326,6 @@ pub enum Expr {
     // Accessing a field for a struct or enum
     DotAccess(DotAccessExpr),
 
-    // Accessing a member of a module
-    ModuleAccess(ModuleAccessExpr),
-
     // Mete Type expression
     MetaType(MetaTypeExpr),
 
@@ -343,6 +337,7 @@ pub enum Expr {
 #[derive(Debug, PartialEq, Serialize)]
 pub struct IdentifierExpr {
     pub id: SourceID,
+    pub module: Option<StrID>,
     pub name: StrID,
 }
 
@@ -411,12 +406,6 @@ pub struct DotAccessExpr {
     // this is an option because this can be infered in some contexts
     pub target: Option<Box<Expr>>,
     pub field: StrID,
-}
-
-#[derive(Debug, PartialEq, Serialize)]
-pub struct ModuleAccessExpr {
-    pub module: StrID,
-    pub expr: Box<Expr>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]

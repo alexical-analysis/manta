@@ -183,8 +183,8 @@ mod test {
     use crate::ast::{
         AllocExpr, AssignStmt, BinaryExpr, BinaryOp, BlockStmt, CallExpr, DeferStmt, DotAccessExpr,
         DotAccessPat, Expr, FreeExpr, IdentifierExpr, IdentifierPat, IfStmt, IndexExpr, LetExcept,
-        LetStmt, MatchArm, MatchStmt, MetaTypeExpr, ModuleAccessExpr, Pattern, PayloadPat,
-        ReturnStmt, Stmt, TypeSpec, UnaryExpr, UnaryOp,
+        LetStmt, MatchArm, MatchStmt, MetaTypeExpr, Pattern, PayloadPat, ReturnStmt, Stmt,
+        TypeSpec, UnaryExpr, UnaryOp,
     };
     use crate::parser::lexer::{Lexer, SourceID};
     use crate::str_store::{self, StrID, StrStore};
@@ -218,6 +218,7 @@ mod test {
                 LetStmt {
                     pattern: Pattern::Identifier(IdentifierPat {
                         id: SourceID::from_usize(4),
+                        module: None,
                         name: StrID::from_usize(1)
                     }),
                     value: Expr::IntLiteral(10),
@@ -234,10 +235,13 @@ mod test {
                     pattern: Pattern::Payload(PayloadPat {
                         pat: Box::new(Pattern::Identifier(IdentifierPat {
                             id: SourceID::from_usize(4),
+                            module: None,
+
                             name: str_store::BOOL,
                         })),
                         payload: IdentifierPat {
                             id: SourceID::from_usize(9),
+                            module: None,
                             name: StrID::from_usize(2)
                         },
                     }),
@@ -254,6 +258,7 @@ mod test {
                 LetStmt {
                     pattern: Pattern::Identifier(IdentifierPat {
                         id: SourceID::from_usize(4),
+                        module: None,
                         name: StrID::from_usize(1)
                     }),
                     value: Expr::FloatLiteral(3.45),
@@ -270,16 +275,19 @@ mod test {
                     pattern: Pattern::Payload(PayloadPat {
                         pat: Box::new(Pattern::Identifier(IdentifierPat {
                             id: SourceID::from_usize(4),
+                            module: None,
                             name: StrID::from_usize(1)
                         })),
                         payload: IdentifierPat {
                             id: SourceID::from_usize(11),
+                            module: None,
                             name: StrID::from_usize(3)
                         },
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(19),
+                            module: None,
                             name: StrID::from_usize(6)
                         })),
                         args: vec![],
@@ -314,6 +322,7 @@ mod test {
                             func: Box::new(Expr::DotAccess(DotAccessExpr {
                                 target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                                     id: SourceID::from_usize(7),
+                                    module: None,
                                     name: StrID::from_usize(1)
                                 }))),
                                 field: StrID::from_usize(3),
@@ -350,6 +359,7 @@ mod test {
                             expr: Expr::Free(FreeExpr {
                                 expr: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: SourceID::from_usize(13),
+                                    module: None,
                                     name: StrID::from_usize(4)
                                 })),
                             })
@@ -371,12 +381,14 @@ mod test {
                                 expr: Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
                                         id: SourceID::from_usize(8),
+                                        module: None,
                                         name: StrID::from_usize(2)
                                     })),
                                     args: vec![
                                         Expr::StringLiteral(StrID::from_usize(4)),
                                         Expr::Identifier(IdentifierExpr {
                                             id: SourceID::from_usize(23),
+                                            module: None,
                                             name: StrID::from_usize(6)
                                         })
                                     ],
@@ -410,6 +422,7 @@ mod test {
                         Stmt::Let(LetStmt {
                             pattern: Pattern::Identifier(IdentifierPat {
                                 id: SourceID::from_usize(10),
+                                module: None,
                                 name: StrID::from_usize(2)
                             }),
                             value: Expr::IntLiteral(10),
@@ -421,17 +434,20 @@ mod test {
                                     target: None,
                                     field: IdentifierPat {
                                         id: SourceID::from_usize(26),
+                                        module: None,
                                         name: StrID::from_usize(7)
                                     },
                                 })),
                                 payload: IdentifierPat {
                                     id: SourceID::from_usize(29),
+                                    module: None,
                                     name: StrID::from_usize(9)
                                 },
                             }),
                             value: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: SourceID::from_usize(34),
+                                    module: None,
                                     name: StrID::from_usize(11)
                                 })),
                                 args: vec![Expr::IntLiteral(42)],
@@ -441,16 +457,19 @@ mod test {
                         Stmt::Let(LetStmt {
                             pattern: Pattern::Identifier(IdentifierPat {
                                 id: SourceID::from_usize(58),
+                                module: None,
                                 name: StrID::from_usize(14)
                             }),
                             value: Expr::Binary(BinaryExpr {
                                 left: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: SourceID::from_usize(62),
+                                    module: None,
                                     name: StrID::from_usize(2)
                                 })),
                                 operator: BinaryOp::Add,
                                 right: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: SourceID::from_usize(66),
+                                    module: None,
                                     name: StrID::from_usize(9)
                                 })),
                             }),
@@ -468,6 +487,7 @@ mod test {
                 AssignStmt {
                     lvalue: Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(0),
+                        module: None,
                         name: StrID::from_usize(0)
                     }),
                     rvalue: Expr::IntLiteral(10),
@@ -484,6 +504,7 @@ mod test {
                         operator: UnaryOp::Dereference,
                         operand: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(1),
+                            module: None,
                             name: StrID::from_usize(1)
                         })),
                     }),
@@ -499,12 +520,14 @@ mod test {
                 AssignStmt {
                     lvalue: Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(0),
+                        module: None,
                         name: StrID::from_usize(0)
                     }),
                     rvalue: Expr::Call(CallExpr {
                         func: Box::new(Expr::DotAccess(DotAccessExpr {
                             target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                                 id: SourceID::from_usize(7),
+                                module: None,
                                 name: StrID::from_usize(2)
                             }))),
                             field: StrID::from_usize(0),
@@ -512,6 +535,7 @@ mod test {
                         args: vec![
                             Expr::Identifier(IdentifierExpr {
                                 id: SourceID::from_usize(19),
+                                module: None,
                                 name: StrID::from_usize(5)
                             }),
                             Expr::Binary(BinaryExpr {
@@ -520,6 +544,7 @@ mod test {
                                 right: Box::new(Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
                                         id: SourceID::from_usize(26),
+                                        module: None,
                                         name: StrID::from_usize(9)
                                     })),
                                     args: vec![],
@@ -539,6 +564,7 @@ mod test {
                     lvalue: Expr::Index(IndexExpr {
                         target: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(0),
+                            module: None,
                             name: StrID::from_usize(0)
                         })),
                         index: Box::new(Expr::IntLiteral(0)),
@@ -562,6 +588,7 @@ mod test {
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: SourceID::from_usize(14),
+                                    module: None,
                                     name: StrID::from_usize(3)
                                 })),
                                 args: vec![Expr::StringLiteral(StrID::from_usize(5))],
@@ -585,6 +612,7 @@ mod test {
                     check: Box::new(Expr::Binary(BinaryExpr {
                         left: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(3),
+                            module: None,
                             name: StrID::from_usize(1)
                         })),
                         operator: BinaryOp::LessThan,
@@ -596,6 +624,7 @@ mod test {
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: SourceID::from_usize(16),
+                                    module: None,
                                     name: StrID::from_usize(5)
                                 })),
                                 args: vec![Expr::StringLiteral(StrID::from_usize(7))],
@@ -607,6 +636,7 @@ mod test {
                         statements: vec![Stmt::Assign(AssignStmt {
                             lvalue: Expr::Identifier(IdentifierExpr {
                                 id: SourceID::from_usize(41),
+                                module: None,
                                 name: StrID::from_usize(1)
                             }),
                             rvalue: Expr::Binary(BinaryExpr {
@@ -615,6 +645,7 @@ mod test {
                                 right: Box::new(Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
                                         id: SourceID::from_usize(50),
+                                        module: None,
                                         name: StrID::from_usize(15),
                                     })),
                                     args: vec![Expr::FloatLiteral(3.45)],
@@ -646,12 +677,14 @@ mod test {
                 LetStmt {
                     pattern: Pattern::Identifier(IdentifierPat {
                         id: SourceID::from_usize(4),
+                        module: None,
                         name: StrID::from_usize(1)
                     }),
                     value: Expr::Unary(UnaryExpr {
                         operator: UnaryOp::AddressOf,
                         operand: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(12),
+                            module: None,
                             name: StrID::from_usize(4)
                         })),
                     }),
@@ -669,12 +702,14 @@ mod test {
                         target: None,
                         field: IdentifierPat {
                             id: SourceID::from_usize(5),
+                            module: None,
                             name: StrID::from_usize(2)
                         },
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(10),
+                            module: None,
                             name: StrID::from_usize(4)
                         })),
                         args: vec![],
@@ -695,21 +730,25 @@ mod test {
                         pat: Box::new(Pattern::DotAccess(DotAccessPat {
                             target: Some(Box::new(Pattern::Identifier(IdentifierPat {
                                 id: SourceID::from_usize(4),
+                                module: None,
                                 name: StrID::from_usize(1)
                             }))),
                             field: IdentifierPat {
                                 id: SourceID::from_usize(8),
+                                module: None,
                                 name: StrID::from_usize(3)
                             },
                         })),
                         payload: IdentifierPat {
                             id: SourceID::from_usize(14),
+                            module: None,
                             name: StrID::from_usize(5)
                         },
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(19),
+                            module: None,
                             name: StrID::from_usize(8)
                         })),
                         args: vec![Expr::StringLiteral(StrID::from_usize(9))],
@@ -723,6 +762,7 @@ mod test {
                                 expr: Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
                                         id: SourceID::from_usize(45),
+                                        module: None,
                                         name: StrID::from_usize(12)
                                     })),
                                     args: vec![Expr::StringLiteral(StrID::from_usize(13))],
@@ -746,17 +786,20 @@ mod test {
                         target: None,
                         field: IdentifierPat {
                             id: SourceID::from_usize(5),
+                            module: None,
                             name: StrID::from_usize(2)
                         },
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(11),
+                            module: None,
                             name: StrID::from_usize(4)
                         })),
                         args: vec![
                             Expr::Identifier(IdentifierExpr {
                                 id: SourceID::from_usize(22),
+                                module: None,
                                 name: StrID::from_usize(6)
                             }),
                             Expr::BoolLiteral(false),
@@ -772,6 +815,7 @@ mod test {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
                                             id: SourceID::from_usize(47),
+                                            module: None,
                                             name: StrID::from_usize(13),
                                         })),
                                         args: vec![Expr::StringLiteral(StrID::from_usize(14))],
@@ -780,6 +824,7 @@ mod test {
                                 Stmt::Return(ReturnStmt {
                                     value: Some(Expr::Identifier(IdentifierExpr {
                                         id: SourceID::from_usize(78),
+                                        module: None,
                                         name: StrID::from_usize(11)
                                     })),
                                 }),
@@ -800,17 +845,20 @@ mod test {
                             target: None,
                             field: IdentifierPat {
                                 id: SourceID::from_usize(5),
+                                module: None,
                                 name: StrID::from_usize(2)
                             },
                         })),
                         payload: IdentifierPat {
                             id: SourceID::from_usize(8),
+                            module: None,
                             name: StrID::from_usize(4)
                         },
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(13),
+                            module: None,
                             name: StrID::from_usize(7)
                         })),
                         args: vec![],
@@ -833,6 +881,7 @@ mod test {
                 MatchStmt {
                     target: Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(6),
+                        module: None,
                         name: StrID::from_usize(1)
                     }),
                     arms: vec![
@@ -843,11 +892,13 @@ mod test {
                                     target: None,
                                     field: IdentifierPat {
                                         id: SourceID::from_usize(15),
+                                        module: None,
                                         name: StrID::from_usize(4)
                                     },
                                 })),
                                 payload: IdentifierPat {
                                     id: SourceID::from_usize(20),
+                                    module: None,
                                     name: StrID::from_usize(6)
                                 },
                             }),
@@ -857,10 +908,12 @@ mod test {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
                                             id: SourceID::from_usize(25),
+                                            module: None,
                                             name: StrID::from_usize(8),
                                         })),
                                         args: vec![Expr::Identifier(IdentifierExpr {
                                             id: SourceID::from_usize(31),
+                                            module: None,
                                             name: StrID::from_usize(6)
                                         })],
                                     }),
@@ -873,6 +926,7 @@ mod test {
                                 target: None,
                                 field: IdentifierPat {
                                     id: SourceID::from_usize(41),
+                                    module: None,
                                     name: StrID::from_usize(12)
                                 },
                             }),
@@ -882,6 +936,7 @@ mod test {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
                                             id: SourceID::from_usize(48),
+                                            module: None,
                                             name: StrID::from_usize(8)
                                         })),
                                         args: vec![Expr::StringLiteral(StrID::from_usize(13))],
@@ -905,6 +960,7 @@ mod test {
                 MatchStmt {
                     target: Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(6),
+                        module: None,
                         name: StrID::from_usize(1)
                     }),
                     arms: vec![
@@ -915,11 +971,13 @@ mod test {
                                     target: None,
                                     field: IdentifierPat {
                                         id: SourceID::from_usize(20),
+                                        module: None,
                                         name: StrID::from_usize(4)
                                     },
                                 })),
                                 payload: IdentifierPat {
                                     id: SourceID::from_usize(28),
+                                    module: None,
                                     name: StrID::from_usize(6)
                                 },
                             }),
@@ -929,10 +987,12 @@ mod test {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
                                             id: SourceID::from_usize(35),
+                                            module: None,
                                             name: StrID::from_usize(8)
                                         })),
                                         args: vec![Expr::Identifier(IdentifierExpr {
                                             id: SourceID::from_usize(41),
+                                            module: None,
                                             name: StrID::from_usize(6)
                                         })],
                                     }),
@@ -946,11 +1006,13 @@ mod test {
                                     target: None,
                                     field: IdentifierPat {
                                         id: SourceID::from_usize(53),
+                                        module: None,
                                         name: StrID::from_usize(12)
                                     },
                                 })),
                                 payload: IdentifierPat {
                                     id: SourceID::from_usize(61),
+                                    module: None,
                                     name: StrID::from_usize(13)
                                 },
                             }),
@@ -960,10 +1022,12 @@ mod test {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
                                             id: SourceID::from_usize(68),
+                                            module: None,
                                             name: StrID::from_usize(8)
                                         })),
                                         args: vec![Expr::Identifier(IdentifierExpr {
                                             id: SourceID::from_usize(74),
+                                            module: None,
                                             name: StrID::from_usize(13)
                                         })],
                                     }),
@@ -976,6 +1040,7 @@ mod test {
                                 target: None,
                                 field: IdentifierPat {
                                     id: SourceID::from_usize(86),
+                                    module: None,
                                     name: StrID::from_usize(14)
                                 },
                             }),
@@ -985,6 +1050,7 @@ mod test {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
                                             id: SourceID::from_usize(95),
+                                            module: None,
                                             name: StrID::from_usize(8)
                                         })),
                                         args: vec![Expr::StringLiteral(StrID::from_usize(15))],
@@ -1007,6 +1073,7 @@ mod test {
                 MatchStmt {
                     target: Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(6),
+                        module: None,
                         name: StrID::from_usize(1)
                     }),
                     arms: vec![
@@ -1016,6 +1083,7 @@ mod test {
                                 target: None,
                                 field: IdentifierPat {
                                     id: SourceID::from_usize(20),
+                                    module: None,
                                     name: StrID::from_usize(4)
                                 },
                             }),
@@ -1025,6 +1093,7 @@ mod test {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
                                             id: SourceID::from_usize(28),
+                                            module: None,
                                             name: StrID::from_usize(5),
                                         })),
                                         args: vec![Expr::StringLiteral(StrID::from_usize(7))],
@@ -1039,11 +1108,13 @@ mod test {
                                     target: None,
                                     field: IdentifierPat {
                                         id: SourceID::from_usize(47),
+                                        module: None,
                                         name: StrID::from_usize(12)
                                     },
                                 })),
                                 payload: IdentifierPat {
                                     id: SourceID::from_usize(52),
+                                    module: None,
                                     name: StrID::from_usize(13)
                                 },
                             }),
@@ -1053,12 +1124,14 @@ mod test {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
                                             id: SourceID::from_usize(58),
+                                            module: None,
                                             name: StrID::from_usize(5)
                                         })),
                                         args: vec![
                                             Expr::StringLiteral(StrID::from_usize(14)),
                                             Expr::Identifier(IdentifierExpr {
                                                 id: SourceID::from_usize(78),
+                                                module: None,
                                                 name: StrID::from_usize(13)
                                             }),
                                         ],
@@ -1076,12 +1149,10 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 ExprStmt {
-                    expr: Expr::ModuleAccess(ModuleAccessExpr {
-                        module: StrID::from_usize(0),
-                        expr: Box::new(Expr::Identifier(IdentifierExpr {
-                            id: SourceID::from_usize(5),
-                            name: StrID::from_usize(2)
-                        })),
+                    expr: Expr::Identifier(IdentifierExpr {
+                        id: SourceID::from_usize(0),
+                        module: Some(StrID::from_usize(2)),
+                        name: StrID::from_usize(0)
                     }),
                 }
             ),
@@ -1092,15 +1163,13 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 ExprStmt {
-                    expr: Expr::ModuleAccess(ModuleAccessExpr {
-                        module: StrID::from_usize(0),
-                        expr: Box::new(Expr::Call(CallExpr {
-                            func: Box::new(Expr::Identifier(IdentifierExpr {
-                                id: SourceID::from_usize(5),
-                                name: StrID::from_usize(2)
-                            })),
-                            args: vec![Expr::StringLiteral(StrID::from_usize(4))],
+                    expr: Expr::Call(CallExpr {
+                        func: Box::new(Expr::Identifier(IdentifierExpr {
+                            id: SourceID::from_usize(0),
+                            module: Some(StrID::from_usize(2)),
+                            name: StrID::from_usize(0)
                         })),
+                        args: vec![Expr::StringLiteral(StrID::from_usize(4))],
                     }),
                 }
             ),
@@ -1111,12 +1180,10 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 ExprStmt {
-                    expr: Expr::ModuleAccess(ModuleAccessExpr {
-                        module: StrID::from_usize(0),
-                        expr: Box::new(Expr::Identifier(IdentifierExpr {
-                            id: SourceID::from_usize(6),
-                            name: StrID::from_usize(2)
-                        })),
+                    expr: Expr::Identifier(IdentifierExpr {
+                        id: SourceID::from_usize(0),
+                        module: Some(StrID::from_usize(2)),
+                        name: StrID::from_usize(0)
                     }),
                 }
             ),

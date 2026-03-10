@@ -576,7 +576,6 @@ impl Module {
             Pattern::TypeSpec(ts) => {
                 Self::build_sym_table_type_spec(errors, sym_table, ts);
             }
-            Pattern::ModuleAccess(_) => panic!("modules are not yet supported"),
             Pattern::Payload(pat) => {
                 sym_table.add_binding(pat.payload.name, BindingType::ValueDecl);
                 sym_table.add_scope_pos(pat.payload.id);
@@ -588,7 +587,6 @@ impl Module {
                     Pattern::Identifier(pat) => {
                         sym_table.add_scope_pos(pat.id);
                     }
-                    Pattern::ModuleAccess(_) => todo!("modules are not yet supported sorry"),
                     Pattern::DotAccess(_) => {
                         Self::build_sym_table_pattern(errors, sym_table, &pat.pat)
                     }
@@ -604,7 +602,6 @@ impl Module {
                         Pattern::Identifier(pat) => {
                             sym_table.add_scope_pos(pat.id);
                         }
-                        Pattern::ModuleAccess(_) => todo!("modules are not yet supported sorry"),
                         Pattern::TypeSpec(ts) => {
                             Self::build_sym_table_type_spec(errors, sym_table, ts);
                         }
@@ -667,17 +664,6 @@ impl Module {
                 if let Some(target) = &expr.target {
                     Self::build_sym_table_expr(errors, sym_table, target);
                 }
-            }
-            Expr::ModuleAccess(_expr) => {
-                errors.push(ParseError::Custom(
-                    // TODO: use the actual token here
-                    Token {
-                        kind: TokenKind::Identifier,
-                        source_id: SourceID::from_usize(0),
-                        lexeme_id: StrID::from_usize(0),
-                    },
-                    "modules are not yet supported".to_string(),
-                ));
             }
             Expr::MetaType(expr) => {
                 Self::build_sym_table_type_spec(errors, sym_table, &expr.type_spec);
