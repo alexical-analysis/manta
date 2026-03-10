@@ -18,6 +18,7 @@ impl PrefixExprParselet for IdentifierParselet {
         let name = token.lexeme_id;
         Ok(Expr::Identifier(IdentifierExpr {
             id: token.source_id,
+            module: None,
             name,
         }))
     }

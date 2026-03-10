@@ -114,8 +114,7 @@ impl PatternParser {
 mod test {
     use super::*;
     use crate::ast::{
-        ArrayType, DotAccessPat, IdentifierPat, ModuleAccesPat, NamedType, Pattern, PayloadPat,
-        TypeSpec,
+        ArrayType, DotAccessPat, IdentifierPat, NamedType, Pattern, PayloadPat, TypeSpec,
     };
     use crate::parser::lexer::{Lexer, SourceID};
     use crate::str_store::{self, StrID, StrStore};
@@ -165,6 +164,7 @@ mod test {
             input: "my_var =",
             want: Pattern::Identifier(IdentifierPat {
                 id: SourceID::from_usize(0),
+                module: None,
                 name: StrID::from_usize(0)
             }),
         },
@@ -173,10 +173,12 @@ mod test {
             want: Pattern::Payload(PayloadPat {
                 pat: Box::new(Pattern::Identifier(IdentifierPat {
                     id: SourceID::from_usize(0),
+                    module: None,
                     name: str_store::F32,
                 })),
                 payload: IdentifierPat {
                     id: SourceID::from_usize(4),
+                    module: None,
                     name: StrID::from_usize(1)
                 },
             }),
@@ -237,6 +239,7 @@ mod test {
             input: "foo {",
             want: Pattern::Identifier(IdentifierPat {
                 id: SourceID::from_usize(0),
+                module: None,
                 name: StrID::from_usize(0)
             }),
         },
@@ -244,6 +247,7 @@ mod test {
             input: "my_variable {",
             want: Pattern::Identifier(IdentifierPat {
                 id: SourceID::from_usize(0),
+                module: None,
                 name: StrID::from_usize(0)
             }),
         },
@@ -251,6 +255,7 @@ mod test {
             input: "var123 {",
             want: Pattern::Identifier(IdentifierPat {
                 id: SourceID::from_usize(0),
+                module: None,
                 name: StrID::from_usize(0)
             }),
         },
@@ -260,6 +265,7 @@ mod test {
                 target: None,
                 field: IdentifierPat {
                     id: SourceID::from_usize(1),
+                    module: None,
                     name: StrID::from_usize(1)
                 },
             }),
@@ -269,69 +275,59 @@ mod test {
             want: Pattern::DotAccess(DotAccessPat {
                 target: Some(Box::new(Pattern::Identifier(IdentifierPat {
                     id: SourceID::from_usize(0),
+                    module: None,
                     name: StrID::from_usize(0)
                 }))),
                 field: IdentifierPat {
                     id: SourceID::from_usize(4),
+                    module: None,
                     name: StrID::from_usize(2)
                 },
             },),
         },
         parse_pattern_module_access_identifier {
             input: "math::Vec3 =",
-            want: Pattern::ModuleAccess(ModuleAccesPat {
-                module: Box::new(IdentifierPat {
-                    id: SourceID::from_usize(0),
-                    name: StrID::from_usize(0)
-                }),
-                pat: Box::new(Pattern::Identifier(IdentifierPat {
-                    id: SourceID::from_usize(6),
-                    name: StrID::from_usize(2)
-                })),
+            want: Pattern::Identifier(IdentifierPat {
+                id: SourceID::from_usize(0),
+                module: Some(StrID::from_usize(2)),
+                name: StrID::from_usize(0),
             }),
         },
         parse_pattern_module_access_dot_variant {
             input: "result::Ret.Ok =",
-            want: Pattern::ModuleAccess(ModuleAccesPat {
-                module: Box::new(IdentifierPat {
+            want: Pattern::DotAccess(DotAccessPat {
+                target: Some(Box::new(Pattern::Identifier(IdentifierPat {
                     id: SourceID::from_usize(0),
+                    module: Some(StrID::from_usize(2)),
                     name: StrID::from_usize(0)
-                }),
-                pat: Box::new(Pattern::DotAccess(DotAccessPat {
-                    target: Some(Box::new(Pattern::Identifier(IdentifierPat {
-                        id: SourceID::from_usize(8),
-                        name: StrID::from_usize(2)
-                    }))),
-                    field: IdentifierPat {
-                        id: SourceID::from_usize(12),
-                        name: StrID::from_usize(4)
-                    },
-                })),
+                }))),
+                field: IdentifierPat {
+                    id: SourceID::from_usize(12),
+                    module: None,
+                    name: StrID::from_usize(4)
+                },
             }),
         },
         parse_pattern_module_access_payload {
             input: "std::Option.Some(x) {",
-            want: Pattern::ModuleAccess(ModuleAccesPat {
-                module: Box::new(IdentifierPat {
-                    id: SourceID::from_usize(0),
-                    name: StrID::from_usize(0)
-                }),
-                pat: Box::new(Pattern::Payload(PayloadPat {
-                    pat: Box::new(Pattern::DotAccess(DotAccessPat {
-                        target: Some(Box::new(Pattern::Identifier(IdentifierPat {
-                            id: SourceID::from_usize(5),
-                            name: StrID::from_usize(2)
-                        }))),
-                        field: IdentifierPat {
-                            id: SourceID::from_usize(12),
-                            name: StrID::from_usize(4)
-                        },
-                    })),
-                    payload: IdentifierPat {
-                        id: SourceID::from_usize(17),
-                        name: StrID::from_usize(6)
+            want: Pattern::Payload(PayloadPat {
+                pat: Box::new(Pattern::DotAccess(DotAccessPat {
+                    target: Some(Box::new(Pattern::Identifier(IdentifierPat {
+                        id: SourceID::from_usize(0),
+                        module: Some(StrID::from_usize(2)),
+                        name: StrID::from_usize(0),
+                    }))),
+                    field: IdentifierPat {
+                        id: SourceID::from_usize(12),
+                        module: None,
+                        name: StrID::from_usize(4)
                     },
                 })),
+                payload: IdentifierPat {
+                    id: SourceID::from_usize(17),
+                    module: None,
+                    name: StrID::from_usize(6)
+                },
             }),
         },
         parse_pattern_payload_simple {
@@ -339,10 +335,12 @@ mod test {
             want: Pattern::Payload(PayloadPat {
                 pat: Box::new(Pattern::Identifier(IdentifierPat {
                     id: SourceID::from_usize(0),
+                    module: None,
                     name: StrID::from_usize(0)
                 })),
                 payload: IdentifierPat {
                     id: SourceID::from_usize(7),
+                    module: None,
                     name: StrID::from_usize(2)
                 },
             }),
@@ -353,15 +351,18 @@ mod test {
                 pat: Box::new(Pattern::DotAccess(DotAccessPat {
                     target: Some(Box::new(Pattern::Identifier(IdentifierPat {
                         id: SourceID::from_usize(0),
+                        module: None,
                         name: StrID::from_usize(0)
                     }))),
                     field: IdentifierPat {
                         id: SourceID::from_usize(4),
+                        module: None,
                         name: StrID::from_usize(2)
                     },
                 })),
                 payload: IdentifierPat {
                     id: SourceID::from_usize(7),
+                    module: None,
                     name: StrID::from_usize(4)
                 },
             }),
@@ -373,11 +374,13 @@ mod test {
                     target: None,
                     field: IdentifierPat {
                         id: SourceID::from_usize(1),
+                        module: None,
                         name: StrID::from_usize(1)
                     },
                 })),
                 payload: IdentifierPat {
                     id: SourceID::from_usize(6),
+                    module: None,
                     name: StrID::from_usize(3)
                 },
             }),

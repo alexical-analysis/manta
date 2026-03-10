@@ -17,6 +17,7 @@ impl PrefixPatternParselet for PrefixDotPatternParselet {
                 target: None,
                 field: IdentifierPat {
                     id: field_token.source_id,
+                    module: None,
                     name: field_token.lexeme_id,
                 },
             })),
@@ -48,6 +49,7 @@ impl InfixPatternParselet for InfixDotPatternParselet {
                 target: Some(Box::new(left)),
                 field: IdentifierPat {
                     id: field_token.source_id,
+                    module: None,
                     name: field_token.lexeme_id,
                 },
             })),

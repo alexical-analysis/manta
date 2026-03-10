@@ -152,12 +152,14 @@ mod tests {
                             value: Some(Expr::Binary(BinaryExpr {
                                 left: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: SourceID::from_usize(46),
+                                    module: None,
                                     name: StrID::from_usize(3)
                                 })),
 
                                 operator: BinaryOp::Add,
                                 right: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: SourceID::from_usize(50),
+                                    module: None,
                                     name: StrID::from_usize(5)
                                 })),
                             })),
@@ -189,6 +191,7 @@ mod tests {
                                 expr: Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
                                         id: SourceID::from_usize(28),
+                                        module: None,
                                         name: StrID::from_usize(5)
                                     })),
 
@@ -258,11 +261,13 @@ mod tests {
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: SourceID::from_usize(37),
+                                    module: None,
                                     name: StrID::from_usize(6)
                                 })),
 
                                 args: vec![Expr::Identifier(IdentifierExpr {
                                     id: SourceID::from_usize(43),
+                                    module: None,
                                     name: StrID::from_usize(3)
                                 })],
                             })
@@ -305,6 +310,7 @@ mod tests {
                                 check: Box::new(Expr::Binary(BinaryExpr {
                                     left: Box::new(Expr::Identifier(IdentifierExpr {
                                         id: SourceID::from_usize(48),
+                                        module: None,
                                         name: StrID::from_usize(5)
                                     })),
 
@@ -323,12 +329,14 @@ mod tests {
                                 value: Some(Expr::Binary(BinaryExpr {
                                     left: Box::new(Expr::Identifier(IdentifierExpr {
                                         id: SourceID::from_usize(127),
+                                        module: None,
                                         name: StrID::from_usize(3)
                                     })),
 
                                     operator: BinaryOp::Divide,
                                     right: Box::new(Expr::Identifier(IdentifierExpr {
                                         id: SourceID::from_usize(131),
+                                        module: None,
                                         name: StrID::from_usize(5)
                                     })),
                                 }))
@@ -395,11 +403,13 @@ mod tests {
                             expr: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: SourceID::from_usize(46),
+                                    module: None,
                                     name: StrID::from_usize(8)
                                 })),
 
                                 args: vec![Expr::Identifier(IdentifierExpr {
                                     id: SourceID::from_usize(52),
+                                    module: None,
                                     name: StrID::from_usize(3)
                                 })],
                             }),
