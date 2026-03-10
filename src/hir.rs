@@ -162,7 +162,7 @@ pub enum PatternNode {
         // Always a Pattern Node
         pat: NodeID,
     },
-    EnumConstructor {
+    EnumVariant {
         // Always a Pattern node
         target: Option<NodeID>,
         variant: StrID,

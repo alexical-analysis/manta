@@ -500,7 +500,7 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
                 .clone()
                 .map(|t| node_pattern(node_tree, module, &t));
 
-            node_tree.add_node(Node::Pattern(PatternNode::EnumConstructor {
+            node_tree.add_node(Node::Pattern(PatternNode::EnumVariant {
                 target: target_id,
                 variant: pat.field.name,
             }))
@@ -529,9 +529,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             // ident = value
 
             if stmt.except != LetExcept::None {
-                panic!(
-                    "identifier expressions can never faile and should not have an except handle"
-                )
+                panic!("identifier expressions can never fail and should not have an except handle")
             }
 
             let ident_id = node_tree.add_node(Node::Identifier(ident.name));
@@ -1480,7 +1478,10 @@ fn check_expr_node_type(
                 let arg = check_expr_node_type(ctx, node_tree, *arg);
 
                 if param != &arg {
-                    panic!("argument in function call is an invalid type")
+                    panic!(
+                        "argument in function call is an invalid type \n  wanted:\n\t{:?}\n  got:\n\t{:?}",
+                        param, arg
+                    )
                 }
             }
 
@@ -1695,15 +1696,17 @@ fn check_pattern_type(
                 .get(node_id)
                 .expect("missing type for pattern type spec");
         }
-        PatternNode::Payload {
-            pat: _,
-            payload_ident: _,
-        } => {
-            // TODO: this is non-trivial until we fix patterns in the AST. Leaving this unfinished
-            // for now
+        PatternNode::Payload { pat, payload_ident } => {
+            check_node_type(ctx, node_tree, *pat);
+            let pat_type = node_tree
+                .type_map
+                .get(*pat)
+                .expect("failed to find pattern type for payload binding");
+
+            node_tree.type_map.add(*payload_ident, pat_type.clone());
         }
         PatternNode::ModuleAccess { .. } => todo!("module are not yet supported"),
-        PatternNode::EnumConstructor { target, variant: _ } => {
+        PatternNode::EnumVariant { target, variant } => {
             let match_type = ctx
                 .match_type
                 .last()
@@ -1717,8 +1720,33 @@ fn check_pattern_type(
                 panic!("match expression type and pattern type do not match")
             }
 
-            // TODO: need to type check the variant but we can't really do that untill we
-            // fix up the issues in the ast pattern type
+            match resolve_type(target).clone() {
+                TypeSpec::Enum(e) => {
+                    let mut found_variant = false;
+                    let mut payload_type = None;
+                    for v in e.variants {
+                        if *variant == v.name {
+                            found_variant = true;
+                            payload_type = v.payload;
+                            break;
+                        }
+                    }
+
+                    if !found_variant {
+                        panic!("invalid variant for enum variant construction")
+                    }
+
+                    match payload_type {
+                        Some(t) => {
+                            node_tree.type_map.add(node_id, t.clone());
+                        }
+                        None => {
+                            node_tree.type_map.add(node_id, target.clone());
+                        }
+                    }
+                }
+                _ => panic!("invalid type for enum variant pattern"),
+            }
         }
         PatternNode::Identifier(ident) => match ctx.match_type.last() {
             Some(ts) => {
