@@ -1,8 +1,7 @@
-mod dot_pattern;
+mod enum_variant;
 mod identifier_pattern;
 mod literal_pattern;
 mod mod_pattern;
-mod payload_pattern;
 mod type_pattern;
 
 use std::collections::HashMap;
@@ -13,11 +12,10 @@ use crate::parser::ParseError;
 use crate::parser::lexer::Lexer;
 use crate::parser::lexer::{Token, TokenKind};
 
-use dot_pattern::{InfixDotPatternParselet, PrefixDotPatternParselet};
+use enum_variant::{InfixEnumVariantParselet, PrefixEnumVariantParselet};
 use identifier_pattern::IdentifierPatternParselet;
 use literal_pattern::LiteralPatternParselet;
 use mod_pattern::ModPatternParselet;
-use payload_pattern::PayloadPatternParselet;
 use type_pattern::TypePatternParselet;
 
 /// Trait for prefix pattern parselets
@@ -53,7 +51,7 @@ impl PatternParser {
         let mut prefix_parselets: HashMap<TokenKind, Rc<dyn PrefixPatternParselet>>;
         prefix_parselets = HashMap::new();
         prefix_parselets.insert(TokenKind::Identifier, Rc::new(IdentifierPatternParselet));
-        prefix_parselets.insert(TokenKind::Dot, Rc::new(PrefixDotPatternParselet));
+        prefix_parselets.insert(TokenKind::Dot, Rc::new(PrefixEnumVariantParselet));
         prefix_parselets.insert(TokenKind::Star, Rc::new(TypePatternParselet));
         prefix_parselets.insert(TokenKind::OpenSquare, Rc::new(TypePatternParselet));
         prefix_parselets.insert(TokenKind::TrueLiteral, Rc::new(LiteralPatternParselet));
@@ -63,9 +61,8 @@ impl PatternParser {
         prefix_parselets.insert(TokenKind::Str, Rc::new(LiteralPatternParselet));
 
         let mut infix_parselets: HashMap<TokenKind, Rc<dyn InfixPatternParselet>> = HashMap::new();
-        infix_parselets.insert(TokenKind::Dot, Rc::new(InfixDotPatternParselet));
+        infix_parselets.insert(TokenKind::Dot, Rc::new(InfixEnumVariantParselet));
         infix_parselets.insert(TokenKind::ColonColon, Rc::new(ModPatternParselet));
-        infix_parselets.insert(TokenKind::OpenParen, Rc::new(PayloadPatternParselet));
 
         PatternParser {
             prefix_parselets,
@@ -114,8 +111,8 @@ impl PatternParser {
 mod test {
     use super::*;
     use crate::ast::{
-        ArrayType, DotAccessPat, IdentifierPat, ModuleAccesPat, NamedType, Pattern, PayloadPat,
-        TypeSpec,
+        ArrayType, EnumVariantPat, IdentifierExpr, IdentifierPat, NamedType, Pattern, TypeSpec,
+        TypeSpecPat,
     };
     use crate::parser::lexer::{Lexer, SourceID};
     use crate::str_store::{self, StrID, StrStore};
@@ -165,221 +162,194 @@ mod test {
             input: "my_var =",
             want: Pattern::Identifier(IdentifierPat {
                 id: SourceID::from_usize(0),
-                name: StrID::from_usize(0)
+                module: None,
+                name: StrID::from_usize(0),
+                payload: None,
             }),
         },
         parse_pattern_type_match {
             input: "f32(f) =",
-            want: Pattern::Payload(PayloadPat {
-                pat: Box::new(Pattern::Identifier(IdentifierPat {
-                    id: SourceID::from_usize(0),
-                    name: str_store::F32,
-                })),
-                payload: IdentifierPat {
-                    id: SourceID::from_usize(4),
-                    name: StrID::from_usize(1)
-                },
+            want: Pattern::Identifier(IdentifierPat {
+                id: SourceID::from_usize(0),
+                module: None,
+                name: str_store::F32,
+                payload: Some(StrID::from_usize(1)),
             }),
         },
         parse_pattern_pointer {
             input: "*foo =",
-            want: Pattern::TypeSpec(TypeSpec::Pointer(Box::new(TypeSpec::Named(NamedType {
-                id: SourceID::from_usize(1),
-                module: None,
-                name: StrID::from_usize(1),
-            })))),
+            want: Pattern::TypeSpec(TypeSpecPat {
+                type_spec: TypeSpec::Pointer(Box::new(TypeSpec::Named(NamedType {
+                    id: SourceID::from_usize(1),
+                    module: None,
+                    name: StrID::from_usize(1),
+                }))),
+                payload: None,
+            }),
         },
         parse_pattern_double_pointer {
             input: "**bar {",
-            want: Pattern::TypeSpec(TypeSpec::Pointer(Box::new(TypeSpec::Pointer(Box::new(
-                TypeSpec::Named(NamedType {
-                    id: SourceID::from_usize(2),
-                    module: None,
-                    name: StrID::from_usize(1),
-                })
-            ))))),
+            want: Pattern::TypeSpec(TypeSpecPat {
+                type_spec: TypeSpec::Pointer(Box::new(TypeSpec::Pointer(Box::new(
+                    TypeSpec::Named(NamedType {
+                        id: SourceID::from_usize(2),
+                        module: None,
+                        name: StrID::from_usize(1),
+                    })
+                )))),
+                payload: None,
+            }),
         },
         parse_pattern_slice {
             input: "[]Vec2 =",
-            want: Pattern::TypeSpec(TypeSpec::Slice(Box::new(TypeSpec::Named(NamedType {
-                id: SourceID::from_usize(2),
-                module: None,
-                name: StrID::from_usize(2),
-            })))),
+            want: Pattern::TypeSpec(TypeSpecPat {
+                type_spec: TypeSpec::Slice(Box::new(TypeSpec::Named(NamedType {
+                    id: SourceID::from_usize(2),
+                    module: None,
+                    name: StrID::from_usize(2),
+                }))),
+                payload: None,
+            }),
         },
         parse_pattern_3d_array {
             input: "[10][11][12]bool =",
-            want: Pattern::TypeSpec(TypeSpec::Array(ArrayType {
-                size: 10,
-                type_spec: Box::new(TypeSpec::Array(ArrayType {
-                    size: 11,
+            want: Pattern::TypeSpec(TypeSpecPat {
+                type_spec: TypeSpec::Array(ArrayType {
+                    size: 10,
                     type_spec: Box::new(TypeSpec::Array(ArrayType {
-                        size: 12,
-                        type_spec: Box::new(TypeSpec::Bool),
+                        size: 11,
+                        type_spec: Box::new(TypeSpec::Array(ArrayType {
+                            size: 12,
+                            type_spec: Box::new(TypeSpec::Bool),
+                        })),
                     })),
-                })),
-            })),
+                }),
+                payload: None,
+            }),
         },
         parse_pattern_array_pointer_slice_pointer {
             input: "[3]*[]*pet::Dog =",
-            want: Pattern::TypeSpec(TypeSpec::Array(ArrayType {
-                size: 3,
-                type_spec: Box::new(TypeSpec::Pointer(Box::new(TypeSpec::Slice(Box::new(
-                    TypeSpec::Pointer(Box::new(TypeSpec::Named(NamedType {
-                        id: SourceID::from_usize(7),
-                        module: Some(StrID::from_usize(4)),
-                        name: StrID::from_usize(6),
-                    })))
-                ))))),
-            }),),
+            want: Pattern::TypeSpec(TypeSpecPat {
+                type_spec: TypeSpec::Array(ArrayType {
+                    size: 3,
+                    type_spec: Box::new(TypeSpec::Pointer(Box::new(TypeSpec::Slice(Box::new(
+                        TypeSpec::Pointer(Box::new(TypeSpec::Named(NamedType {
+                            id: SourceID::from_usize(7),
+                            module: Some(StrID::from_usize(4)),
+                            name: StrID::from_usize(6),
+                        })))
+                    ))))),
+                }),
+                payload: None,
+            }),
         },
         parse_pattern_simple_identifier {
             input: "foo {",
             want: Pattern::Identifier(IdentifierPat {
                 id: SourceID::from_usize(0),
-                name: StrID::from_usize(0)
+                module: None,
+                name: StrID::from_usize(0),
+                payload: None,
             }),
         },
         parse_pattern_variable_name {
             input: "my_variable {",
             want: Pattern::Identifier(IdentifierPat {
                 id: SourceID::from_usize(0),
-                name: StrID::from_usize(0)
+                module: None,
+                name: StrID::from_usize(0),
+                payload: None,
             }),
         },
         parse_pattern_identifier_with_numbers {
             input: "var123 {",
             want: Pattern::Identifier(IdentifierPat {
                 id: SourceID::from_usize(0),
-                name: StrID::from_usize(0)
+                module: None,
+                name: StrID::from_usize(0),
+                payload: None,
             }),
         },
         parse_pattern_dot_inferred_variant {
             input: ".Ok =",
-            want: Pattern::DotAccess(DotAccessPat {
+            want: Pattern::EnumVariant(EnumVariantPat {
                 target: None,
-                field: IdentifierPat {
-                    id: SourceID::from_usize(1),
-                    name: StrID::from_usize(1)
-                },
+                variant: StrID::from_usize(1),
+                payload: None,
             }),
         },
         parse_pattern_dot_variant {
             input: "Ret.Ok {",
-            want: Pattern::DotAccess(DotAccessPat {
-                target: Some(Box::new(Pattern::Identifier(IdentifierPat {
+            want: Pattern::EnumVariant(EnumVariantPat {
+                target: Some(IdentifierExpr {
                     id: SourceID::from_usize(0),
-                    name: StrID::from_usize(0)
-                }))),
-                field: IdentifierPat {
-                    id: SourceID::from_usize(4),
-                    name: StrID::from_usize(2)
-                },
-            },),
+                    module: None,
+                    name: StrID::from_usize(0),
+                }),
+                variant: StrID::from_usize(2),
+                payload: None,
+            }),
         },
         parse_pattern_module_access_identifier {
             input: "math::Vec3 =",
-            want: Pattern::ModuleAccess(ModuleAccesPat {
-                module: Box::new(IdentifierPat {
-                    id: SourceID::from_usize(0),
-                    name: StrID::from_usize(0)
-                }),
-                pat: Box::new(Pattern::Identifier(IdentifierPat {
-                    id: SourceID::from_usize(6),
-                    name: StrID::from_usize(2)
-                })),
+            want: Pattern::Identifier(IdentifierPat {
+                id: SourceID::from_usize(0),
+                name: StrID::from_usize(0),
+                module: Some(StrID::from_usize(2)),
+                payload: None,
             }),
         },
         parse_pattern_module_access_dot_variant {
             input: "result::Ret.Ok =",
-            want: Pattern::ModuleAccess(ModuleAccesPat {
-                module: Box::new(IdentifierPat {
+            want: Pattern::EnumVariant(EnumVariantPat {
+                target: Some(IdentifierExpr {
                     id: SourceID::from_usize(0),
-                    name: StrID::from_usize(0)
+                    module: Some(StrID::from_usize(2)),
+                    name: StrID::from_usize(0),
                 }),
-                pat: Box::new(Pattern::DotAccess(DotAccessPat {
-                    target: Some(Box::new(Pattern::Identifier(IdentifierPat {
-                        id: SourceID::from_usize(8),
-                        name: StrID::from_usize(2)
-                    }))),
-                    field: IdentifierPat {
-                        id: SourceID::from_usize(12),
-                        name: StrID::from_usize(4)
-                    },
-                })),
+                variant: StrID::from_usize(4),
+                payload: None,
             }),
         },
         parse_pattern_module_access_payload {
             input: "std::Option.Some(x) {",
-            want: Pattern::ModuleAccess(ModuleAccesPat {
-                module: Box::new(IdentifierPat {
+            want: Pattern::EnumVariant(EnumVariantPat {
+                target: Some(IdentifierExpr {
                     id: SourceID::from_usize(0),
+                    module: Some(StrID::from_usize(2)),
                     name: StrID::from_usize(0)
                 }),
-                pat: Box::new(Pattern::Payload(PayloadPat {
-                    pat: Box::new(Pattern::DotAccess(DotAccessPat {
-                        target: Some(Box::new(Pattern::Identifier(IdentifierPat {
-                            id: SourceID::from_usize(5),
-                            name: StrID::from_usize(2)
-                        }))),
-                        field: IdentifierPat {
-                            id: SourceID::from_usize(12),
-                            name: StrID::from_usize(4)
-                        },
-                    })),
-                    payload: IdentifierPat {
-                        id: SourceID::from_usize(17),
-                        name: StrID::from_usize(6)
-                    },
-                })),
+                variant: StrID::from_usize(4),
+                payload: Some(StrID::from_usize(6)),
             }),
         },
         parse_pattern_payload_simple {
             input: "Result(err) =",
-            want: Pattern::Payload(PayloadPat {
-                pat: Box::new(Pattern::Identifier(IdentifierPat {
-                    id: SourceID::from_usize(0),
-                    name: StrID::from_usize(0)
-                })),
-                payload: IdentifierPat {
-                    id: SourceID::from_usize(7),
-                    name: StrID::from_usize(2)
-                },
+            want: Pattern::Identifier(IdentifierPat {
+                id: SourceID::from_usize(0),
+                module: None,
+                name: StrID::from_usize(0),
+                payload: Some(StrID::from_usize(2)),
             }),
         },
         parse_pattern_payload_dot_access {
             input: "Ret.Ok(value) {",
-            want: Pattern::Payload(PayloadPat {
-                pat: Box::new(Pattern::DotAccess(DotAccessPat {
-                    target: Some(Box::new(Pattern::Identifier(IdentifierPat {
-                        id: SourceID::from_usize(0),
-                        name: StrID::from_usize(0)
-                    }))),
-                    field: IdentifierPat {
-                        id: SourceID::from_usize(4),
-                        name: StrID::from_usize(2)
-                    },
-                })),
-                payload: IdentifierPat {
-                    id: SourceID::from_usize(7),
-                    name: StrID::from_usize(4)
-                },
+            want: Pattern::EnumVariant(EnumVariantPat {
+                target: Some(IdentifierExpr {
+                    id: SourceID::from_usize(0),
+                    module: None,
+                    name: StrID::from_usize(0),
+                }),
+                variant: StrID::from_usize(2),
+                payload: Some(StrID::from_usize(4)),
             }),
         },
         parse_pattern_payload_dot_inferred {
             input: ".Some(item) =",
-            want: Pattern::Payload(PayloadPat {
-                pat: Box::new(Pattern::DotAccess(DotAccessPat {
-                    target: None,
-                    field: IdentifierPat {
-                        id: SourceID::from_usize(1),
-                        name: StrID::from_usize(1)
-                    },
-                })),
-                payload: IdentifierPat {
-                    id: SourceID::from_usize(6),
-                    name: StrID::from_usize(3)
-                },
+            want: Pattern::EnumVariant(EnumVariantPat {
+                target: None,
+                variant: StrID::from_usize(1),
+                payload: Some(StrID::from_usize(3))
             }),
         },
     );

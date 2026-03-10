@@ -5,7 +5,7 @@ use std::fmt::Debug;
 use std::ops::Deref;
 
 use crate::ast::{
-    self, BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, ReturnStmt, Stmt, UnaryOp,
+    self, BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, ReturnStmt, Stmt, TypeDecl, UnaryOp,
 };
 use crate::hir::{
     ArrayType, EnumType, EnumVariant, FunctionType, NamedType, Node, NodeID, PatternNode,
@@ -463,48 +463,94 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
         Pattern::FloatLiteral(pat) => {
             node_tree.add_node(Node::Pattern(PatternNode::FloatLiteral(*pat)))
         }
-        Pattern::TypeSpec(_) => node_tree.add_node(Node::Pattern(PatternNode::TypeSpec)),
-        Pattern::Payload(pat) => {
-            let payload = &pat.payload;
-            let ident_id = node_tree.add_node(Node::Identifier(payload.name));
+        Pattern::TypeSpec(pat) => {
+            if let Some(p) = pat.payload {
+                let ident = node_tree.add_node(Node::Identifier(p));
+                node_tree.add_node(Node::VarDecl { ident });
 
-            let scope_pos = module
-                .get_scope_pos(payload.id)
-                .expect("missing source position for the payload");
-            let binding = module
-                .find_binding(scope_pos, payload.name)
-                .expect("missing binding for payload");
+                let type_spec = node_type_spec(module, &pat.type_spec);
+                node_tree.type_map.add(ident, type_spec);
+            }
 
-            node_tree.symbol_map.add(binding.id, ident_id);
-
-            let pat_id = node_pattern(node_tree, module, &pat.pat);
-            node_tree.add_node(Node::Pattern(PatternNode::Payload {
-                pat: pat_id,
-                payload_ident: ident_id,
-            }))
+            // TODO: the HIR type spec needs to support payloads now
+            node_tree.add_node(Node::Pattern(PatternNode::TypeSpec))
         }
-        Pattern::ModuleAccess(pat) => {
-            let pat_id = node_pattern(node_tree, module, &pat.pat);
-            node_tree.add_node(Node::Pattern(PatternNode::ModuleAccess {
-                module: pat.module.name,
-                pat: pat_id,
-            }))
-        }
-        Pattern::DotAccess(pat) => {
-            let target_id = pat
-                .target
-                .clone()
-                .map(|t| node_pattern(node_tree, module, &t));
+        Pattern::EnumVariant(pat) => {
+            let mut target_id = None;
+            if let Some(t) = &pat.target {
+                let scope_pos = module
+                    .get_scope_pos(t.id)
+                    .expect("missing scope information for pattern expression");
 
+                let binding = module
+                    .find_binding(scope_pos, t.name)
+                    .expect("missing binding for enum variaiant target");
+
+                let target_node = node_tree
+                    .symbol_map
+                    .get(binding.id)
+                    .expect("failed to find original node for enum variant target");
+
+                target_id = Some(*target_node);
+            }
+
+            if let Some(p) = pat.payload {
+                node_tree.add_node(Node::Identifier(p));
+            }
+
+            // TODO: the dot access pattern needs to become an enum variant patter and it needs to
+            // support having a payload
             node_tree.add_node(Node::Pattern(PatternNode::DotAccess {
                 target: target_id,
-                field: pat.field.name,
+                field: pat.variant,
             }))
         }
-        Pattern::Identifier(pat) => {
-            let ident_id = node_tree.add_node(Node::Identifier(pat.name));
-            node_tree.add_node(Node::Pattern(PatternNode::Identifier(ident_id)))
-        }
+        Pattern::Identifier(pat) => match pat.payload {
+            Some(p) => {
+                let payload_id = node_tree.add_node(Node::Identifier(p));
+                node_tree.add_node(Node::VarDecl { ident: payload_id });
+
+                // if this is an identifier with a pattern, assume this is a type spec and look up
+                // the correct node to use instead of creating a new identifier node
+                let scope_pos = module
+                    .get_scope_pos(pat.id)
+                    .expect("missing scope position for identifier patter");
+                let binding = module
+                    .find_binding(scope_pos, pat.name)
+                    .expect("failed to find binding for identifier pattern");
+                match binding.binding_type {
+                    BindingType::TypeDecl(_) => {}
+                    BindingType::FuncDecl(_) => {
+                        panic!("Identifier references a function type, not a type spec")
+                    }
+                    BindingType::ValueDecl => panic!("Identifier references a value, not a type"),
+                }
+
+                let node_id = node_tree
+                    .symbol_map
+                    .get(binding.id)
+                    .expect("failed to original binding for identifier");
+
+                // TODO: add the paylaod to the type spec pattern
+                let type_spec = node_tree
+                    .type_map
+                    .get(*node_id)
+                    .expect("missing type spec for declared type")
+                    .clone();
+
+                let pattern_node_id = node_tree.add_node(Node::Pattern(PatternNode::TypeSpec));
+                node_tree.type_map.add(pattern_node_id, type_spec.clone());
+                node_tree.type_map.add(payload_id, type_spec.clone());
+
+                pattern_node_id
+            }
+            None => {
+                let ident_id = node_tree.add_node(Node::Identifier(pat.name));
+                node_tree.add_node(Node::VarDecl { ident: ident_id });
+
+                node_tree.add_node(Node::Pattern(PatternNode::Identifier(ident_id)))
+            }
+        },
         Pattern::Default => node_tree.add_node(Node::Pattern(PatternNode::Default)),
     }
 }
@@ -515,154 +561,97 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
     let value_id = node_expr(node_tree, module, &stmt.value);
 
     match &stmt.pattern {
-        Pattern::Identifier(ident) => {
-            //
-            // let ident = value
-            //
-            // becomes:
-            //
-            // decl ident
-            // ident = value
+        Pattern::Identifier(pat) => {
+            if let Some(p) = pat.payload {
+                //
+                // let ident(p) = value or(e) { ... }
+                //
+                // becomes:
+                //
+                // decl outer_p
+                // match value {
+                //     ident(inner_p) { outer_p = inner_p }
+                //     e              { ... }
+                // }
 
-            if stmt.except != LetExcept::None {
-                panic!(
-                    "identifier expressions can never faile and should not have an except handle"
-                )
+                if stmt.except == LetExcept::None {
+                    panic!("let statement needs an exception handler")
+                }
+
+                let outer_ident = node_tree.add_node(Node::Identifier(p));
+                nodes.push(node_tree.add_node(Node::VarDecl { ident: outer_ident }));
+
+                let scope_pos = module
+                    .get_scope_pos(pat.id)
+                    .expect("missing scope position for identifier pattern");
+                let binding = module
+                    .find_binding(scope_pos, pat.name)
+                    .expect("missing binding for identifier pattern");
+                node_tree.symbol_map.add(binding.id, outer_ident);
+
+                // TODO: once we support payloads in the hir patterns we need to assign inner p to
+                // outer p and add that to the body
+                let pat_id = node_pattern(node_tree, module, &stmt.pattern);
+                let arm_body = node_tree.add_node(Node::Block { statements: vec![] });
+                let arm_id = node_tree.add_node(Node::MatchArm {
+                    pattern: pat_id,
+                    body: arm_body,
+                });
+                arms.push(arm_id)
+            } else {
+                //
+                // let ident = value
+                //
+                // becomes:
+                //
+                // decl ident
+                // ident = value
+
+                if stmt.except != LetExcept::None {
+                    panic!(
+                        "identifier expressions can never fail and should not have an exception handler"
+                    )
+                }
+
+                let ident_id = node_tree.add_node(Node::Identifier(pat.name));
+                nodes.push(node_tree.add_node(Node::VarDecl { ident: ident_id }));
+
+                let scope_pos = module
+                    .get_scope_pos(pat.id)
+                    .expect("missing scope_posfor function");
+                let binding = module
+                    .find_binding(scope_pos, pat.name)
+                    .expect("missing binding for function");
+
+                node_tree.symbol_map.add(binding.id, ident_id);
+
+                let assign_id = node_tree.add_node(Node::Assign {
+                    target: ident_id,
+                    value: value_id,
+                });
+                nodes.push(assign_id);
+                return nodes;
             }
-
-            let ident_id = node_tree.add_node(Node::Identifier(ident.name));
-            nodes.push(node_tree.add_node(Node::VarDecl { ident: ident_id }));
-
-            let scope_pos = module
-                .get_scope_pos(ident.id)
-                .expect("missing scope_posfor function");
-            let binding = module
-                .find_binding(scope_pos, ident.name)
-                .expect("missing binding for function");
-
-            node_tree.symbol_map.add(binding.id, ident_id);
-
-            let assign_id = node_tree.add_node(Node::Assign {
-                target: ident_id,
-                value: value_id,
-            });
-            nodes.push(assign_id);
-
-            return nodes;
         }
-        Pattern::Payload(pat) => {
-            //
-            // let Pat(ident) = value or(e) { ... }
-            //
-            // becomes:
-            //
-            // decl ident
-            // match {
-            //     Pat(<inner let>) { ident = <inner let> }
-            //     e                { ... }
-            // }
-
-            match pat.pat.deref() {
-                Pattern::TypeSpec(_) => { /* type specs are valid payload patterns */ }
-                Pattern::DotAccess(dot) => {
-                    // if the dot access has a target, make sure it's for a valid binding
-                    match &dot.target {
-                        Some(pat) => match pat.deref() {
-                            Pattern::Identifier(ident) => {
-                                let scope_pos = module.get_scope_pos(ident.id).expect(
-                                    "missing scope position for identifier payload pattern",
-                                );
-                                let binding = module.find_binding(scope_pos, ident.name).expect(
-                                    "failed to find binding for pattern payload identifier",
-                                );
-                                if !matches!(binding.binding_type, BindingType::TypeDecl(_)) {
-                                    panic!("identifier is not a valid type: binding({:?})", binding)
-                                }
-                            }
-                            Pattern::ModuleAccess(_) => {
-                                todo!("modules are not yet supported in patterns")
-                            }
-                            _ => panic!("invalid type for dot access target"),
-                        },
-                        None => { /* just assume we're good and catch things in the type checker*/ }
-                    }
-                }
-                Pattern::Identifier(ident) => {
-                    // is this identifier a type declaration? Otherwise it's not valid
-                    let scope_pos = module
-                        .get_scope_pos(ident.id)
-                        .expect("missing scope position for identifier payload pattern");
-                    let binding = module
-                        .find_binding(scope_pos, ident.name)
-                        .expect("failed to find binding for pattern payload identifier");
-                    match binding.binding_type {
-                        BindingType::TypeDecl(_) => { /* this identifier references a type so technically it's a TypeSpec pattern */
-                        }
-                        _ => panic!("identifier is not a valid type: binding({:?})", binding),
-                    };
-                }
-                Pattern::Payload(_) => todo!("nested payload patterns are not yet support"),
-                Pattern::ModuleAccess(_) => todo!("modules are not yet supported"),
-
-                Pattern::IntLiteral(_) => panic!("int literals are not valid payload patterns"),
-                Pattern::StringLiteral(_) => {
-                    panic!("string literals are not valid payload patterns")
-                }
-                Pattern::BoolLiteral(_) => panic!("bool literals are not valid payload patterns"),
-                Pattern::FloatLiteral(_) => panic!("float literals are not valid payload patterns"),
-                Pattern::Default => panic!("default pattern can not be used in payload patterns"),
-            };
-
-            // ouside variable declaration
-            let name = pat.payload.name;
-            let ident_id = node_tree.add_node(Node::Identifier(name));
-            nodes.push(node_tree.add_node(Node::VarDecl { ident: ident_id }));
-
-            let scope_pos = module
-                .get_scope_pos(pat.payload.id)
-                .expect("missing scope_posfor function");
-            let binding = module
-                .find_binding(scope_pos, name)
-                .expect("missing binding for function");
-
-            node_tree.symbol_map.add(binding.id, ident_id);
-
-            // rebuild the pattern to use the same inner pattern and a new <inner let> payload
-            let inner_ident_id = node_tree.add_node(Node::Identifier(str_store::INNERLET));
-            let inner_pat_id = node_pattern(node_tree, module, &pat.pat);
-            let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Payload {
-                pat: inner_pat_id,
-                payload_ident: inner_ident_id,
-            }));
-
-            // set up the inner assignment using the identifer node created above
-            let assign_id = node_tree.add_node(Node::Assign {
-                target: ident_id,
-                value: inner_ident_id,
-            });
-
-            // create the match arm for the successful let match
-            let arm_id = node_tree.add_node(Node::MatchArm {
-                pattern: pat_id,
-                body: assign_id,
-            });
-
-            arms.push(arm_id);
-        }
+        Pattern::TypeSpec(pat) => { /* TODO: need to support this*/ }
+        Pattern::EnumVariant(pat) => { /* TODO: need to support this*/ }
         _ => {
             //
-            // let Pat = value or(e) { ... }
+            // let .variant(p) = value or(e) { ... }
             //
             // becomes:
             //
-            // match {
-            //     Pat { }
-            //     e   { ... }
+            // decl outer_p
+            // match value {
+            //     .variant(inner_p) { outer_p = inner_p }
+            //     e              { ... }
             // }
 
             if stmt.except == LetExcept::None {
                 panic!("let statement needs an exception handler")
             }
+
+            // TODO: make sure we support payload
 
             let pat_id = node_pattern(node_tree, module, &stmt.pattern);
             let empty_body = node_tree.add_node(Node::Block { statements: vec![] });
@@ -932,10 +921,12 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
                 .find_binding(scope_pos, expr.name)
                 .expect("failed to find binding for identifier expression");
 
+            eprintln!("\n\tname: {:?}", expr.name);
             let ident_id = node_tree
                 .symbol_map
                 .get(binding.id)
                 .expect("unknown identifier in expression check");
+            eprintln!("\tok");
 
             *ident_id
         }
@@ -1061,7 +1052,6 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
                 }
             }
         }
-        Expr::ModuleAccess(_expr) => todo!("modules are not yet supported"),
         Expr::MetaType(_expr) => {
             let node_id = node_tree.add_node(Node::MetaType);
             node_tree.type_map.add(

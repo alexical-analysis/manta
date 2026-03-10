@@ -52,7 +52,9 @@
                 "pattern": {
                   "Identifier": {
                     "id": 196,
-                    "name": 13
+                    "name": 13,
+                    "module": null,
+                    "payload": null
                   }
                 },
                 "value": {
@@ -66,6 +68,7 @@
                 "check": {
                   "Identifier": {
                     "id": 222,
+                    "module": null,
                     "name": 13
                   }
                 },
@@ -79,6 +82,7 @@
                             "func": {
                               "Identifier": {
                                 "id": 243,
+                                "module": null,
                                 "name": 8
                               }
                             },
@@ -101,7 +105,9 @@
                 "pattern": {
                   "Identifier": {
                     "id": 277,
-                    "name": 18
+                    "name": 18,
+                    "module": null,
+                    "payload": null
                   }
                 },
                 "value": {
@@ -117,6 +123,7 @@
                     "left": {
                       "Identifier": {
                         "id": 294,
+                        "module": null,
                         "name": 18
                       }
                     },
@@ -136,6 +143,7 @@
                             "func": {
                               "Identifier": {
                                 "id": 314,
+                                "module": null,
                                 "name": 8
                               }
                             },
@@ -160,6 +168,7 @@
                             "func": {
                               "Identifier": {
                                 "id": 353,
+                                "module": null,
                                 "name": 8
                               }
                             },

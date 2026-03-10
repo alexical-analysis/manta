@@ -239,20 +239,10 @@
             {
               "Let": {
                 "pattern": {
-                  "Payload": {
-                    "pat": {
-                      "DotAccess": {
-                        "target": null,
-                        "field": {
-                          "id": 969,
-                          "name": 14
-                        }
-                      }
-                    },
-                    "payload": {
-                      "id": 972,
-                      "name": 22
-                    }
+                  "EnumVariant": {
+                    "target": null,
+                    "variant": 14,
+                    "payload": 22
                   }
                 },
                 "value": {
@@ -260,6 +250,7 @@
                     "func": {
                       "Identifier": {
                         "id": 977,
+                        "module": null,
                         "name": 17
                       }
                     },
@@ -267,6 +258,7 @@
                       {
                         "Identifier": {
                           "id": 985,
+                          "module": null,
                           "name": 18
                         }
                       }
@@ -295,6 +287,7 @@
                             "func": {
                               "Identifier": {
                                 "id": 1017,
+                                "module": null,
                                 "name": 21
                               }
                             },
@@ -302,6 +295,7 @@
                               {
                                 "Identifier": {
                                   "id": 1026,
+                                  "module": null,
                                   "name": 22
                                 }
                               }
@@ -317,16 +311,11 @@
             {
               "Let": {
                 "pattern": {
-                  "Payload": {
-                    "pat": {
-                      "TypeSpec": {
-                        "Slice": "UInt8"
-                      }
+                  "TypeSpec": {
+                    "type_spec": {
+                      "Slice": "UInt8"
                     },
-                    "payload": {
-                      "id": 1045,
-                      "name": 26
-                    }
+                    "payload": 26
                   }
                 },
                 "value": {
@@ -356,6 +345,7 @@
                             "expr": {
                               "Identifier": {
                                 "id": 1084,
+                                "module": null,
                                 "name": 26
                               }
                             }
@@ -370,20 +360,10 @@
             {
               "Let": {
                 "pattern": {
-                  "Payload": {
-                    "pat": {
-                      "DotAccess": {
-                        "target": null,
-                        "field": {
-                          "id": 1101,
-                          "name": 14
-                        }
-                      }
-                    },
-                    "payload": {
-                      "id": 1104,
-                      "name": 42
-                    }
+                  "EnumVariant": {
+                    "target": null,
+                    "variant": 14,
+                    "payload": 42
                   }
                 },
                 "value": {
@@ -391,6 +371,7 @@
                     "func": {
                       "Identifier": {
                         "id": 1109,
+                        "module": null,
                         "name": 24
                       }
                     },
@@ -398,12 +379,14 @@
                       {
                         "Identifier": {
                           "id": 1118,
+                          "module": null,
                           "name": 22
                         }
                       },
                       {
                         "Identifier": {
                           "id": 1121,
+                          "module": null,
                           "name": 26
                         }
                       }
@@ -926,14 +909,6 @@
         "scope_id": 8,
         "scope_depth": 0
       },
-      "969": {
-        "scope_id": 8,
-        "scope_depth": 1
-      },
-      "972": {
-        "scope_id": 8,
-        "scope_depth": 1
-      },
       "977": {
         "scope_id": 8,
         "scope_depth": 1
@@ -954,10 +929,6 @@
         "scope_id": 9,
         "scope_depth": 0
       },
-      "1045": {
-        "scope_id": 8,
-        "scope_depth": 2
-      },
       "1077": {
         "scope_id": 10,
         "scope_depth": 0
@@ -965,14 +936,6 @@
       "1084": {
         "scope_id": 10,
         "scope_depth": 0
-      },
-      "1101": {
-        "scope_id": 8,
-        "scope_depth": 3
-      },
-      "1104": {
-        "scope_id": 8,
-        "scope_depth": 3
       },
       "1109": {
         "scope_id": 8,

@@ -1,8 +1,8 @@
 use super::Precedence;
-use crate::ast::{Expr, ModuleAccessExpr};
+use crate::ast::{Expr, IdentifierExpr};
 use crate::parser::ParseError;
 use crate::parser::expression::{ExprParser, InfixExprParselet};
-use crate::parser::lexer::{Lexer, Token};
+use crate::parser::lexer::{Lexer, Token, TokenKind};
 
 /// Parses module access expressions.
 ///
@@ -12,25 +12,34 @@ pub struct ModuleAccessParselet;
 impl InfixExprParselet for ModuleAccessParselet {
     fn parse(
         &self,
-        parser: &ExprParser,
+        _parser: &ExprParser,
         lexer: &mut Lexer,
         left: Expr,
         token: Token,
     ) -> Result<Expr, ParseError> {
-        match left {
-            Expr::Identifier(left) => {
-                let expr = parser.parse(lexer, Precedence::Base)?;
-
-                Ok(Expr::ModuleAccess(ModuleAccessExpr {
-                    module: left.name,
-                    expr: Box::new(expr),
-                }))
-            }
-            _ => Err(ParseError::InvalidExpression(
+        let right = lexer.next_token();
+        if right.kind != TokenKind::Identifier {
+            return Err(ParseError::InvalidExpression(
                 token,
-                "module identifiers must be identifiers".to_string(),
-            )),
+                "expecting an identifier".to_string(),
+            ));
         }
+
+        let left = match left {
+            Expr::Identifier(left) => left,
+            _ => {
+                return Err(ParseError::InvalidExpression(
+                    token,
+                    "module names must be identifiers".to_string(),
+                ));
+            }
+        };
+
+        Ok(Expr::Identifier(IdentifierExpr {
+            id: token.source_id,
+            module: Some(left.name),
+            name: right.lexeme_id,
+        }))
     }
 
     fn precedence(&self) -> Precedence {

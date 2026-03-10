@@ -434,6 +434,7 @@ mod tests {
                     operator: UnaryOp::Dereference,
                     operand: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(1),
+                        module: None,
                         name: StrID::from_usize(1)
                     })),
                 },
@@ -448,6 +449,7 @@ mod tests {
                     operator: UnaryOp::AddressOf,
                     operand: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(1),
+                        module: None,
                         name: StrID::from_usize(1)
                     })),
                 },
@@ -464,6 +466,7 @@ mod tests {
                         operator: UnaryOp::Dereference,
                         operand: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(2),
+                            module: None,
                             name: StrID::from_usize(1)
                         })),
                     })),
@@ -481,6 +484,7 @@ mod tests {
                         operator: UnaryOp::Not,
                         operand: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(2),
+                            module: None,
                             name: StrID::from_usize(2)
                         })),
                     })),
@@ -496,6 +500,7 @@ mod tests {
                     operator: UnaryOp::Negate,
                     operand: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(2),
+                        module: None,
                         name: StrID::from_usize(2)
                     })),
                 },
@@ -512,6 +517,7 @@ mod tests {
                         operator: UnaryOp::Not,
                         operand: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(3),
+                            module: None,
                             name: StrID::from_usize(3)
                         })),
                     })),
@@ -618,11 +624,13 @@ mod tests {
                 BinaryExpr {
                     left: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(0),
+                        module: None,
                         name: StrID::from_usize(0)
                     })),
                     operator: BinaryOp::Equal,
                     right: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(5),
+                        module: None,
                         name: StrID::from_usize(2)
                     })),
                 }
@@ -636,11 +644,13 @@ mod tests {
                 BinaryExpr {
                     left: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(0),
+                        module: None,
                         name: StrID::from_usize(0)
                     })),
                     operator: BinaryOp::NotEqual,
                     right: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(5),
+                        module: None,
                         name: StrID::from_usize(2)
                     })),
                 },
@@ -656,6 +666,7 @@ mod tests {
                     operator: BinaryOp::LessThan,
                     right: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(4),
+                        module: None,
                         name: StrID::from_usize(2)
                     })),
                 },
@@ -669,11 +680,13 @@ mod tests {
                 BinaryExpr {
                     left: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(0),
+                        module: None,
                         name: StrID::from_usize(0)
                     })),
                     operator: BinaryOp::GreaterThan,
                     right: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(4),
+                        module: None,
                         name: StrID::from_usize(2)
                     })),
                 },
@@ -687,11 +700,13 @@ mod tests {
                 BinaryExpr {
                     left: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(0),
+                        module: None,
                         name: StrID::from_usize(0)
                     })),
                     operator: BinaryOp::LessThanOrEqual,
                     right: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(5),
+                        module: None,
                         name: StrID::from_usize(2)
                     })),
                 },
@@ -705,6 +720,7 @@ mod tests {
                 BinaryExpr {
                     left: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(0),
+                        module: None,
                         name: StrID::from_usize(0)
                     })),
                     operator: BinaryOp::GreaterThanOrEqual,
@@ -723,6 +739,7 @@ mod tests {
                         operator: BinaryOp::Equal,
                         right: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(8),
+                            module: None,
                             name: StrID::from_usize(2)
                         })),
                     })),
@@ -732,6 +749,7 @@ mod tests {
                         operator: BinaryOp::NotEqual,
                         right: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(21),
+                            module: None,
                             name: StrID::from_usize(6)
                         })),
                     })),
@@ -751,6 +769,7 @@ mod tests {
                         operator: BinaryOp::BitwiseAnd,
                         right: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(8),
+                            module: None,
                             name: StrID::from_usize(4)
                         })),
                     })),
@@ -765,6 +784,7 @@ mod tests {
                 CallExpr {
                     func: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(0),
+                        module: None,
                         name: StrID::from_usize(0)
                     })),
                     args: vec![],
@@ -779,12 +799,14 @@ mod tests {
                 CallExpr {
                     func: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(0),
+                        module: None,
                         name: StrID::from_usize(0)
                     })),
                     args: vec![Expr::Unary(UnaryExpr {
                         operator: UnaryOp::Dereference,
                         operand: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(13),
+                            module: None,
                             name: StrID::from_usize(3)
                         })),
                     })],
@@ -799,12 +821,14 @@ mod tests {
                 CallExpr {
                     func: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(0),
+                        module: None,
                         name: StrID::from_usize(0)
                     })),
                     args: vec![
                         Expr::IntLiteral(1),
                         Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(7),
+                            module: None,
                             name: StrID::from_usize(4)
                         }),
                         Expr::IntLiteral(3),
@@ -820,6 +844,7 @@ mod tests {
                 IndexExpr {
                     target: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(0),
+                        module: None,
                         name: StrID::from_usize(0)
                     })),
                     index: Box::new(Expr::IntLiteral(5)),
@@ -834,11 +859,13 @@ mod tests {
                 IndexExpr {
                     target: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(0),
+                        module: None,
                         name: StrID::from_usize(0)
                     })),
                     index: Box::new(Expr::Binary(BinaryExpr {
                         left: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(7),
+                            module: None,
                             name: StrID::from_usize(2)
                         })),
                         operator: BinaryOp::Add,
@@ -855,15 +882,18 @@ mod tests {
                 IndexExpr {
                     target: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(0),
+                        module: None,
                         name: StrID::from_usize(0)
                     })),
                     index: Box::new(Expr::Index(IndexExpr {
                         target: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(5),
+                            module: None,
                             name: StrID::from_usize(2)
                         })),
                         index: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(10),
+                            module: None,
                             name: StrID::from_usize(3)
                         })),
                     })),
@@ -880,20 +910,24 @@ mod tests {
                         target: Box::new(Expr::Index(IndexExpr {
                             target: Box::new(Expr::Identifier(IdentifierExpr {
                                 id: SourceID::from_usize(0),
+                                module: None,
                                 name: StrID::from_usize(0)
                             })),
                             index: Box::new(Expr::Identifier(IdentifierExpr {
                                 id: SourceID::from_usize(7),
+                                module: None,
                                 name: StrID::from_usize(2)
                             })),
                         })),
                         index: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(10),
+                            module: None,
                             name: StrID::from_usize(4)
                         })),
                     })),
                     index: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(13),
+                        module: None,
                         name: StrID::from_usize(5)
                     })),
                 },
@@ -907,6 +941,7 @@ mod tests {
                 DotAccessExpr {
                     target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(0),
+                        module: None,
                         name: StrID::from_usize(0)
                     }))),
                     field: StrID::from_usize(2),
@@ -922,6 +957,7 @@ mod tests {
                     target: Some(Box::new(Expr::DotAccess(DotAccessExpr {
                         target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(0),
+                            module: None,
                             name: StrID::from_usize(0)
                         }))),
                         field: StrID::from_usize(2),
@@ -939,6 +975,7 @@ mod tests {
                     target: Some(Box::new(Expr::Index(IndexExpr {
                         target: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(0),
+                            module: None,
                             name: StrID::from_usize(0)
                         })),
                         index: Box::new(Expr::IntLiteral(0)),
@@ -957,6 +994,7 @@ mod tests {
                         func: Box::new(Expr::DotAccess(DotAccessExpr {
                             target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                                 id: SourceID::from_usize(0),
+                                module: None,
                                 name: StrID::from_usize(0)
                             }))),
                             field: StrID::from_usize(2),
@@ -1051,6 +1089,7 @@ mod tests {
                 FreeExpr {
                     expr: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(5),
+                        module: None,
                         name: StrID::from_usize(2)
                     })),
                 }
@@ -1066,6 +1105,7 @@ mod tests {
                         target: Some(Box::new(Expr::DotAccess(DotAccessExpr {
                             target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                                 id: SourceID::from_usize(5),
+                                module: None,
                                 name: StrID::from_usize(2)
                             }))),
                             field: StrID::from_usize(4),
@@ -1094,6 +1134,7 @@ mod tests {
                 BinaryExpr {
                     left: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(0),
+                        module: None,
                         name: StrID::from_usize(0)
                     })),
                     operator: BinaryOp::Equal,
@@ -1222,11 +1263,13 @@ mod tests {
                 CallExpr {
                     func: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(0),
+                        module: None,
                         name: StrID::from_usize(0)
                     })),
                     args: vec![Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(4),
+                            module: None,
                             name: StrID::from_usize(2)
                         })),
 

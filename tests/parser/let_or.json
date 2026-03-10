@@ -264,20 +264,10 @@
             {
               "Let": {
                 "pattern": {
-                  "Payload": {
-                    "pat": {
-                      "DotAccess": {
-                        "target": null,
-                        "field": {
-                          "id": 1094,
-                          "name": 16
-                        }
-                      }
-                    },
-                    "payload": {
-                      "id": 1097,
-                      "name": 24
-                    }
+                  "EnumVariant": {
+                    "target": null,
+                    "variant": 16,
+                    "payload": 24
                   }
                 },
                 "value": {
@@ -285,6 +275,7 @@
                     "func": {
                       "Identifier": {
                         "id": 1102,
+                        "module": null,
                         "name": 19
                       }
                     },
@@ -292,6 +283,7 @@
                       {
                         "Identifier": {
                           "id": 1110,
+                          "module": null,
                           "name": 20
                         }
                       }
@@ -320,6 +312,7 @@
                             "func": {
                               "Identifier": {
                                 "id": 1142,
+                                "module": null,
                                 "name": 23
                               }
                             },
@@ -327,6 +320,7 @@
                               {
                                 "Identifier": {
                                   "id": 1151,
+                                  "module": null,
                                   "name": 24
                                 }
                               }
@@ -342,20 +336,10 @@
             {
               "Let": {
                 "pattern": {
-                  "Payload": {
-                    "pat": {
-                      "DotAccess": {
-                        "target": null,
-                        "field": {
-                          "id": 1166,
-                          "name": 16
-                        }
-                      }
-                    },
-                    "payload": {
-                      "id": 1169,
-                      "name": 28
-                    }
+                  "EnumVariant": {
+                    "target": null,
+                    "variant": 16,
+                    "payload": 28
                   }
                 },
                 "value": {
@@ -363,6 +347,7 @@
                     "func": {
                       "Identifier": {
                         "id": 1174,
+                        "module": null,
                         "name": 26
                       }
                     },
@@ -370,6 +355,7 @@
                       {
                         "Identifier": {
                           "id": 1192,
+                          "module": null,
                           "name": 24
                         }
                       }
@@ -400,6 +386,7 @@
                       {
                         "Identifier": {
                           "id": 1224,
+                          "module": null,
                           "name": 28
                         }
                       }
@@ -435,20 +422,10 @@
             {
               "Let": {
                 "pattern": {
-                  "Payload": {
-                    "pat": {
-                      "DotAccess": {
-                        "target": null,
-                        "field": {
-                          "id": 1282,
-                          "name": 16
-                        }
-                      }
-                    },
-                    "payload": {
-                      "id": 1285,
-                      "name": 38
-                    }
+                  "EnumVariant": {
+                    "target": null,
+                    "variant": 16,
+                    "payload": 38
                   }
                 },
                 "value": {
@@ -456,6 +433,7 @@
                     "func": {
                       "Identifier": {
                         "id": 1296,
+                        "module": null,
                         "name": 32
                       }
                     },
@@ -480,6 +458,7 @@
                                 "func": {
                                   "Identifier": {
                                     "id": 1336,
+                                    "module": null,
                                     "name": 27
                                   }
                                 },
@@ -510,6 +489,7 @@
                     "func": {
                       "Identifier": {
                         "id": 1388,
+                        "module": null,
                         "name": 27
                       }
                     },
@@ -517,6 +497,7 @@
                       {
                         "Identifier": {
                           "id": 1400,
+                          "module": null,
                           "name": 38
                         }
                       }
@@ -528,20 +509,10 @@
             {
               "Let": {
                 "pattern": {
-                  "Payload": {
-                    "pat": {
-                      "DotAccess": {
-                        "target": null,
-                        "field": {
-                          "id": 1481,
-                          "name": 16
-                        }
-                      }
-                    },
-                    "payload": {
-                      "id": 1484,
-                      "name": 38
-                    }
+                  "EnumVariant": {
+                    "target": null,
+                    "variant": 16,
+                    "payload": 38
                   }
                 },
                 "value": {
@@ -549,6 +520,7 @@
                     "func": {
                       "Identifier": {
                         "id": 1495,
+                        "module": null,
                         "name": 32
                       }
                     },
@@ -569,6 +541,7 @@
                     "func": {
                       "Identifier": {
                         "id": 1531,
+                        "module": null,
                         "name": 27
                       }
                     },
@@ -576,6 +549,7 @@
                       {
                         "Identifier": {
                           "id": 1543,
+                          "module": null,
                           "name": 38
                         }
                       }
@@ -1150,14 +1124,6 @@
         "scope_id": 10,
         "scope_depth": 0
       },
-      "1094": {
-        "scope_id": 10,
-        "scope_depth": 1
-      },
-      "1097": {
-        "scope_id": 10,
-        "scope_depth": 1
-      },
       "1102": {
         "scope_id": 10,
         "scope_depth": 1
@@ -1178,14 +1144,6 @@
         "scope_id": 11,
         "scope_depth": 0
       },
-      "1166": {
-        "scope_id": 10,
-        "scope_depth": 2
-      },
-      "1169": {
-        "scope_id": 10,
-        "scope_depth": 2
-      },
       "1174": {
         "scope_id": 10,
         "scope_depth": 2
@@ -1205,14 +1163,6 @@
       "1271": {
         "scope_id": 13,
         "scope_depth": 0
-      },
-      "1282": {
-        "scope_id": 13,
-        "scope_depth": 1
-      },
-      "1285": {
-        "scope_id": 13,
-        "scope_depth": 1
       },
       "1296": {
         "scope_id": 13,
@@ -1237,14 +1187,6 @@
       "1400": {
         "scope_id": 13,
         "scope_depth": 1
-      },
-      "1481": {
-        "scope_id": 13,
-        "scope_depth": 2
-      },
-      "1484": {
-        "scope_id": 13,
-        "scope_depth": 2
       },
       "1495": {
         "scope_id": 13,
