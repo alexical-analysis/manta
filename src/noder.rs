@@ -463,36 +463,56 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
         Pattern::FloatLiteral(pat) => {
             node_tree.add_node(Node::Pattern(PatternNode::FloatLiteral(*pat)))
         }
-        Pattern::TypeSpec(_) => node_tree.add_node(Node::Pattern(PatternNode::TypeSpec)),
-        Pattern::Payload(pat) => {
-            let payload = &pat.payload;
-            let ident_id = node_tree.add_node(Node::Identifier(payload.name));
-
-            let scope_pos = module
-                .get_scope_pos(payload.id)
-                .expect("missing source position for the payload");
-            let binding = module
-                .find_binding(scope_pos, payload.name)
-                .expect("missing binding for payload");
-
-            node_tree.symbol_map.add(binding.id, ident_id);
-
-            let pat_id = node_pattern(node_tree, module, &pat.pat);
-            node_tree.add_node(Node::Pattern(PatternNode::Payload {
-                pat: pat_id,
-                payload_ident: ident_id,
-            }))
+        Pattern::TypeSpec(pat) => {
+            todo!("handl the optional payload");
+            node_tree.add_node(Node::Pattern(PatternNode::TypeSpec));
         }
-        Pattern::EnumVariant(pat) => {
-            todo!("fix")
-            let target_id = pat.target.clone().map(|t| node_expr(node_tree, module, &t));
+        //Pattern::Payload(pat) => {
+        //    let payload = &pat.payload;
+        //    let ident_id = node_tree.add_node(Node::Identifier(payload.name));
 
+        //    let scope_pos = module
+        //        .get_scope_pos(payload.id)
+        //        .expect("missing source position for the payload");
+        //    let binding = module
+        //        .find_binding(scope_pos, payload.name)
+        //        .expect("missing binding for payload");
+
+        //    node_tree.symbol_map.add(binding.id, ident_id);
+
+        //    let pat_id = node_pattern(node_tree, module, &pat.pat);
+        //    node_tree.add_node(Node::Pattern(PatternNode::Payload {
+        //        pat: pat_id,
+        //        payload_ident: ident_id,
+        //    }))
+        //}
+        Pattern::EnumVariant(pat) => {
+            let mut target_id = None;
+            if let Some(t) = &pat.target {
+                let scope_pos = module
+                    .get_scope_pos(t.id)
+                    .expect("missing scope information for pattern expression");
+
+                let binding = module
+                    .find_binding(scope_pos, t.name)
+                    .expect("missing binding for enum variaiant target");
+
+                let target_node = node_tree
+                    .symbol_map
+                    .get(binding.id)
+                    .expect("failed to find original node for enum variant target");
+
+                target_id = Some(target_node.clone());
+            }
+
+            todo!("handle the payload maybe");
             node_tree.add_node(Node::Pattern(PatternNode::DotAccess {
                 target: target_id,
                 field: pat.variant,
             }))
         }
         Pattern::Identifier(pat) => {
+            todo!("handle the maybe payload");
             let ident_id = node_tree.add_node(Node::Identifier(pat.name));
             node_tree.add_node(Node::Pattern(PatternNode::Identifier(ident_id)))
         }
@@ -515,34 +535,36 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             // decl ident
             // ident = value
 
-            todo!("need to support the new payload that the ident may have.");
-            todo!("also need to check if the ident referes to a type");
+            if pat.payload.is_some() {
+                todo!("figure out this branch")
+            } else {
+                todo!("this could be a type assertion, we don't know yet...");
+                if stmt.except != LetExcept::None {
+                    panic!(
+                        "identifier expressions can never faile and should not have an except handle"
+                    )
+                }
 
-            if stmt.except != LetExcept::None {
-                panic!(
-                    "identifier expressions can never faile and should not have an except handle"
-                )
+                let ident_id = node_tree.add_node(Node::Identifier(pat.name));
+                nodes.push(node_tree.add_node(Node::VarDecl { ident: ident_id }));
+
+                let scope_pos = module
+                    .get_scope_pos(pat.id)
+                    .expect("missing scope_posfor function");
+                let binding = module
+                    .find_binding(scope_pos, pat.name)
+                    .expect("missing binding for function");
+
+                node_tree.symbol_map.add(binding.id, ident_id);
+
+                let assign_id = node_tree.add_node(Node::Assign {
+                    target: ident_id,
+                    value: value_id,
+                });
+                nodes.push(assign_id);
+
+                return nodes;
             }
-
-            let ident_id = node_tree.add_node(Node::Identifier(pat.name));
-            nodes.push(node_tree.add_node(Node::VarDecl { ident: ident_id }));
-
-            let scope_pos = module
-                .get_scope_pos(pat.id)
-                .expect("missing scope_posfor function");
-            let binding = module
-                .find_binding(scope_pos, pat.name)
-                .expect("missing binding for function");
-
-            node_tree.symbol_map.add(binding.id, ident_id);
-
-            let assign_id = node_tree.add_node(Node::Assign {
-                target: ident_id,
-                value: value_id,
-            });
-            nodes.push(assign_id);
-
-            return nodes;
         }
         Pattern::TypeSpec(pat) => todo!("type specs can show up in let expressions"),
         Pattern::EnumVariant(pat) => todo!("enumv variants are classic let expressions"),

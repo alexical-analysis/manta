@@ -163,7 +163,7 @@ pub enum PatternNode {
         pat: NodeID,
     },
     DotAccess {
-        // Always a Pattern node
+        // Always an identifier expression node
         target: Option<NodeID>,
         field: StrID,
     },
