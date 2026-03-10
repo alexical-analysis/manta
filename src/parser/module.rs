@@ -539,9 +539,15 @@ impl Module {
                 for arm in &stmt.arms {
                     sym_table.open_scope(arm.id);
 
-                    if let Pattern::Payload(pat) = &arm.pattern {
-                        sym_table.add_binding(pat.payload.name, BindingType::ValueDecl);
-                        sym_table.add_scope_pos(pat.payload.id);
+                    let payload = match &arm.pattern {
+                        Pattern::Identifier(pat) => pat.payload,
+                        Pattern::EnumVariant(pat) => pat.payload,
+                        Pattern::TypeSpec(pat) => pat.payload,
+                        _ => None,
+                    };
+
+                    if let Some(p) = payload {
+                        sym_table.add_binding(p, BindingType::ValueDecl);
                     }
 
                     Self::build_sym_table_block(errors, sym_table, &arm.body);
@@ -573,49 +579,34 @@ impl Module {
             Pattern::BoolLiteral(_) => { /* no symbols to track */ }
             Pattern::FloatLiteral(_) => { /* no symbols to track */ }
             Pattern::Default => { /* no symbols to track */ }
-            Pattern::TypeSpec(ts) => {
-                Self::build_sym_table_type_spec(errors, sym_table, ts);
-            }
-            Pattern::ModuleAccess(_) => panic!("modules are not yet supported"),
-            Pattern::Payload(pat) => {
-                sym_table.add_binding(pat.payload.name, BindingType::ValueDecl);
-                sym_table.add_scope_pos(pat.payload.id);
-
-                // There are only a couple valid patterns that can appear here so we make sure to
-                // only handle those patterns specifically. Also, their behavior differes slightly
-                // from how the same patterns are treated outside of a payload pattern
-                match &*pat.pat {
-                    Pattern::Identifier(pat) => {
-                        sym_table.add_scope_pos(pat.id);
-                    }
-                    Pattern::ModuleAccess(_) => todo!("modules are not yet supported sorry"),
-                    Pattern::DotAccess(_) => {
-                        Self::build_sym_table_pattern(errors, sym_table, &pat.pat)
-                    }
-                    Pattern::TypeSpec(ts) => {
-                        Self::build_sym_table_type_spec(errors, sym_table, ts);
-                    }
-                    _ => panic!("invalid payload pattern {:?}", pat.pat),
+            Pattern::TypeSpec(pat) => {
+                if let Some(payload) = pat.payload {
+                    sym_table.add_binding(payload, BindingType::ValueDecl);
                 }
-            }
-            Pattern::DotAccess(pat) => {
-                if let Some(target) = &pat.target {
-                    match &**target {
-                        Pattern::Identifier(pat) => {
-                            sym_table.add_scope_pos(pat.id);
-                        }
-                        Pattern::ModuleAccess(_) => todo!("modules are not yet supported sorry"),
-                        Pattern::TypeSpec(ts) => {
-                            Self::build_sym_table_type_spec(errors, sym_table, ts);
-                        }
-                        _ => panic!("invalid dot access target"),
-                    }
-                };
 
-                sym_table.add_scope_pos(pat.field.id);
+                Self::build_sym_table_type_spec(errors, sym_table, &pat.type_spec);
+            }
+            Pattern::EnumVariant(pat) => {
+                if let Some(payload) = pat.payload {
+                    sym_table.add_binding(payload, BindingType::ValueDecl);
+                }
+
+                if let Some(target) = &pat.target {
+                    sym_table.add_scope_pos(target.id);
+                };
             }
             Pattern::Identifier(pat) => {
-                sym_table.add_binding(pat.name, BindingType::ValueDecl);
+                match pat.payload {
+                    Some(p) => {
+                        sym_table.add_binding(p, BindingType::ValueDecl);
+                    }
+                    None => {
+                        sym_table.add_binding(pat.name, BindingType::ValueDecl);
+                    }
+                }
+
+                // TODO: this may only need to be added if there is a payload. Try that out when
+                // the symbole table is more stable
                 sym_table.add_scope_pos(pat.id);
             }
         }
@@ -667,17 +658,6 @@ impl Module {
                 if let Some(target) = &expr.target {
                     Self::build_sym_table_expr(errors, sym_table, target);
                 }
-            }
-            Expr::ModuleAccess(_expr) => {
-                errors.push(ParseError::Custom(
-                    // TODO: use the actual token here
-                    Token {
-                        kind: TokenKind::Identifier,
-                        source_id: SourceID::from_usize(0),
-                        lexeme_id: StrID::from_usize(0),
-                    },
-                    "modules are not yet supported".to_string(),
-                ));
             }
             Expr::MetaType(expr) => {
                 Self::build_sym_table_type_spec(errors, sym_table, &expr.type_spec);

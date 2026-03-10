@@ -260,46 +260,35 @@ pub enum Pattern {
     StringLiteral(StrID),
     BoolLiteral(bool),
     FloatLiteral(f64),
-
-    TypeSpec(TypeSpec),
-
-    Payload(PayloadPat),
-    ModuleAccess(ModuleAccesPat),
-    DotAccess(DotAccessPat),
-
+    TypeSpec(TypeSpecPat),
+    EnumVariant(EnumVariantPat),
     Identifier(IdentifierPat),
-    Default, // the _ pattern
+    Default,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
-pub struct ModuleAccesPat {
-    pub module: Box<IdentifierPat>,
-    pub pat: Box<Pattern>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize)]
-pub struct DotAccessPat {
-    pub target: Option<Box<Pattern>>,
-    pub field: IdentifierPat,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize)]
-pub struct PayloadPat {
-    pub pat: Box<Pattern>,
-    pub payload: IdentifierPat,
+pub struct TypeSpecPat {
+    pub type_spec: TypeSpec,
+    pub payload: Option<StrID>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct EnumVariantPat {
-    pub type_name: Option<StrID>,
-    pub name: StrID,
-    pub payload_binding: Option<StrID>,
+    pub target: Option<IdentifierExpr>,
+    pub variant: StrID,
+    pub payload: Option<StrID>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct IdentifierPat {
     pub id: SourceID,
     pub name: StrID,
+    // identifier patterns in the AST are allowed to have payloads and modules because we don't
+    // actually know yet if the identifier references an existing type name or if it's acting as
+    // a default matching patter. We resolve that in the HIR. Becuase types in Manta are named
+    // with PascalCase it's unlikely that the developer will be confused by this convention
+    pub module: Option<StrID>,
+    pub payload: Option<StrID>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -329,9 +318,6 @@ pub enum Expr {
     // Accessing a field for a struct or enum
     DotAccess(DotAccessExpr),
 
-    // Accessing a member of a module
-    ModuleAccess(ModuleAccessExpr),
-
     // Mete Type expression
     MetaType(MetaTypeExpr),
 
@@ -340,9 +326,10 @@ pub enum Expr {
     Free(FreeExpr),
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct IdentifierExpr {
     pub id: SourceID,
+    pub module: Option<StrID>,
     pub name: StrID,
 }
 
@@ -411,18 +398,6 @@ pub struct DotAccessExpr {
     // this is an option because this can be infered in some contexts
     pub target: Option<Box<Expr>>,
     pub field: StrID,
-}
-
-#[derive(Debug, PartialEq, Serialize)]
-pub struct ModuleAccessExpr {
-    pub module: StrID,
-    pub expr: Box<Expr>,
-}
-
-#[derive(Debug, PartialEq, Serialize)]
-pub struct CastExpr {
-    expr: Box<Expr>,
-    target_type: TypeSpec,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
