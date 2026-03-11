@@ -165,18 +165,15 @@
       "Identifier": 33
     },
     {
-      "Pattern": {
-        "DotAccess": {
-          "target": null,
-          "field": 15
-        }
+      "VarDecl": {
+        "ident": 30
       }
     },
     {
       "Pattern": {
-        "Payload": {
-          "pat": 31,
-          "payload_ident": 30
+        "DotAccess": {
+          "target": null,
+          "field": 15
         }
       }
     },

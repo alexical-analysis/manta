@@ -69,18 +69,15 @@
       "Identifier": 26
     },
     {
-      "Pattern": {
-        "DotAccess": {
-          "target": null,
-          "field": 20
-        }
+      "VarDecl": {
+        "ident": 14
       }
     },
     {
       "Pattern": {
-        "Payload": {
-          "pat": 15,
-          "payload_ident": 14
+        "DotAccess": {
+          "target": null,
+          "field": 20
         }
       }
     },
@@ -120,18 +117,15 @@
       "Identifier": 23
     },
     {
-      "Pattern": {
-        "DotAccess": {
-          "target": null,
-          "field": 21
-        }
+      "VarDecl": {
+        "ident": 22
       }
     },
     {
       "Pattern": {
-        "Payload": {
-          "pat": 23,
-          "payload_ident": 22
+        "DotAccess": {
+          "target": null,
+          "field": 21
         }
       }
     },

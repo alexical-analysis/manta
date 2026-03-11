@@ -539,11 +539,7 @@ impl Module {
                 for arm in &stmt.arms {
                     sym_table.open_scope(arm.id);
 
-                    if let Pattern::Payload(pat) = &arm.pattern {
-                        sym_table.add_binding(pat.payload.name, BindingType::ValueDecl);
-                        sym_table.add_scope_pos(pat.payload.id);
-                    }
-
+                    Self::build_sym_table_pattern(errors, sym_table, &arm.pattern);
                     Self::build_sym_table_block(errors, sym_table, &arm.body);
 
                     sym_table.close_scope();
@@ -592,8 +588,16 @@ impl Module {
                     Pattern::Identifier(pat) => {
                         sym_table.add_scope_pos(pat.id);
                     }
-                    Pattern::DotAccess(_) => {
-                        Self::build_sym_table_pattern(errors, sym_table, &pat.pat)
+                    Pattern::EnumVariant(pat) => {
+                        if let Some(enum_name) = &pat.enum_name {
+                            sym_table.add_scope_pos(enum_name.id);
+                        }
+
+                        if let Some(pay) = pat.payload {
+                            sym_table.add_binding(pay, BindingType::ValueDecl);
+                        }
+
+                        sym_table.add_scope_pos(pat.id);
                     }
                     Pattern::TypeSpec(pat) => {
                         Self::build_sym_table_type_spec(errors, sym_table, &pat.type_spec);
@@ -601,20 +605,16 @@ impl Module {
                     _ => panic!("invalid payload pattern {:?}", pat.pat),
                 }
             }
-            Pattern::DotAccess(pat) => {
-                if let Some(target) = &pat.target {
-                    match &**target {
-                        Pattern::Identifier(pat) => {
-                            sym_table.add_scope_pos(pat.id);
-                        }
-                        Pattern::TypeSpec(pat) => {
-                            Self::build_sym_table_type_spec(errors, sym_table, &pat.type_spec);
-                        }
-                        _ => panic!("invalid dot access target"),
-                    }
-                };
+            Pattern::EnumVariant(pat) => {
+                if let Some(enum_name) = &pat.enum_name {
+                    sym_table.add_scope_pos(enum_name.id);
+                }
 
-                sym_table.add_scope_pos(pat.field.id);
+                if let Some(pay) = pat.payload {
+                    sym_table.add_binding(pay, BindingType::ValueDecl);
+                }
+
+                sym_table.add_scope_pos(pat.id);
             }
             Pattern::Identifier(pat) => {
                 sym_table.add_binding(pat.name, BindingType::ValueDecl);

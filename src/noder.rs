@@ -20,7 +20,7 @@ struct SideTable<K, V> {
     values: Vec<V>,
 }
 
-impl<K: Ord + Debug, V> SideTable<K, V> {
+impl<K: Ord + Debug, V: Debug> SideTable<K, V> {
     fn new() -> Self {
         SideTable {
             keys: BTreeMap::new(),
@@ -499,15 +499,43 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
                 payload_ident: ident_id,
             }))
         }
-        Pattern::DotAccess(pat) => {
-            let target_id = pat
-                .target
-                .clone()
-                .map(|t| node_pattern(node_tree, module, &t));
+        Pattern::EnumVariant(pat) => {
+            let mut target_id = None;
+            if let Some(enum_name) = &pat.enum_name {
+                let scope_pos = module
+                    .get_scope_pos(pat.id)
+                    .expect("missing scope position for enum variant");
+                let binding = module
+                    .find_binding(scope_pos, enum_name.name)
+                    .expect("can not find binding for enum variant");
+                let enum_name_decl = node_tree
+                    .symbol_map
+                    .get(binding.id)
+                    .expect("failed to find declaration node for the enum variant");
 
+                target_id = Some(*enum_name_decl);
+            }
+
+            if let Some(pay) = pat.payload {
+                let payload_ident = node_tree.add_node(Node::Identifier(pay));
+                node_tree.add_node(Node::VarDecl {
+                    ident: payload_ident,
+                });
+
+                let scope_pos = module
+                    .get_scope_pos(pat.id)
+                    .expect("missing scope_posfor var enum variant pattern payload");
+                let binding = module
+                    .find_binding(scope_pos, pay)
+                    .expect("missing binding for enum variant pattern payload");
+
+                node_tree.symbol_map.add(binding.id, payload_ident);
+            }
+
+            // TODO: add the payload information to this node
             node_tree.add_node(Node::Pattern(PatternNode::DotAccess {
                 target: target_id,
-                field: pat.field.name,
+                field: pat.variant,
             }))
         }
         Pattern::Identifier(pat) => {
@@ -524,6 +552,65 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
     let value_id = node_expr(node_tree, module, &stmt.value);
 
     match &stmt.pattern {
+        Pattern::EnumVariant(pat) => {
+            if stmt.except == LetExcept::None {
+                panic!("missing exception handler for this pattern")
+            }
+
+            if let Some(pay) = pat.payload {
+                // let .ident(p) = value
+                //
+                // decl outer_p
+                // match value {
+                //   .ident(inner_p) { outer_p = inner_p }
+                //   ...
+                // }
+
+                // TODO: add the assigment to the empty block once we support payloads in the hir
+                // nodes like we need to.
+                // NOTE: when calling node_pattern the inner_p identifier and declaration will be
+                // set up so we just need to figure out how to get access to that identifier so we
+                // can use it to set the outer_ident using an assigment node
+                let pattern = node_pattern(node_tree, module, &stmt.pattern);
+                let empty_body = node_tree.add_node(Node::Block { statements: vec![] });
+
+                let outer_ident = node_tree.add_node(Node::Identifier(pay));
+                node_tree.add_node(Node::VarDecl { ident: outer_ident });
+
+                let scope_pos = module
+                    .get_scope_pos(pat.id)
+                    .expect("missing scope_posfor var enum variant pattern payload");
+                let binding = module
+                    .find_binding(scope_pos, pay)
+                    .expect("missing binding for enum variant pattern payload");
+
+                // TODO: Once we've wired up the assignemtn from inner_p to outer_p we need to
+                // update the binding to point to the outer decl since we're technically reusing
+                // bindings here... This should be fine though
+                node_tree.symbol_map.set(binding.id, outer_ident);
+
+                let arm = node_tree.add_node(Node::MatchArm {
+                    pattern,
+                    body: empty_body,
+                });
+                arms.push(arm);
+            } else {
+                // let .ident = value
+                //
+                // match value {
+                //   .ident { }
+                //   ...
+                // }
+
+                let pattern = node_pattern(node_tree, module, &stmt.pattern);
+                let empty_body = node_tree.add_node(Node::Block { statements: vec![] });
+                let arm = node_tree.add_node(Node::MatchArm {
+                    pattern,
+                    body: empty_body,
+                });
+                arms.push(arm);
+            }
+        }
         Pattern::Identifier(ident) => {
             //
             // let ident = value
@@ -573,23 +660,42 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
 
             match pat.pat.deref() {
                 Pattern::TypeSpec(_) => { /* type specs are valid payload patterns */ }
-                Pattern::DotAccess(dot) => {
-                    // if the dot access has a target, make sure it's for a valid binding
-                    match &dot.target {
-                        Some(pat) => match pat.deref() {
-                            Pattern::Identifier(ident) => {
-                                let scope_pos = module.get_scope_pos(ident.id).expect(
-                                    "missing scope position for identifier payload pattern",
-                                );
-                                let binding = module.find_binding(scope_pos, ident.name).expect(
-                                    "failed to find binding for pattern payload identifier",
-                                );
-                                if !matches!(binding.binding_type, BindingType::TypeDecl(_)) {
-                                    panic!("identifier is not a valid type: binding({:?})", binding)
+                Pattern::EnumVariant(pat) => {
+                    match &pat.enum_name {
+                        Some(ident) => {
+                            let scope_pos = module
+                                .get_scope_pos(pat.id)
+                                .expect("missing scope position for identifier payload pattern");
+                            let binding = module
+                                .find_binding(scope_pos, ident.name)
+                                .expect("failed to find binding for pattern payload identifier");
+
+                            match &binding.binding_type {
+                                BindingType::TypeDecl(ts) => {
+                                    let type_spec = node_type_spec(module, &ts);
+                                    let base_type = resolve_type(&type_spec);
+                                    let variant = match base_type {
+                                        TypeSpec::Enum(ts) => {
+                                            let mut found_variant = None;
+                                            for v in &ts.variants {
+                                                if pat.variant == v.name {
+                                                    found_variant = Some(v);
+                                                }
+                                            }
+
+                                            found_variant
+                                        }
+                                        _ => panic!("enum variant pattern must be an enum type"),
+                                    };
+
+                                    variant.expect("variant does not exist on the target enum");
+
+                                    // TODO: ensure sure the payloads match once we make the
+                                    // transition away from using Pattern::Payload
                                 }
+                                _ => panic!("enum target was not an enum type"),
                             }
-                            _ => panic!("invalid type for dot access target"),
-                        },
+                        }
                         None => { /* just assume we're good and catch things in the type checker*/ }
                     }
                 }
@@ -1309,6 +1415,14 @@ fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec
         })),
 
         Node::Alloc { .. } => Some(TypeSpec::UnsafePtr),
+    }
+}
+
+// resolve_type will unwrap named type aliases to find the underlying type
+fn resolve_type(ts: &TypeSpec) -> &TypeSpec {
+    match ts {
+        TypeSpec::Named(t) => resolve_type(t.type_spec.deref()),
+        _ => ts,
     }
 }
 

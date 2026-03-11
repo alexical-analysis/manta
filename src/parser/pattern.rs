@@ -114,8 +114,8 @@ impl PatternParser {
 mod test {
     use super::*;
     use crate::ast::{
-        ArrayType, DotAccessPat, IdentifierPat, NamedType, Pattern, PayloadPat, TypeSpec,
-        TypeSpecPat,
+        ArrayType, EnumVariantPat, IdentifierExpr, IdentifierPat, NamedType, Pattern, PayloadPat,
+        TypeSpec, TypeSpecPat,
     };
     use crate::parser::lexer::{Lexer, SourceID};
     use crate::str_store::{self, StrID, StrStore};
@@ -282,28 +282,24 @@ mod test {
         },
         parse_pattern_dot_inferred_variant {
             input: ".Ok =",
-            want: Pattern::DotAccess(DotAccessPat {
-                target: None,
-                field: IdentifierPat {
-                    id: SourceID::from_usize(1),
-                    module: None,
-                    name: StrID::from_usize(1)
-                },
+            want: Pattern::EnumVariant(EnumVariantPat {
+                id: SourceID::from_usize(0),
+                enum_name: None,
+                variant: StrID::from_usize(1),
+                payload: None,
             }),
         },
         parse_pattern_dot_variant {
             input: "Ret.Ok {",
-            want: Pattern::DotAccess(DotAccessPat {
-                target: Some(Box::new(Pattern::Identifier(IdentifierPat {
+            want: Pattern::EnumVariant(EnumVariantPat {
+                id: SourceID::from_usize(3),
+                enum_name: Some(IdentifierExpr {
                     id: SourceID::from_usize(0),
                     module: None,
-                    name: StrID::from_usize(0)
-                }))),
-                field: IdentifierPat {
-                    id: SourceID::from_usize(4),
-                    module: None,
-                    name: StrID::from_usize(2)
-                },
+                    name: StrID::from_usize(0),
+                }),
+                variant: StrID::from_usize(2),
+                payload: None,
             },),
         },
         parse_pattern_module_access_identifier {
@@ -316,39 +312,28 @@ mod test {
         },
         parse_pattern_module_access_dot_variant {
             input: "result::Ret.Ok =",
-            want: Pattern::DotAccess(DotAccessPat {
-                target: Some(Box::new(Pattern::Identifier(IdentifierPat {
+            want: Pattern::EnumVariant(EnumVariantPat {
+                id: SourceID::from_usize(11),
+                enum_name: Some(IdentifierExpr {
                     id: SourceID::from_usize(0),
                     module: Some(StrID::from_usize(2)),
-                    name: StrID::from_usize(0)
-                }))),
-                field: IdentifierPat {
-                    id: SourceID::from_usize(12),
-                    module: None,
-                    name: StrID::from_usize(4)
-                },
+                    name: StrID::from_usize(0),
+                }),
+                variant: StrID::from_usize(4),
+                payload: None,
             }),
         },
         parse_pattern_module_access_payload {
             input: "std::Option.Some(x) {",
-            want: Pattern::Payload(PayloadPat {
-                pat: Box::new(Pattern::DotAccess(DotAccessPat {
-                    target: Some(Box::new(Pattern::Identifier(IdentifierPat {
-                        id: SourceID::from_usize(0),
-                        module: Some(StrID::from_usize(2)),
-                        name: StrID::from_usize(0),
-                    }))),
-                    field: IdentifierPat {
-                        id: SourceID::from_usize(12),
-                        module: None,
-                        name: StrID::from_usize(4)
-                    },
-                })),
-                payload: IdentifierPat {
-                    id: SourceID::from_usize(17),
-                    module: None,
-                    name: StrID::from_usize(6)
-                },
+            want: Pattern::EnumVariant(EnumVariantPat {
+                id: SourceID::from_usize(11),
+                enum_name: Some(IdentifierExpr {
+                    id: SourceID::from_usize(0),
+                    module: Some(StrID::from_usize(2)),
+                    name: StrID::from_usize(0),
+                }),
+                variant: StrID::from_usize(4),
+                payload: Some(StrID::from_usize(6)),
             }),
         },
         parse_pattern_payload_simple {
@@ -368,42 +353,24 @@ mod test {
         },
         parse_pattern_payload_dot_access {
             input: "Ret.Ok(value) {",
-            want: Pattern::Payload(PayloadPat {
-                pat: Box::new(Pattern::DotAccess(DotAccessPat {
-                    target: Some(Box::new(Pattern::Identifier(IdentifierPat {
-                        id: SourceID::from_usize(0),
-                        module: None,
-                        name: StrID::from_usize(0)
-                    }))),
-                    field: IdentifierPat {
-                        id: SourceID::from_usize(4),
-                        module: None,
-                        name: StrID::from_usize(2)
-                    },
-                })),
-                payload: IdentifierPat {
-                    id: SourceID::from_usize(7),
+            want: Pattern::EnumVariant(EnumVariantPat {
+                id: SourceID::from_usize(3),
+                enum_name: Some(IdentifierExpr {
+                    id: SourceID::from_usize(0),
                     module: None,
-                    name: StrID::from_usize(4)
-                },
+                    name: StrID::from_usize(0)
+                }),
+                variant: StrID::from_usize(2),
+                payload: Some(StrID::from_usize(4)),
             }),
         },
         parse_pattern_payload_dot_inferred {
             input: ".Some(item) =",
-            want: Pattern::Payload(PayloadPat {
-                pat: Box::new(Pattern::DotAccess(DotAccessPat {
-                    target: None,
-                    field: IdentifierPat {
-                        id: SourceID::from_usize(1),
-                        module: None,
-                        name: StrID::from_usize(1)
-                    },
-                })),
-                payload: IdentifierPat {
-                    id: SourceID::from_usize(6),
-                    module: None,
-                    name: StrID::from_usize(3)
-                },
+            want: Pattern::EnumVariant(EnumVariantPat {
+                id: SourceID::from_usize(0),
+                enum_name: None,
+                variant: StrID::from_usize(1),
+                payload: Some(StrID::from_usize(3)),
             }),
         },
     );

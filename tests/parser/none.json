@@ -274,22 +274,11 @@
                   {
                     "id": 654,
                     "pattern": {
-                      "Payload": {
-                        "pat": {
-                          "DotAccess": {
-                            "target": null,
-                            "field": {
-                              "id": 655,
-                              "module": null,
-                              "name": 21
-                            }
-                          }
-                        },
-                        "payload": {
-                          "id": 658,
-                          "module": null,
-                          "name": 15
-                        }
+                      "EnumVariant": {
+                        "id": 654,
+                        "enum_name": null,
+                        "variant": 21,
+                        "payload": 15
                       }
                     },
                     "body": {
@@ -330,13 +319,11 @@
                   {
                     "id": 693,
                     "pattern": {
-                      "DotAccess": {
-                        "target": null,
-                        "field": {
-                          "id": 694,
-                          "module": null,
-                          "name": 22
-                        }
+                      "EnumVariant": {
+                        "id": 693,
+                        "enum_name": null,
+                        "variant": 22,
+                        "payload": null
                       }
                     },
                     "body": {
@@ -770,10 +757,6 @@
         "scope_depth": 0
       },
       "654": {
-        "scope_id": 10,
-        "scope_depth": 0
-      },
-      "658": {
         "scope_id": 10,
         "scope_depth": 1
       },

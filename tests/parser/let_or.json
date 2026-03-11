@@ -264,22 +264,11 @@
             {
               "Let": {
                 "pattern": {
-                  "Payload": {
-                    "pat": {
-                      "DotAccess": {
-                        "target": null,
-                        "field": {
-                          "id": 1094,
-                          "module": null,
-                          "name": 16
-                        }
-                      }
-                    },
-                    "payload": {
-                      "id": 1097,
-                      "module": null,
-                      "name": 24
-                    }
+                  "EnumVariant": {
+                    "id": 1093,
+                    "enum_name": null,
+                    "variant": 16,
+                    "payload": 24
                   }
                 },
                 "value": {
@@ -348,22 +337,11 @@
             {
               "Let": {
                 "pattern": {
-                  "Payload": {
-                    "pat": {
-                      "DotAccess": {
-                        "target": null,
-                        "field": {
-                          "id": 1166,
-                          "module": null,
-                          "name": 16
-                        }
-                      }
-                    },
-                    "payload": {
-                      "id": 1169,
-                      "module": null,
-                      "name": 28
-                    }
+                  "EnumVariant": {
+                    "id": 1165,
+                    "enum_name": null,
+                    "variant": 16,
+                    "payload": 28
                   }
                 },
                 "value": {
@@ -446,22 +424,11 @@
             {
               "Let": {
                 "pattern": {
-                  "Payload": {
-                    "pat": {
-                      "DotAccess": {
-                        "target": null,
-                        "field": {
-                          "id": 1282,
-                          "module": null,
-                          "name": 16
-                        }
-                      }
-                    },
-                    "payload": {
-                      "id": 1285,
-                      "module": null,
-                      "name": 38
-                    }
+                  "EnumVariant": {
+                    "id": 1281,
+                    "enum_name": null,
+                    "variant": 16,
+                    "payload": 38
                   }
                 },
                 "value": {
@@ -545,22 +512,11 @@
             {
               "Let": {
                 "pattern": {
-                  "Payload": {
-                    "pat": {
-                      "DotAccess": {
-                        "target": null,
-                        "field": {
-                          "id": 1481,
-                          "module": null,
-                          "name": 16
-                        }
-                      }
-                    },
-                    "payload": {
-                      "id": 1484,
-                      "module": null,
-                      "name": 38
-                    }
+                  "EnumVariant": {
+                    "id": 1480,
+                    "enum_name": null,
+                    "variant": 16,
+                    "payload": 38
                   }
                 },
                 "value": {
@@ -1172,11 +1128,7 @@
         "scope_id": 10,
         "scope_depth": 0
       },
-      "1094": {
-        "scope_id": 10,
-        "scope_depth": 1
-      },
-      "1097": {
+      "1093": {
         "scope_id": 10,
         "scope_depth": 1
       },
@@ -1200,11 +1152,7 @@
         "scope_id": 11,
         "scope_depth": 0
       },
-      "1166": {
-        "scope_id": 10,
-        "scope_depth": 2
-      },
-      "1169": {
+      "1165": {
         "scope_id": 10,
         "scope_depth": 2
       },
@@ -1228,11 +1176,7 @@
         "scope_id": 13,
         "scope_depth": 0
       },
-      "1282": {
-        "scope_id": 13,
-        "scope_depth": 1
-      },
-      "1285": {
+      "1281": {
         "scope_id": 13,
         "scope_depth": 1
       },
@@ -1260,11 +1204,7 @@
         "scope_id": 13,
         "scope_depth": 1
       },
-      "1481": {
-        "scope_id": 13,
-        "scope_depth": 2
-      },
-      "1484": {
+      "1480": {
         "scope_id": 13,
         "scope_depth": 2
       },
