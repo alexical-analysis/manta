@@ -182,9 +182,9 @@ mod test {
     use super::*;
     use crate::ast::{
         AllocExpr, AssignStmt, BinaryExpr, BinaryOp, BlockStmt, CallExpr, DeferStmt, DotAccessExpr,
-        DotAccessPat, Expr, FreeExpr, IdentifierExpr, IdentifierPat, IfStmt, IndexExpr, LetExcept,
-        LetStmt, MatchArm, MatchStmt, MetaTypeExpr, Pattern, PayloadPat, ReturnStmt, Stmt,
-        TypeSpec, UnaryExpr, UnaryOp,
+        EnumVariantPat, Expr, FreeExpr, IdentifierExpr, IdentifierPat, IfStmt, IndexExpr,
+        LetExcept, LetStmt, MatchArm, MatchStmt, MetaTypeExpr, Pattern, PayloadPat, ReturnStmt,
+        Stmt, TypeSpec, UnaryExpr, UnaryOp,
     };
     use crate::parser::lexer::{Lexer, SourceID};
     use crate::str_store::{self, StrID, StrStore};
@@ -429,20 +429,11 @@ mod test {
                             except: LetExcept::None,
                         }),
                         Stmt::Let(LetStmt {
-                            pattern: Pattern::Payload(PayloadPat {
-                                pat: Box::new(Pattern::DotAccess(DotAccessPat {
-                                    target: None,
-                                    field: IdentifierPat {
-                                        id: SourceID::from_usize(26),
-                                        module: None,
-                                        name: StrID::from_usize(7)
-                                    },
-                                })),
-                                payload: IdentifierPat {
-                                    id: SourceID::from_usize(29),
-                                    module: None,
-                                    name: StrID::from_usize(9)
-                                },
+                            pattern: Pattern::EnumVariant(EnumVariantPat {
+                                id: SourceID::from_usize(25),
+                                enum_name: None,
+                                variant: StrID::from_usize(7),
+                                payload: Some(StrID::from_usize(9)),
                             }),
                             value: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -698,13 +689,11 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::DotAccess(DotAccessPat {
-                        target: None,
-                        field: IdentifierPat {
-                            id: SourceID::from_usize(5),
-                            module: None,
-                            name: StrID::from_usize(2)
-                        },
+                    pattern: Pattern::EnumVariant(EnumVariantPat {
+                        id: SourceID::from_usize(4),
+                        enum_name: None,
+                        variant: StrID::from_usize(2),
+                        payload: None,
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -726,24 +715,15 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::Payload(PayloadPat {
-                        pat: Box::new(Pattern::DotAccess(DotAccessPat {
-                            target: Some(Box::new(Pattern::Identifier(IdentifierPat {
-                                id: SourceID::from_usize(4),
-                                module: None,
-                                name: StrID::from_usize(1)
-                            }))),
-                            field: IdentifierPat {
-                                id: SourceID::from_usize(8),
-                                module: None,
-                                name: StrID::from_usize(3)
-                            },
-                        })),
-                        payload: IdentifierPat {
-                            id: SourceID::from_usize(14),
+                    pattern: Pattern::EnumVariant(EnumVariantPat {
+                        id: SourceID::from_usize(7),
+                        enum_name: Some(IdentifierExpr {
+                            id: SourceID::from_usize(4),
                             module: None,
-                            name: StrID::from_usize(5)
-                        },
+                            name: StrID::from_usize(1),
+                        }),
+                        variant: StrID::from_usize(3),
+                        payload: Some(StrID::from_usize(5)),
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -782,13 +762,11 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::DotAccess(DotAccessPat {
-                        target: None,
-                        field: IdentifierPat {
-                            id: SourceID::from_usize(5),
-                            module: None,
-                            name: StrID::from_usize(2)
-                        },
+                    pattern: Pattern::EnumVariant(EnumVariantPat {
+                        id: SourceID::from_usize(4),
+                        enum_name: None,
+                        variant: StrID::from_usize(2),
+                        payload: None,
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -840,20 +818,11 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::Payload(PayloadPat {
-                        pat: Box::new(Pattern::DotAccess(DotAccessPat {
-                            target: None,
-                            field: IdentifierPat {
-                                id: SourceID::from_usize(5),
-                                module: None,
-                                name: StrID::from_usize(2)
-                            },
-                        })),
-                        payload: IdentifierPat {
-                            id: SourceID::from_usize(8),
-                            module: None,
-                            name: StrID::from_usize(4)
-                        },
+                    pattern: Pattern::EnumVariant(EnumVariantPat {
+                        id: SourceID::from_usize(4),
+                        enum_name: None,
+                        variant: StrID::from_usize(2),
+                        payload: Some(StrID::from_usize(4)),
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -887,20 +856,11 @@ mod test {
                     arms: vec![
                         MatchArm {
                             id: SourceID::from_usize(14),
-                            pattern: Pattern::Payload(PayloadPat {
-                                pat: Box::new(Pattern::DotAccess(DotAccessPat {
-                                    target: None,
-                                    field: IdentifierPat {
-                                        id: SourceID::from_usize(15),
-                                        module: None,
-                                        name: StrID::from_usize(4)
-                                    },
-                                })),
-                                payload: IdentifierPat {
-                                    id: SourceID::from_usize(20),
-                                    module: None,
-                                    name: StrID::from_usize(6)
-                                },
+                            pattern: Pattern::EnumVariant(EnumVariantPat {
+                                id: SourceID::from_usize(14),
+                                enum_name: None,
+                                variant: StrID::from_usize(4),
+                                payload: Some(StrID::from_usize(6)),
                             }),
                             body: BlockStmt {
                                 id: SourceID::from_usize(23),
@@ -922,13 +882,11 @@ mod test {
                         },
                         MatchArm {
                             id: SourceID::from_usize(40),
-                            pattern: Pattern::DotAccess(DotAccessPat {
-                                target: None,
-                                field: IdentifierPat {
-                                    id: SourceID::from_usize(41),
-                                    module: None,
-                                    name: StrID::from_usize(12)
-                                },
+                            pattern: Pattern::EnumVariant(EnumVariantPat {
+                                id: SourceID::from_usize(40),
+                                enum_name: None,
+                                variant: StrID::from_usize(12),
+                                payload: None,
                             }),
                             body: BlockStmt {
                                 id: SourceID::from_usize(46),
@@ -966,20 +924,11 @@ mod test {
                     arms: vec![
                         MatchArm {
                             id: SourceID::from_usize(19),
-                            pattern: Pattern::Payload(PayloadPat {
-                                pat: Box::new(Pattern::DotAccess(DotAccessPat {
-                                    target: None,
-                                    field: IdentifierPat {
-                                        id: SourceID::from_usize(20),
-                                        module: None,
-                                        name: StrID::from_usize(4)
-                                    },
-                                })),
-                                payload: IdentifierPat {
-                                    id: SourceID::from_usize(28),
-                                    module: None,
-                                    name: StrID::from_usize(6)
-                                },
+                            pattern: Pattern::EnumVariant(EnumVariantPat {
+                                id: SourceID::from_usize(19),
+                                enum_name: None,
+                                variant: StrID::from_usize(4),
+                                payload: Some(StrID::from_usize(6)),
                             }),
                             body: BlockStmt {
                                 id: SourceID::from_usize(33),
@@ -1001,20 +950,11 @@ mod test {
                         },
                         MatchArm {
                             id: SourceID::from_usize(52),
-                            pattern: Pattern::Payload(PayloadPat {
-                                pat: Box::new(Pattern::DotAccess(DotAccessPat {
-                                    target: None,
-                                    field: IdentifierPat {
-                                        id: SourceID::from_usize(53),
-                                        module: None,
-                                        name: StrID::from_usize(12)
-                                    },
-                                })),
-                                payload: IdentifierPat {
-                                    id: SourceID::from_usize(61),
-                                    module: None,
-                                    name: StrID::from_usize(13)
-                                },
+                            pattern: Pattern::EnumVariant(EnumVariantPat {
+                                id: SourceID::from_usize(52),
+                                enum_name: None,
+                                variant: StrID::from_usize(12),
+                                payload: Some(StrID::from_usize(13)),
                             }),
                             body: BlockStmt {
                                 id: SourceID::from_usize(66),
@@ -1036,13 +976,11 @@ mod test {
                         },
                         MatchArm {
                             id: SourceID::from_usize(85),
-                            pattern: Pattern::DotAccess(DotAccessPat {
-                                target: None,
-                                field: IdentifierPat {
-                                    id: SourceID::from_usize(86),
-                                    module: None,
-                                    name: StrID::from_usize(14)
-                                },
+                            pattern: Pattern::EnumVariant(EnumVariantPat {
+                                id: SourceID::from_usize(85),
+                                enum_name: None,
+                                variant: StrID::from_usize(14),
+                                payload: None,
                             }),
                             body: BlockStmt {
                                 id: SourceID::from_usize(93),
@@ -1079,13 +1017,11 @@ mod test {
                     arms: vec![
                         MatchArm {
                             id: SourceID::from_usize(19),
-                            pattern: Pattern::DotAccess(DotAccessPat {
-                                target: None,
-                                field: IdentifierPat {
-                                    id: SourceID::from_usize(20),
-                                    module: None,
-                                    name: StrID::from_usize(4)
-                                },
+                            pattern: Pattern::EnumVariant(EnumVariantPat {
+                                id: SourceID::from_usize(19),
+                                enum_name: None,
+                                variant: StrID::from_usize(4),
+                                payload: None,
                             }),
                             body: BlockStmt {
                                 id: SourceID::from_usize(26),
@@ -1103,20 +1039,11 @@ mod test {
                         },
                         MatchArm {
                             id: SourceID::from_usize(46),
-                            pattern: Pattern::Payload(PayloadPat {
-                                pat: Box::new(Pattern::DotAccess(DotAccessPat {
-                                    target: None,
-                                    field: IdentifierPat {
-                                        id: SourceID::from_usize(47),
-                                        module: None,
-                                        name: StrID::from_usize(12)
-                                    },
-                                })),
-                                payload: IdentifierPat {
-                                    id: SourceID::from_usize(52),
-                                    module: None,
-                                    name: StrID::from_usize(13)
-                                },
+                            pattern: Pattern::EnumVariant(EnumVariantPat {
+                                id: SourceID::from_usize(46),
+                                enum_name: None,
+                                variant: StrID::from_usize(12),
+                                payload: Some(StrID::from_usize(13)),
                             }),
                             body: BlockStmt {
                                 id: SourceID::from_usize(56),

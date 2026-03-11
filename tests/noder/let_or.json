@@ -199,9 +199,6 @@
       }
     },
     {
-      "Identifier": 18446744073709551597
-    },
-    {
       "Pattern": {
         "DotAccess": {
           "target": null,
@@ -210,23 +207,22 @@
       }
     },
     {
-      "Pattern": {
-        "Payload": {
-          "pat": 40,
-          "payload_ident": 39
-        }
+      "Block": {
+        "statements": []
       }
     },
     {
-      "Assign": {
-        "target": 37,
-        "value": 39
+      "Identifier": 24
+    },
+    {
+      "VarDecl": {
+        "ident": 41
       }
     },
     {
       "MatchArm": {
-        "pattern": 41,
-        "body": 42
+        "pattern": 39,
+        "body": 40
       }
     },
     {
@@ -275,7 +271,7 @@
       "Call": {
         "func": 15,
         "args": [
-          37
+          41
         ]
       }
     },
@@ -295,7 +291,7 @@
       "Call": {
         "func": 24,
         "args": [
-          37
+          41
         ]
       }
     },
@@ -308,9 +304,6 @@
       }
     },
     {
-      "Identifier": 18446744073709551597
-    },
-    {
       "Pattern": {
         "DotAccess": {
           "target": null,
@@ -319,23 +312,22 @@
       }
     },
     {
-      "Pattern": {
-        "Payload": {
-          "pat": 58,
-          "payload_ident": 57
-        }
+      "Block": {
+        "statements": []
       }
     },
     {
-      "Assign": {
-        "target": 55,
-        "value": 57
+      "Identifier": 28
+    },
+    {
+      "VarDecl": {
+        "ident": 59
       }
     },
     {
       "MatchArm": {
-        "pattern": 59,
-        "body": 60
+        "pattern": 57,
+        "body": 58
       }
     },
     {
@@ -384,7 +376,7 @@
       "EnumConstructor": {
         "target": null,
         "variant": 16,
-        "payload": 55
+        "payload": 59
       }
     },
     {
@@ -395,10 +387,8 @@
     {
       "Block": {
         "statements": [
-          38,
           50,
           53,
-          56,
           68,
           70
         ]
@@ -436,9 +426,6 @@
       }
     },
     {
-      "Identifier": 18446744073709551597
-    },
-    {
       "Pattern": {
         "DotAccess": {
           "target": null,
@@ -447,23 +434,22 @@
       }
     },
     {
-      "Pattern": {
-        "Payload": {
-          "pat": 79,
-          "payload_ident": 78
-        }
+      "Block": {
+        "statements": []
       }
     },
     {
-      "Assign": {
-        "target": 76,
-        "value": 78
+      "Identifier": 38
+    },
+    {
+      "VarDecl": {
+        "ident": 80
       }
     },
     {
       "MatchArm": {
-        "pattern": 80,
-        "body": 81
+        "pattern": 78,
+        "body": 79
       }
     },
     {
@@ -517,7 +503,7 @@
       "Call": {
         "func": 30,
         "args": [
-          76
+          80
         ]
       }
     },
@@ -541,9 +527,6 @@
       }
     },
     {
-      "Identifier": 18446744073709551597
-    },
-    {
       "Pattern": {
         "DotAccess": {
           "target": null,
@@ -552,23 +535,22 @@
       }
     },
     {
-      "Pattern": {
-        "Payload": {
-          "pat": 97,
-          "payload_ident": 96
-        }
+      "Block": {
+        "statements": []
       }
     },
     {
-      "Assign": {
-        "target": 94,
-        "value": 96
+      "Identifier": 38
+    },
+    {
+      "VarDecl": {
+        "ident": 98
       }
     },
     {
       "MatchArm": {
-        "pattern": 98,
-        "body": 99
+        "pattern": 96,
+        "body": 97
       }
     },
     {
@@ -616,7 +598,7 @@
       "Call": {
         "func": 30,
         "args": [
-          94
+          98
         ]
       }
     },
@@ -628,10 +610,8 @@
     {
       "Block": {
         "statements": [
-          77,
           90,
           91,
-          95,
           107,
           108,
           109
@@ -1268,12 +1248,12 @@
       30,
       32,
       34,
-      37,
-      55,
+      41,
+      59,
       72,
-      76,
+      80,
       83,
-      94,
+      98,
       111
     ]
   }

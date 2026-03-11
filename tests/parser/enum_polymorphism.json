@@ -96,22 +96,11 @@
                   {
                     "id": 502,
                     "pattern": {
-                      "Payload": {
-                        "pat": {
-                          "DotAccess": {
-                            "target": null,
-                            "field": {
-                              "id": 503,
-                              "module": null,
-                              "name": 20
-                            }
-                          }
-                        },
-                        "payload": {
-                          "id": 510,
-                          "module": null,
-                          "name": 26
-                        }
+                      "EnumVariant": {
+                        "id": 502,
+                        "enum_name": null,
+                        "variant": 20,
+                        "payload": 26
                       }
                     },
                     "body": {
@@ -158,22 +147,11 @@
                   {
                     "id": 548,
                     "pattern": {
-                      "Payload": {
-                        "pat": {
-                          "DotAccess": {
-                            "target": null,
-                            "field": {
-                              "id": 549,
-                              "module": null,
-                              "name": 21
-                            }
-                          }
-                        },
-                        "payload": {
-                          "id": 556,
-                          "module": null,
-                          "name": 23
-                        }
+                      "EnumVariant": {
+                        "id": 548,
+                        "enum_name": null,
+                        "variant": 21,
+                        "payload": 23
                       }
                     },
                     "body": {
@@ -739,10 +717,6 @@
       },
       "502": {
         "scope_id": 5,
-        "scope_depth": 0
-      },
-      "510": {
-        "scope_id": 5,
         "scope_depth": 1
       },
       "513": {
@@ -762,10 +736,6 @@
         "scope_depth": 0
       },
       "548": {
-        "scope_id": 7,
-        "scope_depth": 0
-      },
-      "556": {
         "scope_id": 7,
         "scope_depth": 1
       },

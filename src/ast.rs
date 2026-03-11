@@ -262,7 +262,7 @@ pub enum Pattern {
     FloatLiteral(f64),
     TypeSpec(TypeSpecPat),
     Payload(PayloadPat),
-    DotAccess(DotAccessPat),
+    EnumVariant(EnumVariantPat),
     Identifier(IdentifierPat),
     Default,
 }
@@ -275,18 +275,6 @@ pub struct TypeSpecPat {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
-pub struct ModuleAccesPat {
-    pub module: Box<IdentifierPat>,
-    pub pat: Box<Pattern>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize)]
-pub struct DotAccessPat {
-    pub target: Option<Box<Pattern>>,
-    pub field: IdentifierPat,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct PayloadPat {
     pub pat: Box<Pattern>,
     pub payload: IdentifierPat,
@@ -294,9 +282,10 @@ pub struct PayloadPat {
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct EnumVariantPat {
-    pub type_name: Option<StrID>,
-    pub name: StrID,
-    pub payload_binding: Option<StrID>,
+    pub id: SourceID,
+    pub enum_name: Option<IdentifierExpr>,
+    pub variant: StrID,
+    pub payload: Option<StrID>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]

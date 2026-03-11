@@ -239,22 +239,11 @@
             {
               "Let": {
                 "pattern": {
-                  "Payload": {
-                    "pat": {
-                      "DotAccess": {
-                        "target": null,
-                        "field": {
-                          "id": 969,
-                          "module": null,
-                          "name": 14
-                        }
-                      }
-                    },
-                    "payload": {
-                      "id": 972,
-                      "module": null,
-                      "name": 22
-                    }
+                  "EnumVariant": {
+                    "id": 968,
+                    "enum_name": null,
+                    "variant": 14,
+                    "payload": 22
                   }
                 },
                 "value": {
@@ -373,22 +362,11 @@
             {
               "Let": {
                 "pattern": {
-                  "Payload": {
-                    "pat": {
-                      "DotAccess": {
-                        "target": null,
-                        "field": {
-                          "id": 1101,
-                          "module": null,
-                          "name": 14
-                        }
-                      }
-                    },
-                    "payload": {
-                      "id": 1104,
-                      "module": null,
-                      "name": 42
-                    }
+                  "EnumVariant": {
+                    "id": 1100,
+                    "enum_name": null,
+                    "variant": 14,
+                    "payload": 42
                   }
                 },
                 "value": {
@@ -934,11 +912,7 @@
         "scope_id": 8,
         "scope_depth": 0
       },
-      "969": {
-        "scope_id": 8,
-        "scope_depth": 1
-      },
-      "972": {
+      "968": {
         "scope_id": 8,
         "scope_depth": 1
       },
@@ -974,11 +948,7 @@
         "scope_id": 10,
         "scope_depth": 0
       },
-      "1101": {
-        "scope_id": 8,
-        "scope_depth": 3
-      },
-      "1104": {
+      "1100": {
         "scope_id": 8,
         "scope_depth": 3
       },

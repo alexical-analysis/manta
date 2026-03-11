@@ -176,9 +176,6 @@
       }
     },
     {
-      "Identifier": 18446744073709551597
-    },
-    {
       "Pattern": {
         "DotAccess": {
           "target": null,
@@ -187,23 +184,22 @@
       }
     },
     {
-      "Pattern": {
-        "Payload": {
-          "pat": 36,
-          "payload_ident": 35
-        }
+      "Block": {
+        "statements": []
       }
     },
     {
-      "Assign": {
-        "target": 33,
-        "value": 35
+      "Identifier": 22
+    },
+    {
+      "VarDecl": {
+        "ident": 37
       }
     },
     {
       "MatchArm": {
-        "pattern": 37,
-        "body": 38
+        "pattern": 35,
+        "body": 36
       }
     },
     {
@@ -252,7 +248,7 @@
       "Call": {
         "func": 15,
         "args": [
-          33
+          37
         ]
       }
     },
@@ -359,7 +355,7 @@
       "Call": {
         "func": 26,
         "args": [
-          33,
+          37,
           52
         ]
       }
@@ -373,9 +369,6 @@
       }
     },
     {
-      "Identifier": 18446744073709551597
-    },
-    {
       "Pattern": {
         "DotAccess": {
           "target": null,
@@ -384,23 +377,22 @@
       }
     },
     {
-      "Pattern": {
-        "Payload": {
-          "pat": 71,
-          "payload_ident": 70
-        }
+      "Block": {
+        "statements": []
       }
     },
     {
-      "Assign": {
-        "target": 68,
-        "value": 70
+      "Identifier": 42
+    },
+    {
+      "VarDecl": {
+        "ident": 72
       }
     },
     {
       "MatchArm": {
-        "pattern": 72,
-        "body": 73
+        "pattern": 70,
+        "body": 71
       }
     },
     {
@@ -460,12 +452,10 @@
     {
       "Block": {
         "statements": [
-          34,
           46,
           49,
           63,
           66,
-          69,
           81,
           83
         ]
@@ -1050,9 +1040,9 @@
       26,
       28,
       30,
-      33,
+      37,
       52,
-      68,
+      72,
       85
     ]
   }
