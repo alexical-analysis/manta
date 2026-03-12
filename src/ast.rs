@@ -274,6 +274,16 @@ pub enum Payload {
     Default, // the _ identifier
 }
 
+impl Payload {
+    pub fn is_none(&self) -> bool {
+        match self {
+            Payload::Some(_) => false,
+            Payload::Default => false,
+            Payload::None => true,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct TypeSpecPat {
     pub id: SourceID,
