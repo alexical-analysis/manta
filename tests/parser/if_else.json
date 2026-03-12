@@ -52,7 +52,6 @@
                 "pattern": {
                   "Identifier": {
                     "id": 196,
-                    "module": null,
                     "name": 13
                   }
                 },
@@ -104,7 +103,6 @@
                 "pattern": {
                   "Identifier": {
                     "id": 277,
-                    "module": null,
                     "name": 18
                   }
                 },

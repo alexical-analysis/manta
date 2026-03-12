@@ -263,6 +263,7 @@ pub enum Pattern {
     TypeSpec(TypeSpecPat),
     Payload(PayloadPat),
     EnumVariant(EnumVariantPat),
+    ModuleIdentifier(ModuleIdentifierPat),
     Identifier(IdentifierPat),
     Default,
 }
@@ -271,7 +272,7 @@ pub enum Pattern {
 pub struct TypeSpecPat {
     pub id: SourceID,
     pub type_spec: TypeSpec,
-    pub payload: Option<StrID>,
+    pub payload: StrID,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -289,9 +290,15 @@ pub struct EnumVariantPat {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct ModuleIdentifierPat {
+    pub id: SourceID,
+    pub module: StrID,
+    pub name: StrID,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct IdentifierPat {
     pub id: SourceID,
-    pub module: Option<StrID>,
     pub name: StrID,
 }
 

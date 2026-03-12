@@ -1,4 +1,4 @@
-use crate::ast::{IdentifierExpr, Pattern, TypeSpecPat};
+use crate::ast::{Pattern, TypeSpecPat};
 use crate::parser::ParseError;
 use crate::parser::lexer::{Lexer, Token, TokenKind};
 use crate::parser::pattern::PrefixPatternParselet;
@@ -6,40 +6,41 @@ use crate::parser::types;
 
 /// Parses type patterns
 ///
-/// Example: `i32`, `*bool`, `[]Vec3`
+/// Example: `i32(_)`, `*bool(_)`, `[]Vec3(_)`
 pub struct TypePatternParselet;
 
 impl PrefixPatternParselet for TypePatternParselet {
     fn parse(&self, lexer: &mut Lexer, token: Token) -> Result<Pattern, ParseError> {
         let type_spec = types::parse_type(lexer, token)?;
 
-        let mut payload = None;
-        if lexer.peek().kind == TokenKind::OpenParen {
-            lexer.next_token();
-            let payload_token = lexer.next_token();
-            if payload_token.kind != TokenKind::Identifier {
-                return Err(ParseError::InvalidExpression(
-                    payload_token,
-                    "invalid payload for enum constructor".to_string(),
-                ));
-            }
-
-            let close = lexer.next_token();
-            if close.kind != TokenKind::CloseParen {
-                return Err(ParseError::InvalidExpression(
-                    payload_token,
-                    "missing closing paran for pattern payload".to_string(),
-                ));
-            }
-
-            payload = Some(payload_token.lexeme_id)
+        // type patterns MUST have a payload
+        let open = lexer.next_token();
+        if open.kind != TokenKind::OpenParen {
+            return Err(ParseError::Custom(
+                open,
+                "missing payload for type pattern match".to_string(),
+            ));
+        }
+        let payload_token = lexer.next_token();
+        if payload_token.kind != TokenKind::Identifier {
+            return Err(ParseError::Custom(
+                open,
+                "missing payload for type pattern match".to_string(),
+            ));
         }
 
-        let id = token.source_id;
+        let close = lexer.next_token();
+        if close.kind != TokenKind::CloseParen {
+            return Err(ParseError::InvalidExpression(
+                payload_token,
+                "missing closing paran for pattern payload".to_string(),
+            ));
+        }
+
         Ok(Pattern::TypeSpec(TypeSpecPat {
-            id,
+            id: token.source_id,
             type_spec,
-            payload,
+            payload: payload_token.lexeme_id,
         }))
     }
 }

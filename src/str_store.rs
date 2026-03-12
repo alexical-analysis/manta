@@ -54,6 +54,7 @@ pub const METAFLAGS: StrID = StrID(usize::MAX - 17);
 pub const INNERLET: StrID = StrID(usize::MAX - 18);
 
 pub const INIT: StrID = StrID(usize::MAX - 19);
+pub const UNDERSCORE: StrID = StrID(usize::MAX - 20);
 
 fn constant_str_id(s: &str) -> Option<StrID> {
     match s {
@@ -75,6 +76,7 @@ fn constant_str_id(s: &str) -> Option<StrID> {
         "size_of" => Some(SIZEOF),
         "align_of" => Some(ALIGNOF),
         "flags" => Some(METAFLAGS),
+        "_" => Some(UNDERSCORE),
 
         // this is not a valid identifier so we can use it in the compiler
         // without worrying about conflicting with user identifiers
@@ -105,6 +107,7 @@ fn constant_id_str(id: StrID) -> Option<&'static str> {
         SIZEOF => Some("size_of"),
         ALIGNOF => Some("align_of"),
         METAFLAGS => Some("flags"),
+        UNDERSCORE => Some("_"),
 
         // this is not a valid identifier so we can use it in the compiler
         // without worrying about conflicting with user identifiers

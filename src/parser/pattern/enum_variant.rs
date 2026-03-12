@@ -1,4 +1,4 @@
-use crate::ast::{EnumVariantPat, IdentifierExpr, IdentifierPat, Pattern};
+use crate::ast::{EnumVariantPat, IdentifierExpr, Pattern};
 use crate::parser::ParseError;
 use crate::parser::lexer::{Lexer, Token, TokenKind};
 use crate::parser::pattern::{InfixPatternParselet, PatternParser, PrefixPatternParselet};
@@ -7,9 +7,9 @@ use crate::parser::pattern::{InfixPatternParselet, PatternParser, PrefixPatternP
 ///
 /// Example: `.Ok`
 /// Example: `.Err`
-pub struct PrefixDotPatternParselet;
+pub struct PrefixEnumVariantPatternParselet;
 
-impl PrefixPatternParselet for PrefixDotPatternParselet {
+impl PrefixPatternParselet for PrefixEnumVariantPatternParselet {
     fn parse(&self, lexer: &mut Lexer, token: Token) -> Result<Pattern, ParseError> {
         let field_token = lexer.next_token();
 
@@ -53,10 +53,11 @@ impl PrefixPatternParselet for PrefixDotPatternParselet {
 /// Parses dot patterns where the dot is the infix.
 ///
 /// Example: `Ret.Ok`
-/// Example: `Ret.Err`
-pub struct InfixDotPatternParselet;
+/// Example: `mod::Ret.Err`
+/// Example: `color::RGB.Red(r)`
+pub struct InfixEnumVariantPatternParselet;
 
-impl InfixPatternParselet for InfixDotPatternParselet {
+impl InfixPatternParselet for InfixEnumVariantPatternParselet {
     fn parse(
         &self,
         _parser: &PatternParser,
@@ -64,8 +65,17 @@ impl InfixPatternParselet for InfixDotPatternParselet {
         left: Pattern,
         token: Token,
     ) -> Result<Pattern, ParseError> {
-        let left = match left {
-            Pattern::Identifier(ident) => ident,
+        let enum_name = match left {
+            Pattern::Identifier(ident) => Some(IdentifierExpr {
+                id: ident.id,
+                module: None,
+                name: ident.name,
+            }),
+            Pattern::ModuleIdentifier(ident) => Some(IdentifierExpr {
+                id: ident.id,
+                module: Some(ident.module),
+                name: ident.name,
+            }),
             _ => {
                 return Err(ParseError::UnexpectedToken(
                     token,
@@ -101,11 +111,7 @@ impl InfixPatternParselet for InfixDotPatternParselet {
         match field_token.kind {
             TokenKind::Identifier => Ok(Pattern::EnumVariant(EnumVariantPat {
                 id: token.source_id,
-                enum_name: Some(IdentifierExpr {
-                    id: left.id,
-                    module: left.module,
-                    name: left.name,
-                }),
+                enum_name,
                 variant: field_token.lexeme_id,
                 payload,
             })),

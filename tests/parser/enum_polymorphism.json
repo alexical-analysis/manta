@@ -215,7 +215,6 @@
                 "pattern": {
                   "Identifier": {
                     "id": 605,
-                    "module": null,
                     "name": 31
                   }
                 },
@@ -248,7 +247,6 @@
                 "pattern": {
                   "Identifier": {
                     "id": 639,
-                    "module": null,
                     "name": 33
                   }
                 },
@@ -302,26 +300,22 @@
             {
               "Let": {
                 "pattern": {
-                  "Payload": {
-                    "pat": {
-                      "Identifier": {
-                        "id": 704,
-                        "module": null,
-                        "name": 18
-                      }
-                    },
-                    "payload": {
-                      "id": 710,
-                      "module": null,
-                      "name": 34
-                    }
+                  "Identifier": {
+                    "id": 704,
+                    "name": 34
                   }
                 },
                 "value": {
                   "Call": {
                     "func": {
                       "DotAccess": {
-                        "target": null,
+                        "target": {
+                          "Identifier": {
+                            "id": 713,
+                            "module": null,
+                            "name": 18
+                          }
+                        },
                         "field": 20
                       }
                     },
@@ -339,8 +333,7 @@
               "Let": {
                 "pattern": {
                   "Identifier": {
-                    "id": 739,
-                    "module": null,
+                    "id": 737,
                     "name": 36
                   }
                 },
@@ -348,7 +341,7 @@
                   "Call": {
                     "func": {
                       "Identifier": {
-                        "id": 753,
+                        "id": 751,
                         "module": null,
                         "name": 22
                       }
@@ -356,7 +349,7 @@
                     "args": [
                       {
                         "Identifier": {
-                          "id": 758,
+                          "id": 756,
                           "module": null,
                           "name": 34
                         }
@@ -373,7 +366,7 @@
                   "Call": {
                     "func": {
                       "Identifier": {
-                        "id": 770,
+                        "id": 768,
                         "module": null,
                         "name": 13
                       }
@@ -381,7 +374,7 @@
                     "args": [
                       {
                         "Identifier": {
-                          "id": 782,
+                          "id": 780,
                           "module": null,
                           "name": 36
                         }
@@ -791,27 +784,27 @@
         "scope_id": 10,
         "scope_depth": 3
       },
-      "710": {
+      "713": {
         "scope_id": 10,
         "scope_depth": 3
       },
-      "739": {
+      "737": {
         "scope_id": 10,
         "scope_depth": 4
       },
-      "753": {
+      "751": {
         "scope_id": 10,
         "scope_depth": 4
       },
-      "758": {
+      "756": {
         "scope_id": 10,
         "scope_depth": 4
       },
-      "770": {
+      "768": {
         "scope_id": 10,
         "scope_depth": 4
       },
-      "782": {
+      "780": {
         "scope_id": 10,
         "scope_depth": 4
       }
