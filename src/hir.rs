@@ -141,21 +141,13 @@ pub enum PatternNode {
     BoolLiteral(bool),
     FloatLiteral(f64),
     TypeSpec(TypeSpecPat),
-    Payload {
-        // Always a Pattern node
-        pat: NodeID,
-        // always an identifier node
-        payload_ident: NodeID,
-    },
-    ModuleAccess {
-        module: StrID,
-        // Always a Pattern Node
-        pat: NodeID,
-    },
     EnumVariant(EnumVariantPat),
-    // Always points to an identifier expression
-    Identifier(NodeID),
-    Default,
+    Default(DefaultPat),
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct DefaultPat {
+    pub payload: Option<StrID>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]

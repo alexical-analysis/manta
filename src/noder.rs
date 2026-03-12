@@ -8,8 +8,8 @@ use crate::ast::{
     self, BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Payload, ReturnStmt, Stmt, UnaryOp,
 };
 use crate::hir::{
-    ArrayType, EnumType, EnumVariant, EnumVariantPat, FunctionType, NamedType, Node, NodeID,
-    PatternNode, StructField, StructType, TypeSpec, TypeSpecPat,
+    ArrayType, DefaultPat, EnumType, EnumVariant, EnumVariantPat, FunctionType, NamedType, Node,
+    NodeID, PatternNode, StructField, StructType, TypeSpec, TypeSpecPat,
 };
 use crate::parser::module::{BindingType, Module, SymID};
 use crate::str_store;
@@ -549,20 +549,33 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
             })))
         }
         Pattern::Identifier(pat) => {
-            let ident_id = node_tree.add_node(Node::Identifier {
+            // Identifiers are turned into Default patterns with the identifier as the payload
+            let payload_ident = node_tree.add_node(Node::Identifier {
                 name: pat.name,
                 module: None,
             });
-            node_tree.add_node(Node::Pattern(PatternNode::Identifier(ident_id)))
-        }
-        Pattern::ModuleIdentifier(pat) => {
-            let ident_id = node_tree.add_node(Node::Identifier {
-                name: pat.name,
-                module: Some(pat.module),
+            node_tree.add_node(Node::VarDecl {
+                ident: payload_ident,
             });
-            node_tree.add_node(Node::Pattern(PatternNode::Identifier(ident_id)))
+
+            let scope_pos = module
+                .get_scope_pos(pat.id)
+                .expect("missing scope_posfor var enum variant pattern payload");
+            let binding = module
+                .find_binding(scope_pos, pat.name)
+                .expect("missing binding for enum variant pattern payload");
+
+            node_tree.symbol_map.add(binding.id, payload_ident);
+
+            let payload = Some(pat.name);
+            node_tree.add_node(Node::Pattern(PatternNode::Default(DefaultPat { payload })))
         }
-        Pattern::Default => node_tree.add_node(Node::Pattern(PatternNode::Default)),
+        Pattern::ModuleIdentifier(_) => {
+            panic!("no module identifier patterns should exist at this point in the hir")
+        }
+        Pattern::Default => node_tree.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
+            payload: None,
+        }))),
     }
 }
 
@@ -763,13 +776,13 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
         }
         _ => {
             //
-            // let Pat = value or(e) { ... }
+            // let Pat = value
             //
             // becomes:
             //
             // match {
             //     Pat { }
-            //     e   { ... }
+            //     ...
             // }
 
             if stmt.except == LetExcept::None {
@@ -791,29 +804,32 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
         // identifer and pass it through successfully
         LetExcept::Or { id, binding, body } => {
             match *binding {
-                Some(b) => {
+                Some(e) => {
                     // or(e) { ... }
                     //
                     // becomes:
                     //
                     // e { ... }
                     let ident_id = node_tree.add_node(Node::Identifier {
-                        name: b,
+                        name: e,
                         module: None,
                     });
                     let pat_id =
-                        node_tree.add_node(Node::Pattern(PatternNode::Identifier(ident_id)));
+                        node_tree.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
+                            payload: Some(e),
+                        })));
 
                     let scope_pos = module
                         .get_scope_pos(*id)
                         .expect("missing scope position for or binding");
                     let binding = module
-                        .find_binding(scope_pos, b)
+                        .find_binding(scope_pos, e)
                         .expect("missing binding for or identifier");
 
                     node_tree.symbol_map.add(binding.id, ident_id);
 
                     let body_id = node_block(node_tree, module, body);
+
                     node_tree.add_node(Node::MatchArm {
                         pattern: pat_id,
                         body: body_id,
@@ -825,7 +841,10 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                     // becomes:
                     //
                     // _ { ... }
-                    let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Default));
+                    let pat_id =
+                        node_tree.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
+                            payload: None,
+                        })));
 
                     let body_id = node_block(node_tree, module, body);
                     node_tree.add_node(Node::MatchArm {
@@ -854,7 +873,10 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                 statements: vec![ret_id],
             });
 
-            let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Identifier(wrap_id)));
+            let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
+                payload: Some(str_store::WRAP),
+            })));
+
             node_tree.add_node(Node::MatchArm {
                 pattern: pat_id,
                 body: body_id,
@@ -899,7 +921,9 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                 statements: vec![call_id],
             });
 
-            let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Identifier(panic_ident_id)));
+            let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
+                payload: Some(str_store::PANIC),
+            })));
             node_tree.add_node(Node::MatchArm {
                 pattern: pat_id,
                 body: body_id,
@@ -926,7 +950,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             );
 
             // the identifier for the pattern, this needs to be seperate from the function call
-            // ideentifier for type checking to work correctly since they need to have different
+            // identifier for type checking to work correctly since they need to have different
             // underlying types
             let panic_ident_id = node_tree.add_node(Node::Identifier {
                 name: str_store::PANIC,
@@ -941,7 +965,9 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                 statements: vec![call_id],
             });
 
-            let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Identifier(panic_ident_id)));
+            let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
+                payload: Some(str_store::PANIC),
+            })));
             node_tree.add_node(Node::MatchArm {
                 pattern: pat_id,
                 body: body_id,
