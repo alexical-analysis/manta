@@ -1,4 +1,4 @@
-use crate::ast::{IdentifierPat, NamedType, Pattern, Payload, TypeSpec, TypeSpecPat};
+use crate::ast::{IdentifierPat, Pattern, Payload, TypeSpecPat};
 use crate::parser::ParseError;
 use crate::parser::lexer::{Lexer, Token, TokenKind};
 use crate::parser::pattern::PrefixPatternParselet;

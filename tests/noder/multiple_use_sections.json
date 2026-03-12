@@ -1,7 +1,10 @@
 {
   "nodes": [
     {
-      "Identifier": 9
+      "Identifier": {
+        "module": null,
+        "name": 9
+      }
     },
     {
       "VarDecl": {
@@ -21,7 +24,10 @@
       }
     },
     {
-      "Identifier": 8
+      "Identifier": {
+        "module": null,
+        "name": 8
+      }
     },
     {
       "FunctionDecl": {
@@ -57,7 +63,10 @@
       }
     },
     {
-      "Identifier": 1
+      "Identifier": {
+        "module": null,
+        "name": 1
+      }
     },
     {
       "FunctionDecl": {
