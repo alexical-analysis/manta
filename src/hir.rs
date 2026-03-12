@@ -189,6 +189,8 @@ pub enum TypeSpec {
     // UnsafePtr is the intermediary between types used by alloc
     UnsafePtr,
     // Panic is the type used for expressions that panic
+    // TODO: should this just be a unit type? Is having a specific panic type useful? I'm not quite
+    // sure yet but once we get to blocking I'll have a better idea
     Panic,
     // Unit type for functions that don't return anything
     Unit,

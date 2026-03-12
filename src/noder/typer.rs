@@ -32,7 +32,23 @@ impl Typer {
             Node::If { .. } => {}
             Node::Match { .. } => {}
             Node::MatchArm { .. } => {}
-            Node::Return { .. } => {}
+            Node::Return { value } => match (value, &self.return_type) {
+                (Some(v), Some(ret)) => {
+                    let type_spec = node_tree
+                        .type_map
+                        .get(v)
+                        .expect("missing type spec for return value");
+                    if type_spec != ret {
+                        panic!("return type does not match the expected type")
+                    }
+                }
+                (None, Some(ret)) => {
+                    if *ret != TypeSpec::Unit {
+                        panic!("function expects a return value but none was given")
+                    }
+                }
+                (_, None) => panic!("can not return a value outside a function context"),
+            },
             Node::Free { .. } => {}
             Node::TypeDecl { .. } => {}
             Node::VarDecl { .. } => {}
@@ -50,20 +66,23 @@ impl Typer {
             }
             Node::FunctionDecl { body, .. } => {
                 // we have to have the type in the type_map already
-                let return_type = node_tree
+                let function_type = node_tree
                     .type_map
                     .get(node_id)
                     .expect("missing function declaration type information");
 
-                self.return_type = Some(return_type.clone());
+                let return_type = match function_type {
+                    TypeSpec::Function(func) => *func.return_type.clone(),
+                    _ => panic!("invalid type for function decl"),
+                };
+
+                self.return_type = Some(return_type);
                 self.type_node(node_tree, body);
 
                 // reset the return type after were done typing the function body since there are
                 // other root nodes that might appear outside a function decl and we don't want
                 // those to thing they have a valid return type
                 self.return_type = None;
-
-                // TODO: actually type check the function types beyond just checking the body
             }
             Node::Assign { target, value } => {
                 let r_type = match self.type_expr_node(node_tree, value) {
