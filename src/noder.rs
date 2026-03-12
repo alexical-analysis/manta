@@ -1,3 +1,5 @@
+pub mod typer;
+
 use serde::Serialize;
 use std::cmp::Ord;
 use std::collections::BTreeMap;
@@ -5,12 +7,13 @@ use std::fmt::Debug;
 use std::ops::Deref;
 
 use crate::ast::{
-    self, BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Payload, ReturnStmt, Stmt, UnaryOp,
+    self, BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Payload, ReturnStmt, Stmt,
 };
 use crate::hir::{
     ArrayType, DefaultPat, EnumType, EnumVariant, EnumVariantPat, FunctionType, NamedType, Node,
     NodeID, PatternNode, StructField, StructType, TypeSpec, TypeSpecPat,
 };
+use crate::noder::typer::Typer;
 use crate::parser::module::{BindingType, Module, SymID};
 use crate::str_store;
 
@@ -62,6 +65,9 @@ pub struct NodeTree {
     nodes: Vec<Node>,
     pub roots: Vec<NodeID>,
     // the type_map maps each node in the node tree to it's type (if it has one)
+    // TODO: we're going to have a type for every node so maybe we can use a slot map or something
+    // to pack these more tightly withouth a lookup/ performance cost. I think right now the side
+    // table uses an internal hash map.
     type_map: SideTable<NodeID, TypeSpec>,
     // the symbol_map maps a bindings symbol id, which is related to it's declaratoin site, to the
     // node_id where it was declared, using this you can look up a symbols declaration site in the
@@ -119,8 +125,9 @@ pub fn node_module(module: Module) -> NodeTree {
         node_decl(&mut node_tree, &module, decl);
     }
 
+    let mut typer = Typer::new();
     // TODO: gather errors here instead of just panicing
-    check_node_tree_types(&mut node_tree);
+    typer.type_node_tree(&mut node_tree);
 
     node_tree
 }
@@ -1267,235 +1274,6 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
             let ptr_id = node_expr(node_tree, module, &expr.expr);
             node_tree.add_node(Node::Free { expr: ptr_id })
         }
-    }
-}
-
-fn check_node_tree_types(node_tree: &mut NodeTree) {
-    for node in &node_tree.roots.clone() {
-        check_node_type(node_tree, *node);
-    }
-}
-
-fn check_node_type(node_tree: &mut NodeTree, node_id: NodeID) {
-    let node = match node_tree.get_node(node_id) {
-        Some(n) => n,
-        None => panic!("type checking unknown node"),
-    };
-    let node = node.clone();
-
-    match node {
-        Node::Defer { block } => {
-            check_node_type(node_tree, block);
-        }
-        Node::If { .. } => {}
-        Node::Match { .. } => {}
-        Node::MatchArm { .. } => {}
-        Node::Return { .. } => {}
-        Node::Free { .. } => {}
-        Node::TypeDecl { .. } => {}
-        Node::VarDecl { .. } => {}
-        Node::Range { .. } => {
-            // TODO: need to add a type for ranges
-        }
-        Node::Pattern(_) => {
-            // TODO: need to type check patterns
-        }
-
-        Node::Block { statements } => {
-            for node in statements {
-                check_node_type(node_tree, node);
-            }
-        }
-        Node::FunctionDecl { body, .. } => {
-            check_node_type(node_tree, body);
-            // TODO: actually type check the function types beyond just checking the body
-        }
-        Node::Assign { target, value } => {
-            let r_type = match check_expr_node_type(node_tree, value) {
-                Some(t) => t,
-                None => {
-                    let r_node = node_tree.get_node(value);
-
-                    panic!(
-                        "value is missing a type (probably is a statement) {:?}\n{:?}",
-                        value, r_node,
-                    )
-                }
-            };
-
-            // TODO: make sure l_type is assignale (e.g. has a memory location)
-            let l_type = match check_expr_node_type(node_tree, target) {
-                Some(t) => t,
-                None => {
-                    if let Some(Node::Identifier { .. }) = node_tree.get_node(target) {
-                        // if the left hand side has no type, check if the node is an identifier.
-                        // if not this is a type checking bug and we should panic because there is
-                        // a problem with the type checker itself.
-                        //
-                        // If it is an identifier we need to infer the type from the RHS and add
-                        // it to the type_map
-                        node_tree.type_map.add(target, r_type.clone());
-                        r_type.clone()
-                    } else {
-                        panic!("missing type for assignment target")
-                    }
-                }
-            };
-
-            if l_type != r_type {
-                panic!("l_type {:?} does not equal r_type {:?}", l_type, r_type)
-            }
-        }
-        Node::Invalid
-        | Node::IntLiteral(_)
-        | Node::FloatLiteral(_)
-        | Node::StringLiteral(_)
-        | Node::BoolLiteral(_)
-        | Node::Identifier { .. }
-        | Node::Unary { .. }
-        | Node::Binary { .. }
-        | Node::Call { .. }
-        | Node::Index { .. }
-        | Node::EnumConstructor { .. }
-        | Node::FieldAccess { .. }
-        | Node::MetaType
-        | Node::Alloc { .. } => {
-            check_expr_node_type(node_tree, node_id);
-        }
-    }
-}
-
-// TODO: this should just return a type spec but I'm leaving it as optional right now for backwards
-// compatibility durring the refactor
-fn check_expr_node_type(node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec> {
-    // if the type of this node is already known we can just return that, otherwise we need to go
-    // through the work of inferring the type
-    if let Some(ts) = node_tree.type_map.get(node_id) {
-        return Some(ts.clone());
-    }
-
-    let node = node_tree
-        .get_node(node_id)
-        .expect("failed to find node for type checking");
-    let node = node.clone();
-
-    match node {
-        Node::Invalid => None,
-        Node::IntLiteral(_) => Some(TypeSpec::Int64),
-        Node::FloatLiteral(_) => Some(TypeSpec::Float64),
-        Node::StringLiteral(_) => Some(TypeSpec::String),
-        Node::BoolLiteral(_) => Some(TypeSpec::Bool),
-        Node::Binary {
-            left,
-            operator: _,
-            right,
-        } => {
-            let l_type = check_expr_node_type(node_tree, left);
-            let r_type = check_expr_node_type(node_tree, right);
-
-            if l_type != r_type {
-                panic!("types do not match in binary expression");
-            }
-
-            l_type
-        }
-        Node::Identifier { .. } => node_tree.type_map.get(node_id).cloned(),
-        Node::EnumConstructor { .. } => node_tree.type_map.get(node_id).cloned(),
-        Node::FieldAccess { .. } => {
-            // TODO: need struct/enum type information to determine field type
-            None
-        }
-
-        Node::Unary { operator, operand } => {
-            let operand_type = check_expr_node_type(node_tree, operand)?;
-            match operator {
-                UnaryOp::AddressOf => {
-                    // &T -> Pointer(T)
-                    Some(TypeSpec::Pointer(Box::new(operand_type)))
-                }
-                UnaryOp::Dereference => {
-                    // *Pointer(T) -> T
-                    match operand_type {
-                        TypeSpec::Pointer(inner) => Some(*inner),
-                        _ => panic!("cannot dereference non-pointer type"),
-                    }
-                }
-                UnaryOp::Not => {
-                    // !T -> T (should be bool, but we don't enforce yet)
-                    Some(operand_type)
-                }
-                UnaryOp::Negate => {
-                    // -T -> T (should be a numeric type but we don't enforce that yet)
-                    Some(operand_type)
-                }
-                UnaryOp::Positive => {
-                    // +T -> T (should be a numeric type but we don't enforce that yet)
-                    Some(operand_type)
-                }
-            }
-        }
-
-        Node::Call { func, args: _ } => {
-            let func_type = check_expr_node_type(node_tree, func)?;
-            match func_type {
-                TypeSpec::Function(ft) => Some(*ft.return_type),
-                _ => panic!("cannot call non-function type"),
-            }
-        }
-
-        Node::Index { target, index: _ } => {
-            let target_type = check_expr_node_type(node_tree, target)?;
-            match target_type {
-                TypeSpec::Array(arr) => Some(*arr.type_spec),
-                TypeSpec::Slice(elem_type) => Some(*elem_type),
-                _ => panic!("cannot index non-array/slice type"),
-            }
-        }
-
-        Node::MetaType => Some(TypeSpec::Struct(StructType {
-            fields: vec![
-                StructField {
-                    name: str_store::SIZEOF,
-                    // TODO: this should actually be a usize instead of a u64 since we need to support
-                    // 32-bit systems as well
-                    type_spec: TypeSpec::UInt64,
-                },
-                StructField {
-                    name: str_store::ALIGNOF,
-                    // TODO: this should actually be a usize instead of a u64 since we need to support
-                    // 32-bit systems as well
-                    type_spec: TypeSpec::UInt64,
-                },
-                StructField {
-                    name: str_store::METAFLAGS,
-                    // TODO: this should actually be a usize instead of a u64 since we need to support
-                    // 32-bit systems as well
-                    type_spec: TypeSpec::UInt64,
-                },
-            ],
-        })),
-        Node::Alloc { .. } => Some(TypeSpec::UnsafePtr),
-        Node::Defer { .. }
-        | Node::If { .. }
-        | Node::VarDecl { .. }
-        | Node::Match { .. }
-        | Node::MatchArm { .. }
-        | Node::Return { .. }
-        | Node::Free { .. }
-        | Node::TypeDecl { .. }
-        | Node::Range { .. }
-        | Node::Pattern(_)
-        | Node::Block { .. }
-        | Node::FunctionDecl { .. }
-        | Node::Assign { .. } => panic!("can not type check a statement as an expression"),
-    }
-}
-
-// resolve_type will unwrap named type aliases to find the underlying type
-fn resolve_type(ts: &TypeSpec) -> &TypeSpec {
-    match ts {
-        TypeSpec::Named(t) => resolve_type(t.type_spec.deref()),
-        _ => ts,
     }
 }
 
