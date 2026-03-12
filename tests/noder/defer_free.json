@@ -177,15 +177,11 @@
     },
     {
       "Pattern": {
-        "DotAccess": {
-          "target": null,
-          "field": 14
+        "EnumVariant": {
+          "enum_name": null,
+          "variant": 14,
+          "payload": 22
         }
-      }
-    },
-    {
-      "Block": {
-        "statements": []
       }
     },
     {
@@ -193,13 +189,26 @@
     },
     {
       "VarDecl": {
-        "ident": 37
+        "ident": 36
+      }
+    },
+    {
+      "Assign": {
+        "target": 36,
+        "value": 33
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          38
+        ]
       }
     },
     {
       "MatchArm": {
         "pattern": 35,
-        "body": 36
+        "body": 39
       }
     },
     {
@@ -209,38 +218,38 @@
       "EnumConstructor": {
         "target": null,
         "variant": 30,
-        "payload": 40
+        "payload": 41
       }
     },
     {
       "Return": {
-        "value": 41
+        "value": 42
       }
     },
     {
       "Block": {
         "statements": [
-          42
+          43
         ]
       }
     },
     {
       "Pattern": {
-        "Identifier": 40
+        "Identifier": 41
       }
     },
     {
       "MatchArm": {
-        "pattern": 44,
-        "body": 43
+        "pattern": 45,
+        "body": 44
       }
     },
     {
       "Match": {
         "target": 32,
         "arms": [
-          39,
-          45
+          40,
+          46
         ]
       }
     },
@@ -248,26 +257,26 @@
       "Call": {
         "func": 15,
         "args": [
-          37
+          36
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          47
+          48
         ]
       }
     },
     {
       "Defer": {
-        "block": 48
+        "block": 49
       }
     },
     "MetaType",
     {
       "Alloc": {
-        "meta_type": 50,
+        "meta_type": 51,
         "options": []
       }
     },
@@ -276,21 +285,41 @@
     },
     {
       "VarDecl": {
-        "ident": 52
+        "ident": 53
       }
     },
     {
-      "Pattern": "TypeSpec"
+      "Pattern": {
+        "TypeSpec": {
+          "payload": 26
+        }
+      }
+    },
+    {
+      "Identifier": 26
+    },
+    {
+      "VarDecl": {
+        "ident": 56
+      }
+    },
+    {
+      "Assign": {
+        "target": 56,
+        "value": 53
+      }
     },
     {
       "Block": {
-        "statements": []
+        "statements": [
+          58
+        ]
       }
     },
     {
       "MatchArm": {
-        "pattern": 54,
-        "body": 55
+        "pattern": 55,
+        "body": 59
       }
     },
     {
@@ -301,84 +330,63 @@
     },
     {
       "Call": {
-        "func": 57,
+        "func": 61,
         "args": [
-          58
-        ]
-      }
-    },
-    {
-      "Block": {
-        "statements": [
-          59
-        ]
-      }
-    },
-    {
-      "Pattern": {
-        "Identifier": 58
-      }
-    },
-    {
-      "MatchArm": {
-        "pattern": 61,
-        "body": 60
-      }
-    },
-    {
-      "Match": {
-        "target": 51,
-        "arms": [
-          56,
           62
         ]
       }
     },
     {
+      "Block": {
+        "statements": [
+          63
+        ]
+      }
+    },
+    {
+      "Pattern": {
+        "Identifier": 62
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": 65,
+        "body": 64
+      }
+    },
+    {
+      "Match": {
+        "target": 52,
+        "arms": [
+          60,
+          66
+        ]
+      }
+    },
+    {
       "Free": {
-        "expr": 52
+        "expr": 56
       }
     },
     {
       "Block": {
         "statements": [
-          64
+          68
         ]
       }
     },
     {
       "Defer": {
-        "block": 65
+        "block": 69
       }
     },
     {
       "Call": {
         "func": 26,
         "args": [
-          37,
-          52
+          36,
+          56
         ]
-      }
-    },
-    {
-      "Identifier": 42
-    },
-    {
-      "VarDecl": {
-        "ident": 68
-      }
-    },
-    {
-      "Pattern": {
-        "DotAccess": {
-          "target": null,
-          "field": 14
-        }
-      }
-    },
-    {
-      "Block": {
-        "statements": []
       }
     },
     {
@@ -390,24 +398,26 @@
       }
     },
     {
-      "MatchArm": {
-        "pattern": 70,
-        "body": 71
+      "Pattern": {
+        "EnumVariant": {
+          "enum_name": null,
+          "variant": 14,
+          "payload": 42
+        }
       }
     },
     {
-      "Identifier": 18446744073709551602
+      "Identifier": 42
     },
     {
-      "EnumConstructor": {
-        "target": null,
-        "variant": 31,
-        "payload": 75
+      "VarDecl": {
+        "ident": 75
       }
     },
     {
-      "Return": {
-        "value": 76
+      "Assign": {
+        "target": 75,
+        "value": 72
       }
     },
     {
@@ -418,22 +428,50 @@
       }
     },
     {
-      "Pattern": {
-        "Identifier": 75
-      }
-    },
-    {
       "MatchArm": {
-        "pattern": 79,
+        "pattern": 74,
         "body": 78
       }
     },
     {
+      "Identifier": 18446744073709551602
+    },
+    {
+      "EnumConstructor": {
+        "target": null,
+        "variant": 31,
+        "payload": 80
+      }
+    },
+    {
+      "Return": {
+        "value": 81
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          82
+        ]
+      }
+    },
+    {
+      "Pattern": {
+        "Identifier": 80
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": 84,
+        "body": 83
+      }
+    },
+    {
       "Match": {
-        "target": 67,
+        "target": 71,
         "arms": [
-          74,
-          80
+          79,
+          85
         ]
       }
     },
@@ -446,18 +484,18 @@
     },
     {
       "Return": {
-        "value": 82
+        "value": 87
       }
     },
     {
       "Block": {
         "statements": [
-          46,
-          49,
-          63,
-          66,
-          81,
-          83
+          47,
+          50,
+          67,
+          70,
+          86,
+          88
         ]
       }
     },
@@ -466,11 +504,11 @@
     },
     {
       "FunctionDecl": {
-        "ident": 85,
+        "ident": 90,
         "params": [
           31
         ],
-        "body": 84
+        "body": 89
       }
     }
   ],
@@ -482,8 +520,8 @@
     18,
     27,
     29,
-    53,
-    86
+    54,
+    91
   ],
   "type_map": {
     "keys": {
@@ -502,11 +540,11 @@
       "27": 12,
       "28": 13,
       "30": 14,
-      "50": 15,
-      "51": 16,
-      "57": 17,
-      "85": 18,
-      "86": 19
+      "51": 15,
+      "52": 16,
+      "61": 17,
+      "90": 18,
+      "91": 19
     },
     "values": [
       {
@@ -1040,10 +1078,10 @@
       26,
       28,
       30,
-      37,
-      52,
-      72,
-      85
+      36,
+      56,
+      75,
+      90
     ]
   }
 }

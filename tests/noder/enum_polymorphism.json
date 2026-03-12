@@ -75,9 +75,10 @@
     },
     {
       "Pattern": {
-        "DotAccess": {
-          "target": null,
-          "field": 20
+        "EnumVariant": {
+          "enum_name": null,
+          "variant": 20,
+          "payload": 26
         }
       }
     },
@@ -123,9 +124,10 @@
     },
     {
       "Pattern": {
-        "DotAccess": {
-          "target": null,
-          "field": 21
+        "EnumVariant": {
+          "enum_name": null,
+          "variant": 21,
+          "payload": 23
         }
       }
     },

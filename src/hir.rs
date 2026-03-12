@@ -148,9 +148,7 @@ pub enum PatternNode {
     StringLiteral(StrID),
     BoolLiteral(bool),
     FloatLiteral(f64),
-
-    TypeSpec,
-
+    TypeSpec(TypeSpecPat),
     Payload {
         // Always a Pattern node
         pat: NodeID,
@@ -162,15 +160,23 @@ pub enum PatternNode {
         // Always a Pattern Node
         pat: NodeID,
     },
-    DotAccess {
-        // Always a Pattern node
-        target: Option<NodeID>,
-        field: StrID,
-    },
-
+    EnumVariant(EnumVariantPat),
     // Always points to an identifier expression
     Identifier(NodeID),
-    Default, // the _ pattern
+    Default,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct EnumVariantPat {
+    pub enum_name: Option<NodeID>,
+    pub variant: StrID,
+    pub payload: Option<StrID>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct TypeSpecPat {
+    // type spec information get's stored in the type_map so there's no need to include it here
+    pub payload: Option<StrID>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
