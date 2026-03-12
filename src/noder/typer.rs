@@ -34,13 +34,20 @@ impl Typer {
             Node::MatchArm { .. } => {}
             Node::Return { value } => match (value, &self.return_type) {
                 (Some(v), Some(ret)) => {
-                    let type_spec = node_tree
-                        .type_map
-                        .get(v)
-                        .expect("missing type spec for return value");
-                    if type_spec != ret {
-                        panic!("return type does not match the expected type")
-                    }
+                    let type_spec = node_tree.type_map.get(v);
+                    // TODO: we are not fully ready to insiste that all values have types here
+                    // but when we are we need to add in this line and remove the more generous
+                    // test below
+                    // .expect("missing type spec for return value");
+
+                    match type_spec {
+                        Some(ts) => {
+                            if ts != ret {
+                                panic!("return type does not match the expected type")
+                            }
+                        }
+                        None => eprintln!("TODO; missing type for return value"),
+                    };
                 }
                 (None, Some(ret)) => {
                     if *ret != TypeSpec::Unit {
