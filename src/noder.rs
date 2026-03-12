@@ -5,7 +5,7 @@ use std::fmt::Debug;
 use std::ops::Deref;
 
 use crate::ast::{
-    self, BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, ReturnStmt, Stmt, UnaryOp,
+    self, BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Payload, ReturnStmt, Stmt, UnaryOp,
 };
 use crate::hir::{
     ArrayType, EnumType, EnumVariant, FunctionType, NamedType, Node, NodeID, PatternNode,
@@ -464,17 +464,20 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
             node_tree.add_node(Node::Pattern(PatternNode::FloatLiteral(*pat)))
         }
         Pattern::TypeSpec(pat) => {
-            let payload_id = node_tree.add_node(Node::Identifier(pat.payload));
-            node_tree.add_root_node(Node::VarDecl { ident: payload_id });
+            if let Payload::Some(payload) = pat.payload {
+                let payload_id = node_tree.add_node(Node::Identifier(payload));
+                node_tree.add_root_node(Node::VarDecl { ident: payload_id });
 
-            let scope_pos = module
-                .get_scope_pos(pat.id)
-                .expect("missing scope_posfor var decl");
-            let binding = module
-                .find_binding(scope_pos, pat.payload)
-                .expect("missing binding for var decl");
+                let scope_pos = module
+                    .get_scope_pos(pat.id)
+                    .expect("missing scope_posfor var decl");
+                let binding = module
+                    .find_binding(scope_pos, payload)
+                    .expect("missing binding for var decl");
 
-            node_tree.symbol_map.add(binding.id, payload_id);
+                node_tree.symbol_map.add(binding.id, payload_id);
+            }
+
             node_tree.add_node(Node::Pattern(PatternNode::TypeSpec))
         }
         Pattern::EnumVariant(pat) => {
@@ -494,7 +497,7 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
                 target_id = Some(*enum_name_decl);
             }
 
-            if let Some(pay) = pat.payload {
+            if let Payload::Some(pay) = pat.payload {
                 let payload_ident = node_tree.add_node(Node::Identifier(pay));
                 node_tree.add_node(Node::VarDecl {
                     ident: payload_ident,
@@ -540,7 +543,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                 panic!("missing exception handler for this pattern")
             }
 
-            if let Some(pay) = pat.payload {
+            if let Payload::Some(pay) = pat.payload {
                 // let .ident(p) = value
                 //
                 // decl outer_p

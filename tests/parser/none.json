@@ -139,7 +139,9 @@
                           "TypeSpec": {
                             "id": 488,
                             "type_spec": "Int32",
-                            "payload": 15
+                            "payload": {
+                              "Some": 15
+                            }
                           }
                         },
                         "value": {
@@ -269,7 +271,9 @@
                         "id": 654,
                         "enum_name": null,
                         "variant": 21,
-                        "payload": 15
+                        "payload": {
+                          "Some": 15
+                        }
                       }
                     },
                     "body": {
@@ -314,7 +318,7 @@
                         "id": 693,
                         "enum_name": null,
                         "variant": 22,
-                        "payload": null
+                        "payload": "None"
                       }
                     },
                     "body": {

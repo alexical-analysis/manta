@@ -1,7 +1,8 @@
-use crate::ast::{EnumVariantPat, IdentifierExpr, Pattern};
+use crate::ast::{EnumVariantPat, IdentifierExpr, Pattern, Payload};
 use crate::parser::ParseError;
 use crate::parser::lexer::{Lexer, Token, TokenKind};
 use crate::parser::pattern::{InfixPatternParselet, PatternParser, PrefixPatternParselet};
+use crate::str_store;
 
 /// Parses dot patterns where the dot is the prefix.
 ///
@@ -13,7 +14,7 @@ impl PrefixPatternParselet for PrefixEnumVariantPatternParselet {
     fn parse(&self, lexer: &mut Lexer, token: Token) -> Result<Pattern, ParseError> {
         let field_token = lexer.next_token();
 
-        let mut payload = None;
+        let mut payload = Payload::None;
         if lexer.peek().kind == TokenKind::OpenParen {
             lexer.next_token();
             let payload_token = lexer.next_token();
@@ -32,7 +33,10 @@ impl PrefixPatternParselet for PrefixEnumVariantPatternParselet {
                 ));
             }
 
-            payload = Some(payload_token.lexeme_id)
+            payload = match payload_token.lexeme_id {
+                str_store::UNDERSCORE => Payload::Default,
+                id => Payload::Some(id),
+            }
         }
 
         match field_token.kind {
@@ -86,7 +90,7 @@ impl InfixPatternParselet for InfixEnumVariantPatternParselet {
 
         let field_token = lexer.next_token();
 
-        let mut payload = None;
+        let mut payload = Payload::None;
         if lexer.peek().kind == TokenKind::OpenParen {
             lexer.next_token();
             let payload_token = lexer.next_token();
@@ -105,7 +109,10 @@ impl InfixPatternParselet for InfixEnumVariantPatternParselet {
                 ));
             }
 
-            payload = Some(payload_token.lexeme_id)
+            payload = match payload_token.lexeme_id {
+                str_store::UNDERSCORE => Payload::Default,
+                id => Payload::Some(id),
+            }
         }
 
         match field_token.kind {

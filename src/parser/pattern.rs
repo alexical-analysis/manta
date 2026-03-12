@@ -111,11 +111,11 @@ impl PatternParser {
 mod test {
     use super::*;
     use crate::ast::{
-        ArrayType, EnumVariantPat, IdentifierExpr, IdentifierPat, NamedType, Pattern, TypeSpec,
-        TypeSpecPat,
+        ArrayType, EnumVariantPat, IdentifierExpr, IdentifierPat, NamedType, Pattern, Payload,
+        TypeSpec, TypeSpecPat,
     };
     use crate::parser::lexer::{Lexer, SourceID};
-    use crate::str_store::{self, StrID, StrStore};
+    use crate::str_store::{StrID, StrStore};
     use pretty_assertions::assert_eq;
 
     macro_rules! test_parse_patterns {
@@ -170,7 +170,7 @@ mod test {
             want: Pattern::TypeSpec(TypeSpecPat {
                 id: SourceID::from_usize(0),
                 type_spec: TypeSpec::Float32,
-                payload: StrID::from_usize(1),
+                payload: Payload::Some(StrID::from_usize(1)),
             }),
         },
         parse_pattern_pointer {
@@ -182,7 +182,7 @@ mod test {
                     module: None,
                     name: StrID::from_usize(1),
                 }))),
-                payload: str_store::UNDERSCORE,
+                payload: Payload::Default,
             }),
         },
         parse_pattern_double_pointer {
@@ -196,7 +196,7 @@ mod test {
                         name: StrID::from_usize(1),
                     })
                 )))),
-                payload: str_store::UNDERSCORE,
+                payload: Payload::Default,
             }),
         },
         parse_pattern_slice {
@@ -208,7 +208,7 @@ mod test {
                     module: None,
                     name: StrID::from_usize(2),
                 }))),
-                payload: str_store::UNDERSCORE,
+                payload: Payload::Default,
             }),
         },
         parse_pattern_3d_array {
@@ -225,7 +225,7 @@ mod test {
                         })),
                     })),
                 }),
-                payload: str_store::UNDERSCORE,
+                payload: Payload::Default,
             }),
         },
         parse_pattern_array_pointer_slice_pointer {
@@ -242,7 +242,7 @@ mod test {
                         })))
                     ))))),
                 }),
-                payload: str_store::UNDERSCORE,
+                payload: Payload::Default,
             }),
         },
         parse_pattern_simple_identifier {
@@ -272,7 +272,7 @@ mod test {
                 id: SourceID::from_usize(0),
                 enum_name: None,
                 variant: StrID::from_usize(1),
-                payload: None,
+                payload: Payload::None,
             }),
         },
         parse_pattern_dot_variant {
@@ -285,7 +285,7 @@ mod test {
                     name: StrID::from_usize(0),
                 }),
                 variant: StrID::from_usize(2),
-                payload: None,
+                payload: Payload::None,
             },),
         },
         parse_pattern_module_access_identifier {
@@ -297,7 +297,7 @@ mod test {
                     module: Some(StrID::from_usize(0)),
                     name: StrID::from_usize(2),
                 }),
-                payload: str_store::UNDERSCORE,
+                payload: Payload::Default,
             }),
         },
         parse_pattern_module_access_dot_variant {
@@ -310,7 +310,7 @@ mod test {
                     name: StrID::from_usize(2),
                 }),
                 variant: StrID::from_usize(4),
-                payload: None,
+                payload: Payload::None,
             }),
         },
         parse_pattern_module_access_payload {
@@ -323,7 +323,7 @@ mod test {
                     name: StrID::from_usize(2),
                 }),
                 variant: StrID::from_usize(4),
-                payload: Some(StrID::from_usize(6)),
+                payload: Payload::Some(StrID::from_usize(6)),
             }),
         },
         parse_pattern_payload_simple {
@@ -335,7 +335,7 @@ mod test {
                     module: None,
                     name: StrID::from_usize(0)
                 }),
-                payload: StrID::from_usize(2),
+                payload: Payload::Some(StrID::from_usize(2)),
             }),
         },
         parse_pattern_payload_dot_access {
@@ -348,7 +348,7 @@ mod test {
                     name: StrID::from_usize(0)
                 }),
                 variant: StrID::from_usize(2),
-                payload: Some(StrID::from_usize(4)),
+                payload: Payload::Some(StrID::from_usize(4)),
             }),
         },
         parse_pattern_payload_dot_inferred {
@@ -357,7 +357,7 @@ mod test {
                 id: SourceID::from_usize(0),
                 enum_name: None,
                 variant: StrID::from_usize(1),
-                payload: Some(StrID::from_usize(3)),
+                payload: Payload::Some(StrID::from_usize(3)),
             }),
         },
     );

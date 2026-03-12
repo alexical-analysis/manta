@@ -182,8 +182,8 @@ mod test {
     use crate::ast::{
         AllocExpr, AssignStmt, BinaryExpr, BinaryOp, BlockStmt, CallExpr, DeferStmt, DotAccessExpr,
         EnumVariantPat, Expr, FreeExpr, IdentifierExpr, IdentifierPat, IfStmt, IndexExpr,
-        LetExcept, LetStmt, MatchArm, MatchStmt, MetaTypeExpr, NamedType, Pattern, ReturnStmt,
-        Stmt, TypeSpec, TypeSpecPat, UnaryExpr, UnaryOp,
+        LetExcept, LetStmt, MatchArm, MatchStmt, MetaTypeExpr, NamedType, Pattern, Payload,
+        ReturnStmt, Stmt, TypeSpec, TypeSpecPat, UnaryExpr, UnaryOp,
     };
     use crate::parser::lexer::{Lexer, SourceID};
     use crate::str_store::{StrID, StrStore};
@@ -233,7 +233,7 @@ mod test {
                     pattern: Pattern::TypeSpec(TypeSpecPat {
                         id: SourceID::from_usize(4),
                         type_spec: TypeSpec::Bool,
-                        payload: StrID::from_usize(2),
+                        payload: Payload::Some(StrID::from_usize(2)),
                     }),
                     value: Expr::BoolLiteral(true),
                     except: LetExcept::None,
@@ -268,7 +268,7 @@ mod test {
                             module: None,
                             name: StrID::from_usize(1)
                         }),
-                        payload: StrID::from_usize(3)
+                        payload: Payload::Some(StrID::from_usize(3)),
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -418,7 +418,7 @@ mod test {
                                 id: SourceID::from_usize(25),
                                 enum_name: None,
                                 variant: StrID::from_usize(7),
-                                payload: Some(StrID::from_usize(9)),
+                                payload: Payload::Some(StrID::from_usize(9)),
                             }),
                             value: Expr::Call(CallExpr {
                                 func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -676,7 +676,7 @@ mod test {
                         id: SourceID::from_usize(4),
                         enum_name: None,
                         variant: StrID::from_usize(2),
-                        payload: None,
+                        payload: Payload::None,
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -706,7 +706,7 @@ mod test {
                             name: StrID::from_usize(1),
                         }),
                         variant: StrID::from_usize(3),
-                        payload: Some(StrID::from_usize(5)),
+                        payload: Payload::Some(StrID::from_usize(5)),
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -749,7 +749,7 @@ mod test {
                         id: SourceID::from_usize(4),
                         enum_name: None,
                         variant: StrID::from_usize(2),
-                        payload: None,
+                        payload: Payload::None,
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -805,7 +805,7 @@ mod test {
                         id: SourceID::from_usize(4),
                         enum_name: None,
                         variant: StrID::from_usize(2),
-                        payload: Some(StrID::from_usize(4)),
+                        payload: Payload::Some(StrID::from_usize(4)),
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -843,7 +843,7 @@ mod test {
                                 id: SourceID::from_usize(14),
                                 enum_name: None,
                                 variant: StrID::from_usize(4),
-                                payload: Some(StrID::from_usize(6)),
+                                payload: Payload::Some(StrID::from_usize(6)),
                             }),
                             body: BlockStmt {
                                 id: SourceID::from_usize(23),
@@ -869,7 +869,7 @@ mod test {
                                 id: SourceID::from_usize(40),
                                 enum_name: None,
                                 variant: StrID::from_usize(12),
-                                payload: None,
+                                payload: Payload::None,
                             }),
                             body: BlockStmt {
                                 id: SourceID::from_usize(46),
@@ -911,7 +911,7 @@ mod test {
                                 id: SourceID::from_usize(19),
                                 enum_name: None,
                                 variant: StrID::from_usize(4),
-                                payload: Some(StrID::from_usize(6)),
+                                payload: Payload::Some(StrID::from_usize(6)),
                             }),
                             body: BlockStmt {
                                 id: SourceID::from_usize(33),
@@ -937,7 +937,7 @@ mod test {
                                 id: SourceID::from_usize(52),
                                 enum_name: None,
                                 variant: StrID::from_usize(12),
-                                payload: Some(StrID::from_usize(13)),
+                                payload: Payload::Some(StrID::from_usize(13)),
                             }),
                             body: BlockStmt {
                                 id: SourceID::from_usize(66),
@@ -963,7 +963,7 @@ mod test {
                                 id: SourceID::from_usize(85),
                                 enum_name: None,
                                 variant: StrID::from_usize(14),
-                                payload: None,
+                                payload: Payload::None,
                             }),
                             body: BlockStmt {
                                 id: SourceID::from_usize(93),
@@ -1004,7 +1004,7 @@ mod test {
                                 id: SourceID::from_usize(19),
                                 enum_name: None,
                                 variant: StrID::from_usize(4),
-                                payload: None,
+                                payload: Payload::None,
                             }),
                             body: BlockStmt {
                                 id: SourceID::from_usize(26),
@@ -1026,7 +1026,7 @@ mod test {
                                 id: SourceID::from_usize(46),
                                 enum_name: None,
                                 variant: StrID::from_usize(12),
-                                payload: Some(StrID::from_usize(13)),
+                                payload: Payload::Some(StrID::from_usize(13)),
                             }),
                             body: BlockStmt {
                                 id: SourceID::from_usize(56),

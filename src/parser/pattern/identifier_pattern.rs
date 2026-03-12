@@ -1,4 +1,4 @@
-use crate::ast::{IdentifierPat, NamedType, Pattern, TypeSpec, TypeSpecPat};
+use crate::ast::{IdentifierPat, NamedType, Pattern, Payload, TypeSpec, TypeSpecPat};
 use crate::parser::ParseError;
 use crate::parser::lexer::{Lexer, Token, TokenKind};
 use crate::parser::pattern::PrefixPatternParselet;
@@ -12,7 +12,7 @@ pub struct IdentifierPatternParselet;
 
 impl PrefixPatternParselet for IdentifierPatternParselet {
     fn parse(&self, lexer: &mut Lexer, token: Token) -> Result<Pattern, ParseError> {
-        let mut payload = None;
+        let mut payload = Payload::None;
         if lexer.peek().kind == TokenKind::OpenParen {
             lexer.next_token();
             let payload_token = lexer.next_token();
@@ -31,26 +31,28 @@ impl PrefixPatternParselet for IdentifierPatternParselet {
                 ));
             }
 
-            payload = Some(payload_token.lexeme_id)
+            payload = Payload::Some(payload_token.lexeme_id)
         }
 
         let name = token.lexeme_id;
-        match (name, payload) {
-            (str_store::UNDERSCORE, None) => Ok(Pattern::Default),
-            (str_store::UNDERSCORE, Some(_)) => Err(ParseError::InvalidExpression(
-                token,
-                "default patterns can not have payloads".to_string(),
-            )),
-            (_, None) => Ok(Pattern::Identifier(IdentifierPat {
+        match (name, &payload) {
+            (str_store::UNDERSCORE, Payload::None) => Ok(Pattern::Default),
+            (str_store::UNDERSCORE, Payload::Some(_) | Payload::Default) => {
+                Err(ParseError::InvalidExpression(
+                    token,
+                    "default patterns can not have payloads".to_string(),
+                ))
+            }
+            (_, Payload::None) => Ok(Pattern::Identifier(IdentifierPat {
                 id: token.source_id,
                 name,
             })),
-            (_, Some(p)) => {
+            (_, Payload::Some(_) | Payload::Default) => {
                 let type_spec = types::parse_type(lexer, token)?;
                 Ok(Pattern::TypeSpec(TypeSpecPat {
                     id: token.source_id,
                     type_spec,
-                    payload: p,
+                    payload,
                 }))
             }
         }
