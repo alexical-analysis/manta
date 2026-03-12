@@ -261,7 +261,6 @@ pub enum Pattern {
     BoolLiteral(bool),
     FloatLiteral(f64),
     TypeSpec(TypeSpecPat),
-    Payload(PayloadPat),
     EnumVariant(EnumVariantPat),
     ModuleIdentifier(ModuleIdentifierPat),
     Identifier(IdentifierPat),
@@ -273,12 +272,6 @@ pub struct TypeSpecPat {
     pub id: SourceID,
     pub type_spec: TypeSpec,
     pub payload: StrID,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize)]
-pub struct PayloadPat {
-    pub pat: Box<Pattern>,
-    pub payload: IdentifierPat,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
