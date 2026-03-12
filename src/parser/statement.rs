@@ -183,8 +183,8 @@ mod test {
     use crate::ast::{
         AllocExpr, AssignStmt, BinaryExpr, BinaryOp, BlockStmt, CallExpr, DeferStmt, DotAccessExpr,
         EnumVariantPat, Expr, FreeExpr, IdentifierExpr, IdentifierPat, IfStmt, IndexExpr,
-        LetExcept, LetStmt, MatchArm, MatchStmt, MetaTypeExpr, Pattern, PayloadPat, ReturnStmt,
-        Stmt, TypeSpec, UnaryExpr, UnaryOp,
+        LetExcept, LetStmt, MatchArm, MatchStmt, MetaTypeExpr, NamedType, Pattern, PayloadPat,
+        ReturnStmt, Stmt, TypeSpec, TypeSpecPat, UnaryExpr, UnaryOp,
     };
     use crate::parser::lexer::{Lexer, SourceID};
     use crate::str_store::{self, StrID, StrStore};
@@ -218,7 +218,6 @@ mod test {
                 LetStmt {
                     pattern: Pattern::Identifier(IdentifierPat {
                         id: SourceID::from_usize(4),
-                        module: None,
                         name: StrID::from_usize(1)
                     }),
                     value: Expr::IntLiteral(10),
@@ -232,18 +231,10 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::Payload(PayloadPat {
-                        pat: Box::new(Pattern::Identifier(IdentifierPat {
-                            id: SourceID::from_usize(4),
-                            module: None,
-
-                            name: str_store::BOOL,
-                        })),
-                        payload: IdentifierPat {
-                            id: SourceID::from_usize(9),
-                            module: None,
-                            name: StrID::from_usize(2)
-                        },
+                    pattern: Pattern::TypeSpec(TypeSpecPat {
+                        id: SourceID::from_usize(4),
+                        type_spec: TypeSpec::Bool,
+                        payload: StrID::from_usize(2),
                     }),
                     value: Expr::BoolLiteral(true),
                     except: LetExcept::None,
@@ -258,7 +249,6 @@ mod test {
                 LetStmt {
                     pattern: Pattern::Identifier(IdentifierPat {
                         id: SourceID::from_usize(4),
-                        module: None,
                         name: StrID::from_usize(1)
                     }),
                     value: Expr::FloatLiteral(3.45),
@@ -272,17 +262,14 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
-                    pattern: Pattern::Payload(PayloadPat {
-                        pat: Box::new(Pattern::Identifier(IdentifierPat {
+                    pattern: Pattern::TypeSpec(TypeSpecPat {
+                        id: SourceID::from_usize(4),
+                        type_spec: TypeSpec::Named(NamedType {
                             id: SourceID::from_usize(4),
                             module: None,
                             name: StrID::from_usize(1)
-                        })),
-                        payload: IdentifierPat {
-                            id: SourceID::from_usize(11),
-                            module: None,
-                            name: StrID::from_usize(3)
-                        },
+                        }),
+                        payload: StrID::from_usize(3)
                     }),
                     value: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
@@ -422,7 +409,6 @@ mod test {
                         Stmt::Let(LetStmt {
                             pattern: Pattern::Identifier(IdentifierPat {
                                 id: SourceID::from_usize(10),
-                                module: None,
                                 name: StrID::from_usize(2)
                             }),
                             value: Expr::IntLiteral(10),
@@ -448,7 +434,6 @@ mod test {
                         Stmt::Let(LetStmt {
                             pattern: Pattern::Identifier(IdentifierPat {
                                 id: SourceID::from_usize(58),
-                                module: None,
                                 name: StrID::from_usize(14)
                             }),
                             value: Expr::Binary(BinaryExpr {
@@ -668,7 +653,6 @@ mod test {
                 LetStmt {
                     pattern: Pattern::Identifier(IdentifierPat {
                         id: SourceID::from_usize(4),
-                        module: None,
                         name: StrID::from_usize(1)
                     }),
                     value: Expr::Unary(UnaryExpr {

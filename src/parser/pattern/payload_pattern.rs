@@ -32,7 +32,6 @@ impl InfixPatternParselet for PayloadPatternParselet {
                     pat: Box::new(left),
                     payload: IdentifierPat {
                         id: ident.source_id,
-                        module: None,
                         name: ident.lexeme_id,
                     },
                 }))

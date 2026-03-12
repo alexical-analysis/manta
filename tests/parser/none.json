@@ -136,19 +136,10 @@
                     {
                       "Let": {
                         "pattern": {
-                          "Payload": {
-                            "pat": {
-                              "Identifier": {
-                                "id": 488,
-                                "module": null,
-                                "name": 18446744073709551608
-                              }
-                            },
-                            "payload": {
-                              "id": 492,
-                              "module": null,
-                              "name": 15
-                            }
+                          "TypeSpec": {
+                            "id": 488,
+                            "type_spec": "Int32",
+                            "payload": 15
                           }
                         },
                         "value": {
@@ -729,10 +720,6 @@
         "scope_depth": 0
       },
       "488": {
-        "scope_id": 7,
-        "scope_depth": 1
-      },
-      "492": {
         "scope_id": 7,
         "scope_depth": 1
       },

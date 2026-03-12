@@ -568,12 +568,11 @@ impl Module {
             Pattern::StringLiteral(_) => { /* no symbols to track */ }
             Pattern::BoolLiteral(_) => { /* no symbols to track */ }
             Pattern::FloatLiteral(_) => { /* no symbols to track */ }
+            Pattern::ModuleIdentifier(_) => { /* no symbols to track */ }
             Pattern::Default => { /* no symbols to track */ }
             Pattern::TypeSpec(pat) => {
-                if let Some(p) = pat.payload {
-                    sym_table.add_binding(p, BindingType::ValueDecl);
-                    sym_table.add_scope_pos(pat.id);
-                }
+                sym_table.add_binding(pat.payload, BindingType::ValueDecl);
+                sym_table.add_scope_pos(pat.id);
 
                 Self::build_sym_table_type_spec(errors, sym_table, &pat.type_spec);
             }

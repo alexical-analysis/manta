@@ -464,20 +464,17 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
             node_tree.add_node(Node::Pattern(PatternNode::FloatLiteral(*pat)))
         }
         Pattern::TypeSpec(pat) => {
-            if let Some(p) = pat.payload {
-                let payload_id = node_tree.add_node(Node::Identifier(p));
-                node_tree.add_root_node(Node::VarDecl { ident: payload_id });
+            let payload_id = node_tree.add_node(Node::Identifier(pat.payload));
+            node_tree.add_root_node(Node::VarDecl { ident: payload_id });
 
-                let scope_pos = module
-                    .get_scope_pos(pat.id)
-                    .expect("missing scope_posfor var decl");
-                let binding = module
-                    .find_binding(scope_pos, p)
-                    .expect("missing binding for var decl");
+            let scope_pos = module
+                .get_scope_pos(pat.id)
+                .expect("missing scope_posfor var decl");
+            let binding = module
+                .find_binding(scope_pos, pat.payload)
+                .expect("missing binding for var decl");
 
-                node_tree.symbol_map.add(binding.id, payload_id);
-            }
-
+            node_tree.symbol_map.add(binding.id, payload_id);
             node_tree.add_node(Node::Pattern(PatternNode::TypeSpec))
         }
         Pattern::Payload(pat) => {
@@ -539,6 +536,11 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
             }))
         }
         Pattern::Identifier(pat) => {
+            let ident_id = node_tree.add_node(Node::Identifier(pat.name));
+            node_tree.add_node(Node::Pattern(PatternNode::Identifier(ident_id)))
+        }
+        Pattern::ModuleIdentifier(pat) => {
+            // TODO: identifiers should have modules like they do in the ast
             let ident_id = node_tree.add_node(Node::Identifier(pat.name));
             node_tree.add_node(Node::Pattern(PatternNode::Identifier(ident_id)))
         }
@@ -713,8 +715,10 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                         _ => panic!("identifier is not a valid type: binding({:?})", binding),
                     };
                 }
+                Pattern::ModuleIdentifier(_) => {
+                    panic!("module identifier not supported for payload patterns")
+                }
                 Pattern::Payload(_) => todo!("nested payload patterns are not yet support"),
-
                 Pattern::IntLiteral(_) => panic!("int literals are not valid payload patterns"),
                 Pattern::StringLiteral(_) => {
                     panic!("string literals are not valid payload patterns")

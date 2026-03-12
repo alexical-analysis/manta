@@ -1,4 +1,4 @@
-mod dot_pattern;
+mod enum_variant;
 mod identifier_pattern;
 mod literal_pattern;
 mod mod_pattern;
@@ -13,7 +13,7 @@ use crate::parser::ParseError;
 use crate::parser::lexer::Lexer;
 use crate::parser::lexer::{Token, TokenKind};
 
-use dot_pattern::{InfixDotPatternParselet, PrefixDotPatternParselet};
+use enum_variant::{InfixEnumVariantPatternParselet, PrefixEnumVariantPatternParselet};
 use identifier_pattern::IdentifierPatternParselet;
 use literal_pattern::LiteralPatternParselet;
 use mod_pattern::ModPatternParselet;
@@ -53,7 +53,7 @@ impl PatternParser {
         let mut prefix_parselets: HashMap<TokenKind, Rc<dyn PrefixPatternParselet>>;
         prefix_parselets = HashMap::new();
         prefix_parselets.insert(TokenKind::Identifier, Rc::new(IdentifierPatternParselet));
-        prefix_parselets.insert(TokenKind::Dot, Rc::new(PrefixDotPatternParselet));
+        prefix_parselets.insert(TokenKind::Dot, Rc::new(PrefixEnumVariantPatternParselet));
         prefix_parselets.insert(TokenKind::Star, Rc::new(TypePatternParselet));
         prefix_parselets.insert(TokenKind::OpenSquare, Rc::new(TypePatternParselet));
         prefix_parselets.insert(TokenKind::TrueLiteral, Rc::new(LiteralPatternParselet));
@@ -63,7 +63,7 @@ impl PatternParser {
         prefix_parselets.insert(TokenKind::Str, Rc::new(LiteralPatternParselet));
 
         let mut infix_parselets: HashMap<TokenKind, Rc<dyn InfixPatternParselet>> = HashMap::new();
-        infix_parselets.insert(TokenKind::Dot, Rc::new(InfixDotPatternParselet));
+        infix_parselets.insert(TokenKind::Dot, Rc::new(InfixEnumVariantPatternParselet));
         infix_parselets.insert(TokenKind::ColonColon, Rc::new(ModPatternParselet));
         infix_parselets.insert(TokenKind::OpenParen, Rc::new(PayloadPatternParselet));
 
@@ -165,27 +165,19 @@ mod test {
             input: "my_var =",
             want: Pattern::Identifier(IdentifierPat {
                 id: SourceID::from_usize(0),
-                module: None,
                 name: StrID::from_usize(0)
             }),
         },
         parse_pattern_type_match {
             input: "f32(f) =",
-            want: Pattern::Payload(PayloadPat {
-                pat: Box::new(Pattern::Identifier(IdentifierPat {
-                    id: SourceID::from_usize(0),
-                    module: None,
-                    name: str_store::F32,
-                })),
-                payload: IdentifierPat {
-                    id: SourceID::from_usize(4),
-                    module: None,
-                    name: StrID::from_usize(1)
-                },
+            want: Pattern::TypeSpec(TypeSpecPat {
+                id: SourceID::from_usize(0),
+                type_spec: TypeSpec::Float32,
+                payload: StrID::from_usize(1),
             }),
         },
         parse_pattern_pointer {
-            input: "*foo =",
+            input: "*foo(_) =",
             want: Pattern::TypeSpec(TypeSpecPat {
                 id: SourceID::from_usize(0),
                 type_spec: TypeSpec::Pointer(Box::new(TypeSpec::Named(NamedType {
@@ -193,11 +185,11 @@ mod test {
                     module: None,
                     name: StrID::from_usize(1),
                 }))),
-                payload: None,
+                payload: str_store::UNDERSCORE,
             }),
         },
         parse_pattern_double_pointer {
-            input: "**bar {",
+            input: "**bar(_) {",
             want: Pattern::TypeSpec(TypeSpecPat {
                 id: SourceID::from_usize(0),
                 type_spec: TypeSpec::Pointer(Box::new(TypeSpec::Pointer(Box::new(
@@ -207,11 +199,11 @@ mod test {
                         name: StrID::from_usize(1),
                     })
                 )))),
-                payload: None,
+                payload: str_store::UNDERSCORE,
             }),
         },
         parse_pattern_slice {
-            input: "[]Vec2 =",
+            input: "[]Vec2(_) =",
             want: Pattern::TypeSpec(TypeSpecPat {
                 id: SourceID::from_usize(0),
                 type_spec: TypeSpec::Slice(Box::new(TypeSpec::Named(NamedType {
@@ -219,11 +211,11 @@ mod test {
                     module: None,
                     name: StrID::from_usize(2),
                 }))),
-                payload: None,
+                payload: str_store::UNDERSCORE,
             }),
         },
         parse_pattern_3d_array {
-            input: "[10][11][12]bool =",
+            input: "[10][11][12]bool(_) =",
             want: Pattern::TypeSpec(TypeSpecPat {
                 id: SourceID::from_usize(0),
                 type_spec: TypeSpec::Array(ArrayType {
@@ -236,11 +228,11 @@ mod test {
                         })),
                     })),
                 }),
-                payload: None,
+                payload: str_store::UNDERSCORE,
             }),
         },
         parse_pattern_array_pointer_slice_pointer {
-            input: "[3]*[]*pet::Dog =",
+            input: "[3]*[]*pet::Dog(_) =",
             want: Pattern::TypeSpec(TypeSpecPat {
                 id: SourceID::from_usize(0),
                 type_spec: TypeSpec::Array(ArrayType {
@@ -253,14 +245,13 @@ mod test {
                         })))
                     ))))),
                 }),
-                payload: None,
+                payload: str_store::UNDERSCORE,
             }),
         },
         parse_pattern_simple_identifier {
             input: "foo {",
             want: Pattern::Identifier(IdentifierPat {
                 id: SourceID::from_usize(0),
-                module: None,
                 name: StrID::from_usize(0)
             }),
         },
@@ -268,7 +259,6 @@ mod test {
             input: "my_variable {",
             want: Pattern::Identifier(IdentifierPat {
                 id: SourceID::from_usize(0),
-                module: None,
                 name: StrID::from_usize(0)
             }),
         },
@@ -276,7 +266,6 @@ mod test {
             input: "var123 {",
             want: Pattern::Identifier(IdentifierPat {
                 id: SourceID::from_usize(0),
-                module: None,
                 name: StrID::from_usize(0)
             }),
         },
@@ -303,11 +292,15 @@ mod test {
             },),
         },
         parse_pattern_module_access_identifier {
-            input: "math::Vec3 =",
-            want: Pattern::Identifier(IdentifierPat {
-                id: SourceID::from_usize(0),
-                module: Some(StrID::from_usize(2)),
-                name: StrID::from_usize(0),
+            input: "math::Vec3(_) =",
+            want: Pattern::TypeSpec(TypeSpecPat {
+                id: SourceID::from_usize(4),
+                type_spec: TypeSpec::Named(NamedType {
+                    id: SourceID::from_usize(0),
+                    module: Some(StrID::from_usize(0)),
+                    name: StrID::from_usize(2),
+                }),
+                payload: str_store::UNDERSCORE,
             }),
         },
         parse_pattern_module_access_dot_variant {
@@ -316,8 +309,8 @@ mod test {
                 id: SourceID::from_usize(11),
                 enum_name: Some(IdentifierExpr {
                     id: SourceID::from_usize(0),
-                    module: Some(StrID::from_usize(2)),
-                    name: StrID::from_usize(0),
+                    module: Some(StrID::from_usize(0)),
+                    name: StrID::from_usize(2),
                 }),
                 variant: StrID::from_usize(4),
                 payload: None,
@@ -329,8 +322,8 @@ mod test {
                 id: SourceID::from_usize(11),
                 enum_name: Some(IdentifierExpr {
                     id: SourceID::from_usize(0),
-                    module: Some(StrID::from_usize(2)),
-                    name: StrID::from_usize(0),
+                    module: Some(StrID::from_usize(0)),
+                    name: StrID::from_usize(2),
                 }),
                 variant: StrID::from_usize(4),
                 payload: Some(StrID::from_usize(6)),
@@ -338,17 +331,14 @@ mod test {
         },
         parse_pattern_payload_simple {
             input: "Result(err) =",
-            want: Pattern::Payload(PayloadPat {
-                pat: Box::new(Pattern::Identifier(IdentifierPat {
+            want: Pattern::TypeSpec(TypeSpecPat {
+                id: SourceID::from_usize(0),
+                type_spec: TypeSpec::Named(NamedType {
                     id: SourceID::from_usize(0),
                     module: None,
                     name: StrID::from_usize(0)
-                })),
-                payload: IdentifierPat {
-                    id: SourceID::from_usize(7),
-                    module: None,
-                    name: StrID::from_usize(2)
-                },
+                }),
+                payload: StrID::from_usize(2),
             }),
         },
         parse_pattern_payload_dot_access {
