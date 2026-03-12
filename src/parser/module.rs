@@ -576,34 +576,6 @@ impl Module {
 
                 Self::build_sym_table_type_spec(errors, sym_table, &pat.type_spec);
             }
-            Pattern::Payload(pat) => {
-                sym_table.add_binding(pat.payload.name, BindingType::ValueDecl);
-                sym_table.add_scope_pos(pat.payload.id);
-
-                // There are only a couple valid patterns that can appear here so we make sure to
-                // only handle those patterns specifically. Also, their behavior differes slightly
-                // from how the same patterns are treated outside of a payload pattern
-                match &*pat.pat {
-                    Pattern::Identifier(pat) => {
-                        sym_table.add_scope_pos(pat.id);
-                    }
-                    Pattern::EnumVariant(pat) => {
-                        if let Some(enum_name) = &pat.enum_name {
-                            sym_table.add_scope_pos(enum_name.id);
-                        }
-
-                        if let Some(pay) = pat.payload {
-                            sym_table.add_binding(pay, BindingType::ValueDecl);
-                        }
-
-                        sym_table.add_scope_pos(pat.id);
-                    }
-                    Pattern::TypeSpec(pat) => {
-                        Self::build_sym_table_type_spec(errors, sym_table, &pat.type_spec);
-                    }
-                    _ => panic!("invalid payload pattern {:?}", pat.pat),
-                }
-            }
             Pattern::EnumVariant(pat) => {
                 if let Some(enum_name) = &pat.enum_name {
                     sym_table.add_scope_pos(enum_name.id);

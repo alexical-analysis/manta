@@ -134,7 +134,6 @@ impl StmtParser {
         }
     }
 
-    // TODO: should this be an infix parselet?
     pub fn parse_block(&self, lexer: &mut Lexer, token: Token) -> Result<BlockStmt, ParseError> {
         let mut statements = vec![];
 
@@ -183,11 +182,11 @@ mod test {
     use crate::ast::{
         AllocExpr, AssignStmt, BinaryExpr, BinaryOp, BlockStmt, CallExpr, DeferStmt, DotAccessExpr,
         EnumVariantPat, Expr, FreeExpr, IdentifierExpr, IdentifierPat, IfStmt, IndexExpr,
-        LetExcept, LetStmt, MatchArm, MatchStmt, MetaTypeExpr, NamedType, Pattern, PayloadPat,
-        ReturnStmt, Stmt, TypeSpec, TypeSpecPat, UnaryExpr, UnaryOp,
+        LetExcept, LetStmt, MatchArm, MatchStmt, MetaTypeExpr, NamedType, Pattern, ReturnStmt,
+        Stmt, TypeSpec, TypeSpecPat, UnaryExpr, UnaryOp,
     };
     use crate::parser::lexer::{Lexer, SourceID};
-    use crate::str_store::{self, StrID, StrStore};
+    use crate::str_store::{StrID, StrStore};
     use pretty_assertions::assert_eq;
 
     macro_rules! test_parse_statement {

@@ -2,7 +2,6 @@ mod enum_variant;
 mod identifier_pattern;
 mod literal_pattern;
 mod mod_pattern;
-mod payload_pattern;
 mod type_pattern;
 
 use std::collections::HashMap;
@@ -17,7 +16,6 @@ use enum_variant::{InfixEnumVariantPatternParselet, PrefixEnumVariantPatternPars
 use identifier_pattern::IdentifierPatternParselet;
 use literal_pattern::LiteralPatternParselet;
 use mod_pattern::ModPatternParselet;
-use payload_pattern::PayloadPatternParselet;
 use type_pattern::TypePatternParselet;
 
 /// Trait for prefix pattern parselets
@@ -65,7 +63,6 @@ impl PatternParser {
         let mut infix_parselets: HashMap<TokenKind, Rc<dyn InfixPatternParselet>> = HashMap::new();
         infix_parselets.insert(TokenKind::Dot, Rc::new(InfixEnumVariantPatternParselet));
         infix_parselets.insert(TokenKind::ColonColon, Rc::new(ModPatternParselet));
-        infix_parselets.insert(TokenKind::OpenParen, Rc::new(PayloadPatternParselet));
 
         PatternParser {
             prefix_parselets,
@@ -114,8 +111,8 @@ impl PatternParser {
 mod test {
     use super::*;
     use crate::ast::{
-        ArrayType, EnumVariantPat, IdentifierExpr, IdentifierPat, NamedType, Pattern, PayloadPat,
-        TypeSpec, TypeSpecPat,
+        ArrayType, EnumVariantPat, IdentifierExpr, IdentifierPat, NamedType, Pattern, TypeSpec,
+        TypeSpecPat,
     };
     use crate::parser::lexer::{Lexer, SourceID};
     use crate::str_store::{self, StrID, StrStore};
