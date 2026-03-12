@@ -1,7 +1,10 @@
 {
   "nodes": [
     {
-      "Identifier": 9
+      "Identifier": {
+        "module": null,
+        "name": 9
+      }
     },
     {
       "VarDecl": {
@@ -21,7 +24,10 @@
       }
     },
     {
-      "Identifier": 8
+      "Identifier": {
+        "module": null,
+        "name": 8
+      }
     },
     {
       "FunctionDecl": {
@@ -36,7 +42,10 @@
       "IntLiteral": 42
     },
     {
-      "Identifier": 9
+      "Identifier": {
+        "module": null,
+        "name": 9
+      }
     },
     {
       "VarDecl": {
@@ -53,7 +62,10 @@
       "IntLiteral": 2701
     },
     {
-      "Identifier": 15
+      "Identifier": {
+        "module": null,
+        "name": 15
+      }
     },
     {
       "VarDecl": {
@@ -73,7 +85,10 @@
       }
     },
     {
-      "Identifier": 17
+      "Identifier": {
+        "module": null,
+        "name": 17
+      }
     },
     {
       "VarDecl": {
@@ -196,7 +211,10 @@
       }
     },
     {
-      "Identifier": 1
+      "Identifier": {
+        "module": null,
+        "name": 1
+      }
     },
     {
       "FunctionDecl": {

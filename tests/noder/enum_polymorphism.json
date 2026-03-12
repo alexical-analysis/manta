@@ -1,7 +1,10 @@
 {
   "nodes": [
     {
-      "Identifier": 9
+      "Identifier": {
+        "module": null,
+        "name": 9
+      }
     },
     {
       "VarDecl": {
@@ -18,7 +21,10 @@
       }
     },
     {
-      "Identifier": 14
+      "Identifier": {
+        "module": null,
+        "name": 14
+      }
     },
     {
       "VarDecl": {
@@ -38,7 +44,10 @@
       }
     },
     {
-      "Identifier": 13
+      "Identifier": {
+        "module": null,
+        "name": 13
+      }
     },
     {
       "FunctionDecl": {
@@ -50,7 +59,10 @@
       }
     },
     {
-      "Identifier": 18
+      "Identifier": {
+        "module": null,
+        "name": 18
+      }
     },
     {
       "TypeDecl": {
@@ -58,7 +70,10 @@
       }
     },
     {
-      "Identifier": 23
+      "Identifier": {
+        "module": null,
+        "name": 23
+      }
     },
     {
       "VarDecl": {
@@ -66,7 +81,10 @@
       }
     },
     {
-      "Identifier": 26
+      "Identifier": {
+        "module": null,
+        "name": 26
+      }
     },
     {
       "VarDecl": {
@@ -115,7 +133,10 @@
       }
     },
     {
-      "Identifier": 23
+      "Identifier": {
+        "module": null,
+        "name": 23
+      }
     },
     {
       "VarDecl": {
@@ -173,7 +194,10 @@
       }
     },
     {
-      "Identifier": 22
+      "Identifier": {
+        "module": null,
+        "name": 22
+      }
     },
     {
       "FunctionDecl": {
@@ -195,7 +219,10 @@
       "IntLiteral": 10
     },
     {
-      "Identifier": 31
+      "Identifier": {
+        "module": null,
+        "name": 31
+      }
     },
     {
       "VarDecl": {
@@ -217,7 +244,10 @@
       }
     },
     {
-      "Identifier": 33
+      "Identifier": {
+        "module": null,
+        "name": 33
+      }
     },
     {
       "VarDecl": {
@@ -249,7 +279,10 @@
       "IntLiteral": 3
     },
     {
-      "Identifier": 34
+      "Identifier": {
+        "module": null,
+        "name": 34
+      }
     },
     {
       "VarDecl": {
@@ -271,7 +304,10 @@
       }
     },
     {
-      "Identifier": 36
+      "Identifier": {
+        "module": null,
+        "name": 36
+      }
     },
     {
       "VarDecl": {
@@ -315,7 +351,10 @@
       }
     },
     {
-      "Identifier": 1
+      "Identifier": {
+        "module": null,
+        "name": 1
+      }
     },
     {
       "FunctionDecl": {

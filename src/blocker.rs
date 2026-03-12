@@ -259,7 +259,7 @@ pub fn block_root_node(node_tree: &NodeTree, node_id: NodeID) -> Option<MirFunct
             };
 
             let name = match name {
-                Node::Identifier(ident) => ident,
+                Node::Identifier { name, .. } => name,
                 _ => panic!("function name wasn't an identifier"),
             };
 
@@ -280,8 +280,8 @@ pub fn block_root_node(node_tree: &NodeTree, node_id: NodeID) -> Option<MirFunct
                         .get_node(*node_id)
                         .expect("failed to find param identifier");
 
-                    if let Node::Identifier(ident) = node {
-                        *ident
+                    if let Node::Identifier { name, .. } = node {
+                        *name
                     } else {
                         panic!("param mut be an identifier but was a {:?}", node)
                     }

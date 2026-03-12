@@ -36,12 +36,6 @@ pub enum Node {
         // ident is always an identifier node
         ident: NodeID,
     },
-    UseDecl {
-        modules: Vec<StrID>,
-    },
-    ModDecl {
-        name: StrID,
-    },
     Block {
         statements: Vec<NodeID>,
     },
@@ -85,7 +79,10 @@ pub enum Node {
     StringLiteral(StrID),
     BoolLiteral(bool),
 
-    Identifier(StrID),
+    Identifier {
+        module: Option<StrID>,
+        name: StrID,
+    },
 
     Binary {
         left: NodeID,
@@ -121,11 +118,6 @@ pub enum Node {
     FieldAccess {
         target: Option<NodeID>,
         field: StrID,
-    },
-
-    ModuleAccess {
-        module: String,
-        expr: NodeID,
     },
 
     MetaType,

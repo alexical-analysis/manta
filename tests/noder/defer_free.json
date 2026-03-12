@@ -1,7 +1,10 @@
 {
   "nodes": [
     {
-      "Identifier": 8
+      "Identifier": {
+        "module": null,
+        "name": 8
+      }
     },
     {
       "TypeDecl": {
@@ -9,7 +12,10 @@
       }
     },
     {
-      "Identifier": 12
+      "Identifier": {
+        "module": null,
+        "name": 12
+      }
     },
     {
       "TypeDecl": {
@@ -17,7 +23,10 @@
       }
     },
     {
-      "Identifier": 18
+      "Identifier": {
+        "module": null,
+        "name": 18
+      }
     },
     {
       "VarDecl": {
@@ -44,7 +53,10 @@
       }
     },
     {
-      "Identifier": 17
+      "Identifier": {
+        "module": null,
+        "name": 17
+      }
     },
     {
       "FunctionDecl": {
@@ -56,7 +68,10 @@
       }
     },
     {
-      "Identifier": 22
+      "Identifier": {
+        "module": null,
+        "name": 22
+      }
     },
     {
       "VarDecl": {
@@ -76,7 +91,10 @@
       }
     },
     {
-      "Identifier": 21
+      "Identifier": {
+        "module": null,
+        "name": 21
+      }
     },
     {
       "FunctionDecl": {
@@ -88,7 +106,10 @@
       }
     },
     {
-      "Identifier": 23
+      "Identifier": {
+        "module": null,
+        "name": 23
+      }
     },
     {
       "TypeDecl": {
@@ -96,7 +117,10 @@
       }
     },
     {
-      "Identifier": 22
+      "Identifier": {
+        "module": null,
+        "name": 22
+      }
     },
     {
       "VarDecl": {
@@ -104,7 +128,10 @@
       }
     },
     {
-      "Identifier": 26
+      "Identifier": {
+        "module": null,
+        "name": 26
+      }
     },
     {
       "VarDecl": {
@@ -131,7 +158,10 @@
       }
     },
     {
-      "Identifier": 24
+      "Identifier": {
+        "module": null,
+        "name": 24
+      }
     },
     {
       "FunctionDecl": {
@@ -144,7 +174,10 @@
       }
     },
     {
-      "Identifier": 29
+      "Identifier": {
+        "module": null,
+        "name": 29
+      }
     },
     {
       "TypeDecl": {
@@ -152,7 +185,10 @@
       }
     },
     {
-      "Identifier": 18
+      "Identifier": {
+        "module": null,
+        "name": 18
+      }
     },
     {
       "VarDecl": {
@@ -168,7 +204,10 @@
       }
     },
     {
-      "Identifier": 22
+      "Identifier": {
+        "module": null,
+        "name": 22
+      }
     },
     {
       "VarDecl": {
@@ -185,7 +224,10 @@
       }
     },
     {
-      "Identifier": 22
+      "Identifier": {
+        "module": null,
+        "name": 22
+      }
     },
     {
       "VarDecl": {
@@ -212,7 +254,10 @@
       }
     },
     {
-      "Identifier": 18446744073709551602
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551602
+      }
     },
     {
       "EnumConstructor": {
@@ -281,7 +326,10 @@
       }
     },
     {
-      "Identifier": 26
+      "Identifier": {
+        "module": null,
+        "name": 26
+      }
     },
     {
       "VarDecl": {
@@ -296,7 +344,10 @@
       }
     },
     {
-      "Identifier": 26
+      "Identifier": {
+        "module": null,
+        "name": 26
+      }
     },
     {
       "VarDecl": {
@@ -323,10 +374,16 @@
       }
     },
     {
-      "Identifier": 18446744073709551601
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551601
+      }
     },
     {
-      "Identifier": 18446744073709551601
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551601
+      }
     },
     {
       "Call": {
@@ -390,7 +447,10 @@
       }
     },
     {
-      "Identifier": 42
+      "Identifier": {
+        "module": null,
+        "name": 42
+      }
     },
     {
       "VarDecl": {
@@ -407,7 +467,10 @@
       }
     },
     {
-      "Identifier": 42
+      "Identifier": {
+        "module": null,
+        "name": 42
+      }
     },
     {
       "VarDecl": {
@@ -434,7 +497,10 @@
       }
     },
     {
-      "Identifier": 18446744073709551602
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551602
+      }
     },
     {
       "EnumConstructor": {
@@ -500,7 +566,10 @@
       }
     },
     {
-      "Identifier": 32
+      "Identifier": {
+        "module": null,
+        "name": 32
+      }
     },
     {
       "FunctionDecl": {

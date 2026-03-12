@@ -1,7 +1,10 @@
 {
   "nodes": [
     {
-      "Identifier": 10
+      "Identifier": {
+        "module": null,
+        "name": 10
+      }
     },
     {
       "TypeDecl": {
@@ -9,7 +12,10 @@
       }
     },
     {
-      "Identifier": 14
+      "Identifier": {
+        "module": null,
+        "name": 14
+      }
     },
     {
       "TypeDecl": {
@@ -17,7 +23,10 @@
       }
     },
     {
-      "Identifier": 20
+      "Identifier": {
+        "module": null,
+        "name": 20
+      }
     },
     {
       "VarDecl": {
@@ -44,7 +53,10 @@
       }
     },
     {
-      "Identifier": 19
+      "Identifier": {
+        "module": null,
+        "name": 19
+      }
     },
     {
       "FunctionDecl": {
@@ -56,7 +68,10 @@
       }
     },
     {
-      "Identifier": 24
+      "Identifier": {
+        "module": null,
+        "name": 24
+      }
     },
     {
       "VarDecl": {
@@ -76,7 +91,10 @@
       }
     },
     {
-      "Identifier": 23
+      "Identifier": {
+        "module": null,
+        "name": 23
+      }
     },
     {
       "FunctionDecl": {
@@ -88,7 +106,10 @@
       }
     },
     {
-      "Identifier": 25
+      "Identifier": {
+        "module": null,
+        "name": 25
+      }
     },
     {
       "TypeDecl": {
@@ -96,7 +117,10 @@
       }
     },
     {
-      "Identifier": 24
+      "Identifier": {
+        "module": null,
+        "name": 24
+      }
     },
     {
       "VarDecl": {
@@ -123,7 +147,10 @@
       }
     },
     {
-      "Identifier": 26
+      "Identifier": {
+        "module": null,
+        "name": 26
+      }
     },
     {
       "FunctionDecl": {
@@ -135,7 +162,10 @@
       }
     },
     {
-      "Identifier": 28
+      "Identifier": {
+        "module": null,
+        "name": 28
+      }
     },
     {
       "VarDecl": {
@@ -155,7 +185,10 @@
       }
     },
     {
-      "Identifier": 27
+      "Identifier": {
+        "module": null,
+        "name": 27
+      }
     },
     {
       "FunctionDecl": {
@@ -167,7 +200,10 @@
       }
     },
     {
-      "Identifier": 29
+      "Identifier": {
+        "module": null,
+        "name": 29
+      }
     },
     {
       "TypeDecl": {
@@ -175,7 +211,10 @@
       }
     },
     {
-      "Identifier": 20
+      "Identifier": {
+        "module": null,
+        "name": 20
+      }
     },
     {
       "VarDecl": {
@@ -191,7 +230,10 @@
       }
     },
     {
-      "Identifier": 24
+      "Identifier": {
+        "module": null,
+        "name": 24
+      }
     },
     {
       "VarDecl": {
@@ -208,7 +250,10 @@
       }
     },
     {
-      "Identifier": 24
+      "Identifier": {
+        "module": null,
+        "name": 24
+      }
     },
     {
       "VarDecl": {
@@ -235,7 +280,10 @@
       }
     },
     {
-      "Identifier": 18446744073709551602
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551602
+      }
     },
     {
       "EnumConstructor": {
@@ -305,7 +353,10 @@
       }
     },
     {
-      "Identifier": 28
+      "Identifier": {
+        "module": null,
+        "name": 28
+      }
     },
     {
       "VarDecl": {
@@ -322,7 +373,10 @@
       }
     },
     {
-      "Identifier": 28
+      "Identifier": {
+        "module": null,
+        "name": 28
+      }
     },
     {
       "VarDecl": {
@@ -349,7 +403,10 @@
       }
     },
     {
-      "Identifier": 18446744073709551602
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551602
+      }
     },
     {
       "EnumConstructor": {
@@ -413,7 +470,10 @@
       }
     },
     {
-      "Identifier": 32
+      "Identifier": {
+        "module": null,
+        "name": 32
+      }
     },
     {
       "FunctionDecl": {
@@ -436,7 +496,10 @@
       }
     },
     {
-      "Identifier": 38
+      "Identifier": {
+        "module": null,
+        "name": 38
+      }
     },
     {
       "VarDecl": {
@@ -453,7 +516,10 @@
       }
     },
     {
-      "Identifier": 38
+      "Identifier": {
+        "module": null,
+        "name": 38
+      }
     },
     {
       "VarDecl": {
@@ -480,7 +546,10 @@
       }
     },
     {
-      "Identifier": 41
+      "Identifier": {
+        "module": null,
+        "name": 41
+      }
     },
     {
       "Pattern": {
@@ -546,7 +615,10 @@
       }
     },
     {
-      "Identifier": 38
+      "Identifier": {
+        "module": null,
+        "name": 38
+      }
     },
     {
       "VarDecl": {
@@ -563,7 +635,10 @@
       }
     },
     {
-      "Identifier": 38
+      "Identifier": {
+        "module": null,
+        "name": 38
+      }
     },
     {
       "VarDecl": {
@@ -590,10 +665,16 @@
       }
     },
     {
-      "Identifier": 18446744073709551601
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551601
+      }
     },
     {
-      "Identifier": 18446744073709551601
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551601
+      }
     },
     {
       "Call": {
@@ -655,7 +736,10 @@
       }
     },
     {
-      "Identifier": 1
+      "Identifier": {
+        "module": null,
+        "name": 1
+      }
     },
     {
       "FunctionDecl": {

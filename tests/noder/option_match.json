@@ -1,7 +1,10 @@
 {
   "nodes": [
     {
-      "Identifier": 9
+      "Identifier": {
+        "module": null,
+        "name": 9
+      }
     },
     {
       "VarDecl": {
@@ -21,7 +24,10 @@
       }
     },
     {
-      "Identifier": 8
+      "Identifier": {
+        "module": null,
+        "name": 8
+      }
     },
     {
       "FunctionDecl": {
@@ -33,7 +39,10 @@
       }
     },
     {
-      "Identifier": 13
+      "Identifier": {
+        "module": null,
+        "name": 13
+      }
     },
     {
       "TypeDecl": {
@@ -41,7 +50,10 @@
       }
     },
     {
-      "Identifier": 18
+      "Identifier": {
+        "module": null,
+        "name": 18
+      }
     },
     {
       "VarDecl": {
@@ -49,7 +61,10 @@
       }
     },
     {
-      "Identifier": 20
+      "Identifier": {
+        "module": null,
+        "name": 20
+      }
     },
     {
       "VarDecl": {
@@ -120,7 +135,10 @@
       }
     },
     {
-      "Identifier": 17
+      "Identifier": {
+        "module": null,
+        "name": 17
+      }
     },
     {
       "FunctionDecl": {
@@ -148,7 +166,10 @@
       }
     },
     {
-      "Identifier": 28
+      "Identifier": {
+        "module": null,
+        "name": 28
+      }
     },
     {
       "VarDecl": {
@@ -162,7 +183,10 @@
       }
     },
     {
-      "Identifier": 33
+      "Identifier": {
+        "module": null,
+        "name": 33
+      }
     },
     {
       "VarDecl": {
@@ -261,7 +285,10 @@
       }
     },
     {
-      "Identifier": 1
+      "Identifier": {
+        "module": null,
+        "name": 1
+      }
     },
     {
       "FunctionDecl": {
