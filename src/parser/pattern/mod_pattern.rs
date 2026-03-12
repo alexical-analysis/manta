@@ -1,7 +1,8 @@
-use crate::ast::{ModuleIdentifierPat, NamedType, Pattern, TypeSpec, TypeSpecPat};
+use crate::ast::{ModuleIdentifierPat, NamedType, Pattern, Payload, TypeSpec, TypeSpecPat};
 use crate::parser::ParseError;
 use crate::parser::lexer::{Lexer, Token, TokenKind};
 use crate::parser::pattern::{InfixPatternParselet, PatternParser};
+use crate::str_store;
 
 /// Parses module access patterns
 ///
@@ -34,7 +35,7 @@ impl InfixPatternParselet for ModPatternParselet {
             ));
         }
 
-        let mut payload = None;
+        let mut payload = Payload::None;
         if lexer.peek().kind == TokenKind::OpenParen {
             lexer.next_token();
             let payload_token = lexer.next_token();
@@ -53,22 +54,25 @@ impl InfixPatternParselet for ModPatternParselet {
                 ));
             }
 
-            payload = Some(payload_token.lexeme_id)
+            payload = match payload_token.lexeme_id {
+                str_store::UNDERSCORE => Payload::Default,
+                id => Payload::Some(id),
+            }
         }
 
         match payload {
             // If we have a payload then this must be a type spec pattern
-            Some(p) => Ok(Pattern::TypeSpec(TypeSpecPat {
+            Payload::Some(_) | Payload::Default => Ok(Pattern::TypeSpec(TypeSpecPat {
                 id: token.source_id,
                 type_spec: TypeSpec::Named(NamedType {
                     id: module.id,
                     module: Some(module.name),
                     name: ident.lexeme_id,
                 }),
-                payload: p,
+                payload,
             })),
             // Otherwise parse this as a mod identifier
-            None => Ok(Pattern::ModuleIdentifier(ModuleIdentifierPat {
+            Payload::None => Ok(Pattern::ModuleIdentifier(ModuleIdentifierPat {
                 id: module.id,
                 module: module.name,
                 name: ident.lexeme_id,

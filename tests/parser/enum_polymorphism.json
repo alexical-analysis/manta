@@ -100,7 +100,9 @@
                         "id": 502,
                         "enum_name": null,
                         "variant": 20,
-                        "payload": 26
+                        "payload": {
+                          "Some": 26
+                        }
                       }
                     },
                     "body": {
@@ -151,7 +153,9 @@
                         "id": 548,
                         "enum_name": null,
                         "variant": 21,
-                        "payload": 23
+                        "payload": {
+                          "Some": 23
+                        }
                       }
                     },
                     "body": {

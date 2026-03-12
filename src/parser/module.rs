@@ -1,7 +1,7 @@
 use serde::Serialize;
 use std::collections::BTreeMap;
 
-use crate::ast::{BlockStmt, Decl, Expr, LetExcept, Pattern, Stmt, TypeSpec};
+use crate::ast::{BlockStmt, Decl, Expr, LetExcept, Pattern, Payload, Stmt, TypeSpec};
 use crate::parser::ParseError;
 use crate::parser::lexer::{Token, TokenKind};
 use crate::str_store::{self, StrID};
@@ -571,8 +571,14 @@ impl Module {
             Pattern::ModuleIdentifier(_) => { /* no symbols to track */ }
             Pattern::Default => { /* no symbols to track */ }
             Pattern::TypeSpec(pat) => {
-                sym_table.add_binding(pat.payload, BindingType::ValueDecl);
-                sym_table.add_scope_pos(pat.id);
+                match pat.payload {
+                    Payload::Some(payload) => {
+                        sym_table.add_binding(payload, BindingType::ValueDecl);
+                        sym_table.add_scope_pos(pat.id);
+                    }
+                    Payload::Default => { /*default patterns can just be ignored*/ }
+                    Payload::None => panic!("type specs must have a payload"),
+                }
 
                 Self::build_sym_table_type_spec(errors, sym_table, &pat.type_spec);
             }
@@ -581,8 +587,8 @@ impl Module {
                     sym_table.add_scope_pos(enum_name.id);
                 }
 
-                if let Some(pay) = pat.payload {
-                    sym_table.add_binding(pay, BindingType::ValueDecl);
+                if let Payload::Some(payload) = pat.payload {
+                    sym_table.add_binding(payload, BindingType::ValueDecl);
                 }
 
                 sym_table.add_scope_pos(pat.id);

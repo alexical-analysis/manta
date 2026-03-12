@@ -243,7 +243,9 @@
                     "id": 968,
                     "enum_name": null,
                     "variant": 14,
-                    "payload": 22
+                    "payload": {
+                      "Some": 22
+                    }
                   }
                 },
                 "value": {
@@ -317,7 +319,9 @@
                     "type_spec": {
                       "Slice": "UInt8"
                     },
-                    "payload": 26
+                    "payload": {
+                      "Some": 26
+                    }
                   }
                 },
                 "value": {
@@ -366,7 +370,9 @@
                     "id": 1100,
                     "enum_name": null,
                     "variant": 14,
-                    "payload": 42
+                    "payload": {
+                      "Some": 42
+                    }
                   }
                 },
                 "value": {

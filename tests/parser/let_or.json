@@ -268,7 +268,9 @@
                     "id": 1093,
                     "enum_name": null,
                     "variant": 16,
-                    "payload": 24
+                    "payload": {
+                      "Some": 24
+                    }
                   }
                 },
                 "value": {
@@ -341,7 +343,9 @@
                     "id": 1165,
                     "enum_name": null,
                     "variant": 16,
-                    "payload": 28
+                    "payload": {
+                      "Some": 28
+                    }
                   }
                 },
                 "value": {
@@ -428,7 +432,9 @@
                     "id": 1281,
                     "enum_name": null,
                     "variant": 16,
-                    "payload": 38
+                    "payload": {
+                      "Some": 38
+                    }
                   }
                 },
                 "value": {
@@ -516,7 +522,9 @@
                     "id": 1480,
                     "enum_name": null,
                     "variant": 16,
-                    "payload": 38
+                    "payload": {
+                      "Some": 38
+                    }
                   }
                 },
                 "value": {

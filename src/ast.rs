@@ -268,10 +268,17 @@ pub enum Pattern {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
+pub enum Payload {
+    Some(StrID),
+    None,
+    Default, // the _ identifier
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct TypeSpecPat {
     pub id: SourceID,
     pub type_spec: TypeSpec,
-    pub payload: StrID,
+    pub payload: Payload,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -279,7 +286,7 @@ pub struct EnumVariantPat {
     pub id: SourceID,
     pub enum_name: Option<IdentifierExpr>,
     pub variant: StrID,
-    pub payload: Option<StrID>,
+    pub payload: Payload,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]

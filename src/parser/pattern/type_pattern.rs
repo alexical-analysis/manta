@@ -1,8 +1,9 @@
-use crate::ast::{Pattern, TypeSpecPat};
+use crate::ast::{Pattern, Payload, TypeSpecPat};
 use crate::parser::ParseError;
 use crate::parser::lexer::{Lexer, Token, TokenKind};
 use crate::parser::pattern::PrefixPatternParselet;
 use crate::parser::types;
+use crate::str_store;
 
 /// Parses type patterns
 ///
@@ -37,10 +38,15 @@ impl PrefixPatternParselet for TypePatternParselet {
             ));
         }
 
+        let payload = match payload_token.lexeme_id {
+            str_store::UNDERSCORE => Payload::Default,
+            id => Payload::Some(id),
+        };
+
         Ok(Pattern::TypeSpec(TypeSpecPat {
             id: token.source_id,
             type_spec,
-            payload: payload_token.lexeme_id,
+            payload,
         }))
     }
 }
