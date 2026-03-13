@@ -167,15 +167,10 @@
                     {
                       "Assign": {
                         "lvalue": {
-                          "Unary": {
-                            "operator": "Dereference",
-                            "operand": {
-                              "Identifier": {
-                                "id": 536,
-                                "module": null,
-                                "name": 15
-                              }
-                            }
+                          "Identifier": {
+                            "id": 535,
+                            "module": null,
+                            "name": 15
                           }
                         },
                         "rvalue": {
@@ -196,7 +191,7 @@
                             "args": [
                               {
                                 "Identifier": {
-                                  "id": 562,
+                                  "id": 561,
                                   "module": null,
                                   "name": 15
                                 }
@@ -239,11 +234,11 @@
     },
     {
       "Function": {
-        "id": 603,
+        "id": 602,
         "name": 1,
         "params": [],
         "body": {
-          "id": 613,
+          "id": 612,
           "statements": [
             {
               "Match": {
@@ -251,7 +246,7 @@
                   "Call": {
                     "func": {
                       "Identifier": {
-                        "id": 625,
+                        "id": 624,
                         "module": null,
                         "name": 24
                       }
@@ -265,10 +260,10 @@
                 },
                 "arms": [
                   {
-                    "id": 654,
+                    "id": 653,
                     "pattern": {
                       "EnumVariant": {
-                        "id": 654,
+                        "id": 653,
                         "enum_name": null,
                         "variant": 21,
                         "payload": {
@@ -277,7 +272,7 @@
                       }
                     },
                     "body": {
-                      "id": 661,
+                      "id": 660,
                       "statements": [
                         {
                           "Expr": {
@@ -285,7 +280,7 @@
                               "Call": {
                                 "func": {
                                   "Identifier": {
-                                    "id": 663,
+                                    "id": 662,
                                     "module": null,
                                     "name": 14
                                   }
@@ -296,7 +291,7 @@
                                       "operator": "Dereference",
                                       "operand": {
                                         "Identifier": {
-                                          "id": 680,
+                                          "id": 679,
                                           "module": null,
                                           "name": 15
                                         }
@@ -312,17 +307,17 @@
                     }
                   },
                   {
-                    "id": 693,
+                    "id": 692,
                     "pattern": {
                       "EnumVariant": {
-                        "id": 693,
+                        "id": 692,
                         "enum_name": null,
                         "variant": 22,
                         "payload": "None"
                       }
                     },
                     "body": {
-                      "id": 706,
+                      "id": 705,
                       "statements": [
                         {
                           "Expr": {
@@ -330,7 +325,7 @@
                               "Call": {
                                 "func": {
                                   "Identifier": {
-                                    "id": 708,
+                                    "id": 707,
                                     "module": null,
                                     "name": 17
                                   }
@@ -727,51 +722,51 @@
         "scope_id": 7,
         "scope_depth": 1
       },
-      "536": {
+      "535": {
         "scope_id": 7,
         "scope_depth": 1
       },
-      "562": {
+      "561": {
         "scope_id": 7,
         "scope_depth": 1
       },
-      "603": {
+      "602": {
         "scope_id": 8,
         "scope_depth": 0
       },
-      "613": {
+      "612": {
         "scope_id": 9,
         "scope_depth": 0
       },
-      "625": {
+      "624": {
         "scope_id": 9,
         "scope_depth": 0
       },
-      "654": {
+      "653": {
         "scope_id": 10,
         "scope_depth": 1
       },
-      "661": {
+      "660": {
         "scope_id": 11,
         "scope_depth": 0
       },
-      "663": {
+      "662": {
         "scope_id": 11,
         "scope_depth": 0
       },
-      "680": {
+      "679": {
         "scope_id": 11,
         "scope_depth": 0
       },
-      "693": {
+      "692": {
         "scope_id": 12,
         "scope_depth": 0
       },
-      "706": {
+      "705": {
         "scope_id": 13,
         "scope_depth": 0
       },
-      "708": {
+      "707": {
         "scope_id": 13,
         "scope_depth": 0
       }
