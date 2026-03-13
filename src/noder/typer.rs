@@ -29,7 +29,17 @@ impl Typer {
             Node::Defer { block } => {
                 self.type_node(node_tree, block);
             }
-            Node::If { .. } => {}
+            Node::If {
+                condition,
+                then_block,
+                else_block,
+            } => {
+                self.type_expr_node(node_tree, condition);
+                self.type_node(node_tree, then_block);
+                if let Some(b) = else_block {
+                    self.type_node(node_tree, b);
+                }
+            }
             Node::Match { .. } => {}
             Node::MatchArm { .. } => {}
             Node::Return { value } => match (value, &self.return_type) {
@@ -119,7 +129,10 @@ impl Typer {
                             node_tree.type_map.add(target, ts.clone());
                             ts
                         } else {
-                            panic!("missing type for assignment target")
+                            panic!(
+                                "missing type for assignment target {:?}",
+                                node_tree.get_node(target)
+                            )
                         }
                     }
                 };
@@ -243,22 +256,28 @@ impl Typer {
                     }
                     UnaryOp::Not => {
                         // !T -> T
-                        // TODO: should be bool, but we don't enforce yet
                         let ts = operand_type;
+                        if !is_bool_type(&ts) {
+                            panic!("! can only be used on boolean types")
+                        }
                         node_tree.type_map.add(node_id, ts.clone());
                         Some(ts)
                     }
                     UnaryOp::Negate => {
                         // -T -> T
-                        // TODO: should be a numeric type but we don't enforce that yet
                         let ts = operand_type;
+                        if !is_numeric_type(&ts) {
+                            panic!("! can only be used on boolean types")
+                        }
                         node_tree.type_map.add(node_id, ts.clone());
                         Some(ts)
                     }
                     UnaryOp::Positive => {
                         // +T -> T
-                        // TODO: should be a numeric type but we don't enforce that yet
                         let ts = operand_type;
+                        if !is_numeric_type(&ts) {
+                            panic!("! can only be used on boolean types")
+                        }
                         node_tree.type_map.add(node_id, ts.clone());
                         Some(ts)
                     }
@@ -291,7 +310,14 @@ impl Typer {
 
                 Some(*func_type.return_type)
             }
-            Node::Index { target, index: _ } => {
+            Node::Index { target, index } => {
+                let index_type = self
+                    .type_expr_node(node_tree, index)
+                    .expect("missing type for index expression");
+                if !is_natural_number(&index_type) {
+                    panic!("can only index expressions using natural numbers")
+                }
+
                 let target_type = self
                     .type_expr_node(node_tree, target)
                     .expect("missing type for index target type");
@@ -339,6 +365,40 @@ impl Typer {
             | Node::Assign { .. } => panic!("can not type check a statement as an expression"),
         }
     }
+}
+
+// returns true if the type is any numeric type
+// (u8-u64, i8-i64, f32, f64, or any alias of those types)
+fn is_numeric_type(ts: &TypeSpec) -> bool {
+    let ts = resolve_type(ts);
+    matches!(
+        ts,
+        TypeSpec::Int8
+            | TypeSpec::Int16
+            | TypeSpec::Int32
+            | TypeSpec::Int64
+            | TypeSpec::UInt8
+            | TypeSpec::UInt16
+            | TypeSpec::UInt32
+            | TypeSpec::UInt64
+            | TypeSpec::Float32
+            | TypeSpec::Float64
+    )
+}
+
+// return true if the type is a boolean or any alias of a boolean type
+fn is_bool_type(ts: &TypeSpec) -> bool {
+    let ts = resolve_type(ts);
+    matches!(ts, TypeSpec::Bool)
+}
+
+// returns true if the type contains only natural numbers (u8-64, or any alias of those types)
+fn is_natural_number(ts: &TypeSpec) -> bool {
+    let ts = resolve_type(ts);
+    matches!(
+        ts,
+        TypeSpec::UInt8 | TypeSpec::UInt16 | TypeSpec::UInt32 | TypeSpec::UInt64
+    )
 }
 
 // resolve_type will unwrap named type aliases to find the underlying type
