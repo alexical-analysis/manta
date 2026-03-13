@@ -1,5 +1,5 @@
 use crate::ast::UnaryOp;
-use crate::hir::{Node, NodeID, StructField, StructType, TypeSpec};
+use crate::hir::{EnumVariant, Node, NodeID, StructField, StructType, TypeSpec};
 use crate::noder::NodeTree;
 use crate::str_store;
 
@@ -115,16 +115,24 @@ impl Typer {
                             //
                             // If it is an identifier we need to infer the type from the RHS and add
                             // it to the type_map
-                            node_tree.type_map.add(target, r_type.clone());
-                            r_type.clone()
+                            let ts = r_type.clone();
+                            node_tree.type_map.add(target, ts.clone());
+                            ts
                         } else {
                             panic!("missing type for assignment target")
                         }
                     }
                 };
 
-                if l_type != r_type {
-                    panic!("l_type {:?} does not equal r_type {:?}", l_type, r_type)
+                match match_types(&l_type, &r_type) {
+                    TypeMatch::ExactType => {}
+                    TypeMatch::Inference(ts) => {
+                        node_tree.type_map.set(target, ts.clone());
+                        node_tree.type_map.set(value, ts);
+                    }
+                    TypeMatch::Mismatch => {
+                        panic!("l_type {:?} does not equal r_type {:?}", l_type, r_type)
+                    }
                 }
             }
             Node::Invalid
@@ -161,11 +169,31 @@ impl Typer {
         let node = node.clone();
 
         match node {
-            Node::Invalid => None,
-            Node::IntLiteral(_) => Some(TypeSpec::Int64),
-            Node::FloatLiteral(_) => Some(TypeSpec::Float64),
-            Node::StringLiteral(_) => Some(TypeSpec::String),
-            Node::BoolLiteral(_) => Some(TypeSpec::Bool),
+            Node::Invalid => {
+                let ts = TypeSpec::Panic;
+                node_tree.type_map.add(node_id, ts.clone());
+                Some(ts)
+            }
+            Node::IntLiteral(i) => {
+                let ts = TypeSpec::IntLiteral(i);
+                node_tree.type_map.add(node_id, ts.clone());
+                Some(ts)
+            }
+            Node::FloatLiteral(f) => {
+                let ts = TypeSpec::FloatLiteral(f);
+                node_tree.type_map.add(node_id, ts.clone());
+                Some(ts)
+            }
+            Node::StringLiteral(_) => {
+                let ts = TypeSpec::String;
+                node_tree.type_map.add(node_id, ts.clone());
+                Some(ts)
+            }
+            Node::BoolLiteral(_) => {
+                let ts = TypeSpec::Bool;
+                node_tree.type_map.add(node_id, ts.clone());
+                Some(ts)
+            }
             Node::Binary {
                 left,
                 operator: _,
@@ -173,12 +201,20 @@ impl Typer {
             } => {
                 let l_type = self.type_expr_node(node_tree, left);
                 let r_type = self.type_expr_node(node_tree, right);
-
-                if l_type != r_type {
-                    panic!("types do not match in binary expression");
+                if l_type.is_none() || r_type.is_none() {
+                    eprintln!("skpping type checking for now since l_type or r_type is missing");
+                    return None;
                 }
 
-                l_type
+                match match_types(&l_type.clone().expect(""), &r_type.expect("")) {
+                    TypeMatch::ExactType => l_type,
+                    TypeMatch::Inference(ts) => {
+                        node_tree.type_map.set(left, ts.clone());
+                        node_tree.type_map.set(right, ts);
+                        l_type
+                    }
+                    TypeMatch::Mismatch => panic!("types do not match in binary expression"),
+                }
             }
             Node::Identifier { .. } => node_tree.type_map.get(node_id).cloned(),
             Node::EnumConstructor { .. } => node_tree.type_map.get(node_id).cloned(),
@@ -192,40 +228,69 @@ impl Typer {
                 match operator {
                     UnaryOp::AddressOf => {
                         // &T -> Pointer(T)
-                        Some(TypeSpec::Pointer(Box::new(operand_type)))
+                        let ts = TypeSpec::Pointer(Box::new(operand_type));
+                        node_tree.type_map.add(node_id, ts.clone());
+                        Some(ts)
                     }
                     UnaryOp::Dereference => {
                         // *Pointer(T) -> T
-                        match operand_type {
-                            TypeSpec::Pointer(inner) => Some(*inner),
+                        let ts = match operand_type {
+                            TypeSpec::Pointer(inner) => *inner,
                             _ => panic!("cannot dereference non-pointer type"),
-                        }
+                        };
+                        node_tree.type_map.add(node_id, ts.clone());
+                        Some(ts)
                     }
                     UnaryOp::Not => {
-                        // !T -> T (should be bool, but we don't enforce yet)
-                        Some(operand_type)
+                        // !T -> T
+                        // TODO: should be bool, but we don't enforce yet
+                        let ts = operand_type;
+                        node_tree.type_map.add(node_id, ts.clone());
+                        Some(ts)
                     }
                     UnaryOp::Negate => {
-                        // -T -> T (should be a numeric type but we don't enforce that yet)
-                        Some(operand_type)
+                        // -T -> T
+                        // TODO: should be a numeric type but we don't enforce that yet
+                        let ts = operand_type;
+                        node_tree.type_map.add(node_id, ts.clone());
+                        Some(ts)
                     }
                     UnaryOp::Positive => {
-                        // +T -> T (should be a numeric type but we don't enforce that yet)
-                        Some(operand_type)
+                        // +T -> T
+                        // TODO: should be a numeric type but we don't enforce that yet
+                        let ts = operand_type;
+                        node_tree.type_map.add(node_id, ts.clone());
+                        Some(ts)
                     }
                 }
             }
-
-            Node::Call { func, args: _ } => {
+            Node::Call { func, args } => {
                 let func_type = self
                     .type_expr_node(node_tree, func)
                     .expect("missing type for function call");
-                match func_type {
-                    TypeSpec::Function(ft) => Some(*ft.return_type),
-                    _ => panic!("cannot call non-function type"),
-                }
-            }
 
+                let func_type = match func_type {
+                    TypeSpec::Function(ft) => ft,
+                    _ => panic!("cannot call non-function type"),
+                };
+
+                for (param, arg) in func_type.params.iter().zip(args.iter()) {
+                    let arg_type = self.type_expr_node(node_tree, *arg);
+                    match &arg_type {
+                        Some(ts) => match match_types(param, ts) {
+                            TypeMatch::ExactType => {}
+                            TypeMatch::Inference(_) => node_tree.type_map.set(*arg, param.clone()),
+                            TypeMatch::Mismatch => panic!(
+                                "argument type does not match expected paramater type {:?} {:?}",
+                                param, ts
+                            ),
+                        },
+                        None => eprintln!("TODO: missing type for argument"),
+                    }
+                }
+
+                Some(*func_type.return_type)
+            }
             Node::Index { target, index: _ } => {
                 let target_type = self
                     .type_expr_node(node_tree, target)
@@ -236,7 +301,6 @@ impl Typer {
                     _ => panic!("cannot index non-array/slice type"),
                 }
             }
-
             Node::MetaType => Some(TypeSpec::Struct(StructType {
                 fields: vec![
                     StructField {
@@ -275,12 +339,133 @@ impl Typer {
             | Node::Assign { .. } => panic!("can not type check a statement as an expression"),
         }
     }
+}
 
-    // resolve_type will unwrap named type aliases to find the underlying type
-    fn resolve_type<'a>(&self, ts: &'a TypeSpec) -> &'a TypeSpec {
-        match ts {
-            TypeSpec::Named(t) => self.resolve_type(&*t.type_spec),
-            _ => ts,
+// resolve_type will unwrap named type aliases to find the underlying type
+fn resolve_type(ts: &TypeSpec) -> &TypeSpec {
+    match ts {
+        TypeSpec::Named(t) => resolve_type(&t.type_spec),
+        _ => ts,
+    }
+}
+
+enum TypeMatch {
+    ExactType,
+    Inference(TypeSpec),
+    Mismatch,
+}
+
+fn match_types(a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
+    if a == b {
+        return match a {
+            TypeSpec::IntLiteral(_) => TypeMatch::Inference(TypeSpec::Int64),
+            TypeSpec::FloatLiteral(_) => TypeMatch::Inference(TypeSpec::Float64),
+            TypeSpec::InferredEnum(_) => TypeMatch::Mismatch,
+            _ => TypeMatch::ExactType,
+        };
+    }
+
+    match (a, b) {
+        // if both the left and right hand side are typed as literals, just conver the type to an
+        // int64 instead of trying to propogagte types through the graph
+        (TypeSpec::IntLiteral(_), TypeSpec::IntLiteral(_)) => TypeMatch::Inference(TypeSpec::Int64),
+        (TypeSpec::IntLiteral(i), inner_b) => match inner_b {
+            TypeSpec::Int64 => match_int(i, i64::MIN, i64::MAX, TypeSpec::Int64),
+            TypeSpec::Int32 => match_int(i, i32::MIN as i64, i32::MAX as i64, TypeSpec::Int64),
+            TypeSpec::Int16 => match_int(i, i16::MIN as i64, i16::MAX as i64, TypeSpec::Int64),
+            TypeSpec::Int8 => match_int(i, i8::MIN as i64, i8::MAX as i64, TypeSpec::Int64),
+            // TODO: in order to support u64 types we need the IntLiteral type to be a bit more
+            // complex because we can actually store the full range of a u64 in the current int
+            // literal type
+            TypeSpec::UInt32 => match_int(i, u32::MIN as i64, u32::MAX as i64, TypeSpec::Int64),
+            TypeSpec::UInt16 => match_int(i, u16::MIN as i64, u16::MAX as i64, TypeSpec::Int64),
+            TypeSpec::UInt8 => match_int(i, u8::MIN as i64, u8::MAX as i64, TypeSpec::Int64),
+            _ => TypeMatch::Mismatch,
+        },
+        (inner_a, TypeSpec::IntLiteral(i)) => match inner_a {
+            TypeSpec::Int64 => match_int(i, i64::MIN, i64::MAX, TypeSpec::Int64),
+            TypeSpec::Int32 => match_int(i, i32::MIN as i64, i32::MAX as i64, TypeSpec::Int64),
+            TypeSpec::Int16 => match_int(i, i16::MIN as i64, i16::MAX as i64, TypeSpec::Int64),
+            TypeSpec::Int8 => match_int(i, i8::MIN as i64, i8::MAX as i64, TypeSpec::Int64),
+            // TODO: in order to support u64 types we need the IntLiteral type to be a bit more
+            // complex because we can actually store the full range of a u64 in the current int
+            // literal type
+            TypeSpec::UInt32 => match_int(i, u32::MIN as i64, u32::MAX as i64, TypeSpec::Int64),
+            TypeSpec::UInt16 => match_int(i, u16::MIN as i64, u16::MAX as i64, TypeSpec::Int64),
+            TypeSpec::UInt8 => match_int(i, u8::MIN as i64, u8::MAX as i64, TypeSpec::Int64),
+            _ => TypeMatch::Mismatch,
+        },
+        // if both the left and right hand side are typed as literals, just conver the type to a
+        // float64 instead of trying to propogagte types through the graph
+        (TypeSpec::FloatLiteral(_), TypeSpec::FloatLiteral(_)) => {
+            TypeMatch::Inference(TypeSpec::Float64)
         }
+        (TypeSpec::FloatLiteral(f), inner_b) => match inner_b {
+            TypeSpec::Float64 => match_float(f, f64::MIN, f64::MAX, TypeSpec::Float64),
+            TypeSpec::Float32 => {
+                match_float(f, f32::MIN as f64, f32::MAX as f64, TypeSpec::Float32)
+            }
+            _ => TypeMatch::Mismatch,
+        },
+        (inner_a, TypeSpec::FloatLiteral(f)) => match inner_a {
+            TypeSpec::Float64 => match_float(f, f64::MIN, f64::MAX, TypeSpec::Float64),
+            TypeSpec::Float32 => {
+                match_float(f, f32::MIN as f64, f32::MAX as f64, TypeSpec::Float32)
+            }
+            _ => TypeMatch::Mismatch,
+        },
+        (TypeSpec::InferredEnum(inner_a), inner_b) => match_enum(inner_b, inner_a),
+        (inner_a, TypeSpec::InferredEnum(inner_b)) => match_enum(inner_a, inner_b),
+        _ => TypeMatch::Mismatch,
+    }
+}
+
+fn match_int(target: &i64, min: i64, max: i64, ts: TypeSpec) -> TypeMatch {
+    if *target >= min && *target <= max {
+        TypeMatch::Inference(ts)
+    } else {
+        TypeMatch::Mismatch
+    }
+}
+
+fn match_float(target: &f64, min: f64, max: f64, ts: TypeSpec) -> TypeMatch {
+    // checking a float like this this might have issues at the largest and stmallest
+    // values but it should be fine for now
+    if *target >= min && *target <= max {
+        TypeMatch::Inference(ts)
+    } else {
+        TypeMatch::Mismatch
+    }
+}
+
+fn match_enum(known: &TypeSpec, unknown: &Box<EnumVariant>) -> TypeMatch {
+    let known = resolve_type(known);
+    match known {
+        TypeSpec::Enum(e) => {
+            let mut found_variant = None;
+            for variant in &e.variants {
+                if unknown.name == variant.name {
+                    found_variant = Some(variant);
+                    break;
+                }
+            }
+
+            match found_variant {
+                Some(v) => match (&v.payload, &unknown.payload) {
+                    (Some(a), Some(b)) => {
+                        if a == b {
+                            TypeMatch::Inference(known.clone())
+                        } else {
+                            TypeMatch::Mismatch
+                        }
+                    }
+                    (None, Some(_)) => TypeMatch::Mismatch,
+                    (Some(_), None) => TypeMatch::Mismatch,
+                    (None, None) => TypeMatch::Inference(known.clone()),
+                },
+                None => TypeMatch::Mismatch,
+            }
+        }
+        _ => TypeMatch::Mismatch,
     }
 }

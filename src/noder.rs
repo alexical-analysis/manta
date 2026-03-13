@@ -1062,30 +1062,10 @@ fn node_wrap_expr(
 
 fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
     match expr {
-        Expr::IntLiteral(expr) => {
-            let node_id = node_tree.add_node(Node::IntLiteral(*expr));
-
-            node_tree.type_map.add(node_id, TypeSpec::Int64);
-
-            node_id
-        }
-        Expr::FloatLiteral(expr) => {
-            let node_id = node_tree.add_node(Node::FloatLiteral(*expr));
-
-            node_tree.type_map.add(node_id, TypeSpec::Float64);
-
-            node_id
-        }
-        Expr::StringLiteral(expr) => {
-            let node_id = node_tree.add_node(Node::StringLiteral(*expr));
-            node_tree.type_map.add(node_id, TypeSpec::String);
-            node_id
-        }
-        Expr::BoolLiteral(expr) => {
-            let node_id = node_tree.add_node(Node::BoolLiteral(*expr));
-            node_tree.type_map.add(node_id, TypeSpec::Bool);
-            node_id
-        }
+        Expr::IntLiteral(expr) => node_tree.add_node(Node::IntLiteral(*expr)),
+        Expr::FloatLiteral(expr) => node_tree.add_node(Node::FloatLiteral(*expr)),
+        Expr::StringLiteral(expr) => node_tree.add_node(Node::StringLiteral(*expr)),
+        Expr::BoolLiteral(expr) => node_tree.add_node(Node::BoolLiteral(*expr)),
         Expr::Identifier(expr) => {
             let scope_pos = module
                 .get_scope_pos(expr.id)
@@ -1411,16 +1391,14 @@ mod tests {
                 e.add_root_node(Node::VarDecl { ident: ident_id });
 
                 let value_id = e.add_node(Node::IntLiteral(42));
-                e.type_map.add(value_id, TypeSpec::Int64);
                 e.add_root_node(Node::Assign {
                     target: ident_id,
                     value: value_id,
                 });
                 e.symbol_map.add(12, ident_id);
 
-                // type infered from the above assignment
+                e.type_map.add(value_id, TypeSpec::Int64);
                 e.type_map.add(ident_id, TypeSpec::Int64);
-
                 e
             }
         },
@@ -1440,16 +1418,14 @@ mod tests {
                 e.add_root_node(Node::VarDecl { ident: ident_id });
 
                 let value_id = e.add_node(Node::StringLiteral(StrID::from_usize(3)));
-                e.type_map.add(value_id, TypeSpec::String);
                 e.add_root_node(Node::Assign {
                     target: ident_id,
                     value: value_id,
                 });
                 e.symbol_map.add(12, ident_id);
 
-                // type infered from the above assignment
+                e.type_map.add(value_id, TypeSpec::String);
                 e.type_map.add(ident_id, TypeSpec::String);
-
                 e
             }
         },
