@@ -165,6 +165,9 @@ pub struct TypeSpecPat {
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum TypeSpec {
+    IntLiteral(i64),
+    FloatLiteral(f64),
+    InferredEnum(Box<EnumVariant>),
     Int32,
     Int16,
     Int8,
