@@ -165,9 +165,13 @@ pub struct TypeSpecPat {
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum TypeSpec {
+    // These types are no actually concreet yet, instead they all represent partially typed values
+    // that can have their types further refined by the context where there appear
     IntLiteral(i64),
     FloatLiteral(f64),
     InferredEnum(Box<EnumVariant>),
+    Any,
+
     Int32,
     Int16,
     Int8,
@@ -180,9 +184,7 @@ pub enum TypeSpec {
     Float64,
     String,
     Bool,
-    // User-defined types
     Named(NamedType),
-    // Composite types
     Pointer(Box<TypeSpec>),
     Slice(Box<TypeSpec>),
     Array(ArrayType),

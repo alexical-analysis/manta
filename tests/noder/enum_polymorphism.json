@@ -381,14 +381,22 @@
       "9": 2,
       "10": 3,
       "12": 4,
+      "16": 13,
+      "21": 14,
+      "24": 15,
+      "28": 16,
       "31": 5,
       "32": 6,
       "33": 7,
-      "35": 13,
-      "39": 14,
+      "35": 17,
+      "38": 18,
+      "39": 19,
+      "42": 20,
       "43": 8,
-      "45": 15,
-      "49": 16,
+      "45": 21,
+      "48": 22,
+      "49": 23,
+      "52": 24,
       "55": 9,
       "56": 10
     },
@@ -559,26 +567,29 @@
       "Float64",
       "Float64",
       {
-        "Named": {
-          "module": null,
-          "name": 18,
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 20,
-                  "payload": "Int32"
-                },
-                {
-                  "name": 21,
-                  "payload": "Int32"
-                }
-              ]
-            }
-          }
+        "InferredEnum": {
+          "name": 20,
+          "payload": null
         }
       },
-      "Int32",
+      {
+        "InferredEnum": {
+          "name": 20,
+          "payload": null
+        }
+      },
+      {
+        "InferredEnum": {
+          "name": 21,
+          "payload": null
+        }
+      },
+      {
+        "InferredEnum": {
+          "name": 21,
+          "payload": null
+        }
+      },
       {
         "Named": {
           "module": null,
@@ -599,7 +610,32 @@
           }
         }
       },
-      "Int32"
+      "Int32",
+      "Int32",
+      "Unit",
+      {
+        "Named": {
+          "module": null,
+          "name": 18,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 20,
+                  "payload": "Int32"
+                },
+                {
+                  "name": 21,
+                  "payload": "Int32"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Int32",
+      "Int32",
+      "Unit"
     ]
   },
   "symbol_map": {

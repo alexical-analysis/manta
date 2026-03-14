@@ -595,7 +595,6 @@
     18,
     27,
     29,
-    54,
     91
   ],
   "type_map": {
@@ -615,11 +614,27 @@
       "27": 12,
       "28": 13,
       "30": 14,
+      "32": 21,
+      "35": 22,
+      "40": 23,
+      "45": 24,
+      "46": 25,
+      "48": 26,
       "51": 15,
       "52": 16,
-      "61": 17,
-      "90": 18,
-      "91": 19
+      "55": 17,
+      "60": 27,
+      "61": 18,
+      "63": 29,
+      "65": 28,
+      "66": 30,
+      "71": 31,
+      "74": 32,
+      "79": 33,
+      "84": 34,
+      "85": 35,
+      "90": 19,
+      "91": 20
     },
     "values": [
       {
@@ -954,6 +969,9 @@
       },
       "UnsafePtr",
       {
+        "Slice": "UInt8"
+      },
+      {
         "Function": {
           "params": [
             "String"
@@ -1118,7 +1136,102 @@
             }
           }
         }
-      }
+      },
+      {
+        "Named": {
+          "module": null,
+          "name": 12,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 14,
+                  "payload": {
+                    "Named": {
+                      "module": null,
+                      "name": 8,
+                      "type_spec": {
+                        "Struct": {
+                          "fields": []
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 15,
+                  "payload": null
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "InferredEnum": {
+          "name": 14,
+          "payload": null
+        }
+      },
+      {
+        "InferredEnum": {
+          "name": 14,
+          "payload": null
+        }
+      },
+      "Any",
+      {
+        "Named": {
+          "module": null,
+          "name": 12,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 14,
+                  "payload": {
+                    "Named": {
+                      "module": null,
+                      "name": 8,
+                      "type_spec": {
+                        "Struct": {
+                          "fields": []
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 15,
+                  "payload": null
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Unit",
+      {
+        "Slice": "UInt8"
+      },
+      "Any",
+      "Panic",
+      "UnsafePtr",
+      "Unit",
+      {
+        "InferredEnum": {
+          "name": 14,
+          "payload": null
+        }
+      },
+      {
+        "InferredEnum": {
+          "name": 14,
+          "payload": null
+        }
+      },
+      "Any",
+      "Unit"
     ]
   },
   "symbol_map": {
