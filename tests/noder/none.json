@@ -415,7 +415,6 @@
     7,
     13,
     15,
-    21,
     45,
     64
   ],
@@ -432,12 +431,25 @@
       "16": 8,
       "18": 9,
       "19": 10,
-      "23": 16,
-      "35": 15,
-      "44": 11,
-      "45": 12,
-      "63": 13,
-      "64": 14
+      "22": 11,
+      "23": 20,
+      "27": 16,
+      "32": 17,
+      "33": 18,
+      "35": 19,
+      "44": 12,
+      "45": 13,
+      "46": 21,
+      "47": 22,
+      "50": 23,
+      "52": 24,
+      "54": 25,
+      "55": 26,
+      "56": 27,
+      "57": 28,
+      "59": 29,
+      "63": 14,
+      "64": 15
     },
     "values": [
       {
@@ -547,6 +559,7 @@
         }
       },
       "UnsafePtr",
+      "Int32",
       {
         "Function": {
           "params": [
@@ -645,8 +658,93 @@
           "return_type": "Unit"
         }
       },
+      "Int32",
+      "Any",
+      "UnsafePtr",
       "Int64",
-      "Int64"
+      "Int64",
+      "Bool",
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 21,
+              "payload": {
+                "Pointer": "Int32"
+              }
+            },
+            {
+              "name": 22,
+              "payload": null
+            },
+            {
+              "name": 23,
+              "payload": {
+                "Named": {
+                  "module": null,
+                  "name": 9,
+                  "type_spec": {
+                    "Struct": {
+                      "fields": []
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "InferredEnum": {
+          "name": 21,
+          "payload": null
+        }
+      },
+      "Unit",
+      {
+        "InferredEnum": {
+          "name": 21,
+          "payload": null
+        }
+      },
+      {
+        "InferredEnum": {
+          "name": 22,
+          "payload": null
+        }
+      },
+      "String",
+      "Unit",
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 21,
+              "payload": {
+                "Pointer": "Int32"
+              }
+            },
+            {
+              "name": 22,
+              "payload": null
+            },
+            {
+              "name": 23,
+              "payload": {
+                "Named": {
+                  "module": null,
+                  "name": 9,
+                  "type_spec": {
+                    "Struct": {
+                      "fields": []
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
     ]
   },
   "symbol_map": {

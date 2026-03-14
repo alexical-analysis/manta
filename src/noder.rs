@@ -494,7 +494,7 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
                     name: pay,
                     module: None,
                 });
-                node_tree.add_root_node(Node::VarDecl { ident: payload_id });
+                node_tree.add_node(Node::VarDecl { ident: payload_id });
 
                 let scope_pos = module
                     .get_scope_pos(pat.id)
@@ -506,9 +506,17 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
                 node_tree.symbol_map.add(binding.id, payload_id);
             }
 
-            node_tree.add_node(Node::Pattern(PatternNode::TypeSpec(TypeSpecPat {
+            let node_id = node_tree.add_node(Node::Pattern(PatternNode::TypeSpec(TypeSpecPat {
                 payload,
-            })))
+            })));
+
+            // we add the type spec during the noding phase for type spec because otherwise we would
+            // loose the type information otherwise. The hir tree only tracks type information in
+            // the type_map, not on the individual nodes like the ast.
+            let type_spec = node_type_spec(module, &pat.type_spec);
+            node_tree.type_map.add(node_id, type_spec);
+
+            node_id
         }
         Pattern::EnumVariant(pat) => {
             let mut enum_name = None;
