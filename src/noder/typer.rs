@@ -1,5 +1,7 @@
 use crate::ast::UnaryOp;
-use crate::hir::{EnumVariant, Node, NodeID, PatternNode, StructField, StructType, TypeSpec};
+use crate::hir::{
+    EnumVariant, NamedType, Node, NodeID, PatternNode, StructField, StructType, TypeSpec,
+};
 use crate::noder::NodeTree;
 use crate::str_store;
 
@@ -95,9 +97,42 @@ impl Typer {
                 }
                 (_, None) => panic!("can not return a value outside a function context"),
             },
-            Node::Free { .. } => {}
-            Node::TypeDecl { .. } => {}
-            Node::VarDecl { .. } => {}
+            Node::Free { expr } => {
+                node_tree.type_map.add(node_id, TypeSpec::Unit);
+
+                let free_type = self.type_expr_node(node_tree, expr);
+                if free_type.is_none() {
+                    eprintln!("TODO: missing type for free expression");
+                    return;
+                }
+
+                let free_type = free_type.unwrap();
+                let free_type = resolve_type(&free_type);
+                match free_type {
+                    TypeSpec::Pointer(_) => {}
+                    _ => panic!("can not free memory of non-pointer type"),
+                }
+            }
+            Node::TypeDecl { ident } => {
+                // TypeDecl nodes must have been pre-typed durring the node-ing phase
+                let type_spec = node_tree
+                    .type_map
+                    .get(node_id)
+                    .expect("missing type for type decl");
+
+                // the identifier is the named version of this type
+                node_tree.type_map.add(
+                    ident,
+                    TypeSpec::Named(NamedType {
+                        name: ident,
+                        type_spec: Box::new(type_spec.clone()),
+                    }),
+                )
+            }
+            Node::VarDecl { .. } => {
+                // VarDecl nodes get typed by their first assignment or
+                // they get pre-typed durring node-ing. That means there's nothing to do here
+            }
             Node::Range { .. } => {
                 // TODO: need to add a type for ranges
             }
@@ -661,8 +696,7 @@ mod tests {
     // Helper: wrap a TypeSpec in a Named alias
     fn named(ts: TypeSpec) -> TypeSpec {
         TypeSpec::Named(NamedType {
-            module: None,
-            name: StrID::from_usize(0),
+            name: NodeID::from_usize(0),
             type_spec: Box::new(ts),
         })
     }

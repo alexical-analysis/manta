@@ -80,8 +80,7 @@
           ],
           "return_type": {
             "Named": {
-              "module": null,
-              "name": 13,
+              "name": 6,
               "type_spec": {
                 "Enum": {
                   "variants": [

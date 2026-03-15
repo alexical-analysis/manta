@@ -132,7 +132,7 @@ pub fn node_module(module: Module) -> NodeTree {
     node_tree
 }
 
-fn node_type_spec(module: &Module, type_spec: &ast::TypeSpec) -> TypeSpec {
+fn node_type_spec(node_tree: &NodeTree, module: &Module, type_spec: &ast::TypeSpec) -> TypeSpec {
     match type_spec {
         ast::TypeSpec::Int8 => TypeSpec::Int8,
         ast::TypeSpec::Int16 => TypeSpec::Int16,
@@ -163,25 +163,28 @@ fn node_type_spec(module: &Module, type_spec: &ast::TypeSpec) -> TypeSpec {
                 BindingType::TypeDecl(t) => t,
                 _ => panic!("this binding was not for a type"),
             };
+            let name_id = node_tree
+                .symbol_map
+                .get(binding.id)
+                .expect("failed to find declaration name for named type spec");
 
-            let type_spec = node_type_spec(module, type_spec);
+            let type_spec = node_type_spec(node_tree, module, type_spec);
             let type_spec = Box::new(type_spec);
             TypeSpec::Named(NamedType {
-                module: t.module,
-                name: t.name,
+                name: *name_id,
                 type_spec,
             })
         }
         ast::TypeSpec::Pointer(t) => {
-            let inner = node_type_spec(module, t);
+            let inner = node_type_spec(node_tree, module, t);
             TypeSpec::Pointer(Box::new(inner))
         }
         ast::TypeSpec::Slice(t) => {
-            let inner = node_type_spec(module, t);
+            let inner = node_type_spec(node_tree, module, t);
             TypeSpec::Slice(Box::new(inner))
         }
         ast::TypeSpec::Array(t) => {
-            let inner = node_type_spec(module, &t.type_spec);
+            let inner = node_type_spec(node_tree, module, &t.type_spec);
             TypeSpec::Array(ArrayType {
                 size: t.size,
                 type_spec: Box::new(inner),
@@ -190,7 +193,7 @@ fn node_type_spec(module: &Module, type_spec: &ast::TypeSpec) -> TypeSpec {
         ast::TypeSpec::Struct(t) => {
             let mut fields = vec![];
             for field in &t.fields {
-                let inner = node_type_spec(module, &field.type_spec);
+                let inner = node_type_spec(node_tree, module, &field.type_spec);
                 fields.push(StructField {
                     name: field.name,
                     type_spec: inner,
@@ -201,7 +204,10 @@ fn node_type_spec(module: &Module, type_spec: &ast::TypeSpec) -> TypeSpec {
         ast::TypeSpec::Enum(t) => {
             let mut variants: Vec<EnumVariant> = vec![];
             for variant in &t.variants {
-                let inner = variant.payload.as_ref().map(|t| node_type_spec(module, t));
+                let inner = variant
+                    .payload
+                    .as_ref()
+                    .map(|t| node_type_spec(node_tree, module, t));
                 variants.push(EnumVariant {
                     name: variant.name,
                     payload: inner,
@@ -210,12 +216,12 @@ fn node_type_spec(module: &Module, type_spec: &ast::TypeSpec) -> TypeSpec {
             TypeSpec::Enum(EnumType { variants })
         }
         ast::TypeSpec::Function(t) => {
-            let return_type = node_type_spec(module, &t.return_type);
+            let return_type = node_type_spec(node_tree, module, &t.return_type);
             let return_type = Box::new(return_type);
 
             let mut params = vec![];
             for param in &t.params {
-                let inner = node_type_spec(module, param);
+                let inner = node_type_spec(node_tree, module, param);
                 params.push(inner);
             }
 
@@ -242,7 +248,7 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 let param_id = node_tree.add_node(Node::VarDecl { ident: ident_id });
                 params.push(param_id);
 
-                let type_spec = node_type_spec(module, param_type);
+                let type_spec = node_type_spec(node_tree, module, param_type);
                 node_tree.type_map.add(ident_id, type_spec);
 
                 let scope_pos = module
@@ -255,7 +261,7 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 node_tree.symbol_map.add(binding.id, ident_id);
             }
 
-            let return_type = node_type_spec(module, &decl.function_type.return_type);
+            let return_type = node_type_spec(node_tree, module, &decl.function_type.return_type);
             let body_id = node_fn_body(node_tree, module, &decl.body, return_type);
 
             let ident_id = node_tree.add_node(Node::Identifier {
@@ -269,7 +275,7 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
             });
 
             let func_type = ast::TypeSpec::Function(decl.function_type.clone());
-            let func_type = node_type_spec(module, &func_type);
+            let func_type = node_type_spec(node_tree, module, &func_type);
             node_tree.type_map.add(ident_id, func_type.clone());
             node_tree.type_map.add(func_id, func_type);
 
@@ -287,18 +293,9 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 name: decl.name,
                 module: None,
             });
-            node_tree.add_root_node(Node::TypeDecl { ident: ident_id });
-
-            // The resulting type needs to be a named type so it's distinguishable from other types
-            // that might have the same inner type
-            let type_spec = node_type_spec(module, &decl.type_spec);
-            let type_spec = Box::new(type_spec);
-            let type_alias = TypeSpec::Named(NamedType {
-                module: None,
-                name: decl.name,
-                type_spec,
-            });
-            node_tree.type_map.add(ident_id, type_alias);
+            let decl_id = node_tree.add_root_node(Node::TypeDecl { ident: ident_id });
+            let type_spec = node_type_spec(node_tree, module, &decl.type_spec);
+            node_tree.type_map.add(decl_id, type_spec);
 
             let scope_pos = module
                 .get_scope_pos(decl.id)
@@ -510,10 +507,10 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
                 payload,
             })));
 
-            // we add the type spec during the noding phase for type spec because otherwise we would
-            // loose the type information otherwise. The hir tree only tracks type information in
+            // we add the type spec during the noding phase for type specs because otherwise we would
+            // loose the type information. The hir tree only tracks type information in
             // the type_map, not on the individual nodes like the ast.
-            let type_spec = node_type_spec(module, &pat.type_spec);
+            let type_spec = node_type_spec(node_tree, module, &pat.type_spec);
             node_tree.type_map.add(node_id, type_spec);
 
             node_id
