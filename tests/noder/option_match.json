@@ -369,7 +369,7 @@
         }
       },
       "Int32",
-      "Int64",
+      "Int32",
       {
         "Function": {
           "params": [
@@ -438,7 +438,7 @@
           "return_type": "Unit"
         }
       },
-      "Int64",
+      "Int32",
       "Int32",
       "Int32",
       {
