@@ -499,6 +499,8 @@ fn is_numeric_type(ts: &TypeSpec) -> bool {
             | TypeSpec::UInt64
             | TypeSpec::Float32
             | TypeSpec::Float64
+            | TypeSpec::IntLiteral(_)
+            | TypeSpec::FloatLiteral(_)
     )
 }
 
@@ -549,28 +551,28 @@ fn match_types(a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
         (TypeSpec::IntLiteral(_), TypeSpec::IntLiteral(_)) => TypeMatch::Inference(TypeSpec::Int64),
         (TypeSpec::IntLiteral(i), inner_b) => match inner_b {
             TypeSpec::Int64 => match_int(i, i64::MIN, i64::MAX, TypeSpec::Int64),
-            TypeSpec::Int32 => match_int(i, i32::MIN as i64, i32::MAX as i64, TypeSpec::Int64),
-            TypeSpec::Int16 => match_int(i, i16::MIN as i64, i16::MAX as i64, TypeSpec::Int64),
-            TypeSpec::Int8 => match_int(i, i8::MIN as i64, i8::MAX as i64, TypeSpec::Int64),
+            TypeSpec::Int32 => match_int(i, i32::MIN as i64, i32::MAX as i64, TypeSpec::Int32),
+            TypeSpec::Int16 => match_int(i, i16::MIN as i64, i16::MAX as i64, TypeSpec::Int16),
+            TypeSpec::Int8 => match_int(i, i8::MIN as i64, i8::MAX as i64, TypeSpec::Int8),
             // TODO: in order to support u64 types we need the IntLiteral type to be a bit more
             // complex because we can actually store the full range of a u64 in the current int
             // literal type
-            TypeSpec::UInt32 => match_int(i, u32::MIN as i64, u32::MAX as i64, TypeSpec::Int64),
-            TypeSpec::UInt16 => match_int(i, u16::MIN as i64, u16::MAX as i64, TypeSpec::Int64),
-            TypeSpec::UInt8 => match_int(i, u8::MIN as i64, u8::MAX as i64, TypeSpec::Int64),
+            TypeSpec::UInt32 => match_int(i, u32::MIN as i64, u32::MAX as i64, TypeSpec::UInt32),
+            TypeSpec::UInt16 => match_int(i, u16::MIN as i64, u16::MAX as i64, TypeSpec::UInt16),
+            TypeSpec::UInt8 => match_int(i, u8::MIN as i64, u8::MAX as i64, TypeSpec::UInt8),
             _ => TypeMatch::Mismatch,
         },
         (inner_a, TypeSpec::IntLiteral(i)) => match inner_a {
             TypeSpec::Int64 => match_int(i, i64::MIN, i64::MAX, TypeSpec::Int64),
-            TypeSpec::Int32 => match_int(i, i32::MIN as i64, i32::MAX as i64, TypeSpec::Int64),
-            TypeSpec::Int16 => match_int(i, i16::MIN as i64, i16::MAX as i64, TypeSpec::Int64),
-            TypeSpec::Int8 => match_int(i, i8::MIN as i64, i8::MAX as i64, TypeSpec::Int64),
+            TypeSpec::Int32 => match_int(i, i32::MIN as i64, i32::MAX as i64, TypeSpec::Int32),
+            TypeSpec::Int16 => match_int(i, i16::MIN as i64, i16::MAX as i64, TypeSpec::Int16),
+            TypeSpec::Int8 => match_int(i, i8::MIN as i64, i8::MAX as i64, TypeSpec::Int8),
             // TODO: in order to support u64 types we need the IntLiteral type to be a bit more
             // complex because we can actually store the full range of a u64 in the current int
             // literal type
-            TypeSpec::UInt32 => match_int(i, u32::MIN as i64, u32::MAX as i64, TypeSpec::Int64),
-            TypeSpec::UInt16 => match_int(i, u16::MIN as i64, u16::MAX as i64, TypeSpec::Int64),
-            TypeSpec::UInt8 => match_int(i, u8::MIN as i64, u8::MAX as i64, TypeSpec::Int64),
+            TypeSpec::UInt32 => match_int(i, u32::MIN as i64, u32::MAX as i64, TypeSpec::UInt32),
+            TypeSpec::UInt16 => match_int(i, u16::MIN as i64, u16::MAX as i64, TypeSpec::UInt16),
+            TypeSpec::UInt8 => match_int(i, u8::MIN as i64, u8::MAX as i64, TypeSpec::UInt8),
             _ => TypeMatch::Mismatch,
         },
         // if both the left and right hand side are typed as literals, just conver the type to a
@@ -604,7 +606,7 @@ fn match_int(target: &i64, min: i64, max: i64, ts: TypeSpec) -> TypeMatch {
     if *target >= min && *target <= max {
         TypeMatch::Inference(ts)
     } else {
-        TypeMatch::Mismatch
+        TypeMatch::InferenceFailed
     }
 }
 
@@ -614,7 +616,7 @@ fn match_float(target: &f64, min: f64, max: f64, ts: TypeSpec) -> TypeMatch {
     if *target >= min && *target <= max {
         TypeMatch::Inference(ts)
     } else {
-        TypeMatch::Mismatch
+        TypeMatch::InferenceFailed
     }
 }
 
@@ -647,5 +649,505 @@ fn match_enum(known: &TypeSpec, unknown: &EnumVariant) -> TypeMatch {
             }
         }
         _ => TypeMatch::Mismatch,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::hir::{EnumType, NamedType};
+    use crate::str_store::StrID;
+
+    // Helper: wrap a TypeSpec in a Named alias
+    fn named(ts: TypeSpec) -> TypeSpec {
+        TypeSpec::Named(NamedType {
+            module: None,
+            name: StrID::from_usize(0),
+            type_spec: Box::new(ts),
+        })
+    }
+
+    // Helper: build a concrete enum TypeSpec from a list of variants
+    fn enum_type(variants: Vec<EnumVariant>) -> TypeSpec {
+        TypeSpec::Enum(EnumType { variants })
+    }
+
+    // Helper: build an EnumVariant with no payload
+    fn variant(id: usize) -> EnumVariant {
+        EnumVariant {
+            name: StrID::from_usize(id),
+            payload: None,
+        }
+    }
+
+    // Helper: build an EnumVariant with a payload
+    fn variant_with(id: usize, payload: TypeSpec) -> EnumVariant {
+        EnumVariant {
+            name: StrID::from_usize(id),
+            payload: Some(payload),
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // resolve_type
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn resolve_type_concrete_returns_self() {
+        assert_eq!(resolve_type(&TypeSpec::Int64), &TypeSpec::Int64);
+        assert_eq!(resolve_type(&TypeSpec::Bool), &TypeSpec::Bool);
+        assert_eq!(resolve_type(&TypeSpec::Float32), &TypeSpec::Float32);
+        assert_eq!(resolve_type(&TypeSpec::String), &TypeSpec::String);
+    }
+
+    #[test]
+    fn resolve_type_named_unwraps_once() {
+        let ts = named(TypeSpec::Int32);
+        assert_eq!(resolve_type(&ts), &TypeSpec::Int32);
+    }
+
+    #[test]
+    fn resolve_type_named_nested_unwraps_fully() {
+        let ts = named(named(named(TypeSpec::Bool)));
+        assert_eq!(resolve_type(&ts), &TypeSpec::Bool);
+    }
+
+    // -------------------------------------------------------------------------
+    // is_numeric_type
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn is_numeric_type_all_concrete_numeric_types() {
+        for ts in [
+            TypeSpec::Int8,
+            TypeSpec::Int16,
+            TypeSpec::Int32,
+            TypeSpec::Int64,
+            TypeSpec::UInt8,
+            TypeSpec::UInt16,
+            TypeSpec::UInt32,
+            TypeSpec::UInt64,
+            TypeSpec::Float32,
+            TypeSpec::Float64,
+        ] {
+            assert!(is_numeric_type(&ts), "{ts:?} should be numeric");
+        }
+    }
+
+    #[test]
+    fn is_numeric_type_non_numeric_types() {
+        for ts in [
+            TypeSpec::Bool,
+            TypeSpec::String,
+            TypeSpec::Unit,
+            TypeSpec::UnsafePtr,
+            TypeSpec::Panic,
+            TypeSpec::Any,
+        ] {
+            assert!(!is_numeric_type(&ts), "{ts:?} should not be numeric");
+        }
+    }
+
+    #[test]
+    fn is_numeric_type_literals_are_numeric() {
+        assert!(is_numeric_type(&TypeSpec::IntLiteral(42)));
+        assert!(is_numeric_type(&TypeSpec::IntLiteral(-7)));
+        assert!(is_numeric_type(&TypeSpec::FloatLiteral(3.45)));
+    }
+
+    #[test]
+    fn is_numeric_type_resolves_named_alias() {
+        assert!(is_numeric_type(&named(TypeSpec::Int64)));
+        assert!(is_numeric_type(&named(TypeSpec::Float32)));
+        assert!(!is_numeric_type(&named(TypeSpec::Bool)));
+    }
+
+    // -------------------------------------------------------------------------
+    // is_bool_type
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn is_bool_type_bool_is_true() {
+        assert!(is_bool_type(&TypeSpec::Bool));
+    }
+
+    #[test]
+    fn is_bool_type_non_bool_types() {
+        for ts in [
+            TypeSpec::Int64,
+            TypeSpec::Float64,
+            TypeSpec::String,
+            TypeSpec::Unit,
+            TypeSpec::IntLiteral(1),
+        ] {
+            assert!(!is_bool_type(&ts), "{ts:?} should not be bool");
+        }
+    }
+
+    #[test]
+    fn is_bool_type_resolves_named_alias() {
+        assert!(is_bool_type(&named(TypeSpec::Bool)));
+        assert!(!is_bool_type(&named(TypeSpec::Int32)));
+    }
+
+    // -------------------------------------------------------------------------
+    // is_natural_number
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn is_natural_number_unsigned_types() {
+        for ts in [
+            TypeSpec::UInt8,
+            TypeSpec::UInt16,
+            TypeSpec::UInt32,
+            TypeSpec::UInt64,
+        ] {
+            assert!(is_natural_number(&ts), "{ts:?} should be a natural number");
+        }
+    }
+
+    #[test]
+    fn is_natural_number_signed_and_float_are_not_natural() {
+        for ts in [
+            TypeSpec::Int8,
+            TypeSpec::Int16,
+            TypeSpec::Int32,
+            TypeSpec::Int64,
+            TypeSpec::Float32,
+            TypeSpec::Float64,
+            TypeSpec::Bool,
+            TypeSpec::String,
+        ] {
+            assert!(
+                !is_natural_number(&ts),
+                "{ts:?} should not be a natural number"
+            );
+        }
+    }
+
+    #[test]
+    fn is_natural_number_resolves_named_alias() {
+        assert!(is_natural_number(&named(TypeSpec::UInt64)));
+        assert!(!is_natural_number(&named(TypeSpec::Int64)));
+    }
+
+    // -------------------------------------------------------------------------
+    // match_int
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn match_int_value_within_range_returns_inference() {
+        assert!(matches!(
+            match_int(&42, 0, 100, TypeSpec::Int64),
+            TypeMatch::Inference(TypeSpec::Int64)
+        ));
+    }
+
+    #[test]
+    fn match_int_value_at_min_boundary_returns_inference() {
+        assert!(matches!(
+            match_int(&0, 0, 255, TypeSpec::UInt8),
+            TypeMatch::Inference(TypeSpec::UInt8)
+        ));
+    }
+
+    #[test]
+    fn match_int_value_at_max_boundary_returns_inference() {
+        assert!(matches!(
+            match_int(&255, 0, 255, TypeSpec::UInt8),
+            TypeMatch::Inference(TypeSpec::UInt8)
+        ));
+    }
+
+    #[test]
+    fn match_int_value_below_min_returns_inference_failed() {
+        assert!(matches!(
+            match_int(&-1, 0, 255, TypeSpec::UInt8),
+            TypeMatch::InferenceFailed
+        ));
+    }
+
+    #[test]
+    fn match_int_value_above_max_returns_inference_failed() {
+        assert!(matches!(
+            match_int(&256, 0, 255, TypeSpec::UInt8),
+            TypeMatch::InferenceFailed
+        ));
+    }
+
+    // -------------------------------------------------------------------------
+    // match_float
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn match_float_value_within_range_returns_inference() {
+        assert!(matches!(
+            match_float(&1.5, f64::MIN, f64::MAX, TypeSpec::Float64),
+            TypeMatch::Inference(TypeSpec::Float64)
+        ));
+    }
+
+    #[test]
+    fn match_float_value_out_of_f32_range_returns_inference_failed() {
+        let too_large = f32::MAX as f64 * 2.0;
+        assert!(matches!(
+            match_float(
+                &too_large,
+                f32::MIN as f64,
+                f32::MAX as f64,
+                TypeSpec::Float32
+            ),
+            TypeMatch::InferenceFailed
+        ));
+    }
+
+    // -------------------------------------------------------------------------
+    // match_types
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn match_types_same_concrete_type_is_exact() {
+        for ts in [
+            TypeSpec::Int64,
+            TypeSpec::Bool,
+            TypeSpec::String,
+            TypeSpec::Float32,
+        ] {
+            assert!(
+                matches!(match_types(&ts, &ts.clone()), TypeMatch::ExactType),
+                "{ts:?} == {ts:?} should be ExactType"
+            );
+        }
+    }
+
+    #[test]
+    fn match_types_same_int_literal_infers_int64() {
+        assert!(matches!(
+            match_types(&TypeSpec::IntLiteral(5), &TypeSpec::IntLiteral(5)),
+            TypeMatch::Inference(TypeSpec::Int64)
+        ));
+    }
+
+    #[test]
+    fn match_types_different_int_literals_infer_int64() {
+        assert!(matches!(
+            match_types(&TypeSpec::IntLiteral(5), &TypeSpec::IntLiteral(10)),
+            TypeMatch::Inference(TypeSpec::Int64)
+        ));
+    }
+
+    #[test]
+    fn match_types_float_literals_infer_float64() {
+        assert!(matches!(
+            match_types(&TypeSpec::FloatLiteral(1.5), &TypeSpec::FloatLiteral(2.5)),
+            TypeMatch::Inference(TypeSpec::Float64)
+        ));
+    }
+
+    #[test]
+    fn match_types_int_literal_with_int64_in_range() {
+        assert!(matches!(
+            match_types(&TypeSpec::IntLiteral(42), &TypeSpec::Int64),
+            TypeMatch::Inference(TypeSpec::Int64)
+        ));
+    }
+
+    #[test]
+    fn match_types_int_literal_with_uint8_in_range() {
+        assert!(matches!(
+            match_types(&TypeSpec::IntLiteral(200), &TypeSpec::UInt8),
+            TypeMatch::Inference(TypeSpec::UInt8)
+        ));
+    }
+
+    #[test]
+    fn match_types_int_literal_with_uint8_out_of_range() {
+        assert!(matches!(
+            match_types(&TypeSpec::IntLiteral(300), &TypeSpec::UInt8),
+            TypeMatch::InferenceFailed
+        ));
+    }
+
+    #[test]
+    fn match_types_int_literal_with_int8_negative_in_range() {
+        assert!(matches!(
+            match_types(&TypeSpec::IntLiteral(-100), &TypeSpec::Int8),
+            TypeMatch::Inference(TypeSpec::Int8)
+        ));
+    }
+
+    #[test]
+    fn match_types_int_literal_with_int8_out_of_range() {
+        assert!(matches!(
+            match_types(&TypeSpec::IntLiteral(200), &TypeSpec::Int8),
+            TypeMatch::InferenceFailed
+        ));
+    }
+
+    #[test]
+    fn match_types_reversed_int_literal_and_int64() {
+        // (Int64, IntLiteral) should behave the same as (IntLiteral, Int64)
+        assert!(matches!(
+            match_types(&TypeSpec::Int64, &TypeSpec::IntLiteral(42)),
+            TypeMatch::Inference(TypeSpec::Int64)
+        ));
+    }
+
+    #[test]
+    fn match_types_float_literal_with_float64() {
+        assert!(matches!(
+            match_types(&TypeSpec::FloatLiteral(1.5), &TypeSpec::Float64),
+            TypeMatch::Inference(TypeSpec::Float64)
+        ));
+    }
+
+    #[test]
+    fn match_types_float_literal_with_float32() {
+        assert!(matches!(
+            match_types(&TypeSpec::FloatLiteral(1.5), &TypeSpec::Float32),
+            TypeMatch::Inference(TypeSpec::Float32)
+        ));
+    }
+
+    #[test]
+    fn match_types_float_literal_against_int_is_mismatch() {
+        assert!(matches!(
+            match_types(&TypeSpec::FloatLiteral(1.5), &TypeSpec::Int64),
+            TypeMatch::Mismatch
+        ));
+    }
+
+    #[test]
+    fn match_types_any_with_concrete_infers_concrete() {
+        assert!(matches!(
+            match_types(&TypeSpec::Any, &TypeSpec::Int64),
+            TypeMatch::Inference(TypeSpec::Int64)
+        ));
+        assert!(matches!(
+            match_types(&TypeSpec::Bool, &TypeSpec::Any),
+            TypeMatch::Inference(TypeSpec::Bool)
+        ));
+    }
+
+    #[test]
+    fn match_types_both_any_is_inference_failed() {
+        assert!(matches!(
+            match_types(&TypeSpec::Any, &TypeSpec::Any),
+            TypeMatch::InferenceFailed
+        ));
+    }
+
+    #[test]
+    fn match_types_inferred_enum_same_is_inference_failed() {
+        let ts = TypeSpec::InferredEnum(Box::new(variant(1)));
+        assert!(matches!(
+            match_types(&ts, &ts.clone()),
+            TypeMatch::InferenceFailed
+        ));
+    }
+
+    #[test]
+    fn match_types_concrete_mismatch() {
+        assert!(matches!(
+            match_types(&TypeSpec::Int64, &TypeSpec::Bool),
+            TypeMatch::Mismatch
+        ));
+        assert!(matches!(
+            match_types(&TypeSpec::String, &TypeSpec::Float64),
+            TypeMatch::Mismatch
+        ));
+    }
+
+    #[test]
+    fn match_types_inferred_enum_with_known_enum() {
+        let v_id = 1;
+        let known = enum_type(vec![variant(v_id)]);
+        let unknown = TypeSpec::InferredEnum(Box::new(variant(v_id)));
+        // (InferredEnum, known) -> match_enum
+        assert!(matches!(
+            match_types(&unknown, &known),
+            TypeMatch::Inference(_)
+        ));
+    }
+
+    // -------------------------------------------------------------------------
+    // match_enum
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn match_enum_matching_variant_no_payload() {
+        let v_id = 1;
+        let known = enum_type(vec![variant(v_id)]);
+        let unknown = variant(v_id);
+        assert!(matches!(
+            match_enum(&known, &unknown),
+            TypeMatch::Inference(_)
+        ));
+    }
+
+    #[test]
+    fn match_enum_unknown_variant_is_mismatch() {
+        let known = enum_type(vec![variant(1)]);
+        let unknown = variant(99);
+        assert!(matches!(match_enum(&known, &unknown), TypeMatch::Mismatch));
+    }
+
+    #[test]
+    fn match_enum_matching_variant_with_matching_payload() {
+        let v_id = 1;
+        let known = enum_type(vec![variant_with(v_id, TypeSpec::Int64)]);
+        let unknown = variant_with(v_id, TypeSpec::Int64);
+        assert!(matches!(
+            match_enum(&known, &unknown),
+            TypeMatch::Inference(_)
+        ));
+    }
+
+    #[test]
+    fn match_enum_mismatched_payload_is_mismatch() {
+        let v_id = 1;
+        let known = enum_type(vec![variant_with(v_id, TypeSpec::Int64)]);
+        let unknown = variant_with(v_id, TypeSpec::Bool);
+        assert!(matches!(match_enum(&known, &unknown), TypeMatch::Mismatch));
+    }
+
+    #[test]
+    fn match_enum_expected_payload_but_none_given_is_mismatch() {
+        let v_id = 1;
+        let known = enum_type(vec![variant_with(v_id, TypeSpec::Int64)]);
+        let unknown = variant(v_id); // no payload
+        assert!(matches!(match_enum(&known, &unknown), TypeMatch::Mismatch));
+    }
+
+    #[test]
+    fn match_enum_unexpected_payload_is_mismatch() {
+        let v_id = 1;
+        let known = enum_type(vec![variant(v_id)]); // no payload on known variant
+        let unknown = variant_with(v_id, TypeSpec::Int64);
+        assert!(matches!(match_enum(&known, &unknown), TypeMatch::Mismatch));
+    }
+
+    #[test]
+    fn match_enum_non_enum_known_is_mismatch() {
+        let unknown = variant(1);
+        assert!(matches!(
+            match_enum(&TypeSpec::Int64, &unknown),
+            TypeMatch::Mismatch
+        ));
+        assert!(matches!(
+            match_enum(&TypeSpec::Bool, &unknown),
+            TypeMatch::Mismatch
+        ));
+    }
+
+    #[test]
+    fn match_enum_resolves_named_enum_alias() {
+        let v_id = 1;
+        let known = named(enum_type(vec![variant(v_id)]));
+        let unknown = variant(v_id);
+        assert!(matches!(
+            match_enum(&known, &unknown),
+            TypeMatch::Inference(_)
+        ));
     }
 }
