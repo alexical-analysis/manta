@@ -115,8 +115,7 @@
           ],
           "return_type": {
             "Named": {
-              "module": null,
-              "name": 19,
+              "name": 14,
               "type_spec": {
                 "Enum": {
                   "variants": [
@@ -134,8 +133,7 @@
                       "name": 23,
                       "payload": {
                         "Named": {
-                          "module": null,
-                          "name": 9,
+                          "name": 0,
                           "type_spec": {
                             "Struct": {
                               "fields": []

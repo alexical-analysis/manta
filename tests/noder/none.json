@@ -420,47 +420,43 @@
   ],
   "type_map": {
     "keys": {
-      "0": 0,
+      "0": 16,
+      "1": 0,
       "2": 1,
       "6": 2,
       "7": 3,
       "8": 4,
       "12": 5,
       "13": 6,
-      "14": 7,
+      "14": 17,
+      "15": 7,
       "16": 8,
       "18": 9,
       "19": 10,
       "22": 11,
-      "23": 20,
-      "27": 16,
-      "32": 17,
-      "33": 18,
-      "35": 19,
+      "23": 22,
+      "27": 18,
+      "32": 19,
+      "33": 20,
+      "35": 21,
       "44": 12,
       "45": 13,
-      "46": 21,
-      "47": 22,
-      "50": 23,
-      "52": 24,
-      "54": 25,
-      "55": 26,
-      "56": 27,
-      "57": 28,
-      "59": 29,
+      "46": 23,
+      "47": 24,
+      "50": 25,
+      "52": 26,
+      "54": 27,
+      "55": 28,
+      "56": 29,
+      "57": 30,
+      "59": 31,
       "63": 14,
       "64": 15
     },
     "values": [
       {
-        "Named": {
-          "module": null,
-          "name": 9,
-          "type_spec": {
-            "Struct": {
-              "fields": []
-            }
-          }
+        "Struct": {
+          "fields": []
         }
       },
       {
@@ -504,39 +500,32 @@
         }
       },
       {
-        "Named": {
-          "module": null,
-          "name": 19,
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 21,
-                  "payload": {
-                    "Pointer": "Int32"
-                  }
-                },
-                {
-                  "name": 22,
-                  "payload": null
-                },
-                {
-                  "name": 23,
-                  "payload": {
-                    "Named": {
-                      "module": null,
-                      "name": 9,
-                      "type_spec": {
-                        "Struct": {
-                          "fields": []
-                        }
-                      }
+        "Enum": {
+          "variants": [
+            {
+              "name": 21,
+              "payload": {
+                "Pointer": "Int32"
+              }
+            },
+            {
+              "name": 22,
+              "payload": null
+            },
+            {
+              "name": 23,
+              "payload": {
+                "Named": {
+                  "name": 0,
+                  "type_spec": {
+                    "Struct": {
+                      "fields": []
                     }
                   }
                 }
-              ]
+              }
             }
-          }
+          ]
         }
       },
       "Bool",
@@ -567,8 +556,7 @@
           ],
           "return_type": {
             "Named": {
-              "module": null,
-              "name": 19,
+              "name": 14,
               "type_spec": {
                 "Enum": {
                   "variants": [
@@ -586,8 +574,7 @@
                       "name": 23,
                       "payload": {
                         "Named": {
-                          "module": null,
-                          "name": 9,
+                          "name": 0,
                           "type_spec": {
                             "Struct": {
                               "fields": []
@@ -610,8 +597,7 @@
           ],
           "return_type": {
             "Named": {
-              "module": null,
-              "name": 19,
+              "name": 14,
               "type_spec": {
                 "Enum": {
                   "variants": [
@@ -629,8 +615,7 @@
                       "name": 23,
                       "payload": {
                         "Named": {
-                          "module": null,
-                          "name": 9,
+                          "name": 0,
                           "type_spec": {
                             "Struct": {
                               "fields": []
@@ -656,6 +641,50 @@
         "Function": {
           "params": [],
           "return_type": "Unit"
+        }
+      },
+      {
+        "Named": {
+          "name": 0,
+          "type_spec": {
+            "Struct": {
+              "fields": []
+            }
+          }
+        }
+      },
+      {
+        "Named": {
+          "name": 14,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 21,
+                  "payload": {
+                    "Pointer": "Int32"
+                  }
+                },
+                {
+                  "name": 22,
+                  "payload": null
+                },
+                {
+                  "name": 23,
+                  "payload": {
+                    "Named": {
+                      "name": 0,
+                      "type_spec": {
+                        "Struct": {
+                          "fields": []
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
         }
       },
       "Int32",
@@ -681,8 +710,7 @@
               "name": 23,
               "payload": {
                 "Named": {
-                  "module": null,
-                  "name": 9,
+                  "name": 0,
                   "type_spec": {
                     "Struct": {
                       "fields": []
@@ -732,8 +760,7 @@
               "name": 23,
               "payload": {
                 "Named": {
-                  "module": null,
-                  "name": 9,
+                  "name": 0,
                   "type_spec": {
                     "Struct": {
                       "fields": []

@@ -204,8 +204,8 @@ pub enum TypeSpec {
 /// Named type including the underalying type information
 #[derive(Debug, PartialEq, Clone, Serialize)]
 pub struct NamedType {
-    pub module: Option<StrID>,
-    pub name: StrID,
+    // This is always an identifier expression
+    pub name: NodeID,
     pub type_spec: Box<TypeSpec>,
 }
 

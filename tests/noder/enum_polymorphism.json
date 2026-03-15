@@ -374,31 +374,28 @@
   ],
   "type_map": {
     "keys": {
-      "0": 12,
-      "2": 11,
+      "0": 10,
+      "2": 9,
       "4": 0,
       "8": 1,
       "9": 2,
-      "10": 3,
+      "10": 11,
+      "11": 3,
       "12": 4,
-      "16": 13,
-      "21": 14,
-      "24": 15,
-      "28": 16,
+      "16": 12,
+      "21": 13,
+      "24": 14,
+      "28": 15,
       "31": 5,
       "32": 6,
-      "33": 7,
-      "35": 17,
-      "38": 18,
-      "39": 19,
-      "42": 20,
-      "43": 8,
-      "45": 21,
-      "48": 22,
-      "49": 23,
-      "52": 24,
-      "55": 9,
-      "56": 10
+      "38": 16,
+      "39": 17,
+      "42": 18,
+      "48": 19,
+      "49": 20,
+      "52": 21,
+      "55": 7,
+      "56": 8
     },
     "values": [
       "Int32",
@@ -419,29 +416,22 @@
         }
       },
       {
-        "Named": {
-          "module": null,
-          "name": 18,
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 20,
-                  "payload": "Int32"
-                },
-                {
-                  "name": 21,
-                  "payload": "Int32"
-                }
-              ]
+        "Enum": {
+          "variants": [
+            {
+              "name": 20,
+              "payload": "Int32"
+            },
+            {
+              "name": 21,
+              "payload": "Int32"
             }
-          }
+          ]
         }
       },
       {
         "Named": {
-          "module": null,
-          "name": 18,
+          "name": 10,
           "type_spec": {
             "Enum": {
               "variants": [
@@ -463,8 +453,7 @@
           "params": [
             {
               "Named": {
-                "module": null,
-                "name": 18,
+                "name": 10,
                 "type_spec": {
                   "Enum": {
                     "variants": [
@@ -490,8 +479,7 @@
           "params": [
             {
               "Named": {
-                "module": null,
-                "name": 18,
+                "name": 10,
                 "type_spec": {
                   "Enum": {
                     "variants": [
@@ -513,9 +501,22 @@
         }
       },
       {
+        "Function": {
+          "params": [],
+          "return_type": "Unit"
+        }
+      },
+      {
+        "Function": {
+          "params": [],
+          "return_type": "Unit"
+        }
+      },
+      "Float64",
+      "Float64",
+      {
         "Named": {
-          "module": null,
-          "name": 18,
+          "name": 10,
           "type_spec": {
             "Enum": {
               "variants": [
@@ -532,40 +533,6 @@
           }
         }
       },
-      {
-        "Named": {
-          "module": null,
-          "name": 18,
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 20,
-                  "payload": "Int32"
-                },
-                {
-                  "name": 21,
-                  "payload": "Int32"
-                }
-              ]
-            }
-          }
-        }
-      },
-      {
-        "Function": {
-          "params": [],
-          "return_type": "Unit"
-        }
-      },
-      {
-        "Function": {
-          "params": [],
-          "return_type": "Unit"
-        }
-      },
-      "Float64",
-      "Float64",
       {
         "InferredEnum": {
           "name": 20,
@@ -588,51 +555,11 @@
         "InferredEnum": {
           "name": 21,
           "payload": null
-        }
-      },
-      {
-        "Named": {
-          "module": null,
-          "name": 18,
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 20,
-                  "payload": "Int32"
-                },
-                {
-                  "name": 21,
-                  "payload": "Int32"
-                }
-              ]
-            }
-          }
         }
       },
       "Int32",
       "Int32",
       "Unit",
-      {
-        "Named": {
-          "module": null,
-          "name": 18,
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 20,
-                  "payload": "Int32"
-                },
-                {
-                  "name": 21,
-                  "payload": "Int32"
-                }
-              ]
-            }
-          }
-        }
-      },
       "Int32",
       "Int32",
       "Unit"

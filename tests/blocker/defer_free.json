@@ -43,8 +43,7 @@
           ],
           "return_type": {
             "Named": {
-              "module": null,
-              "name": 12,
+              "name": 2,
               "type_spec": {
                 "Enum": {
                   "variants": [
@@ -52,8 +51,7 @@
                       "name": 14,
                       "payload": {
                         "Named": {
-                          "module": null,
-                          "name": 8,
+                          "name": 0,
                           "type_spec": {
                             "Struct": {
                               "fields": []
@@ -105,8 +103,7 @@
           "params": [
             {
               "Named": {
-                "module": null,
-                "name": 8,
+                "name": 0,
                 "type_spec": {
                   "Struct": {
                     "fields": []
@@ -151,8 +148,7 @@
           "params": [
             {
               "Named": {
-                "module": null,
-                "name": 8,
+                "name": 0,
                 "type_spec": {
                   "Struct": {
                     "fields": []
@@ -201,8 +197,7 @@
           ],
           "return_type": {
             "Named": {
-              "module": null,
-              "name": 29,
+              "name": 28,
               "type_spec": {
                 "Enum": {
                   "variants": [
@@ -214,8 +209,7 @@
                       "name": 30,
                       "payload": {
                         "Named": {
-                          "module": null,
-                          "name": 12,
+                          "name": 2,
                           "type_spec": {
                             "Enum": {
                               "variants": [
@@ -223,8 +217,7 @@
                                   "name": 14,
                                   "payload": {
                                     "Named": {
-                                      "module": null,
-                                      "name": 8,
+                                      "name": 0,
                                       "type_spec": {
                                         "Struct": {
                                           "fields": []
@@ -247,8 +240,7 @@
                       "name": 31,
                       "payload": {
                         "Named": {
-                          "module": null,
-                          "name": 23,
+                          "name": 17,
                           "type_spec": {
                             "Enum": {
                               "variants": [
