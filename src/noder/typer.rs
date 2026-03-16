@@ -29,6 +29,8 @@ impl Typer {
 
         match node {
             Node::Defer { block } => {
+                node_tree.type_map.add(node_id, TypeSpec::Unit);
+
                 self.type_node(node_tree, block);
             }
             Node::If {
@@ -36,6 +38,8 @@ impl Typer {
                 then_block,
                 else_block,
             } => {
+                node_tree.type_map.add(node_id, TypeSpec::Unit);
+
                 self.type_expr_node(node_tree, condition);
                 self.type_node(node_tree, then_block);
                 if let Some(b) = else_block {
@@ -43,6 +47,8 @@ impl Typer {
                 }
             }
             Node::Match { target, arms } => {
+                node_tree.type_map.add(node_id, TypeSpec::Unit);
+
                 let target_type = self.type_expr_node(node_tree, target);
                 for arm in arms {
                     let arm_type = self.type_expr_node(node_tree, arm);
@@ -73,30 +79,34 @@ impl Typer {
                     }
                 }
             }
-            Node::Return { value } => match (value, &self.return_type) {
-                (Some(v), Some(ret)) => {
-                    let type_spec = node_tree.type_map.get(v);
-                    // TODO: we are not fully ready to insiste that all values have types here
-                    // but when we are we need to add in this line and remove the more generous
-                    // test below
-                    // .expect("missing type spec for return value");
+            Node::Return { value } => {
+                node_tree.type_map.add(node_id, TypeSpec::Unit);
 
-                    match type_spec {
-                        Some(ts) => {
-                            if ts != ret {
-                                panic!("return type does not match the expected type")
+                match (value, &self.return_type) {
+                    (Some(v), Some(ret)) => {
+                        let type_spec = node_tree.type_map.get(v);
+                        // TODO: we are not fully ready to insiste that all values have types here
+                        // but when we are we need to add in this line and remove the more generous
+                        // test below
+                        // .expect("missing type spec for return value");
+
+                        match type_spec {
+                            Some(ts) => {
+                                if ts != ret {
+                                    panic!("return type does not match the expected type")
+                                }
                             }
-                        }
-                        None => eprintln!("TODO; missing type for return value"),
-                    };
-                }
-                (None, Some(ret)) => {
-                    if *ret != TypeSpec::Unit {
-                        panic!("function expects a return value but none was given")
+                            None => eprintln!("TODO; missing type for return value"),
+                        };
                     }
+                    (None, Some(ret)) => {
+                        if *ret != TypeSpec::Unit {
+                            panic!("function expects a return value but none was given")
+                        }
+                    }
+                    (_, None) => panic!("can not return a value outside a function context"),
                 }
-                (_, None) => panic!("can not return a value outside a function context"),
-            },
+            }
             Node::Free { expr } => {
                 node_tree.type_map.add(node_id, TypeSpec::Unit);
 
@@ -130,16 +140,13 @@ impl Typer {
                 )
             }
             Node::VarDecl { .. } => {
-                // VarDecl nodes get typed by their first assignment or
-                // they get pre-typed durring node-ing. That means there's nothing to do here
-            }
-            Node::Range { .. } => {
-                // TODO: need to add a type for ranges
-            }
-            Node::Pattern(_) => {
-                // TODO: need to type check patterns
+                node_tree.type_map.add(node_id, TypeSpec::Unit);
+                // The identifier in the VarDecl nodes gets typed by it's first assignment or
+                // they get pre-typed durring node-ing.
             }
             Node::Block { statements } => {
+                node_tree.type_map.add(node_id, TypeSpec::Unit);
+
                 for node in statements {
                     self.type_node(node_tree, node);
                 }
@@ -165,6 +172,8 @@ impl Typer {
                 self.return_type = None;
             }
             Node::Assign { target, value } => {
+                node_tree.type_map.add(node_id, TypeSpec::Unit);
+
                 let r_type = match self.type_expr_node(node_tree, value) {
                     Some(t) => t,
                     None => {
@@ -213,10 +222,12 @@ impl Typer {
                 }
             }
             Node::Invalid
+            | Node::Pattern(_)
             | Node::IntLiteral(_)
             | Node::FloatLiteral(_)
             | Node::StringLiteral(_)
             | Node::BoolLiteral(_)
+            | Node::Range { .. }
             | Node::Identifier { .. }
             | Node::MatchArm { .. }
             | Node::Unary { .. }
@@ -515,6 +526,8 @@ impl Typer {
                     },
                 ],
             })),
+            Node::Range { .. } => todo!("Range expressions are not yet supported"),
+            Node::Pattern(_) => panic!("Invalid position for a patter node"),
             Node::Alloc { .. } => Some(TypeSpec::UnsafePtr),
             Node::Defer { .. }
             | Node::If { .. }
@@ -523,8 +536,6 @@ impl Typer {
             | Node::Return { .. }
             | Node::Free { .. }
             | Node::TypeDecl { .. }
-            | Node::Range { .. }
-            | Node::Pattern(_)
             | Node::Block { .. }
             | Node::FunctionDecl { .. }
             | Node::Assign { .. } => panic!("can not type check a statement as an expression"),

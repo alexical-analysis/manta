@@ -33,6 +33,7 @@ impl<K: Ord + Debug, V: Debug> SideTable<K, V> {
 
     fn add(&mut self, key: K, value: V) {
         if self.keys.contains_key(&key) {
+            eprintln!("key {:?}, {:?}", key, value);
             panic!("can not add the same key twice")
         }
 
@@ -1393,15 +1394,17 @@ mod tests {
                     name: StrID::from_usize(1),
                     module: None,
                 });
-                e.add_root_node(Node::VarDecl { ident: ident_id });
+                let decl_id = e.add_root_node(Node::VarDecl { ident: ident_id });
 
                 let value_id = e.add_node(Node::IntLiteral(42));
-                e.add_root_node(Node::Assign {
+                let assign_id = e.add_root_node(Node::Assign {
                     target: ident_id,
                     value: value_id,
                 });
                 e.symbol_map.add(12, ident_id);
 
+                e.type_map.add(decl_id, TypeSpec::Unit);
+                e.type_map.add(assign_id, TypeSpec::Unit);
                 e.type_map.add(value_id, TypeSpec::Int64);
                 e.type_map.add(ident_id, TypeSpec::Int64);
                 e
@@ -1420,15 +1423,17 @@ mod tests {
                     name: StrID::from_usize(2),
                     module: None,
                 });
-                e.add_root_node(Node::VarDecl { ident: ident_id });
+                let decl_id = e.add_root_node(Node::VarDecl { ident: ident_id });
 
                 let value_id = e.add_node(Node::StringLiteral(StrID::from_usize(3)));
-                e.add_root_node(Node::Assign {
+                let assign_id = e.add_root_node(Node::Assign {
                     target: ident_id,
                     value: value_id,
                 });
                 e.symbol_map.add(12, ident_id);
 
+                e.type_map.add(decl_id, TypeSpec::Unit);
+                e.type_map.add(assign_id, TypeSpec::Unit);
                 e.type_map.add(value_id, TypeSpec::String);
                 e.type_map.add(ident_id, TypeSpec::String);
                 e
