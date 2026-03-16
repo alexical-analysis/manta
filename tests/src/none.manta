@@ -32,7 +32,7 @@ fn maybe_alloc(cond bool) MaybeAlloc {
 
 fn main() {
     match maybe_alloc(false) {
-        .Ok(p) { fmt_println_ptr(*p) }
+        .Ok(p) { fmt_println_ptr(p) }
         .DidNotAlloc { fmt_println("no allocation") }
     }
 }

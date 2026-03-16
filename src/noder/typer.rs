@@ -1,17 +1,24 @@
+use std::ops::Deref;
+
 use crate::ast::UnaryOp;
 use crate::hir::{
-    EnumVariant, NamedType, Node, NodeID, PatternNode, StructField, StructType, TypeSpec,
+    InferredEnumExpr, InferredEnumPat, NamedType, Node, NodeID, PatternNode, StructField,
+    StructType, TypeSpec,
 };
 use crate::noder::NodeTree;
 use crate::str_store;
 
 pub struct Typer {
     return_type: Option<TypeSpec>,
+    match_type: Vec<TypeSpec>,
 }
 
 impl Typer {
     pub fn new() -> Self {
-        Typer { return_type: None }
+        Typer {
+            return_type: None,
+            match_type: vec![],
+        }
     }
 
     pub fn type_node_tree(&mut self, node_tree: &mut NodeTree) {
@@ -49,35 +56,18 @@ impl Typer {
             Node::Match { target, arms } => {
                 node_tree.type_map.add(node_id, TypeSpec::Unit);
 
-                let target_type = self.type_expr_node(node_tree, target);
+                let target_type = self
+                    .type_expr_node(node_tree, target)
+                    .expect("missing type for match target")
+                    .clone();
+
+                self.match_type.push(target_type.clone());
                 for arm in arms {
-                    let arm_type = self.type_expr_node(node_tree, arm);
-
-                    let target_type = target_type.clone();
-                    if target_type.is_none() || arm_type.is_none() {
-                        eprintln!("TODO: target or arm type is missing, skipping for now");
-                        continue;
-                    }
-
-                    // make sure the MatchArm has a type that works for the given target type
-                    match match_types(target_type.as_ref().unwrap(), arm_type.as_ref().unwrap()) {
-                        TypeMatch::ExactType => {}
-                        TypeMatch::Inference(ts) => {
-                            node_tree.type_map.set(target, ts.clone());
-                            node_tree.type_map.set(arm, ts.clone());
-                        }
-                        TypeMatch::InferenceFailed => panic!("failed to infer types for match"),
-                        TypeMatch::Mismatch => {
-                            // Enum type inference is not fully completed so this may not actuall
-                            // represnet a type matching failure. Just mark it as a TODO for now.
-                            eprintln!(
-                                "TODO; invalid pattern for given match target \t\n{:?} \t\n{:?}",
-                                target_type.clone(),
-                                arm_type.clone(),
-                            )
-                        }
-                    }
+                    let arm_type = self
+                        .type_expr_node(node_tree, arm)
+                        .expect("missing type for arm");
                 }
+                self.match_type.pop();
             }
             Node::Return { value } => {
                 node_tree.type_map.add(node_id, TypeSpec::Unit);
@@ -390,10 +380,10 @@ impl Typer {
                         return None;
                     }
 
-                    let ts = TypeSpec::InferredEnum(Box::new(EnumVariant {
-                        name: variant,
-                        payload: pay.unwrap(),
-                    }));
+                    let ts = TypeSpec::InferredEnumExpr(InferredEnumExpr {
+                        variant_name: variant,
+                        payload: Some(Box::new(pay.unwrap().unwrap())),
+                    });
                     node_tree.type_map.add(node_id, ts.clone());
                     Some(ts)
                 }
@@ -402,10 +392,14 @@ impl Typer {
                 // TODO: need struct/enum type information to determine field type
                 None
             }
+            // TODO: this may need to move back into the stmt typer since we're going to realy on
+            // the `match_type` stack to get the type here...
             Node::MatchArm { pattern, body } => {
                 let pattern_type = self.type_pattern_node(node_tree, pattern);
-                self.type_node(node_tree, body);
                 node_tree.type_map.add(node_id, pattern_type.clone());
+
+                self.type_node(node_tree, body);
+
                 Some(pattern_type)
             }
             Node::Unary { operator, operand } => {
@@ -553,63 +547,168 @@ impl Typer {
             _ => panic!("provided node is not a pattern"),
         };
 
+        let target_type = self
+            .match_type
+            .last()
+            .expect("patterns can only appear inside match statments")
+            .clone();
+
+        eprintln!("checking pattern {:?} against {:?}", pat, target_type);
+
         match pat {
             PatternNode::IntLiteral(i) => {
                 let ts = TypeSpec::IntLiteral(i);
+                let ts = match match_types(&target_type, &ts) {
+                    TypeMatch::ExactType => ts,
+                    TypeMatch::Inference(ts) => ts,
+                    TypeMatch::InferenceFailed => panic!("invalid type for pattern"),
+                    TypeMatch::Mismatch => panic!("invalid type for pattern"),
+                };
+
                 node_tree.type_map.add(node_id, ts.clone());
                 ts
             }
             PatternNode::StringLiteral(_) => {
                 let ts = TypeSpec::String;
+                let ts = match match_types(&target_type, &ts) {
+                    TypeMatch::ExactType => ts,
+                    TypeMatch::Inference(ts) => ts,
+                    TypeMatch::InferenceFailed => panic!("invalid type for pattern"),
+                    TypeMatch::Mismatch => panic!("invalid type for patter"),
+                };
+
                 node_tree.type_map.add(node_id, ts.clone());
                 ts
             }
             PatternNode::BoolLiteral(_) => {
                 let ts = TypeSpec::Bool;
+                let ts = match match_types(&target_type, &ts) {
+                    TypeMatch::ExactType => ts,
+                    TypeMatch::Inference(ts) => ts,
+                    TypeMatch::InferenceFailed => panic!("invalid type for pattern"),
+                    TypeMatch::Mismatch => panic!("invalid type for patter"),
+                };
+
                 node_tree.type_map.add(node_id, ts.clone());
                 ts
             }
             PatternNode::FloatLiteral(f) => {
                 let ts = TypeSpec::FloatLiteral(f);
+                let ts = match match_types(&target_type, &ts) {
+                    TypeMatch::ExactType => ts,
+                    TypeMatch::Inference(ts) => ts,
+                    TypeMatch::InferenceFailed => panic!("invalid type for pattern"),
+                    TypeMatch::Mismatch => panic!("invalid type for patter"),
+                };
+
                 node_tree.type_map.add(node_id, ts.clone());
                 ts
             }
             PatternNode::TypeSpec(ts) => {
-                // TODO: type the payload
-                // (this probably needs to be it's own node and not just an identifier)
-                if let Some(pay) = ts.payload {}
-
                 // type must already be set so we check that here to return
-                let ts = node_tree
+                let type_spec = node_tree
                     .type_map
                     .get(node_id)
-                    .expect("missing type for type spec pattern");
-                ts.clone()
+                    .expect("missing type for type spec pattern")
+                    .clone();
+
+                if let Some(pay) = ts.payload {
+                    // the payload of a type spec get's that same typespec
+                    node_tree.type_map.add(pay, type_spec.clone())
+                }
+
+                type_spec
             }
             PatternNode::EnumVariant(e) => {
                 let ts = match e.enum_name {
-                    Some(n) => node_tree
-                        .type_map
-                        .get(n)
-                        .expect("missing type for enum name")
-                        .clone(),
-                    None => TypeSpec::InferredEnum(Box::new(EnumVariant {
-                        name: e.variant,
-                        // TODO: need to get the paylod to be an Option<NodeID> so we can type it
-                        payload: None,
-                    })),
+                    Some(n) => {
+                        let ts = node_tree
+                            .type_map
+                            .get(n)
+                            .expect("missing type for enum name")
+                            .clone();
+
+                        // If we know the exact type of the enum then we need to make sure we type
+                        // the payload based on the variant that matches
+                        if let Some(pay) = e.payload {
+                            match resolve_type(&ts) {
+                                TypeSpec::Enum(got) => {
+                                    let mut found_variant = None;
+                                    for v in &got.variants {
+                                        if e.variant == v.name {
+                                            found_variant = Some(v);
+                                            break;
+                                        }
+                                    }
+
+                                    match found_variant {
+                                        Some(variant) => match &variant.payload {
+                                            Some(p) => node_tree.type_map.add(pay, p.clone()),
+                                            None => panic!("this variant does not have a payload"),
+                                        },
+                                        None => panic!(
+                                            "unknown variant name on enum type, this sound never happen"
+                                        ),
+                                    }
+                                }
+                                _ => panic!("invalid type inferred for enum"),
+                            }
+                        }
+
+                        ts
+                    }
+                    None => TypeSpec::InferredEnumPat(InferredEnumPat {
+                        variant_name: e.variant,
+                        payload: e.payload,
+                    }),
+                };
+
+                let ts = match match_types(&target_type, &ts) {
+                    TypeMatch::ExactType => ts,
+                    TypeMatch::Inference(ts) => {
+                        // if we inferred a type for the enum and the variant has a payload we need
+                        // to make sure we extract the variant and set the type on the payload here
+                        if let Some(pay) = e.payload {
+                            match resolve_type(&ts) {
+                                TypeSpec::Enum(got) => {
+                                    let mut found_variant = None;
+                                    for v in &got.variants {
+                                        if e.variant == v.name {
+                                            found_variant = Some(v);
+                                            break;
+                                        }
+                                    }
+
+                                    match found_variant {
+                                        Some(variant) => match &variant.payload {
+                                            Some(p) => node_tree.type_map.add(pay, p.clone()),
+                                            None => panic!("this variant does not have a payload"),
+                                        },
+                                        None => panic!(
+                                            "unknown variant name on enum type, this sound never happen"
+                                        ),
+                                    }
+                                }
+                                _ => panic!("invalid type inferred for enum"),
+                            }
+                        }
+
+                        ts
+                    }
+                    TypeMatch::InferenceFailed => panic!("invalid type for pattern"),
+                    TypeMatch::Mismatch => panic!("invalid type for patter"),
                 };
                 node_tree.type_map.add(node_id, ts.clone());
                 ts
             }
             PatternNode::Default(d) => {
-                // TODO: type the payload
-                // (this probably needs to be it's own node and not just an identifier)
-                if let Some(pay) = d.payload {}
+                node_tree.type_map.add(node_id, target_type.clone());
 
-                let ts = TypeSpec::Any;
-                node_tree.type_map.add(node_id, ts.clone());
-                ts
+                if let Some(pay) = d.payload {
+                    // The payload on a default type gets the same type as the target
+                    node_tree.type_map.add(pay, target_type.clone());
+                }
+                target_type
             }
         }
     }
@@ -671,10 +770,17 @@ fn match_types(a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
         return match a {
             TypeSpec::IntLiteral(_) => TypeMatch::Inference(TypeSpec::Int64),
             TypeSpec::FloatLiteral(_) => TypeMatch::Inference(TypeSpec::Float64),
-            TypeSpec::InferredEnum(_) => TypeMatch::InferenceFailed,
+            TypeSpec::InferredEnumExpr(_) => TypeMatch::InferenceFailed,
+            TypeSpec::InferredEnumPat(_) => TypeMatch::InferenceFailed,
             TypeSpec::Any => TypeMatch::InferenceFailed,
             _ => TypeMatch::ExactType,
         };
+    }
+
+    if a == &TypeSpec::Panic || b == &TypeSpec::Panic {
+        // Because panics cause the full stack to unwind and normal controll flow to terminate we
+        // consider the panic type to match all other types exactly.
+        return TypeMatch::ExactType;
     }
 
     match (a, b) {
@@ -726,8 +832,10 @@ fn match_types(a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
             }
             _ => TypeMatch::Mismatch,
         },
-        (TypeSpec::InferredEnum(inner_a), inner_b) => match_enum(inner_b, inner_a),
-        (inner_a, TypeSpec::InferredEnum(inner_b)) => match_enum(inner_a, inner_b),
+        (TypeSpec::InferredEnumExpr(inner_a), inner_b) => match_enum_expr(inner_b, inner_a),
+        (inner_a, TypeSpec::InferredEnumExpr(inner_b)) => match_enum_expr(inner_a, inner_b),
+        (TypeSpec::InferredEnumPat(inner_a), inner_b) => match_enum_pat(inner_b, inner_a),
+        (inner_a, TypeSpec::InferredEnumPat(inner_b)) => match_enum_pat(inner_a, inner_b),
         (TypeSpec::Any, inner_b) => TypeMatch::Inference(inner_b.clone()),
         (inner_a, TypeSpec::Any) => TypeMatch::Inference(inner_a.clone()),
         _ => TypeMatch::Mismatch,
@@ -752,13 +860,13 @@ fn match_float(target: &f64, min: f64, max: f64, ts: TypeSpec) -> TypeMatch {
     }
 }
 
-fn match_enum(known: &TypeSpec, unknown: &EnumVariant) -> TypeMatch {
+fn match_enum_expr(known: &TypeSpec, unknown: &InferredEnumExpr) -> TypeMatch {
     let known = resolve_type(known);
     match known {
         TypeSpec::Enum(e) => {
             let mut found_variant = None;
             for variant in &e.variants {
-                if unknown.name == variant.name {
+                if unknown.variant_name == variant.name {
                     found_variant = Some(variant);
                     break;
                 }
@@ -767,7 +875,7 @@ fn match_enum(known: &TypeSpec, unknown: &EnumVariant) -> TypeMatch {
             match found_variant {
                 Some(v) => match (&v.payload, &unknown.payload) {
                     (Some(a), Some(b)) => {
-                        if a == b {
+                        if a == b.deref() {
                             TypeMatch::Inference(known.clone())
                         } else {
                             TypeMatch::Mismatch
@@ -784,10 +892,37 @@ fn match_enum(known: &TypeSpec, unknown: &EnumVariant) -> TypeMatch {
     }
 }
 
+fn match_enum_pat(known: &TypeSpec, unknown: &InferredEnumPat) -> TypeMatch {
+    let known = resolve_type(known);
+    match known {
+        TypeSpec::Enum(e) => {
+            let mut found_variant = None;
+            for variant in &e.variants {
+                if unknown.variant_name == variant.name {
+                    found_variant = Some(variant);
+                    break;
+                }
+            }
+
+            match found_variant {
+                Some(v) => match (&v.payload, &unknown.payload) {
+                    (Some(_), Some(_)) => TypeMatch::Inference(known.clone()),
+                    (Some(_), None) => TypeMatch::Mismatch,
+                    (None, Some(_)) => TypeMatch::Mismatch,
+                    (None, None) => TypeMatch::Inference(known.clone()),
+                },
+                None => TypeMatch::Mismatch,
+            }
+        }
+        _ => TypeMatch::Mismatch,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::hir::{EnumType, NamedType};
+    use crate::ast::Payload;
+    use crate::hir::{EnumType, EnumVariant, NamedType};
     use crate::str_store::StrID;
 
     // Helper: wrap a TypeSpec in a Named alias
@@ -816,6 +951,22 @@ mod tests {
         EnumVariant {
             name: StrID::from_usize(id),
             payload: Some(payload),
+        }
+    }
+
+    // Helper: build an InferredEnumExpr without a payload
+    fn inferred_enum_expr(id: usize) -> InferredEnumExpr {
+        InferredEnumExpr {
+            variant_name: StrID::from_usize(id),
+            payload: None,
+        }
+    }
+
+    // Helper: built an InferredEnumExpr with a payload
+    fn inferred_enum_expr_with(id: usize, payload: TypeSpec) -> InferredEnumExpr {
+        InferredEnumExpr {
+            variant_name: StrID::from_usize(id),
+            payload: Some(Box::new(payload)),
         }
     }
 
@@ -1170,7 +1321,7 @@ mod tests {
 
     #[test]
     fn match_types_inferred_enum_same_is_inference_failed() {
-        let ts = TypeSpec::InferredEnum(Box::new(variant(1)));
+        let ts = TypeSpec::InferredEnumExpr(inferred_enum_expr(1));
         assert!(matches!(
             match_types(&ts, &ts.clone()),
             TypeMatch::InferenceFailed
@@ -1193,7 +1344,7 @@ mod tests {
     fn match_types_inferred_enum_with_known_enum() {
         let v_id = 1;
         let known = enum_type(vec![variant(v_id)]);
-        let unknown = TypeSpec::InferredEnum(Box::new(variant(v_id)));
+        let unknown = TypeSpec::InferredEnumExpr(inferred_enum_expr(v_id));
         // (InferredEnum, known) -> match_enum
         assert!(matches!(
             match_types(&unknown, &known),
@@ -1209,9 +1360,9 @@ mod tests {
     fn match_enum_matching_variant_no_payload() {
         let v_id = 1;
         let known = enum_type(vec![variant(v_id)]);
-        let unknown = variant(v_id);
+        let unknown = inferred_enum_expr(v_id);
         assert!(matches!(
-            match_enum(&known, &unknown),
+            match_enum_expr(&known, &unknown),
             TypeMatch::Inference(_)
         ));
     }
@@ -1219,17 +1370,20 @@ mod tests {
     #[test]
     fn match_enum_unknown_variant_is_mismatch() {
         let known = enum_type(vec![variant(1)]);
-        let unknown = variant(99);
-        assert!(matches!(match_enum(&known, &unknown), TypeMatch::Mismatch));
+        let unknown = inferred_enum_expr(99);
+        assert!(matches!(
+            match_enum_expr(&known, &unknown),
+            TypeMatch::Mismatch
+        ));
     }
 
     #[test]
     fn match_enum_matching_variant_with_matching_payload() {
         let v_id = 1;
         let known = enum_type(vec![variant_with(v_id, TypeSpec::Int64)]);
-        let unknown = variant_with(v_id, TypeSpec::Int64);
+        let unknown = inferred_enum_expr_with(v_id, TypeSpec::Int64);
         assert!(matches!(
-            match_enum(&known, &unknown),
+            match_enum_expr(&known, &unknown),
             TypeMatch::Inference(_)
         ));
     }
@@ -1238,35 +1392,44 @@ mod tests {
     fn match_enum_mismatched_payload_is_mismatch() {
         let v_id = 1;
         let known = enum_type(vec![variant_with(v_id, TypeSpec::Int64)]);
-        let unknown = variant_with(v_id, TypeSpec::Bool);
-        assert!(matches!(match_enum(&known, &unknown), TypeMatch::Mismatch));
+        let unknown = inferred_enum_expr_with(v_id, TypeSpec::Bool);
+        assert!(matches!(
+            match_enum_expr(&known, &unknown),
+            TypeMatch::Mismatch
+        ));
     }
 
     #[test]
     fn match_enum_expected_payload_but_none_given_is_mismatch() {
         let v_id = 1;
         let known = enum_type(vec![variant_with(v_id, TypeSpec::Int64)]);
-        let unknown = variant(v_id); // no payload
-        assert!(matches!(match_enum(&known, &unknown), TypeMatch::Mismatch));
+        let unknown = inferred_enum_expr(v_id); // no payload
+        assert!(matches!(
+            match_enum_expr(&known, &unknown),
+            TypeMatch::Mismatch
+        ));
     }
 
     #[test]
     fn match_enum_unexpected_payload_is_mismatch() {
         let v_id = 1;
         let known = enum_type(vec![variant(v_id)]); // no payload on known variant
-        let unknown = variant_with(v_id, TypeSpec::Int64);
-        assert!(matches!(match_enum(&known, &unknown), TypeMatch::Mismatch));
+        let unknown = inferred_enum_expr_with(v_id, TypeSpec::Int64);
+        assert!(matches!(
+            match_enum_expr(&known, &unknown),
+            TypeMatch::Mismatch
+        ));
     }
 
     #[test]
     fn match_enum_non_enum_known_is_mismatch() {
-        let unknown = variant(1);
+        let unknown = inferred_enum_expr(1);
         assert!(matches!(
-            match_enum(&TypeSpec::Int64, &unknown),
+            match_enum_expr(&TypeSpec::Int64, &unknown),
             TypeMatch::Mismatch
         ));
         assert!(matches!(
-            match_enum(&TypeSpec::Bool, &unknown),
+            match_enum_expr(&TypeSpec::Bool, &unknown),
             TypeMatch::Mismatch
         ));
     }
@@ -1275,9 +1438,9 @@ mod tests {
     fn match_enum_resolves_named_enum_alias() {
         let v_id = 1;
         let known = named(enum_type(vec![variant(v_id)]));
-        let unknown = variant(v_id);
+        let unknown = inferred_enum_expr(v_id);
         assert!(matches!(
-            match_enum(&known, &unknown),
+            match_enum_expr(&known, &unknown),
             TypeMatch::Inference(_)
         ));
     }

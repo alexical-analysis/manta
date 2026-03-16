@@ -156,7 +156,7 @@
           }
         ],
         "body": {
-          "id": 644,
+          "id": 652,
           "statements": [
             {
               "Return": {
@@ -183,13 +183,19 @@
               "Slice": "UInt8"
             }
           ],
-          "return_type": "Unit"
+          "return_type": {
+            "Named": {
+              "id": 644,
+              "module": null,
+              "name": 23
+            }
+          }
         }
       }
     },
     {
       "Type": {
-        "id": 743,
+        "id": 751,
         "name": 29,
         "type_spec": {
           "Enum": {
@@ -202,7 +208,7 @@
                 "name": 30,
                 "payload": {
                   "Named": {
-                    "id": 785,
+                    "id": 793,
                     "module": null,
                     "name": 12
                   }
@@ -212,7 +218,7 @@
                 "name": 31,
                 "payload": {
                   "Named": {
-                    "id": 806,
+                    "id": 814,
                     "module": null,
                     "name": 23
                   }
@@ -225,22 +231,22 @@
     },
     {
       "Function": {
-        "id": 911,
+        "id": 919,
         "name": 32,
         "params": [
           {
-            "id": 932,
+            "id": 940,
             "name": 18
           }
         ],
         "body": {
-          "id": 958,
+          "id": 966,
           "statements": [
             {
               "Let": {
                 "pattern": {
                   "EnumVariant": {
-                    "id": 968,
+                    "id": 976,
                     "enum_name": null,
                     "variant": 14,
                     "payload": {
@@ -252,7 +258,7 @@
                   "Call": {
                     "func": {
                       "Identifier": {
-                        "id": 977,
+                        "id": 985,
                         "module": null,
                         "name": 17
                       }
@@ -260,7 +266,7 @@
                     "args": [
                       {
                         "Identifier": {
-                          "id": 985,
+                          "id": 993,
                           "module": null,
                           "name": 18
                         }
@@ -281,7 +287,7 @@
             {
               "Defer": {
                 "block": {
-                  "id": 1015,
+                  "id": 1023,
                   "statements": [
                     {
                       "Expr": {
@@ -289,7 +295,7 @@
                           "Call": {
                             "func": {
                               "Identifier": {
-                                "id": 1017,
+                                "id": 1025,
                                 "module": null,
                                 "name": 21
                               }
@@ -297,7 +303,7 @@
                             "args": [
                               {
                                 "Identifier": {
-                                  "id": 1026,
+                                  "id": 1034,
                                   "module": null,
                                   "name": 22
                                 }
@@ -315,7 +321,7 @@
               "Let": {
                 "pattern": {
                   "TypeSpec": {
-                    "id": 1040,
+                    "id": 1048,
                     "type_spec": {
                       "Slice": "UInt8"
                     },
@@ -342,17 +348,22 @@
             {
               "Defer": {
                 "block": {
-                  "id": 1077,
+                  "id": 1085,
                   "statements": [
                     {
                       "Expr": {
                         "expr": {
                           "Free": {
                             "expr": {
-                              "Identifier": {
-                                "id": 1084,
-                                "module": null,
-                                "name": 26
+                              "Unary": {
+                                "operator": "AddressOf",
+                                "operand": {
+                                  "Identifier": {
+                                    "id": 1093,
+                                    "module": null,
+                                    "name": 26
+                                  }
+                                }
                               }
                             }
                           }
@@ -367,11 +378,11 @@
               "Let": {
                 "pattern": {
                   "EnumVariant": {
-                    "id": 1100,
+                    "id": 1109,
                     "enum_name": null,
                     "variant": 14,
                     "payload": {
-                      "Some": 42
+                      "Some": 43
                     }
                   }
                 },
@@ -379,7 +390,7 @@
                   "Call": {
                     "func": {
                       "Identifier": {
-                        "id": 1109,
+                        "id": 1118,
                         "module": null,
                         "name": 24
                       }
@@ -387,14 +398,14 @@
                     "args": [
                       {
                         "Identifier": {
-                          "id": 1118,
+                          "id": 1127,
                           "module": null,
                           "name": 22
                         }
                       },
                       {
                         "Identifier": {
-                          "id": 1121,
+                          "id": 1130,
                           "module": null,
                           "name": 26
                         }
@@ -430,7 +441,7 @@
           ],
           "return_type": {
             "Named": {
-              "id": 942,
+              "id": 950,
               "module": null,
               "name": 29
             }
@@ -660,7 +671,13 @@
                       "Slice": "UInt8"
                     }
                   ],
-                  "return_type": "Unit"
+                  "return_type": {
+                    "Named": {
+                      "id": 644,
+                      "module": null,
+                      "name": 23
+                    }
+                  }
                 }
               }
             },
@@ -681,7 +698,7 @@
                       "name": 30,
                       "payload": {
                         "Named": {
-                          "id": 785,
+                          "id": 793,
                           "module": null,
                           "name": 12
                         }
@@ -691,7 +708,7 @@
                       "name": 31,
                       "payload": {
                         "Named": {
-                          "id": 806,
+                          "id": 814,
                           "module": null,
                           "name": 23
                         }
@@ -714,7 +731,7 @@
                   ],
                   "return_type": {
                     "Named": {
-                      "id": 942,
+                      "id": 950,
                       "module": null,
                       "name": 29
                     }
@@ -805,7 +822,7 @@
           },
           {
             "id": 27,
-            "name": 42,
+            "name": 43,
             "binding_type": "ValueDecl",
             "used": false
           }
@@ -887,42 +904,42 @@
         "scope_depth": 2
       },
       "644": {
+        "scope_id": 0,
+        "scope_depth": 18
+      },
+      "652": {
         "scope_id": 6,
         "scope_depth": 0
       },
-      "743": {
+      "751": {
         "scope_id": 0,
         "scope_depth": 19
       },
-      "785": {
+      "793": {
         "scope_id": 0,
         "scope_depth": 19
       },
-      "806": {
+      "814": {
         "scope_id": 0,
         "scope_depth": 19
       },
-      "911": {
+      "919": {
         "scope_id": 7,
         "scope_depth": 0
       },
-      "932": {
+      "940": {
         "scope_id": 7,
         "scope_depth": 1
       },
-      "942": {
+      "950": {
         "scope_id": 0,
         "scope_depth": 20
       },
-      "958": {
+      "966": {
         "scope_id": 8,
         "scope_depth": 0
       },
-      "968": {
-        "scope_id": 8,
-        "scope_depth": 1
-      },
-      "977": {
+      "976": {
         "scope_id": 8,
         "scope_depth": 1
       },
@@ -930,33 +947,33 @@
         "scope_id": 8,
         "scope_depth": 1
       },
-      "1015": {
+      "993": {
+        "scope_id": 8,
+        "scope_depth": 1
+      },
+      "1023": {
         "scope_id": 9,
         "scope_depth": 0
       },
-      "1017": {
+      "1025": {
         "scope_id": 9,
         "scope_depth": 0
       },
-      "1026": {
+      "1034": {
         "scope_id": 9,
         "scope_depth": 0
       },
-      "1040": {
+      "1048": {
         "scope_id": 8,
         "scope_depth": 2
       },
-      "1077": {
+      "1085": {
         "scope_id": 10,
         "scope_depth": 0
       },
-      "1084": {
+      "1093": {
         "scope_id": 10,
         "scope_depth": 0
-      },
-      "1100": {
-        "scope_id": 8,
-        "scope_depth": 3
       },
       "1109": {
         "scope_id": 8,
@@ -966,7 +983,11 @@
         "scope_id": 8,
         "scope_depth": 3
       },
-      "1121": {
+      "1127": {
+        "scope_id": 8,
+        "scope_depth": 3
+      },
+      "1130": {
         "scope_id": 8,
         "scope_depth": 3
       }
