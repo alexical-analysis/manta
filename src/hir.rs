@@ -147,20 +147,23 @@ pub enum PatternNode {
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct DefaultPat {
-    pub payload: Option<StrID>,
+    // payload is always an identifier node
+    pub payload: Option<NodeID>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct EnumVariantPat {
     pub enum_name: Option<NodeID>,
     pub variant: StrID,
-    pub payload: Option<StrID>,
+    // payload is always an identifier node
+    pub payload: Option<NodeID>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct TypeSpecPat {
     // type spec information get's stored in the type_map so there's no need to include it here
-    pub payload: Option<StrID>,
+    // payload is always an identifier node
+    pub payload: Option<NodeID>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]

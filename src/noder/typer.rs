@@ -5,13 +5,24 @@ use crate::hir::{
 use crate::noder::NodeTree;
 use crate::str_store;
 
+enum TypeMatch {
+    ExactType,
+    Inference(TypeSpec),
+    InferenceFailed,
+    Mismatch,
+}
+
 pub struct Typer {
     return_type: Option<TypeSpec>,
+    match_type: Vec<TypeSpec>,
 }
 
 impl Typer {
     pub fn new() -> Self {
-        Typer { return_type: None }
+        Typer {
+            return_type: None,
+            match_type: vec![],
+        }
     }
 
     pub fn type_node_tree(&mut self, node_tree: &mut NodeTree) {
@@ -49,35 +60,43 @@ impl Typer {
             Node::Match { target, arms } => {
                 node_tree.type_map.add(node_id, TypeSpec::Unit);
 
-                let target_type = self.type_expr_node(node_tree, target);
+                let target_type = self
+                    .type_expr_node(node_tree, target)
+                    .expect("missing type for match expression");
+                self.match_type.push(target_type);
                 for arm in arms {
+                    // TODO: this should base type inference off the match_type
                     let arm_type = self.type_expr_node(node_tree, arm);
 
-                    let target_type = target_type.clone();
-                    if target_type.is_none() || arm_type.is_none() {
-                        eprintln!("TODO: target or arm type is missing, skipping for now");
-                        continue;
-                    }
+                    // let target_type = target_type.clone();
+                    // if target_type.is_none() || arm_type.is_none() {
+                    //     eprintln!("TODO: target or arm type is missing, skipping for now");
+                    //     continue;
+                    // }
 
-                    // make sure the MatchArm has a type that works for the given target type
-                    match match_types(target_type.as_ref().unwrap(), arm_type.as_ref().unwrap()) {
-                        TypeMatch::ExactType => {}
-                        TypeMatch::Inference(ts) => {
-                            node_tree.type_map.set(target, ts.clone());
-                            node_tree.type_map.set(arm, ts.clone());
-                        }
-                        TypeMatch::InferenceFailed => panic!("failed to infer types for match"),
-                        TypeMatch::Mismatch => {
-                            // Enum type inference is not fully completed so this may not actuall
-                            // represnet a type matching failure. Just mark it as a TODO for now.
-                            eprintln!(
-                                "TODO; invalid pattern for given match target \t\n{:?} \t\n{:?}",
-                                target_type.clone(),
-                                arm_type.clone(),
-                            )
-                        }
-                    }
+                    // // make sure the MatchArm has a type that works for the given target type
+                    // match self
+                    //     .match_types(target_type.as_ref().unwrap(), arm_type.as_ref().unwrap())
+                    // {
+                    //     TypeMatch::ExactType => {}
+                    //     TypeMatch::Inference(ts) => {
+                    //         node_tree.type_map.set(target, ts.clone());
+                    //         node_tree.type_map.set(arm, ts.clone());
+                    //     }
+                    //     TypeMatch::InferenceFailed => panic!("failed to infer types for match"),
+                    //     TypeMatch::Mismatch => {
+                    //         // Enum type inference is not fully completed so this may not actuall
+                    //         // represnet a type matching failure. Just mark it as a TODO for now.
+                    //         eprintln!(
+                    //             "TODO; invalid pattern for given match target \t\n{:?} \t\n{:?}",
+                    //             target_type.clone(),
+                    //             arm_type.clone(),
+                    //         )
+                    //     }
+                    // }
                 }
+
+                self.match_type.pop();
             }
             Node::Return { value } => {
                 node_tree.type_map.add(node_id, TypeSpec::Unit);
@@ -209,7 +228,7 @@ impl Typer {
                     }
                 };
 
-                match match_types(&l_type, &r_type) {
+                match self.match_types(&l_type, &r_type) {
                     TypeMatch::ExactType => {}
                     TypeMatch::Inference(ts) => {
                         node_tree.type_map.set(target, ts.clone());
@@ -297,7 +316,7 @@ impl Typer {
                     return None;
                 }
 
-                match match_types(&l_type.clone().expect(""), &r_type.expect("")) {
+                match self.match_types(&l_type.clone().expect(""), &r_type.expect("")) {
                     TypeMatch::ExactType => l_type,
                     TypeMatch::Inference(ts) => {
                         node_tree.type_map.set(left, ts.clone());
@@ -348,7 +367,7 @@ impl Typer {
                                         }
 
                                         let pay_id = pay_id.unwrap();
-                                        match match_types(&pay_id, ts) {
+                                        match self.match_types(&pay_id, ts) {
                                             TypeMatch::ExactType => {
                                                 node_tree.type_map.add(node_id, target_ts.clone());
                                                 Some(target_ts)
@@ -468,7 +487,7 @@ impl Typer {
                 for (param, arg) in func_type.params.iter().zip(args.iter()) {
                     let arg_type = self.type_expr_node(node_tree, *arg);
                     match &arg_type {
-                        Some(ts) => match match_types(param, ts) {
+                        Some(ts) => match self.match_types(param, ts) {
                             TypeMatch::ExactType => {}
                             TypeMatch::Inference(_) => node_tree.type_map.set(*arg, param.clone()),
                             TypeMatch::InferenceFailed => {
@@ -542,7 +561,7 @@ impl Typer {
         }
     }
 
-    fn type_pattern_node(&self, node_tree: &mut NodeTree, node_id: NodeID) -> TypeSpec {
+    fn type_pattern_node(&mut self, node_tree: &mut NodeTree, node_id: NodeID) -> TypeSpec {
         let node = node_tree
             .get_node(node_id)
             .expect("failed to find node for type checking");
@@ -553,64 +572,213 @@ impl Typer {
             _ => panic!("provided node is not a pattern"),
         };
 
+        let target_type = self
+            .match_type
+            .last()
+            .expect("patterns can only appear inside match/ let statments");
+
         match pat {
             PatternNode::IntLiteral(i) => {
                 let ts = TypeSpec::IntLiteral(i);
-                node_tree.type_map.add(node_id, ts.clone());
+                match self.match_types(target_type, &ts) {
+                    TypeMatch::Inference(ts) => node_tree.type_map.add(node_id, ts.clone()),
+                    _ => panic!("invalid type for match pattern"),
+                };
                 ts
             }
             PatternNode::StringLiteral(_) => {
                 let ts = TypeSpec::String;
-                node_tree.type_map.add(node_id, ts.clone());
+                match self.match_types(target_type, &ts) {
+                    TypeMatch::Inference(ts) => node_tree.type_map.add(node_id, ts.clone()),
+                    _ => panic!("invalid type for match pattern"),
+                };
                 ts
             }
             PatternNode::BoolLiteral(_) => {
                 let ts = TypeSpec::Bool;
-                node_tree.type_map.add(node_id, ts.clone());
+                match self.match_types(target_type, &ts) {
+                    TypeMatch::Inference(ts) => node_tree.type_map.add(node_id, ts.clone()),
+                    _ => panic!("invalid type for match pattern"),
+                };
                 ts
             }
             PatternNode::FloatLiteral(f) => {
                 let ts = TypeSpec::FloatLiteral(f);
-                node_tree.type_map.add(node_id, ts.clone());
+                match self.match_types(target_type, &ts) {
+                    TypeMatch::Inference(ts) => node_tree.type_map.add(node_id, ts.clone()),
+                    _ => panic!("invalid type for match pattern"),
+                };
                 ts
             }
             PatternNode::TypeSpec(ts) => {
-                // TODO: type the payload
-                // (this probably needs to be it's own node and not just an identifier)
-                if let Some(pay) = ts.payload {}
-
                 // type must already be set so we check that here to return
-                let ts = node_tree
+                let type_spec = node_tree
                     .type_map
                     .get(node_id)
-                    .expect("missing type for type spec pattern");
-                ts.clone()
+                    .expect("missing type for type spec pattern")
+                    .clone();
+
+                if let Some(pay) = ts.payload {
+                    // this is a declaration for this identifier so we can directly set the type
+                    // here to be the same as the type_spec itself
+                    node_tree.type_map.add(pay, type_spec.clone())
+                }
+
+                match self.match_types(target_type, &type_spec) {
+                    TypeMatch::ExactType => node_tree.type_map.add(node_id, type_spec.clone()),
+                    _ => panic!("invalid type for match pattern"),
+                };
+
+                type_spec
             }
             PatternNode::EnumVariant(e) => {
                 let ts = match e.enum_name {
-                    Some(n) => node_tree
-                        .type_map
-                        .get(n)
-                        .expect("missing type for enum name")
-                        .clone(),
-                    None => TypeSpec::InferredEnum(Box::new(EnumVariant {
-                        name: e.variant,
-                        // TODO: need to get the paylod to be an Option<NodeID> so we can type it
-                        payload: None,
-                    })),
+                    Some(n) => {
+                        let ts = node_tree
+                            .type_map
+                            .get(n)
+                            .expect("missing type for enum name")
+                            .clone();
+
+                        if let Some(pay) = e.payload {
+                            node_tree.type_map.add(pay, ts.clone());
+                        }
+
+                        ts
+                    }
+                    None => todo!(
+                        "use the match type here since that's the only place that patterns are allowed to show up"
+                    ),
                 };
                 node_tree.type_map.add(node_id, ts.clone());
                 ts
             }
             PatternNode::Default(d) => {
-                // TODO: type the payload
-                // (this probably needs to be it's own node and not just an identifier)
-                if let Some(pay) = d.payload {}
+                if let Some(pay) = d.payload {
+                    // TODO: this is going to cause problems because we'll infer the type for the
+                    // default pattern but that won't update the inner payload. We'll either need a
+                    // second pass or to do something more clever...
+                    node_tree.type_map.add(pay, TypeSpec::Any);
+                }
 
                 let ts = TypeSpec::Any;
                 node_tree.type_map.add(node_id, ts.clone());
                 ts
             }
+        }
+    }
+
+    fn match_types(&self, a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
+        if a == b {
+            return match a {
+                TypeSpec::IntLiteral(_) => TypeMatch::Inference(TypeSpec::Int64),
+                TypeSpec::FloatLiteral(_) => TypeMatch::Inference(TypeSpec::Float64),
+                TypeSpec::InferredEnum(_) => TypeMatch::InferenceFailed,
+                TypeSpec::Any => TypeMatch::InferenceFailed,
+                _ => TypeMatch::ExactType,
+            };
+        }
+
+        match (a, b) {
+            // if both the left and right hand side are typed as literals, just conver the type to an
+            // int64 instead of trying to propogagte types through the graph
+            (TypeSpec::IntLiteral(_), TypeSpec::IntLiteral(_)) => {
+                TypeMatch::Inference(TypeSpec::Int64)
+            }
+            (TypeSpec::IntLiteral(i), inner_b) => match inner_b {
+                TypeSpec::Int64 => match_int(i, i64::MIN, i64::MAX, TypeSpec::Int64),
+                TypeSpec::Int32 => match_int(i, i32::MIN as i64, i32::MAX as i64, TypeSpec::Int32),
+                TypeSpec::Int16 => match_int(i, i16::MIN as i64, i16::MAX as i64, TypeSpec::Int16),
+                TypeSpec::Int8 => match_int(i, i8::MIN as i64, i8::MAX as i64, TypeSpec::Int8),
+                // TODO: in order to support u64 types we need the IntLiteral type to be a bit more
+                // complex because we can actually store the full range of a u64 in the current int
+                // literal type
+                TypeSpec::UInt32 => {
+                    match_int(i, u32::MIN as i64, u32::MAX as i64, TypeSpec::UInt32)
+                }
+                TypeSpec::UInt16 => {
+                    match_int(i, u16::MIN as i64, u16::MAX as i64, TypeSpec::UInt16)
+                }
+                TypeSpec::UInt8 => match_int(i, u8::MIN as i64, u8::MAX as i64, TypeSpec::UInt8),
+                _ => TypeMatch::Mismatch,
+            },
+            (inner_a, TypeSpec::IntLiteral(i)) => match inner_a {
+                TypeSpec::Int64 => match_int(i, i64::MIN, i64::MAX, TypeSpec::Int64),
+                TypeSpec::Int32 => match_int(i, i32::MIN as i64, i32::MAX as i64, TypeSpec::Int32),
+                TypeSpec::Int16 => match_int(i, i16::MIN as i64, i16::MAX as i64, TypeSpec::Int16),
+                TypeSpec::Int8 => match_int(i, i8::MIN as i64, i8::MAX as i64, TypeSpec::Int8),
+                // TODO: in order to support u64 types we need the IntLiteral type to be a bit more
+                // complex because we can actually store the full range of a u64 in the current int
+                // literal type
+                TypeSpec::UInt32 => {
+                    match_int(i, u32::MIN as i64, u32::MAX as i64, TypeSpec::UInt32)
+                }
+                TypeSpec::UInt16 => {
+                    match_int(i, u16::MIN as i64, u16::MAX as i64, TypeSpec::UInt16)
+                }
+                TypeSpec::UInt8 => match_int(i, u8::MIN as i64, u8::MAX as i64, TypeSpec::UInt8),
+                _ => TypeMatch::Mismatch,
+            },
+            // if both the left and right hand side are typed as literals, just conver the type to a
+            // float64 instead of trying to propogagte types through the graph
+            (TypeSpec::FloatLiteral(_), TypeSpec::FloatLiteral(_)) => {
+                TypeMatch::Inference(TypeSpec::Float64)
+            }
+            (TypeSpec::FloatLiteral(f), inner_b) => match inner_b {
+                TypeSpec::Float64 => match_float(f, f64::MIN, f64::MAX, TypeSpec::Float64),
+                TypeSpec::Float32 => {
+                    match_float(f, f32::MIN as f64, f32::MAX as f64, TypeSpec::Float32)
+                }
+                _ => TypeMatch::Mismatch,
+            },
+            (inner_a, TypeSpec::FloatLiteral(f)) => match inner_a {
+                TypeSpec::Float64 => match_float(f, f64::MIN, f64::MAX, TypeSpec::Float64),
+                TypeSpec::Float32 => {
+                    match_float(f, f32::MIN as f64, f32::MAX as f64, TypeSpec::Float32)
+                }
+                _ => TypeMatch::Mismatch,
+            },
+            (TypeSpec::InferredEnum(inner_a), inner_b) => self.match_enum(inner_b, inner_a),
+            (inner_a, TypeSpec::InferredEnum(inner_b)) => self.match_enum(inner_a, inner_b),
+            (TypeSpec::Any, inner_b) => TypeMatch::Inference(inner_b.clone()),
+            (inner_a, TypeSpec::Any) => TypeMatch::Inference(inner_a.clone()),
+            _ => TypeMatch::Mismatch,
+        }
+    }
+
+    fn match_enum(&self, known: &TypeSpec, unknown: &TypeSpec) -> TypeMatch {
+        let known = resolve_type(known);
+        match known {
+            TypeSpec::Enum(e) => {
+                let mut found_variant = None;
+                for variant in &e.variants {
+                    if unknown.variant_name == variant.name {
+                        found_variant = Some(variant);
+                        break;
+                    }
+                }
+
+                match found_variant {
+                    Some(v) => match (&v.payload, &unknown.payload) {
+                        (Some(a), Some(b)) => {
+                            // TODO: Update this logic
+                            // 1) Get the type of b
+                            // 2) This type could be Inferrable so we'll need to recurse into
+                            //    `match_types`
+                            if a == b {
+                                TypeMatch::Inference(known.clone())
+                            } else {
+                                TypeMatch::Mismatch
+                            }
+                        }
+                        (None, Some(_)) => TypeMatch::Mismatch,
+                        (Some(_), None) => TypeMatch::Mismatch,
+                        (None, None) => TypeMatch::Inference(known.clone()),
+                    },
+                    None => TypeMatch::Mismatch,
+                }
+            }
+            _ => TypeMatch::Mismatch,
         }
     }
 }
@@ -659,81 +827,6 @@ fn resolve_type(ts: &TypeSpec) -> &TypeSpec {
     }
 }
 
-enum TypeMatch {
-    ExactType,
-    Inference(TypeSpec),
-    InferenceFailed,
-    Mismatch,
-}
-
-fn match_types(a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
-    if a == b {
-        return match a {
-            TypeSpec::IntLiteral(_) => TypeMatch::Inference(TypeSpec::Int64),
-            TypeSpec::FloatLiteral(_) => TypeMatch::Inference(TypeSpec::Float64),
-            TypeSpec::InferredEnum(_) => TypeMatch::InferenceFailed,
-            TypeSpec::Any => TypeMatch::InferenceFailed,
-            _ => TypeMatch::ExactType,
-        };
-    }
-
-    match (a, b) {
-        // if both the left and right hand side are typed as literals, just conver the type to an
-        // int64 instead of trying to propogagte types through the graph
-        (TypeSpec::IntLiteral(_), TypeSpec::IntLiteral(_)) => TypeMatch::Inference(TypeSpec::Int64),
-        (TypeSpec::IntLiteral(i), inner_b) => match inner_b {
-            TypeSpec::Int64 => match_int(i, i64::MIN, i64::MAX, TypeSpec::Int64),
-            TypeSpec::Int32 => match_int(i, i32::MIN as i64, i32::MAX as i64, TypeSpec::Int32),
-            TypeSpec::Int16 => match_int(i, i16::MIN as i64, i16::MAX as i64, TypeSpec::Int16),
-            TypeSpec::Int8 => match_int(i, i8::MIN as i64, i8::MAX as i64, TypeSpec::Int8),
-            // TODO: in order to support u64 types we need the IntLiteral type to be a bit more
-            // complex because we can actually store the full range of a u64 in the current int
-            // literal type
-            TypeSpec::UInt32 => match_int(i, u32::MIN as i64, u32::MAX as i64, TypeSpec::UInt32),
-            TypeSpec::UInt16 => match_int(i, u16::MIN as i64, u16::MAX as i64, TypeSpec::UInt16),
-            TypeSpec::UInt8 => match_int(i, u8::MIN as i64, u8::MAX as i64, TypeSpec::UInt8),
-            _ => TypeMatch::Mismatch,
-        },
-        (inner_a, TypeSpec::IntLiteral(i)) => match inner_a {
-            TypeSpec::Int64 => match_int(i, i64::MIN, i64::MAX, TypeSpec::Int64),
-            TypeSpec::Int32 => match_int(i, i32::MIN as i64, i32::MAX as i64, TypeSpec::Int32),
-            TypeSpec::Int16 => match_int(i, i16::MIN as i64, i16::MAX as i64, TypeSpec::Int16),
-            TypeSpec::Int8 => match_int(i, i8::MIN as i64, i8::MAX as i64, TypeSpec::Int8),
-            // TODO: in order to support u64 types we need the IntLiteral type to be a bit more
-            // complex because we can actually store the full range of a u64 in the current int
-            // literal type
-            TypeSpec::UInt32 => match_int(i, u32::MIN as i64, u32::MAX as i64, TypeSpec::UInt32),
-            TypeSpec::UInt16 => match_int(i, u16::MIN as i64, u16::MAX as i64, TypeSpec::UInt16),
-            TypeSpec::UInt8 => match_int(i, u8::MIN as i64, u8::MAX as i64, TypeSpec::UInt8),
-            _ => TypeMatch::Mismatch,
-        },
-        // if both the left and right hand side are typed as literals, just conver the type to a
-        // float64 instead of trying to propogagte types through the graph
-        (TypeSpec::FloatLiteral(_), TypeSpec::FloatLiteral(_)) => {
-            TypeMatch::Inference(TypeSpec::Float64)
-        }
-        (TypeSpec::FloatLiteral(f), inner_b) => match inner_b {
-            TypeSpec::Float64 => match_float(f, f64::MIN, f64::MAX, TypeSpec::Float64),
-            TypeSpec::Float32 => {
-                match_float(f, f32::MIN as f64, f32::MAX as f64, TypeSpec::Float32)
-            }
-            _ => TypeMatch::Mismatch,
-        },
-        (inner_a, TypeSpec::FloatLiteral(f)) => match inner_a {
-            TypeSpec::Float64 => match_float(f, f64::MIN, f64::MAX, TypeSpec::Float64),
-            TypeSpec::Float32 => {
-                match_float(f, f32::MIN as f64, f32::MAX as f64, TypeSpec::Float32)
-            }
-            _ => TypeMatch::Mismatch,
-        },
-        (TypeSpec::InferredEnum(inner_a), inner_b) => match_enum(inner_b, inner_a),
-        (inner_a, TypeSpec::InferredEnum(inner_b)) => match_enum(inner_a, inner_b),
-        (TypeSpec::Any, inner_b) => TypeMatch::Inference(inner_b.clone()),
-        (inner_a, TypeSpec::Any) => TypeMatch::Inference(inner_a.clone()),
-        _ => TypeMatch::Mismatch,
-    }
-}
-
 fn match_int(target: &i64, min: i64, max: i64, ts: TypeSpec) -> TypeMatch {
     if *target >= min && *target <= max {
         TypeMatch::Inference(ts)
@@ -749,38 +842,6 @@ fn match_float(target: &f64, min: f64, max: f64, ts: TypeSpec) -> TypeMatch {
         TypeMatch::Inference(ts)
     } else {
         TypeMatch::InferenceFailed
-    }
-}
-
-fn match_enum(known: &TypeSpec, unknown: &EnumVariant) -> TypeMatch {
-    let known = resolve_type(known);
-    match known {
-        TypeSpec::Enum(e) => {
-            let mut found_variant = None;
-            for variant in &e.variants {
-                if unknown.name == variant.name {
-                    found_variant = Some(variant);
-                    break;
-                }
-            }
-
-            match found_variant {
-                Some(v) => match (&v.payload, &unknown.payload) {
-                    (Some(a), Some(b)) => {
-                        if a == b {
-                            TypeMatch::Inference(known.clone())
-                        } else {
-                            TypeMatch::Mismatch
-                        }
-                    }
-                    (None, Some(_)) => TypeMatch::Mismatch,
-                    (Some(_), None) => TypeMatch::Mismatch,
-                    (None, None) => TypeMatch::Inference(known.clone()),
-                },
-                None => TypeMatch::Mismatch,
-            }
-        }
-        _ => TypeMatch::Mismatch,
     }
 }
 
