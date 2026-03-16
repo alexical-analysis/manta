@@ -287,15 +287,10 @@
                                 },
                                 "args": [
                                   {
-                                    "Unary": {
-                                      "operator": "Dereference",
-                                      "operand": {
-                                        "Identifier": {
-                                          "id": 679,
-                                          "module": null,
-                                          "name": 15
-                                        }
-                                      }
+                                    "Identifier": {
+                                      "id": 678,
+                                      "module": null,
+                                      "name": 15
                                     }
                                   }
                                 ]
@@ -307,17 +302,17 @@
                     }
                   },
                   {
-                    "id": 692,
+                    "id": 691,
                     "pattern": {
                       "EnumVariant": {
-                        "id": 692,
+                        "id": 691,
                         "enum_name": null,
                         "variant": 22,
                         "payload": "None"
                       }
                     },
                     "body": {
-                      "id": 705,
+                      "id": 704,
                       "statements": [
                         {
                           "Expr": {
@@ -325,7 +320,7 @@
                               "Call": {
                                 "func": {
                                   "Identifier": {
-                                    "id": 707,
+                                    "id": 706,
                                     "module": null,
                                     "name": 17
                                   }
@@ -754,19 +749,19 @@
         "scope_id": 11,
         "scope_depth": 0
       },
-      "679": {
+      "678": {
         "scope_id": 11,
         "scope_depth": 0
       },
-      "692": {
+      "691": {
         "scope_id": 12,
         "scope_depth": 0
       },
-      "705": {
+      "704": {
         "scope_id": 13,
         "scope_depth": 0
       },
-      "707": {
+      "706": {
         "scope_id": 13,
         "scope_depth": 0
       }

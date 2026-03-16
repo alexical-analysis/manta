@@ -130,7 +130,7 @@
     {
       "Pattern": {
         "TypeSpec": {
-          "payload": 15
+          "payload": 20
         }
       }
     },
@@ -192,7 +192,7 @@
     {
       "Pattern": {
         "Default": {
-          "payload": 18446744073709551602
+          "payload": 28
         }
       }
     },
@@ -310,35 +310,29 @@
         "EnumVariant": {
           "enum_name": null,
           "variant": 21,
-          "payload": 15
+          "payload": 48
         }
-      }
-    },
-    {
-      "Unary": {
-        "operator": "Dereference",
-        "operand": 48
       }
     },
     {
       "Call": {
         "func": 6,
         "args": [
-          51
+          48
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          52
+          51
         ]
       }
     },
     {
       "MatchArm": {
         "pattern": 50,
-        "body": 53
+        "body": 52
       }
     },
     {
@@ -357,29 +351,29 @@
       "Call": {
         "func": 12,
         "args": [
-          56
+          55
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          57
+          56
         ]
       }
     },
     {
       "MatchArm": {
-        "pattern": 55,
-        "body": 58
+        "pattern": 54,
+        "body": 57
       }
     },
     {
       "Match": {
         "target": 47,
         "arms": [
-          54,
-          59
+          53,
+          58
         ]
       }
     },
@@ -391,8 +385,8 @@
     {
       "Block": {
         "statements": [
-          60,
-          61
+          59,
+          60
         ]
       }
     },
@@ -404,9 +398,9 @@
     },
     {
       "FunctionDecl": {
-        "ident": 63,
+        "ident": 62,
         "params": [],
-        "body": 62
+        "body": 61
       }
     }
   ],
@@ -416,7 +410,7 @@
     13,
     15,
     45,
-    64
+    63
   ],
   "type_map": {
     "keys": {
@@ -437,41 +431,44 @@
       "16": 8,
       "18": 9,
       "19": 10,
+      "20": 26,
       "22": 11,
-      "23": 35,
-      "25": 27,
-      "26": 26,
-      "27": 28,
-      "30": 31,
-      "31": 30,
-      "32": 29,
-      "33": 32,
+      "23": 30,
+      "25": 29,
+      "26": 28,
+      "27": 27,
+      "28": 32,
+      "30": 35,
+      "31": 34,
+      "32": 31,
+      "33": 33,
       "34": 25,
-      "35": 34,
-      "36": 33,
-      "38": 36,
+      "35": 37,
+      "36": 36,
+      "38": 38,
       "39": 24,
       "40": 23,
-      "42": 37,
+      "42": 39,
       "43": 22,
       "44": 12,
       "45": 13,
-      "46": 40,
-      "47": 41,
-      "50": 42,
-      "52": 44,
-      "53": 43,
-      "54": 45,
-      "55": 46,
-      "56": 48,
-      "57": 49,
-      "58": 47,
-      "59": 50,
-      "60": 39,
-      "61": 51,
-      "62": 38,
-      "63": 14,
-      "64": 15
+      "46": 42,
+      "47": 43,
+      "48": 44,
+      "50": 45,
+      "51": 48,
+      "52": 47,
+      "53": 46,
+      "54": 49,
+      "55": 52,
+      "56": 53,
+      "57": 51,
+      "58": 50,
+      "59": 41,
+      "60": 54,
+      "61": 40,
+      "62": 14,
+      "63": 15
     },
     "values": [
       {
@@ -715,22 +712,61 @@
       "Unit",
       "Unit",
       "Unit",
+      "Int32",
+      "Int32",
       "Unit",
       "Unit",
       "Int32",
-      "Any",
-      "Unit",
-      "Unit",
+      "UnsafePtr",
+      "UnsafePtr",
       "UnsafePtr",
       "Unit",
-      "Int64",
-      "Int64",
+      "Unit",
+      "Unit",
+      "Int32",
       "Unit",
       "Unit",
       "Unit",
       "Unit",
       "Bool",
       {
+        "Named": {
+          "name": 14,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 21,
+                  "payload": {
+                    "Pointer": "Int32"
+                  }
+                },
+                {
+                  "name": 22,
+                  "payload": null
+                },
+                {
+                  "name": 23,
+                  "payload": {
+                    "Named": {
+                      "name": 0,
+                      "type_spec": {
+                        "Struct": {
+                          "fields": []
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "Pointer": "Int32"
+      },
+      {
         "Enum": {
           "variants": [
             {
@@ -760,57 +796,97 @@
         }
       },
       {
-        "InferredEnum": {
-          "name": 21,
-          "payload": null
+        "Enum": {
+          "variants": [
+            {
+              "name": 21,
+              "payload": {
+                "Pointer": "Int32"
+              }
+            },
+            {
+              "name": 22,
+              "payload": null
+            },
+            {
+              "name": 23,
+              "payload": {
+                "Named": {
+                  "name": 0,
+                  "type_spec": {
+                    "Struct": {
+                      "fields": []
+                    }
+                  }
+                }
+              }
+            }
+          ]
         }
       },
       "Unit",
       "Unit",
       {
-        "InferredEnum": {
-          "name": 21,
-          "payload": null
+        "Enum": {
+          "variants": [
+            {
+              "name": 21,
+              "payload": {
+                "Pointer": "Int32"
+              }
+            },
+            {
+              "name": 22,
+              "payload": null
+            },
+            {
+              "name": 23,
+              "payload": {
+                "Named": {
+                  "name": 0,
+                  "type_spec": {
+                    "Struct": {
+                      "fields": []
+                    }
+                  }
+                }
+              }
+            }
+          ]
         }
       },
       {
-        "InferredEnum": {
-          "name": 22,
-          "payload": null
+        "Enum": {
+          "variants": [
+            {
+              "name": 21,
+              "payload": {
+                "Pointer": "Int32"
+              }
+            },
+            {
+              "name": 22,
+              "payload": null
+            },
+            {
+              "name": 23,
+              "payload": {
+                "Named": {
+                  "name": 0,
+                  "type_spec": {
+                    "Struct": {
+                      "fields": []
+                    }
+                  }
+                }
+              }
+            }
+          ]
         }
       },
       "Unit",
       "String",
       "Unit",
-      {
-        "Enum": {
-          "variants": [
-            {
-              "name": 21,
-              "payload": {
-                "Pointer": "Int32"
-              }
-            },
-            {
-              "name": 22,
-              "payload": null
-            },
-            {
-              "name": 23,
-              "payload": {
-                "Named": {
-                  "name": 0,
-                  "type_spec": {
-                    "Struct": {
-                      "fields": []
-                    }
-                  }
-                }
-              }
-            }
-          ]
-        }
-      },
       "Unit"
     ]
   },
@@ -839,7 +915,7 @@
       23,
       44,
       48,
-      63
+      62
     ]
   }
 }

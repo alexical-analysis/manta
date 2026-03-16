@@ -160,7 +160,25 @@
               "Slice": "UInt8"
             }
           ],
-          "return_type": "Unit"
+          "return_type": {
+            "Named": {
+              "name": 17,
+              "type_spec": {
+                "Enum": {
+                  "variants": [
+                    {
+                      "name": 14,
+                      "payload": "UInt64"
+                    },
+                    {
+                      "name": 15,
+                      "payload": null
+                    }
+                  ]
+                }
+              }
+            }
+          }
         }
       },
       "locals": [],

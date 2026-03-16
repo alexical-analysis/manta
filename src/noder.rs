@@ -486,8 +486,6 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
         Pattern::TypeSpec(pat) => {
             let mut payload = None;
             if let Payload::Some(pay) = pat.payload {
-                payload = Some(pay);
-
                 let payload_id = node_tree.add_node(Node::Identifier {
                     name: pay,
                     module: None,
@@ -502,6 +500,7 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
                     .expect("missing binding for var decl");
 
                 node_tree.symbol_map.add(binding.id, payload_id);
+                payload = Some(payload_id)
             }
 
             let node_id = node_tree.add_node(Node::Pattern(PatternNode::TypeSpec(TypeSpecPat {
@@ -535,8 +534,6 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
 
             let mut payload = None;
             if let Payload::Some(pay) = pat.payload {
-                payload = Some(pay);
-
                 let payload_ident = node_tree.add_node(Node::Identifier {
                     name: pay,
                     module: None,
@@ -553,6 +550,7 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
                     .expect("missing binding for enum variant pattern payload");
 
                 node_tree.symbol_map.add(binding.id, payload_ident);
+                payload = Some(payload_ident)
             }
 
             node_tree.add_node(Node::Pattern(PatternNode::EnumVariant(EnumVariantPat {
@@ -580,7 +578,7 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
 
             node_tree.symbol_map.add(binding.id, payload_ident);
 
-            let payload = Some(pat.name);
+            let payload = Some(payload_ident);
             node_tree.add_node(Node::Pattern(PatternNode::Default(DefaultPat { payload })))
         }
         Pattern::ModuleIdentifier(_) => {
@@ -829,7 +827,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                     });
                     let pat_id =
                         node_tree.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
-                            payload: Some(e),
+                            payload: Some(ident_id),
                         })));
 
                     let scope_pos = module
@@ -887,7 +885,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             });
 
             let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
-                payload: Some(str_store::WRAP),
+                payload: Some(wrap_id),
             })));
 
             node_tree.add_node(Node::MatchArm {
@@ -911,9 +909,9 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             node_tree.type_map.add(
                 panic_fn_id,
                 TypeSpec::Function(FunctionType {
-                    // TODO: this needs to be the type of the expression that's being matched or an
-                    // any type like in Go, just pick a random type for now
-                    params: vec![TypeSpec::String],
+                    // Technically we won't know this type until the type checking phases gives us
+                    // the type of the target for this let decl
+                    params: vec![TypeSpec::Any],
                     return_type: Box::new(TypeSpec::Panic),
                 }),
             );
@@ -935,7 +933,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             });
 
             let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
-                payload: Some(str_store::PANIC),
+                payload: Some(panic_ident_id),
             })));
             node_tree.add_node(Node::MatchArm {
                 pattern: pat_id,
@@ -979,7 +977,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             });
 
             let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
-                payload: Some(str_store::PANIC),
+                payload: Some(panic_ident_id),
             })));
             node_tree.add_node(Node::MatchArm {
                 pattern: pat_id,

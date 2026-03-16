@@ -102,6 +102,7 @@ pub enum Node {
     EnumConstructor {
         target: Option<NodeID>,
         variant: StrID,
+        // TODO: Should actual be a custom enum since we need None, Some, and Default options
         payload: Option<NodeID>,
     },
 
@@ -147,20 +148,23 @@ pub enum PatternNode {
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct DefaultPat {
-    pub payload: Option<StrID>,
+    // TODO: Should actual be a custom enum since we need None, Some, and Default options
+    pub payload: Option<NodeID>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct EnumVariantPat {
     pub enum_name: Option<NodeID>,
     pub variant: StrID,
-    pub payload: Option<StrID>,
+    // TODO: Should actual be a custom enum since we need None, Some, and Default options
+    pub payload: Option<NodeID>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct TypeSpecPat {
     // type spec information get's stored in the type_map so there's no need to include it here
-    pub payload: Option<StrID>,
+    // TODO: Should actual be a custom enum since we need None, Some, and Default options
+    pub payload: Option<NodeID>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -169,7 +173,8 @@ pub enum TypeSpec {
     // that can have their types further refined by the context where there appear
     IntLiteral(i64),
     FloatLiteral(f64),
-    InferredEnum(Box<EnumVariant>),
+    InferredEnumExpr(InferredEnumExpr),
+    InferredEnumPat(InferredEnumPat),
     Any,
 
     Int32,
@@ -199,6 +204,19 @@ pub enum TypeSpec {
     Panic,
     // Unit type for functions that don't return anything
     Unit,
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize)]
+pub struct InferredEnumExpr {
+    pub variant_name: StrID,
+    // TODO: Should actual be a custom enum since we need None, Some, and Default options
+    pub payload: Option<Box<TypeSpec>>,
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize)]
+pub struct InferredEnumPat {
+    pub variant_name: StrID,
+    pub payload: Option<NodeID>,
 }
 
 /// Named type including the underalying type information
@@ -244,5 +262,6 @@ pub struct FunctionType {
 #[derive(Debug, PartialEq, Clone, Serialize)]
 pub struct EnumVariant {
     pub name: StrID,
+    // TODO: Should actual be a custom enum since we need None, Some, and Default options
     pub payload: Option<TypeSpec>,
 }

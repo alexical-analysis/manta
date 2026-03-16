@@ -595,108 +595,103 @@
     "lexeme_id": 4
   },
   {
-    "kind": "Star",
-    "source_id": 678,
-    "lexeme_id": 16
-  },
-  {
     "kind": "Identifier",
-    "source_id": 679,
+    "source_id": 678,
     "lexeme_id": 15
   },
   {
     "kind": "CloseParen",
-    "source_id": 680,
+    "source_id": 679,
     "lexeme_id": 7
   },
   {
     "kind": "Semicolon",
-    "source_id": 682,
+    "source_id": 681,
     "lexeme_id": 37
   },
   {
     "kind": "CloseBrace",
-    "source_id": 682,
+    "source_id": 681,
     "lexeme_id": 12
   },
   {
     "kind": "Semicolon",
-    "source_id": 683,
+    "source_id": 682,
     "lexeme_id": 2
   },
   {
     "kind": "Dot",
-    "source_id": 692,
+    "source_id": 691,
     "lexeme_id": 32
   },
   {
     "kind": "Identifier",
-    "source_id": 693,
+    "source_id": 692,
     "lexeme_id": 22
   },
   {
     "kind": "OpenBrace",
-    "source_id": 705,
+    "source_id": 704,
     "lexeme_id": 11
   },
   {
     "kind": "Identifier",
-    "source_id": 707,
+    "source_id": 706,
     "lexeme_id": 17
   },
   {
     "kind": "OpenParen",
-    "source_id": 718,
+    "source_id": 717,
     "lexeme_id": 4
   },
   {
     "kind": "Str",
-    "source_id": 719,
+    "source_id": 718,
     "lexeme_id": 38
   },
   {
     "kind": "CloseParen",
-    "source_id": 734,
+    "source_id": 733,
     "lexeme_id": 7
   },
   {
     "kind": "Semicolon",
-    "source_id": 736,
+    "source_id": 735,
     "lexeme_id": 37
   },
   {
     "kind": "CloseBrace",
+    "source_id": 735,
+    "lexeme_id": 12
+  },
+  {
+    "kind": "Semicolon",
     "source_id": 736,
-    "lexeme_id": 12
-  },
-  {
-    "kind": "Semicolon",
-    "source_id": 737,
     "lexeme_id": 2
   },
   {
     "kind": "CloseBrace",
+    "source_id": 741,
+    "lexeme_id": 12
+  },
+  {
+    "kind": "Semicolon",
     "source_id": 742,
-    "lexeme_id": 12
-  },
-  {
-    "kind": "Semicolon",
-    "source_id": 743,
     "lexeme_id": 2
   },
   {
     "kind": "CloseBrace",
-    "source_id": 744,
+    "source_id": 743,
     "lexeme_id": 12
   },
   {
     "kind": "Semicolon",
-    "source_id": 745,
+    "source_id": 744,
     "lexeme_id": 2
   },
   {
     "kind": "Eof",
-    "source_id": 746,
+    "source_id": 745,
     "lexeme_id": 37
   }
 ]

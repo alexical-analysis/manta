@@ -29,7 +29,7 @@ type OSWrite enum {
 }
 
 // TODO: replace with os::write when modules are fully supported
-fn os_write(f File, buf []u8) {
+fn os_write(f File, buf []u8) OSWrite {
     return .Err
 }
 
@@ -46,7 +46,7 @@ fn write_and_cleanup(path str) WriteAndCleanup {
     defer { os_close(f) }
 
     let []u8(buf) = alloc(@[]u8) !
-    defer { free(buf) }
+    defer { free(&buf) }
 
     let .Ok(n) = os_write(f, buf) wrap .WriteErr
     return .Ok

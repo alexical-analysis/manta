@@ -198,7 +198,7 @@
         "EnumVariant": {
           "enum_name": null,
           "variant": 15,
-          "payload": 33
+          "payload": 30
         }
       }
     },
@@ -329,18 +329,19 @@
       "27": 25,
       "28": 20,
       "29": 21,
-      "32": 27,
-      "33": 29,
-      "34": 30,
-      "35": 28,
-      "36": 31,
-      "37": 32,
-      "38": 34,
-      "39": 35,
-      "40": 33,
-      "41": 36,
+      "30": 27,
+      "32": 28,
+      "33": 31,
+      "34": 32,
+      "35": 30,
+      "36": 29,
+      "37": 33,
+      "38": 36,
+      "39": 37,
+      "40": 35,
+      "41": 34,
       "42": 26,
-      "43": 37,
+      "43": 38,
       "44": 19,
       "45": 8,
       "46": 9
@@ -497,44 +498,26 @@
         }
       },
       {
-        "Enum": {
-          "variants": [
-            {
-              "name": 15,
-              "payload": "Int32"
-            },
-            {
-              "name": 16,
-              "payload": null
+        "Named": {
+          "name": 6,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 15,
+                  "payload": "Int32"
+                },
+                {
+                  "name": 16,
+                  "payload": null
+                }
+              ]
             }
-          ]
+          }
         }
       },
       "Unit",
-      {
-        "InferredEnum": {
-          "name": 15,
-          "payload": null
-        }
-      },
-      "Unit",
-      "String",
-      "Unit",
-      {
-        "InferredEnum": {
-          "name": 15,
-          "payload": null
-        }
-      },
-      {
-        "InferredEnum": {
-          "name": 16,
-          "payload": null
-        }
-      },
-      "Unit",
-      "String",
-      "Unit",
+      "Int32",
       {
         "Enum": {
           "variants": [
@@ -549,6 +532,54 @@
           ]
         }
       },
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 15,
+              "payload": "Int32"
+            },
+            {
+              "name": 16,
+              "payload": null
+            }
+          ]
+        }
+      },
+      "Unit",
+      "String",
+      "Unit",
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 15,
+              "payload": "Int32"
+            },
+            {
+              "name": 16,
+              "payload": null
+            }
+          ]
+        }
+      },
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 15,
+              "payload": "Int32"
+            },
+            {
+              "name": 16,
+              "payload": null
+            }
+          ]
+        }
+      },
+      "Unit",
+      "String",
+      "Unit",
       "Unit"
     ]
   },
