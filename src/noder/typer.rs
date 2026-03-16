@@ -299,8 +299,94 @@ impl Typer {
                     TypeMatch::Mismatch => panic!("types do not match in binary expression"),
                 }
             }
-            Node::Identifier { .. } => node_tree.type_map.get(node_id).cloned(),
-            Node::EnumConstructor { .. } => node_tree.type_map.get(node_id).cloned(),
+            Node::Identifier { .. } => {
+                // Identifiers should get their types from context (e.g. from assignment or
+                // function params)
+                node_tree.type_map.get(node_id).cloned()
+            }
+            Node::EnumConstructor {
+                target,
+                variant,
+                payload,
+            } => match target {
+                Some(t) => {
+                    let target_ts = self.type_expr_node(node_tree, t);
+                    if target_ts.is_none() {
+                        eprintln!("TODO: missing type for payload identifier");
+                        return None;
+                    }
+
+                    let target_ts = target_ts.unwrap();
+                    match resolve_type(&target_ts) {
+                        TypeSpec::Enum(e) => {
+                            let mut found_variant = None;
+                            for v in &e.variants {
+                                if v.name == variant {
+                                    found_variant = Some(v);
+                                    break;
+                                }
+                            }
+
+                            match found_variant {
+                                Some(found) => match (payload, &found.payload) {
+                                    (Some(p), Some(ts)) => {
+                                        let pay_id = self.type_expr_node(node_tree, p);
+                                        if pay_id.is_none() {
+                                            eprintln!("TODO: missing type for variant payload");
+                                            return Some(target_ts);
+                                        }
+
+                                        let pay_id = pay_id.unwrap();
+                                        match match_types(&pay_id, ts) {
+                                            TypeMatch::ExactType => {
+                                                node_tree.type_map.add(node_id, target_ts.clone());
+                                                Some(target_ts)
+                                            }
+                                            TypeMatch::Inference(ts) => {
+                                                node_tree.type_map.set(p, ts);
+                                                node_tree.type_map.add(node_id, target_ts.clone());
+                                                Some(target_ts)
+                                            }
+                                            TypeMatch::InferenceFailed => {
+                                                panic!("invalid type for variant payload")
+                                            }
+                                            TypeMatch::Mismatch => {
+                                                panic!("invalid type for variant payload")
+                                            }
+                                        }
+                                    }
+                                    (None, Some(_)) => {
+                                        panic!("variant was expecting a payload but none was given")
+                                    }
+                                    (Some(_), None) => panic!(
+                                        "variant was not expecing a payload but one was given"
+                                    ),
+                                    (None, None) => {
+                                        node_tree.type_map.add(node_id, target_ts.clone());
+                                        Some(target_ts)
+                                    }
+                                },
+                                None => panic!("failed to find variant for enum type"),
+                            }
+                        }
+                        _ => panic!("target type is not an enum"),
+                    }
+                }
+                None => {
+                    let pay = payload.map(|p| self.type_expr_node(node_tree, p));
+                    if payload.is_some() && pay.is_none() {
+                        eprintln!("TODO: missing type for payload identifier");
+                        return None;
+                    }
+
+                    let ts = TypeSpec::InferredEnum(Box::new(EnumVariant {
+                        name: variant,
+                        payload: pay.unwrap(),
+                    }));
+                    node_tree.type_map.add(node_id, ts.clone());
+                    Some(ts)
+                }
+            },
             Node::FieldAccess { .. } => {
                 // TODO: need struct/enum type information to determine field type
                 None
@@ -462,12 +548,12 @@ impl Typer {
                 node_tree.type_map.add(node_id, ts.clone());
                 ts
             }
-            PatternNode::StringLiteral(s) => {
+            PatternNode::StringLiteral(_) => {
                 let ts = TypeSpec::String;
                 node_tree.type_map.add(node_id, ts.clone());
                 ts
             }
-            PatternNode::BoolLiteral(b) => {
+            PatternNode::BoolLiteral(_) => {
                 let ts = TypeSpec::Bool;
                 node_tree.type_map.add(node_id, ts.clone());
                 ts
