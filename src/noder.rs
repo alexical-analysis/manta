@@ -18,9 +18,9 @@ use crate::parser::module::{BindingType, Module, SymID};
 use crate::str_store;
 
 #[derive(Serialize)]
-struct SideTable<K, V> {
-    keys: BTreeMap<K, usize>,
-    values: Vec<V>,
+pub(crate) struct SideTable<K, V> {
+    pub(crate) keys: BTreeMap<K, usize>,
+    pub(crate) values: Vec<V>,
 }
 
 impl<K: Ord + Debug, V: Debug> SideTable<K, V> {
@@ -63,17 +63,17 @@ impl<K: Ord + Debug, V: Debug> SideTable<K, V> {
 /// NodeTree contains all the nodes for a given tree as well as tracking the tree roots
 #[derive(Serialize)]
 pub struct NodeTree {
-    nodes: Vec<Node>,
+    pub(crate) nodes: Vec<Node>,
     pub roots: Vec<NodeID>,
     // the type_map maps each node in the node tree to it's type (if it has one)
     // TODO: we're going to have a type for every node so maybe we can use a slot map or something
     // to pack these more tightly withouth a lookup/ performance cost. I think right now the side
     // table uses an internal hash map.
-    type_map: SideTable<NodeID, TypeSpec>,
+    pub(crate) type_map: SideTable<NodeID, TypeSpec>,
     // the symbol_map maps a bindings symbol id, which is related to it's declaratoin site, to the
     // node_id where it was declared, using this you can look up a symbols declaration site in the
     // node tree through the symbol table
-    symbol_map: SideTable<SymID, NodeID>,
+    pub(crate) symbol_map: SideTable<SymID, NodeID>,
 }
 
 impl NodeTree {
@@ -1271,7 +1271,7 @@ mod tests {
 
     use pretty_assertions::assert_eq;
 
-    use crate::ast::{BinaryOp, ConstDecl, UnaryOp, VarDecl};
+    use crate::ast::{BinaryOp, ConstDecl, TypeDecl, UnaryOp, VarDecl};
     use crate::parser::lexer::SourceID;
     use crate::str_store::StrID;
 
@@ -1367,7 +1367,6 @@ mod tests {
 
                     let node_tree = node_module(module);
 
-                    // Evaluate the provided expression to obtain the expected NodeTree
                     let expected = $expected;
 
                     let actual_json = serde_json::to_string_pretty(&node_tree).unwrap();
@@ -1378,8 +1377,8 @@ mod tests {
         }
     }
 
-    // Table-driven tests for noder: each case provides an AST snippet and an expression
-    // that returns the expected NodeTree.
+    // Table-driven tests for noder: each case provides an AST declaration and a literal
+    // NodeTree as the expected output.
     test_noder!(
         node_const_decl_int_literal {
             decl: Decl::Const(ConstDecl {
@@ -1387,27 +1386,182 @@ mod tests {
                 name: StrID::from_usize(1),
                 value: Expr::IntLiteral(42)
             }),
-            expected: {
-                let mut e = NodeTree::new();
-
-                let ident_id = e.add_node(Node::Identifier {
-                    name: StrID::from_usize(1),
-                    module: None,
-                });
-                let decl_id = e.add_root_node(Node::VarDecl { ident: ident_id });
-
-                let value_id = e.add_node(Node::IntLiteral(42));
-                let assign_id = e.add_root_node(Node::Assign {
-                    target: ident_id,
-                    value: value_id,
-                });
-                e.symbol_map.add(12, ident_id);
-
-                e.type_map.add(decl_id, TypeSpec::Unit);
-                e.type_map.add(assign_id, TypeSpec::Unit);
-                e.type_map.add(value_id, TypeSpec::Int64);
-                e.type_map.add(ident_id, TypeSpec::Int64);
-                e
+            expected: NodeTree {
+                // NodeID(0): Identifier, NodeID(1): VarDecl (root), NodeID(2): IntLiteral, NodeID(3): Assign (root)
+                nodes: vec![
+                    Node::Identifier {
+                        name: StrID::from_usize(1),
+                        module: None
+                    },
+                    Node::VarDecl {
+                        ident: NodeID::from_usize(0)
+                    },
+                    Node::IntLiteral(42),
+                    Node::Assign {
+                        target: NodeID::from_usize(0),
+                        value: NodeID::from_usize(2)
+                    },
+                ],
+                roots: vec![NodeID::from_usize(1), NodeID::from_usize(3)],
+                type_map: SideTable {
+                    // inserted: (NodeID(1), Unit), (NodeID(3), Unit), (NodeID(2), Int64), (NodeID(0), Int64)
+                    keys: BTreeMap::from([
+                        (NodeID::from_usize(0), 3),
+                        (NodeID::from_usize(1), 0),
+                        (NodeID::from_usize(2), 2),
+                        (NodeID::from_usize(3), 1),
+                    ]),
+                    values: vec![
+                        TypeSpec::Unit,
+                        TypeSpec::Unit,
+                        TypeSpec::Int64,
+                        TypeSpec::Int64
+                    ],
+                },
+                symbol_map: SideTable {
+                    keys: BTreeMap::from([(12_usize, 0)]),
+                    values: vec![NodeID::from_usize(0)],
+                },
+            }
+        },
+        node_invalid_decl {
+            decl: Decl::Invalid,
+            expected: NodeTree {
+                nodes: vec![Node::Invalid],
+                roots: vec![NodeID::from_usize(0)],
+                type_map: SideTable {
+                    // typer assigns Panic to the Invalid node
+                    keys: BTreeMap::from([(NodeID::from_usize(0), 0)]),
+                    values: vec![TypeSpec::Panic],
+                },
+                symbol_map: SideTable {
+                    keys: BTreeMap::new(),
+                    values: vec![]
+                },
+            }
+        },
+        node_const_decl_bool_literal {
+            decl: Decl::Const(ConstDecl {
+                id: SourceID::from_usize(0),
+                name: StrID::from_usize(1),
+                value: Expr::BoolLiteral(true)
+            }),
+            expected: NodeTree {
+                // NodeID(0): Identifier, NodeID(1): VarDecl (root), NodeID(2): BoolLiteral, NodeID(3): Assign (root)
+                nodes: vec![
+                    Node::Identifier {
+                        name: StrID::from_usize(1),
+                        module: None
+                    },
+                    Node::VarDecl {
+                        ident: NodeID::from_usize(0)
+                    },
+                    Node::BoolLiteral(true),
+                    Node::Assign {
+                        target: NodeID::from_usize(0),
+                        value: NodeID::from_usize(2)
+                    },
+                ],
+                roots: vec![NodeID::from_usize(1), NodeID::from_usize(3)],
+                type_map: SideTable {
+                    // inserted: (NodeID(1), Unit), (NodeID(3), Unit), (NodeID(2), Bool), (NodeID(0), Bool)
+                    keys: BTreeMap::from([
+                        (NodeID::from_usize(0), 3),
+                        (NodeID::from_usize(1), 0),
+                        (NodeID::from_usize(2), 2),
+                        (NodeID::from_usize(3), 1),
+                    ]),
+                    values: vec![
+                        TypeSpec::Unit,
+                        TypeSpec::Unit,
+                        TypeSpec::Bool,
+                        TypeSpec::Bool
+                    ],
+                },
+                symbol_map: SideTable {
+                    keys: BTreeMap::from([(12_usize, 0)]),
+                    values: vec![NodeID::from_usize(0)],
+                },
+            }
+        },
+        node_const_decl_float_literal {
+            decl: Decl::Const(ConstDecl {
+                id: SourceID::from_usize(0),
+                name: StrID::from_usize(1),
+                value: Expr::FloatLiteral(3.45)
+            }),
+            expected: NodeTree {
+                // NodeID(0): Identifier, NodeID(1): VarDecl (root), NodeID(2): FloatLiteral, NodeID(3): Assign (root)
+                nodes: vec![
+                    Node::Identifier {
+                        name: StrID::from_usize(1),
+                        module: None
+                    },
+                    Node::VarDecl {
+                        ident: NodeID::from_usize(0)
+                    },
+                    Node::FloatLiteral(3.45),
+                    Node::Assign {
+                        target: NodeID::from_usize(0),
+                        value: NodeID::from_usize(2)
+                    },
+                ],
+                roots: vec![NodeID::from_usize(1), NodeID::from_usize(3)],
+                type_map: SideTable {
+                    // inserted: (NodeID(1), Unit), (NodeID(3), Unit), (NodeID(2), Float64), (NodeID(0), Float64)
+                    keys: BTreeMap::from([
+                        (NodeID::from_usize(0), 3),
+                        (NodeID::from_usize(1), 0),
+                        (NodeID::from_usize(2), 2),
+                        (NodeID::from_usize(3), 1),
+                    ]),
+                    values: vec![
+                        TypeSpec::Unit,
+                        TypeSpec::Unit,
+                        TypeSpec::Float64,
+                        TypeSpec::Float64
+                    ],
+                },
+                symbol_map: SideTable {
+                    keys: BTreeMap::from([(12_usize, 0)]),
+                    values: vec![NodeID::from_usize(0)],
+                },
+            }
+        },
+        node_type_decl_int64 {
+            decl: Decl::Type(TypeDecl {
+                id: SourceID::from_usize(0),
+                name: StrID::from_usize(1),
+                type_spec: ast::TypeSpec::Int64,
+            }),
+            expected: NodeTree {
+                // NodeID(0): Identifier, NodeID(1): TypeDecl (root)
+                nodes: vec![
+                    Node::Identifier {
+                        name: StrID::from_usize(1),
+                        module: None
+                    },
+                    Node::TypeDecl {
+                        ident: NodeID::from_usize(0)
+                    },
+                ],
+                roots: vec![NodeID::from_usize(1)],
+                type_map: SideTable {
+                    // inserted by noder: (NodeID(1), Int64)
+                    // inserted by typer: (NodeID(0), Named { name: NodeID(0), type_spec: Int64 })
+                    keys: BTreeMap::from([(NodeID::from_usize(0), 1), (NodeID::from_usize(1), 0),]),
+                    values: vec![
+                        TypeSpec::Int64,
+                        TypeSpec::Named(NamedType {
+                            name: NodeID::from_usize(0),
+                            type_spec: Box::new(TypeSpec::Int64),
+                        }),
+                    ],
+                },
+                symbol_map: SideTable {
+                    keys: BTreeMap::from([(12_usize, 0)]),
+                    values: vec![NodeID::from_usize(0)],
+                },
             }
         },
         node_var_decl_string_literal {
@@ -1416,27 +1570,42 @@ mod tests {
                 name: StrID::from_usize(2),
                 value: Expr::StringLiteral(StrID::from_usize(3))
             }),
-            expected: {
-                let mut e = NodeTree::new();
-
-                let ident_id = e.add_node(Node::Identifier {
-                    name: StrID::from_usize(2),
-                    module: None,
-                });
-                let decl_id = e.add_root_node(Node::VarDecl { ident: ident_id });
-
-                let value_id = e.add_node(Node::StringLiteral(StrID::from_usize(3)));
-                let assign_id = e.add_root_node(Node::Assign {
-                    target: ident_id,
-                    value: value_id,
-                });
-                e.symbol_map.add(12, ident_id);
-
-                e.type_map.add(decl_id, TypeSpec::Unit);
-                e.type_map.add(assign_id, TypeSpec::Unit);
-                e.type_map.add(value_id, TypeSpec::String);
-                e.type_map.add(ident_id, TypeSpec::String);
-                e
+            expected: NodeTree {
+                // NodeID(0): Identifier, NodeID(1): VarDecl (root), NodeID(2): StringLiteral, NodeID(3): Assign (root)
+                nodes: vec![
+                    Node::Identifier {
+                        name: StrID::from_usize(2),
+                        module: None
+                    },
+                    Node::VarDecl {
+                        ident: NodeID::from_usize(0)
+                    },
+                    Node::StringLiteral(StrID::from_usize(3)),
+                    Node::Assign {
+                        target: NodeID::from_usize(0),
+                        value: NodeID::from_usize(2)
+                    },
+                ],
+                roots: vec![NodeID::from_usize(1), NodeID::from_usize(3)],
+                type_map: SideTable {
+                    // inserted: (NodeID(1), Unit), (NodeID(3), Unit), (NodeID(2), String), (NodeID(0), String)
+                    keys: BTreeMap::from([
+                        (NodeID::from_usize(0), 3),
+                        (NodeID::from_usize(1), 0),
+                        (NodeID::from_usize(2), 2),
+                        (NodeID::from_usize(3), 1),
+                    ]),
+                    values: vec![
+                        TypeSpec::Unit,
+                        TypeSpec::Unit,
+                        TypeSpec::String,
+                        TypeSpec::String
+                    ],
+                },
+                symbol_map: SideTable {
+                    keys: BTreeMap::from([(12_usize, 0)]),
+                    values: vec![NodeID::from_usize(0)],
+                },
             }
         },
     );
