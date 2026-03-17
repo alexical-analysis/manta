@@ -1175,7 +1175,7 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
                 _ => {
                     // non-identifier targets can only be field access expressions
                     return node_tree.add_node(Node::FieldAccess {
-                        target: Some(target_id),
+                        target: target_id,
                         field: expr.field,
                     });
                 }
@@ -1202,7 +1202,7 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
                     // identifiers can still be field access expressions of the identifier is
                     // not an enum type
                     node_tree.add_node(Node::FieldAccess {
-                        target: Some(target_id),
+                        target: target_id,
                         field: expr.field,
                     })
                 }

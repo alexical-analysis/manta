@@ -63,11 +63,15 @@ impl Typer {
 
                 self.match_type.push(target_type.clone());
                 for arm in arms {
-                    let arm_type = self
-                        .type_expr_node(node_tree, arm)
-                        .expect("missing type for arm");
+                    self.type_node(node_tree, arm);
                 }
                 self.match_type.pop();
+            }
+            Node::MatchArm { pattern, body } => {
+                let pattern_type = self.type_pattern_node(node_tree, pattern);
+                node_tree.type_map.add(node_id, pattern_type.clone());
+
+                self.type_node(node_tree, body);
             }
             Node::Return { value } => {
                 node_tree.type_map.add(node_id, TypeSpec::Unit);
@@ -219,7 +223,6 @@ impl Typer {
             | Node::BoolLiteral(_)
             | Node::Range { .. }
             | Node::Identifier { .. }
-            | Node::MatchArm { .. }
             | Node::Unary { .. }
             | Node::Binary { .. }
             | Node::Call { .. }
@@ -388,19 +391,36 @@ impl Typer {
                     Some(ts)
                 }
             },
-            Node::FieldAccess { .. } => {
-                // TODO: need struct/enum type information to determine field type
-                None
-            }
-            // TODO: this may need to move back into the stmt typer since we're going to realy on
-            // the `match_type` stack to get the type here...
-            Node::MatchArm { pattern, body } => {
-                let pattern_type = self.type_pattern_node(node_tree, pattern);
-                node_tree.type_map.add(node_id, pattern_type.clone());
+            Node::FieldAccess { target, field } => {
+                let target_type = self.type_expr_node(node_tree, target);
+                if target_type.is_none() {
+                    eprintln!("TODO: not all types are implemented yet");
+                    return None;
+                }
 
-                self.type_node(node_tree, body);
+                let target_type = target_type.unwrap();
+                match resolve_type(&target_type) {
+                    TypeSpec::Struct(ts) => {
+                        let mut found_field = None;
+                        for f in &ts.fields {
+                            if f.name == field {
+                                found_field = Some(f);
+                                break;
+                            }
+                        }
 
-                Some(pattern_type)
+                        match found_field {
+                            Some(ok) => {
+                                node_tree.type_map.add(node_id, ok.type_spec.clone());
+                                Some(ok.type_spec.clone())
+                            }
+                            None => panic!("field does not exist on this type"),
+                        }
+                    }
+                    // This is only technically true till we implement methods on type at with
+                    // point I probably need to rethink more than just this code.
+                    _ => panic!("can not access a field on a non struct type"),
+                }
             }
             Node::Unary { operator, operand } => {
                 let operand_type = self.type_expr_node(node_tree, operand)?;
@@ -528,6 +548,7 @@ impl Typer {
             | Node::VarDecl { .. }
             | Node::Match { .. }
             | Node::Return { .. }
+            | Node::MatchArm { .. }
             | Node::Free { .. }
             | Node::TypeDecl { .. }
             | Node::Block { .. }
