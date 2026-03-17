@@ -33,7 +33,6 @@ impl<K: Ord + Debug, V: Debug> SideTable<K, V> {
 
     fn add(&mut self, key: K, value: V) {
         if self.keys.contains_key(&key) {
-            eprintln!("key {:?}, {:?}", key, value);
             panic!("can not add the same key twice")
         }
 
@@ -55,7 +54,7 @@ impl<K: Ord + Debug, V: Debug> SideTable<K, V> {
                 Some(v) => *v = value,
                 None => panic!("missing value for key {:?}", key),
             },
-            None => panic!("unknown key {:?}", key),
+            None => panic!("setting value {:?} for unknown key {:?}", value, key),
         }
     }
 }

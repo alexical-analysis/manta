@@ -32,9 +32,9 @@
   },
   "functions": [
     {
-      "name": 14,
+      "name": 9,
       "params": [
-        15
+        10
       ],
       "type_spec": {
         "Function": {
@@ -69,9 +69,9 @@
       ]
     },
     {
-      "name": 17,
+      "name": 14,
       "params": [
-        18
+        15
       ],
       "type_spec": {
         "Function": {
@@ -104,9 +104,9 @@
       ]
     },
     {
-      "name": 24,
+      "name": 22,
       "params": [
-        25
+        23
       ],
       "type_spec": {
         "Function": {
@@ -115,32 +115,23 @@
           ],
           "return_type": {
             "Named": {
-              "name": 14,
+              "name": 12,
               "type_spec": {
                 "Enum": {
                   "variants": [
                     {
-                      "name": 21,
+                      "name": 19,
                       "payload": {
                         "Pointer": "Int32"
                       }
                     },
                     {
-                      "name": 22,
+                      "name": 20,
                       "payload": null
                     },
                     {
-                      "name": 23,
-                      "payload": {
-                        "Named": {
-                          "name": 0,
-                          "type_spec": {
-                            "Struct": {
-                              "fields": []
-                            }
-                          }
-                        }
-                      }
+                      "name": 21,
+                      "payload": null
                     }
                   ]
                 }

@@ -20,28 +20,17 @@
       }
     },
     {
-      "Type": {
-        "id": 137,
-        "name": 9,
-        "type_spec": {
-          "Struct": {
-            "fields": []
-          }
-        }
-      }
-    },
-    {
       "Function": {
-        "id": 226,
-        "name": 14,
+        "id": 133,
+        "name": 9,
         "params": [
           {
-            "id": 245,
-            "name": 15
+            "id": 152,
+            "name": 10
           }
         ],
         "body": {
-          "id": 253,
+          "id": 160,
           "statements": []
         },
         "function_type": {
@@ -56,16 +45,16 @@
     },
     {
       "Function": {
-        "id": 256,
-        "name": 17,
+        "id": 163,
+        "name": 14,
         "params": [
           {
-            "id": 271,
-            "name": 18
+            "id": 178,
+            "name": 15
           }
         ],
         "body": {
-          "id": 278,
+          "id": 185,
           "statements": []
         },
         "function_type": {
@@ -78,30 +67,24 @@
     },
     {
       "Type": {
-        "id": 287,
-        "name": 19,
+        "id": 194,
+        "name": 17,
         "type_spec": {
           "Enum": {
             "variants": [
               {
-                "name": 21,
+                "name": 19,
                 "payload": {
                   "Pointer": "Int32"
                 }
               },
               {
-                "name": 22,
+                "name": 20,
                 "payload": null
               },
               {
-                "name": 23,
-                "payload": {
-                  "Named": {
-                    "id": 350,
-                    "module": null,
-                    "name": 9
-                  }
-                }
+                "name": 21,
+                "payload": null
               }
             ]
           }
@@ -110,37 +93,39 @@
     },
     {
       "Function": {
-        "id": 423,
-        "name": 24,
+        "id": 319,
+        "name": 22,
         "params": [
           {
-            "id": 438,
-            "name": 25
+            "id": 334,
+            "name": 23
           }
         ],
         "body": {
-          "id": 460,
+          "id": 356,
           "statements": [
             {
               "If": {
                 "check": {
                   "Identifier": {
-                    "id": 469,
+                    "id": 365,
                     "module": null,
-                    "name": 25
+                    "name": 23
                   }
                 },
                 "success": {
-                  "id": 474,
+                  "id": 370,
                   "statements": [
                     {
                       "Let": {
                         "pattern": {
                           "TypeSpec": {
-                            "id": 488,
-                            "type_spec": "Int32",
+                            "id": 467,
+                            "type_spec": {
+                              "Pointer": "Int32"
+                            },
                             "payload": {
-                              "Some": 15
+                              "Some": 10
                             }
                           }
                         },
@@ -154,23 +139,21 @@
                             "options": []
                           }
                         },
-                        "except": {
-                          "Wrap": {
-                            "DotAccess": {
-                              "target": null,
-                              "field": 23
-                            }
-                          }
-                        }
+                        "except": "Panic"
                       }
                     },
                     {
                       "Assign": {
                         "lvalue": {
-                          "Identifier": {
-                            "id": 535,
-                            "module": null,
-                            "name": 15
+                          "Unary": {
+                            "operator": "Dereference",
+                            "operand": {
+                              "Identifier": {
+                                "id": 500,
+                                "module": null,
+                                "name": 10
+                              }
+                            }
                           }
                         },
                         "rvalue": {
@@ -185,15 +168,15 @@
                             "func": {
                               "DotAccess": {
                                 "target": null,
-                                "field": 21
+                                "field": 19
                               }
                             },
                             "args": [
                               {
                                 "Identifier": {
-                                  "id": 561,
+                                  "id": 526,
                                   "module": null,
-                                  "name": 15
+                                  "name": 10
                                 }
                               }
                             ]
@@ -211,7 +194,7 @@
                 "value": {
                   "DotAccess": {
                     "target": null,
-                    "field": 22
+                    "field": 20
                   }
                 }
               }
@@ -224,9 +207,9 @@
           ],
           "return_type": {
             "Named": {
-              "id": 449,
+              "id": 345,
               "module": null,
-              "name": 19
+              "name": 17
             }
           }
         }
@@ -234,11 +217,11 @@
     },
     {
       "Function": {
-        "id": 602,
+        "id": 567,
         "name": 1,
         "params": [],
         "body": {
-          "id": 612,
+          "id": 577,
           "statements": [
             {
               "Match": {
@@ -246,9 +229,9 @@
                   "Call": {
                     "func": {
                       "Identifier": {
-                        "id": 624,
+                        "id": 589,
                         "module": null,
-                        "name": 24
+                        "name": 22
                       }
                     },
                     "args": [
@@ -260,19 +243,19 @@
                 },
                 "arms": [
                   {
-                    "id": 653,
+                    "id": 618,
                     "pattern": {
                       "EnumVariant": {
-                        "id": 653,
+                        "id": 618,
                         "enum_name": null,
-                        "variant": 21,
+                        "variant": 19,
                         "payload": {
-                          "Some": 15
+                          "Some": 10
                         }
                       }
                     },
                     "body": {
-                      "id": 660,
+                      "id": 625,
                       "statements": [
                         {
                           "Expr": {
@@ -280,17 +263,17 @@
                               "Call": {
                                 "func": {
                                   "Identifier": {
-                                    "id": 662,
+                                    "id": 627,
                                     "module": null,
-                                    "name": 14
+                                    "name": 9
                                   }
                                 },
                                 "args": [
                                   {
                                     "Identifier": {
-                                      "id": 678,
+                                      "id": 643,
                                       "module": null,
-                                      "name": 15
+                                      "name": 10
                                     }
                                   }
                                 ]
@@ -302,17 +285,17 @@
                     }
                   },
                   {
-                    "id": 691,
+                    "id": 656,
                     "pattern": {
                       "EnumVariant": {
-                        "id": 691,
+                        "id": 656,
                         "enum_name": null,
-                        "variant": 22,
+                        "variant": 20,
                         "payload": "None"
                       }
                     },
                     "body": {
-                      "id": 704,
+                      "id": 669,
                       "statements": [
                         {
                           "Expr": {
@@ -320,14 +303,14 @@
                               "Call": {
                                 "func": {
                                   "Identifier": {
-                                    "id": 706,
+                                    "id": 671,
                                     "module": null,
-                                    "name": 17
+                                    "name": 14
                                   }
                                 },
                                 "args": [
                                   {
-                                    "StringLiteral": 38
+                                    "StringLiteral": 36
                                   }
                                 ]
                               }
@@ -454,18 +437,6 @@
             "id": 12,
             "name": 9,
             "binding_type": {
-              "TypeDecl": {
-                "Struct": {
-                  "fields": []
-                }
-              }
-            },
-            "used": true
-          },
-          {
-            "id": 13,
-            "name": 14,
-            "binding_type": {
               "FuncDecl": {
                 "Function": {
                   "params": [
@@ -480,8 +451,8 @@
             "used": true
           },
           {
-            "id": 15,
-            "name": 17,
+            "id": 14,
+            "name": 14,
             "binding_type": {
               "FuncDecl": {
                 "Function": {
@@ -495,31 +466,25 @@
             "used": true
           },
           {
-            "id": 17,
-            "name": 19,
+            "id": 16,
+            "name": 17,
             "binding_type": {
               "TypeDecl": {
                 "Enum": {
                   "variants": [
                     {
-                      "name": 21,
+                      "name": 19,
                       "payload": {
                         "Pointer": "Int32"
                       }
                     },
                     {
-                      "name": 22,
+                      "name": 20,
                       "payload": null
                     },
                     {
-                      "name": 23,
-                      "payload": {
-                        "Named": {
-                          "id": 350,
-                          "module": null,
-                          "name": 9
-                        }
-                      }
+                      "name": 21,
+                      "payload": null
                     }
                   ]
                 }
@@ -528,8 +493,8 @@
             "used": true
           },
           {
-            "id": 18,
-            "name": 24,
+            "id": 17,
+            "name": 22,
             "binding_type": {
               "FuncDecl": {
                 "Function": {
@@ -538,9 +503,9 @@
                   ],
                   "return_type": {
                     "Named": {
-                      "id": 449,
+                      "id": 345,
                       "module": null,
-                      "name": 19
+                      "name": 17
                     }
                   }
                 }
@@ -549,7 +514,7 @@
             "used": true
           },
           {
-            "id": 21,
+            "id": 20,
             "name": 1,
             "binding_type": {
               "FuncDecl": {
@@ -567,8 +532,8 @@
         "parent": 0,
         "bindings": [
           {
-            "id": 14,
-            "name": 15,
+            "id": 13,
+            "name": 10,
             "binding_type": "ValueDecl",
             "used": false
           }
@@ -582,8 +547,8 @@
         "parent": 0,
         "bindings": [
           {
-            "id": 16,
-            "name": 18,
+            "id": 15,
+            "name": 15,
             "binding_type": "ValueDecl",
             "used": false
           }
@@ -597,8 +562,8 @@
         "parent": 0,
         "bindings": [
           {
-            "id": 19,
-            "name": 25,
+            "id": 18,
+            "name": 23,
             "binding_type": "ValueDecl",
             "used": true
           }
@@ -612,8 +577,8 @@
         "parent": 6,
         "bindings": [
           {
-            "id": 20,
-            "name": 15,
+            "id": 19,
+            "name": 10,
             "binding_type": "ValueDecl",
             "used": true
           }
@@ -631,8 +596,8 @@
         "parent": 9,
         "bindings": [
           {
-            "id": 22,
-            "name": 15,
+            "id": 21,
+            "name": 10,
             "binding_type": "ValueDecl",
             "used": true
           }
@@ -653,121 +618,113 @@
     ],
     "current_scope": 0,
     "scope_map": {
-      "137": {
-        "scope_id": 0,
-        "scope_depth": 13
-      },
-      "226": {
+      "133": {
         "scope_id": 1,
         "scope_depth": 0
       },
-      "245": {
+      "152": {
         "scope_id": 1,
         "scope_depth": 1
       },
-      "253": {
+      "160": {
         "scope_id": 2,
         "scope_depth": 0
       },
-      "256": {
+      "163": {
         "scope_id": 3,
         "scope_depth": 0
       },
-      "271": {
+      "178": {
         "scope_id": 3,
         "scope_depth": 1
       },
-      "278": {
+      "185": {
         "scope_id": 4,
         "scope_depth": 0
       },
-      "287": {
+      "194": {
         "scope_id": 0,
-        "scope_depth": 16
+        "scope_depth": 15
       },
-      "350": {
-        "scope_id": 0,
-        "scope_depth": 16
-      },
-      "423": {
+      "319": {
         "scope_id": 5,
         "scope_depth": 0
       },
-      "438": {
+      "334": {
         "scope_id": 5,
         "scope_depth": 1
       },
-      "449": {
+      "345": {
         "scope_id": 0,
-        "scope_depth": 17
+        "scope_depth": 16
       },
-      "460": {
+      "356": {
         "scope_id": 6,
         "scope_depth": 0
       },
-      "469": {
+      "365": {
         "scope_id": 6,
         "scope_depth": 0
       },
-      "474": {
+      "370": {
         "scope_id": 7,
         "scope_depth": 0
       },
-      "488": {
+      "467": {
         "scope_id": 7,
         "scope_depth": 1
       },
-      "535": {
+      "500": {
         "scope_id": 7,
         "scope_depth": 1
       },
-      "561": {
+      "526": {
         "scope_id": 7,
         "scope_depth": 1
       },
-      "602": {
+      "567": {
         "scope_id": 8,
         "scope_depth": 0
       },
-      "612": {
+      "577": {
         "scope_id": 9,
         "scope_depth": 0
       },
-      "624": {
+      "589": {
         "scope_id": 9,
         "scope_depth": 0
       },
-      "653": {
+      "618": {
         "scope_id": 10,
         "scope_depth": 1
       },
-      "660": {
+      "625": {
         "scope_id": 11,
         "scope_depth": 0
       },
-      "662": {
+      "627": {
         "scope_id": 11,
         "scope_depth": 0
       },
-      "678": {
+      "643": {
         "scope_id": 11,
         "scope_depth": 0
       },
-      "691": {
+      "656": {
         "scope_id": 12,
         "scope_depth": 0
       },
-      "704": {
+      "669": {
         "scope_id": 13,
         "scope_depth": 0
       },
-      "706": {
+      "671": {
         "scope_id": 13,
         "scope_depth": 0
       }
     },
     "id_tracker": {
-      "id": 23
+      "id": 22
     }
   }
 }

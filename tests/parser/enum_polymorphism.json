@@ -44,7 +44,7 @@
         },
         "function_type": {
           "params": [
-            "Int32"
+            "Float64"
           ],
           "return_type": "Unit"
         }
@@ -59,11 +59,11 @@
             "variants": [
               {
                 "name": 20,
-                "payload": "Int32"
+                "payload": "Float64"
               },
               {
                 "name": 21,
-                "payload": "Int32"
+                "payload": "Float64"
               }
             ]
           }
@@ -202,7 +202,7 @@
               }
             }
           ],
-          "return_type": "Int32"
+          "return_type": "Float64"
         }
       }
     },
@@ -238,7 +238,7 @@
                     },
                     "args": [
                       {
-                        "IntLiteral": 10
+                        "FloatLiteral": 10.0
                       }
                     ]
                   }
@@ -250,7 +250,7 @@
               "Let": {
                 "pattern": {
                   "Identifier": {
-                    "id": 639,
+                    "id": 641,
                     "name": 33
                   }
                 },
@@ -258,7 +258,7 @@
                   "Call": {
                     "func": {
                       "Identifier": {
-                        "id": 653,
+                        "id": 655,
                         "module": null,
                         "name": 22
                       }
@@ -266,7 +266,7 @@
                     "args": [
                       {
                         "Identifier": {
-                          "id": 658,
+                          "id": 660,
                           "module": null,
                           "name": 31
                         }
@@ -283,7 +283,7 @@
                   "Call": {
                     "func": {
                       "Identifier": {
-                        "id": 670,
+                        "id": 672,
                         "module": null,
                         "name": 13
                       }
@@ -291,7 +291,7 @@
                     "args": [
                       {
                         "Identifier": {
-                          "id": 682,
+                          "id": 684,
                           "module": null,
                           "name": 33
                         }
@@ -305,7 +305,7 @@
               "Let": {
                 "pattern": {
                   "Identifier": {
-                    "id": 704,
+                    "id": 706,
                     "name": 34
                   }
                 },
@@ -315,7 +315,7 @@
                       "DotAccess": {
                         "target": {
                           "Identifier": {
-                            "id": 713,
+                            "id": 715,
                             "module": null,
                             "name": 18
                           }
@@ -325,7 +325,7 @@
                     },
                     "args": [
                       {
-                        "IntLiteral": 3
+                        "FloatLiteral": 3.0
                       }
                     ]
                   }
@@ -337,7 +337,7 @@
               "Let": {
                 "pattern": {
                   "Identifier": {
-                    "id": 737,
+                    "id": 741,
                     "name": 36
                   }
                 },
@@ -345,7 +345,7 @@
                   "Call": {
                     "func": {
                       "Identifier": {
-                        "id": 751,
+                        "id": 755,
                         "module": null,
                         "name": 22
                       }
@@ -353,7 +353,7 @@
                     "args": [
                       {
                         "Identifier": {
-                          "id": 756,
+                          "id": 760,
                           "module": null,
                           "name": 34
                         }
@@ -370,7 +370,7 @@
                   "Call": {
                     "func": {
                       "Identifier": {
-                        "id": 768,
+                        "id": 772,
                         "module": null,
                         "name": 13
                       }
@@ -378,7 +378,7 @@
                     "args": [
                       {
                         "Identifier": {
-                          "id": 780,
+                          "id": 784,
                           "module": null,
                           "name": 36
                         }
@@ -511,7 +511,7 @@
               "FuncDecl": {
                 "Function": {
                   "params": [
-                    "Int32"
+                    "Float64"
                   ],
                   "return_type": "Unit"
                 }
@@ -528,11 +528,11 @@
                   "variants": [
                     {
                       "name": 20,
-                      "payload": "Int32"
+                      "payload": "Float64"
                     },
                     {
                       "name": 21,
-                      "payload": "Int32"
+                      "payload": "Float64"
                     }
                   ]
                 }
@@ -555,7 +555,7 @@
                       }
                     }
                   ],
-                  "return_type": "Int32"
+                  "return_type": "Float64"
                 }
               }
             },
@@ -764,51 +764,51 @@
         "scope_id": 10,
         "scope_depth": 1
       },
-      "639": {
+      "641": {
         "scope_id": 10,
         "scope_depth": 2
       },
-      "653": {
+      "655": {
         "scope_id": 10,
         "scope_depth": 2
       },
-      "658": {
+      "660": {
         "scope_id": 10,
         "scope_depth": 2
       },
-      "670": {
+      "672": {
         "scope_id": 10,
         "scope_depth": 2
       },
-      "682": {
+      "684": {
         "scope_id": 10,
         "scope_depth": 2
       },
-      "704": {
+      "706": {
         "scope_id": 10,
         "scope_depth": 3
       },
-      "713": {
+      "715": {
         "scope_id": 10,
         "scope_depth": 3
       },
-      "737": {
+      "741": {
         "scope_id": 10,
         "scope_depth": 4
       },
-      "751": {
+      "755": {
         "scope_id": 10,
         "scope_depth": 4
       },
-      "756": {
+      "760": {
         "scope_id": 10,
         "scope_depth": 4
       },
-      "768": {
+      "772": {
         "scope_id": 10,
         "scope_depth": 4
       },
-      "780": {
+      "784": {
         "scope_id": 10,
         "scope_depth": 4
       }
