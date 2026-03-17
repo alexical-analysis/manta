@@ -56,10 +56,7 @@ impl Typer {
             Node::Match { target, arms } => {
                 node_tree.type_map.add(node_id, TypeSpec::Unit);
 
-                let target_type = self
-                    .type_expr_node(node_tree, target)
-                    .expect("missing type for match target")
-                    .clone();
+                let target_type = self.type_expr_node(node_tree, target).clone();
 
                 self.match_type.push(target_type.clone());
                 for arm in arms {
@@ -76,22 +73,22 @@ impl Typer {
             Node::Return { value } => {
                 node_tree.type_map.add(node_id, TypeSpec::Unit);
 
-                match (value, &self.return_type) {
+                match (value, &self.return_type.clone()) {
                     (Some(v), Some(ret)) => {
-                        let type_spec = node_tree.type_map.get(v);
-                        // TODO: we are not fully ready to insiste that all values have types here
-                        // but when we are we need to add in this line and remove the more generous
-                        // test below
-                        // .expect("missing type spec for return value");
-
-                        match type_spec {
-                            Some(ts) => {
-                                if ts != ret {
-                                    panic!("return type does not match the expected type")
-                                }
+                        let type_spec = self.type_expr_node(node_tree, v);
+                        match match_types(ret, &type_spec) {
+                            TypeMatch::ExactType => {}
+                            TypeMatch::Inference(ts) => {
+                                node_tree.type_map.set(v, ts);
                             }
-                            None => eprintln!("TODO; missing type for return value"),
-                        };
+                            TypeMatch::InferenceFailed => {
+                                panic!("can not infer type in this context")
+                            }
+                            TypeMatch::Mismatch => panic!(
+                                "invalid return value with type {:?} in a function with the return type {:?}",
+                                type_spec, ret
+                            ),
+                        }
                     }
                     (None, Some(ret)) => {
                         if *ret != TypeSpec::Unit {
@@ -105,14 +102,7 @@ impl Typer {
                 node_tree.type_map.add(node_id, TypeSpec::Unit);
 
                 let free_type = self.type_expr_node(node_tree, expr);
-                if free_type.is_none() {
-                    eprintln!("TODO: missing type for free expression");
-                    return;
-                }
-
-                let free_type = free_type.unwrap();
-                let free_type = resolve_type(&free_type);
-                match free_type {
+                match resolve_type(&free_type) {
                     TypeSpec::Pointer(_) => {}
                     _ => panic!("can not free memory of non-pointer type"),
                 }
@@ -168,50 +158,19 @@ impl Typer {
             Node::Assign { target, value } => {
                 node_tree.type_map.add(node_id, TypeSpec::Unit);
 
-                let r_type = match self.type_expr_node(node_tree, value) {
-                    Some(t) => t,
-                    None => {
-                        let r_node = node_tree.get_node(value);
-                        eprintln!(
-                            "TODO: node is missing a type {:?}, skpping type checking for now",
-                            r_node
-                        );
-                        return;
-                    }
-                };
+                let r_type = self.type_expr_node(node_tree, value);
+                let l_type = self.type_expr_node(node_tree, target);
 
-                // TODO: make sure l_type is assignale (e.g. has a memory location)
-                let l_type = match self.type_expr_node(node_tree, target) {
-                    Some(t) => t,
-                    None => {
-                        if let Some(Node::Identifier { .. }) = node_tree.get_node(target) {
-                            // if the left hand side has no type, check if the node is an identifier.
-                            // if not this is a type checking bug and we should panic because there is
-                            // a problem with the type checker itself.
-                            //
-                            // If it is an identifier we need to infer the type from the RHS and add
-                            // it to the type_map
-                            let ts = r_type.clone();
-                            node_tree.type_map.add(target, ts.clone());
-                            ts
-                        } else {
-                            panic!(
-                                "missing type for assignment target {:?}",
-                                node_tree.get_node(target)
-                            )
-                        }
-                    }
-                };
-
+                // TODO: make sure l_type is assignale (e.g. has a concrete location in memory)
                 match match_types(&l_type, &r_type) {
                     TypeMatch::ExactType => {}
                     TypeMatch::Inference(ts) => {
-                        node_tree.type_map.set(target, ts.clone());
-                        node_tree.type_map.set(value, ts);
+                        node_tree.type_map.set(value, ts.clone());
+                        node_tree.type_map.set(target, ts);
                     }
-                    TypeMatch::InferenceFailed => panic!("failed to infer types for assignment"),
+                    TypeMatch::InferenceFailed => panic!("could not infere a type in this context"),
                     TypeMatch::Mismatch => {
-                        panic!("l_type {:?} does not equal r_type {:?}", l_type, r_type)
+                        panic!("invalid type for assignment {:?} = {:?}", &l_type, &r_type)
                     }
                 }
             }
@@ -236,13 +195,11 @@ impl Typer {
         }
     }
 
-    // TODO: this should just return a type spec but I'm leaving it as optional right now for backwards
-    // compatibility durring the refactor
-    fn type_expr_node(&mut self, node_tree: &mut NodeTree, node_id: NodeID) -> Option<TypeSpec> {
+    fn type_expr_node(&mut self, node_tree: &mut NodeTree, node_id: NodeID) -> TypeSpec {
         // if the type of this node is already known we can just return that, otherwise we need to go
         // through the work of inferring the type
         if let Some(ts) = node_tree.type_map.get(node_id) {
-            return Some(ts.clone());
+            return ts.clone();
         }
 
         let node = node_tree
@@ -254,27 +211,27 @@ impl Typer {
             Node::Invalid => {
                 let ts = TypeSpec::Panic;
                 node_tree.type_map.add(node_id, ts.clone());
-                Some(ts)
+                ts
             }
             Node::IntLiteral(i) => {
                 let ts = TypeSpec::IntLiteral(i);
                 node_tree.type_map.add(node_id, ts.clone());
-                Some(ts)
+                ts
             }
             Node::FloatLiteral(f) => {
                 let ts = TypeSpec::FloatLiteral(f);
                 node_tree.type_map.add(node_id, ts.clone());
-                Some(ts)
+                ts
             }
             Node::StringLiteral(_) => {
                 let ts = TypeSpec::String;
                 node_tree.type_map.add(node_id, ts.clone());
-                Some(ts)
+                ts
             }
             Node::BoolLiteral(_) => {
                 let ts = TypeSpec::Bool;
                 node_tree.type_map.add(node_id, ts.clone());
-                Some(ts)
+                ts
             }
             Node::Binary {
                 left,
@@ -283,14 +240,8 @@ impl Typer {
             } => {
                 let l_type = self.type_expr_node(node_tree, left);
                 let r_type = self.type_expr_node(node_tree, right);
-                if l_type.is_none() || r_type.is_none() {
-                    eprintln!(
-                        "TODO: skpping type checking for now since l_type or r_type is missing"
-                    );
-                    return None;
-                }
 
-                match match_types(&l_type.clone().expect(""), &r_type.expect("")) {
+                match match_types(&l_type, &r_type) {
                     TypeMatch::ExactType => l_type,
                     TypeMatch::Inference(ts) => {
                         node_tree.type_map.set(left, ts.clone());
@@ -300,13 +251,22 @@ impl Typer {
                     TypeMatch::InferenceFailed => {
                         panic!("failed to infer type for binary expression")
                     }
-                    TypeMatch::Mismatch => panic!("types do not match in binary expression"),
+                    TypeMatch::Mismatch => panic!(
+                        "types {:?} and {:?} do not match in binary expression",
+                        l_type, r_type
+                    ),
                 }
             }
             Node::Identifier { .. } => {
                 // Identifiers should get their types from context (e.g. from assignment or
-                // function params)
-                node_tree.type_map.get(node_id).cloned()
+                // function params) if we don't have a type yet, assume any type could be valid
+                match node_tree.type_map.get(node_id) {
+                    Some(ts) => ts.clone(),
+                    None => {
+                        node_tree.type_map.add(node_id, TypeSpec::Any);
+                        TypeSpec::Any
+                    }
+                }
             }
             Node::EnumConstructor {
                 target,
@@ -315,12 +275,6 @@ impl Typer {
             } => match target {
                 Some(t) => {
                     let target_ts = self.type_expr_node(node_tree, t);
-                    if target_ts.is_none() {
-                        eprintln!("TODO: missing type for payload identifier");
-                        return None;
-                    }
-
-                    let target_ts = target_ts.unwrap();
                     match resolve_type(&target_ts) {
                         TypeSpec::Enum(e) => {
                             let mut found_variant = None;
@@ -335,21 +289,15 @@ impl Typer {
                                 Some(found) => match (payload, &found.payload) {
                                     (Some(p), Some(ts)) => {
                                         let pay_id = self.type_expr_node(node_tree, p);
-                                        if pay_id.is_none() {
-                                            eprintln!("TODO: missing type for variant payload");
-                                            return Some(target_ts);
-                                        }
-
-                                        let pay_id = pay_id.unwrap();
                                         match match_types(&pay_id, ts) {
                                             TypeMatch::ExactType => {
                                                 node_tree.type_map.add(node_id, target_ts.clone());
-                                                Some(target_ts)
+                                                target_ts
                                             }
                                             TypeMatch::Inference(ts) => {
                                                 node_tree.type_map.set(p, ts);
                                                 node_tree.type_map.add(node_id, target_ts.clone());
-                                                Some(target_ts)
+                                                target_ts
                                             }
                                             TypeMatch::InferenceFailed => {
                                                 panic!("invalid type for variant payload")
@@ -367,7 +315,7 @@ impl Typer {
                                     ),
                                     (None, None) => {
                                         node_tree.type_map.add(node_id, target_ts.clone());
-                                        Some(target_ts)
+                                        target_ts
                                     }
                                 },
                                 None => panic!("failed to find variant for enum type"),
@@ -377,28 +325,17 @@ impl Typer {
                     }
                 }
                 None => {
-                    let pay = payload.map(|p| self.type_expr_node(node_tree, p));
-                    if payload.is_some() && pay.is_none() {
-                        eprintln!("TODO: missing type for payload identifier");
-                        return None;
-                    }
-
+                    let payload = payload.map(|p| Box::new(self.type_expr_node(node_tree, p)));
                     let ts = TypeSpec::InferredEnumExpr(InferredEnumExpr {
                         variant_name: variant,
-                        payload: Some(Box::new(pay.unwrap().unwrap())),
+                        payload,
                     });
                     node_tree.type_map.add(node_id, ts.clone());
-                    Some(ts)
+                    ts
                 }
             },
             Node::FieldAccess { target, field } => {
                 let target_type = self.type_expr_node(node_tree, target);
-                if target_type.is_none() {
-                    eprintln!("TODO: not all types are implemented yet");
-                    return None;
-                }
-
-                let target_type = target_type.unwrap();
                 match resolve_type(&target_type) {
                     TypeSpec::Struct(ts) => {
                         let mut found_field = None;
@@ -412,7 +349,7 @@ impl Typer {
                         match found_field {
                             Some(ok) => {
                                 node_tree.type_map.add(node_id, ok.type_spec.clone());
-                                Some(ok.type_spec.clone())
+                                ok.type_spec.clone()
                             }
                             None => panic!("field does not exist on this type"),
                         }
@@ -423,13 +360,13 @@ impl Typer {
                 }
             }
             Node::Unary { operator, operand } => {
-                let operand_type = self.type_expr_node(node_tree, operand)?;
+                let operand_type = self.type_expr_node(node_tree, operand);
                 match operator {
                     UnaryOp::AddressOf => {
                         // &T -> Pointer(T)
                         let ts = TypeSpec::Pointer(Box::new(operand_type));
                         node_tree.type_map.add(node_id, ts.clone());
-                        Some(ts)
+                        ts
                     }
                     UnaryOp::Dereference => {
                         // *Pointer(T) -> T
@@ -438,7 +375,7 @@ impl Typer {
                             _ => panic!("cannot dereference non-pointer type"),
                         };
                         node_tree.type_map.add(node_id, ts.clone());
-                        Some(ts)
+                        ts
                     }
                     UnaryOp::Not => {
                         // !T -> T
@@ -447,7 +384,7 @@ impl Typer {
                             panic!("! can only be used on boolean types")
                         }
                         node_tree.type_map.add(node_id, ts.clone());
-                        Some(ts)
+                        ts
                     }
                     UnaryOp::Negate => {
                         // -T -> T
@@ -456,7 +393,7 @@ impl Typer {
                             panic!("! can only be used on boolean types")
                         }
                         node_tree.type_map.add(node_id, ts.clone());
-                        Some(ts)
+                        ts
                     }
                     UnaryOp::Positive => {
                         // +T -> T
@@ -465,14 +402,12 @@ impl Typer {
                             panic!("! can only be used on boolean types")
                         }
                         node_tree.type_map.add(node_id, ts.clone());
-                        Some(ts)
+                        ts
                     }
                 }
             }
             Node::Call { func, args } => {
-                let func_type = self
-                    .type_expr_node(node_tree, func)
-                    .expect("missing type for function call");
+                let func_type = self.type_expr_node(node_tree, func);
 
                 let func_type = match func_type {
                     TypeSpec::Function(ft) => ft,
@@ -481,44 +416,37 @@ impl Typer {
 
                 for (param, arg) in func_type.params.iter().zip(args.iter()) {
                     let arg_type = self.type_expr_node(node_tree, *arg);
-                    match &arg_type {
-                        Some(ts) => match match_types(param, ts) {
-                            TypeMatch::ExactType => {}
-                            TypeMatch::Inference(_) => node_tree.type_map.set(*arg, param.clone()),
-                            TypeMatch::InferenceFailed => {
-                                panic!("failed to infer type for argument")
-                            }
-                            TypeMatch::Mismatch => panic!(
-                                "argument type does not match expected paramater type {:?} {:?}",
-                                param, ts
-                            ),
-                        },
-                        None => eprintln!("TODO: missing type for argument"),
+                    match match_types(param, &arg_type) {
+                        TypeMatch::ExactType => {}
+                        TypeMatch::Inference(_) => node_tree.type_map.set(*arg, param.clone()),
+                        TypeMatch::InferenceFailed => {
+                            panic!("failed to infer type for argument")
+                        }
+                        TypeMatch::Mismatch => panic!(
+                            "argument type does not match expected paramater type {:?} {:?}",
+                            param, arg_type
+                        ),
                     }
                 }
 
                 let ret_type = *func_type.return_type;
                 node_tree.type_map.add(node_id, ret_type.clone());
-                Some(ret_type)
+                ret_type
             }
             Node::Index { target, index } => {
-                let index_type = self
-                    .type_expr_node(node_tree, index)
-                    .expect("missing type for index expression");
+                let index_type = self.type_expr_node(node_tree, index);
                 if !is_natural_number(&index_type) {
                     panic!("can only index expressions using natural numbers")
                 }
 
-                let target_type = self
-                    .type_expr_node(node_tree, target)
-                    .expect("missing type for index target type");
+                let target_type = self.type_expr_node(node_tree, target);
                 match target_type {
-                    TypeSpec::Array(arr) => Some(*arr.type_spec),
-                    TypeSpec::Slice(elem_type) => Some(*elem_type),
+                    TypeSpec::Array(arr) => *arr.type_spec,
+                    TypeSpec::Slice(elem_type) => *elem_type,
                     _ => panic!("cannot index non-array/slice type"),
                 }
             }
-            Node::MetaType => Some(TypeSpec::Struct(StructType {
+            Node::MetaType => TypeSpec::Struct(StructType {
                 fields: vec![
                     StructField {
                         name: str_store::SIZEOF,
@@ -539,10 +467,10 @@ impl Typer {
                         type_spec: TypeSpec::UInt64,
                     },
                 ],
-            })),
+            }),
             Node::Range { .. } => todo!("Range expressions are not yet supported"),
             Node::Pattern(_) => panic!("Invalid position for a patter node"),
-            Node::Alloc { .. } => Some(TypeSpec::UnsafePtr),
+            Node::Alloc { .. } => TypeSpec::UnsafePtr,
             Node::Defer { .. }
             | Node::If { .. }
             | Node::VarDecl { .. }
@@ -573,8 +501,6 @@ impl Typer {
             .last()
             .expect("patterns can only appear inside match statments")
             .clone();
-
-        eprintln!("checking pattern {:?} against {:?}", pat, target_type);
 
         match pat {
             PatternNode::IntLiteral(i) => {
@@ -808,6 +734,8 @@ fn match_types(a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
         // if both the left and right hand side are typed as literals, just conver the type to an
         // int64 instead of trying to propogagte types through the graph
         (TypeSpec::IntLiteral(_), TypeSpec::IntLiteral(_)) => TypeMatch::Inference(TypeSpec::Int64),
+        (TypeSpec::IntLiteral(_), TypeSpec::Any) => TypeMatch::Inference(TypeSpec::Int64),
+        (TypeSpec::Any, TypeSpec::IntLiteral(_)) => TypeMatch::Inference(TypeSpec::Int64),
         (TypeSpec::IntLiteral(i), inner_b) => match inner_b {
             TypeSpec::Int64 => match_int(i, i64::MIN, i64::MAX, TypeSpec::Int64),
             TypeSpec::Int32 => match_int(i, i32::MIN as i64, i32::MAX as i64, TypeSpec::Int32),
@@ -839,6 +767,8 @@ fn match_types(a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
         (TypeSpec::FloatLiteral(_), TypeSpec::FloatLiteral(_)) => {
             TypeMatch::Inference(TypeSpec::Float64)
         }
+        (TypeSpec::FloatLiteral(_), TypeSpec::Any) => TypeMatch::Inference(TypeSpec::Float64),
+        (TypeSpec::Any, TypeSpec::FloatLiteral(_)) => TypeMatch::Inference(TypeSpec::Float64),
         (TypeSpec::FloatLiteral(f), inner_b) => match inner_b {
             TypeSpec::Float64 => match_float(f, f64::MIN, f64::MAX, TypeSpec::Float64),
             TypeSpec::Float32 => {
@@ -942,7 +872,6 @@ fn match_enum_pat(known: &TypeSpec, unknown: &InferredEnumPat) -> TypeMatch {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast::Payload;
     use crate::hir::{EnumType, EnumVariant, NamedType};
     use crate::str_store::StrID;
 

@@ -216,7 +216,7 @@
       }
     },
     {
-      "IntLiteral": 10
+      "FloatLiteral": 10.0
     },
     {
       "Identifier": {
@@ -276,7 +276,7 @@
       }
     },
     {
-      "IntLiteral": 3
+      "FloatLiteral": 3.0
     },
     {
       "Identifier": {
@@ -426,11 +426,11 @@
       "56": 8
     },
     "values": [
-      "Int32",
+      "Float64",
       {
         "Function": {
           "params": [
-            "Int32"
+            "Float64"
           ],
           "return_type": "Unit"
         }
@@ -438,7 +438,7 @@
       {
         "Function": {
           "params": [
-            "Int32"
+            "Float64"
           ],
           "return_type": "Unit"
         }
@@ -448,11 +448,11 @@
           "variants": [
             {
               "name": 20,
-              "payload": "Int32"
+              "payload": "Float64"
             },
             {
               "name": 21,
-              "payload": "Int32"
+              "payload": "Float64"
             }
           ]
         }
@@ -465,11 +465,11 @@
               "variants": [
                 {
                   "name": 20,
-                  "payload": "Int32"
+                  "payload": "Float64"
                 },
                 {
                   "name": 21,
-                  "payload": "Int32"
+                  "payload": "Float64"
                 }
               ]
             }
@@ -487,11 +487,11 @@
                     "variants": [
                       {
                         "name": 20,
-                        "payload": "Int32"
+                        "payload": "Float64"
                       },
                       {
                         "name": 21,
-                        "payload": "Int32"
+                        "payload": "Float64"
                       }
                     ]
                   }
@@ -499,7 +499,7 @@
               }
             }
           ],
-          "return_type": "Int32"
+          "return_type": "Float64"
         }
       },
       {
@@ -513,11 +513,11 @@
                     "variants": [
                       {
                         "name": 20,
-                        "payload": "Int32"
+                        "payload": "Float64"
                       },
                       {
                         "name": 21,
-                        "payload": "Int32"
+                        "payload": "Float64"
                       }
                     ]
                   }
@@ -525,7 +525,7 @@
               }
             }
           ],
-          "return_type": "Int32"
+          "return_type": "Float64"
         }
       },
       {
@@ -554,11 +554,11 @@
               "variants": [
                 {
                   "name": 20,
-                  "payload": "Int32"
+                  "payload": "Float64"
                 },
                 {
                   "name": 21,
-                  "payload": "Int32"
+                  "payload": "Float64"
                 }
               ]
             }
@@ -567,17 +567,17 @@
       },
       "Unit",
       "Unit",
-      "Int32",
+      "Float64",
       {
         "Enum": {
           "variants": [
             {
               "name": 20,
-              "payload": "Int32"
+              "payload": "Float64"
             },
             {
               "name": 21,
-              "payload": "Int32"
+              "payload": "Float64"
             }
           ]
         }
@@ -587,28 +587,28 @@
           "variants": [
             {
               "name": 20,
-              "payload": "Int32"
+              "payload": "Float64"
             },
             {
               "name": 21,
-              "payload": "Int32"
+              "payload": "Float64"
             }
           ]
         }
       },
       "Unit",
       "Unit",
-      "Int32",
+      "Float64",
       {
         "Enum": {
           "variants": [
             {
               "name": 20,
-              "payload": "Int32"
+              "payload": "Float64"
             },
             {
               "name": 21,
-              "payload": "Int32"
+              "payload": "Float64"
             }
           ]
         }
@@ -618,11 +618,11 @@
           "variants": [
             {
               "name": 20,
-              "payload": "Int32"
+              "payload": "Float64"
             },
             {
               "name": 21,
-              "payload": "Int32"
+              "payload": "Float64"
             }
           ]
         }
@@ -632,7 +632,7 @@
       "Unit",
       "Unit",
       "Unit",
-      "Int32",
+      "Float64",
       {
         "Named": {
           "name": 10,
@@ -641,57 +641,11 @@
               "variants": [
                 {
                   "name": 20,
-                  "payload": "Int32"
+                  "payload": "Float64"
                 },
                 {
                   "name": 21,
-                  "payload": "Int32"
-                }
-              ]
-            }
-          }
-        }
-      },
-      {
-        "Named": {
-          "name": 10,
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 20,
-                  "payload": "Int32"
-                },
-                {
-                  "name": 21,
-                  "payload": "Int32"
-                }
-              ]
-            }
-          }
-        }
-      },
-      "Unit",
-      "Unit",
-      "Int32",
-      "Int32",
-      "Unit",
-      "Unit",
-      "Unit",
-      "Int32",
-      {
-        "Named": {
-          "name": 10,
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 20,
-                  "payload": "Int32"
-                },
-                {
-                  "name": 21,
-                  "payload": "Int32"
+                  "payload": "Float64"
                 }
               ]
             }
@@ -706,11 +660,11 @@
               "variants": [
                 {
                   "name": 20,
-                  "payload": "Int32"
+                  "payload": "Float64"
                 },
                 {
                   "name": 21,
-                  "payload": "Int32"
+                  "payload": "Float64"
                 }
               ]
             }
@@ -719,8 +673,54 @@
       },
       "Unit",
       "Unit",
-      "Int32",
-      "Int32",
+      "Float64",
+      "Float64",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Float64",
+      {
+        "Named": {
+          "name": 10,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 20,
+                  "payload": "Float64"
+                },
+                {
+                  "name": 21,
+                  "payload": "Float64"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "Named": {
+          "name": 10,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 20,
+                  "payload": "Float64"
+                },
+                {
+                  "name": 21,
+                  "payload": "Float64"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Unit",
+      "Unit",
+      "Float64",
+      "Float64",
       "Unit",
       "Unit"
     ]

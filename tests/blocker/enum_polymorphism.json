@@ -39,7 +39,7 @@
       "type_spec": {
         "Function": {
           "params": [
-            "Int32"
+            "Float64"
           ],
           "return_type": "Unit"
         }
@@ -82,11 +82,11 @@
                     "variants": [
                       {
                         "name": 20,
-                        "payload": "Int32"
+                        "payload": "Float64"
                       },
                       {
                         "name": 21,
-                        "payload": "Int32"
+                        "payload": "Float64"
                       }
                     ]
                   }
@@ -94,7 +94,7 @@
               }
             }
           ],
-          "return_type": "Int32"
+          "return_type": "Float64"
         }
       },
       "locals": [],
