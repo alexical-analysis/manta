@@ -117,7 +117,7 @@ pub enum Node {
     },
 
     FieldAccess {
-        target: Option<NodeID>,
+        target: NodeID,
         field: StrID,
     },
 
