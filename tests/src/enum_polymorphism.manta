@@ -28,11 +28,11 @@ fn area(s Shape) f64 {
 }
 
 fn main() {
-    let square = Shape.Square(10.0)
+    let square = Shape.Square(10)
     let square_area = area(square)
     fmt_println(square_area)
 
-    let circle = Shape.Circle(3.0)
+    let circle = Shape.Circle(3)
     let circle_area = area(circle)
     fmt_println(circle_area)
 }
