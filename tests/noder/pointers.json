@@ -1,0 +1,357 @@
+{
+  "nodes": [
+    {
+      "Identifier": {
+        "module": null,
+        "name": 9
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 0
+      }
+    },
+    {
+      "Return": {
+        "value": null
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          2
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 8
+      }
+    },
+    {
+      "FunctionDecl": {
+        "ident": 4,
+        "params": [
+          1
+        ],
+        "body": 3
+      }
+    },
+    {
+      "IntLiteral": 42
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 9
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 7
+      }
+    },
+    {
+      "Assign": {
+        "target": 7,
+        "value": 6
+      }
+    },
+    {
+      "IntLiteral": 2701
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 15
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 11
+      }
+    },
+    {
+      "Assign": {
+        "target": 11,
+        "value": 10
+      }
+    },
+    {
+      "Unary": {
+        "operator": "AddressOf",
+        "operand": 7
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 17
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 15
+      }
+    },
+    {
+      "Assign": {
+        "target": 15,
+        "value": 14
+      }
+    },
+    {
+      "Unary": {
+        "operator": "Dereference",
+        "operand": 15
+      }
+    },
+    {
+      "Call": {
+        "func": 4,
+        "args": [
+          18
+        ]
+      }
+    },
+    {
+      "Unary": {
+        "operator": "Dereference",
+        "operand": 15
+      }
+    },
+    {
+      "IntLiteral": 21
+    },
+    {
+      "Assign": {
+        "target": 20,
+        "value": 21
+      }
+    },
+    {
+      "Call": {
+        "func": 4,
+        "args": [
+          7
+        ]
+      }
+    },
+    {
+      "Unary": {
+        "operator": "AddressOf",
+        "operand": 11
+      }
+    },
+    {
+      "Assign": {
+        "target": 15,
+        "value": 24
+      }
+    },
+    {
+      "Unary": {
+        "operator": "Dereference",
+        "operand": 15
+      }
+    },
+    {
+      "Unary": {
+        "operator": "Dereference",
+        "operand": 15
+      }
+    },
+    {
+      "IntLiteral": 37
+    },
+    {
+      "Binary": {
+        "left": 27,
+        "operator": "Divide",
+        "right": 28
+      }
+    },
+    {
+      "Assign": {
+        "target": 26,
+        "value": 29
+      }
+    },
+    {
+      "Call": {
+        "func": 4,
+        "args": [
+          11
+        ]
+      }
+    },
+    {
+      "Return": {
+        "value": null
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          8,
+          9,
+          12,
+          13,
+          16,
+          17,
+          19,
+          22,
+          23,
+          25,
+          30,
+          31,
+          32
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 1
+      }
+    },
+    {
+      "FunctionDecl": {
+        "ident": 34,
+        "params": [],
+        "body": 33
+      }
+    }
+  ],
+  "roots": [
+    5,
+    35
+  ],
+  "type_map": {
+    "keys": {
+      "0": 0,
+      "1": 5,
+      "2": 7,
+      "3": 6,
+      "4": 1,
+      "5": 2,
+      "6": 11,
+      "7": 12,
+      "8": 9,
+      "9": 10,
+      "10": 15,
+      "11": 16,
+      "12": 13,
+      "13": 14,
+      "14": 19,
+      "15": 20,
+      "16": 17,
+      "17": 18,
+      "18": 21,
+      "19": 22,
+      "20": 25,
+      "21": 24,
+      "22": 23,
+      "23": 26,
+      "24": 28,
+      "25": 27,
+      "26": 33,
+      "27": 30,
+      "28": 31,
+      "29": 32,
+      "30": 29,
+      "31": 34,
+      "32": 35,
+      "33": 8,
+      "34": 3,
+      "35": 4
+    },
+    "values": [
+      "Int64",
+      {
+        "Function": {
+          "params": [
+            "Int64"
+          ],
+          "return_type": "Unit"
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            "Int64"
+          ],
+          "return_type": "Unit"
+        }
+      },
+      {
+        "Function": {
+          "params": [],
+          "return_type": "Unit"
+        }
+      },
+      {
+        "Function": {
+          "params": [],
+          "return_type": "Unit"
+        }
+      },
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Int64",
+      "Int64",
+      "Unit",
+      "Unit",
+      "Int64",
+      "Int64",
+      "Unit",
+      "Unit",
+      {
+        "Pointer": "Int64"
+      },
+      {
+        "Pointer": "Int64"
+      },
+      "Int64",
+      "Unit",
+      "Unit",
+      "Int64",
+      "Int64",
+      "Unit",
+      "Unit",
+      {
+        "Pointer": "Int64"
+      },
+      "Unit",
+      "Int64",
+      "Int64",
+      "Int64",
+      "Int64",
+      "Unit",
+      "Unit"
+    ]
+  },
+  "symbol_map": {
+    "keys": {
+      "12": 1,
+      "13": 0,
+      "14": 5,
+      "15": 2,
+      "16": 3,
+      "17": 4
+    },
+    "values": [
+      0,
+      4,
+      7,
+      11,
+      15,
+      34
+    ]
+  }
+}

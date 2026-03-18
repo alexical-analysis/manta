@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use crate::ast::UnaryOp;
+use crate::ast::{BinaryOp, UnaryOp};
 use crate::hir::{
     InferredEnumExpr, InferredEnumPat, NamedType, Node, NodeID, PatternNode, StructField,
     StructType, TypeSpec,
@@ -239,18 +239,18 @@ impl Typer {
             }
             Node::Binary {
                 left,
-                operator: _,
+                operator,
                 right,
             } => {
                 let l_type = self.type_expr_node(node_tree, left);
                 let r_type = self.type_expr_node(node_tree, right);
 
-                match match_types(&l_type, &r_type) {
+                let operand_type = match match_types(&l_type, &r_type) {
                     TypeMatch::ExactType => l_type,
                     TypeMatch::Inference(ts) => {
                         node_tree.type_map.set(left, ts.clone());
-                        node_tree.type_map.set(right, ts);
-                        l_type
+                        node_tree.type_map.set(right, ts.clone());
+                        ts
                     }
                     TypeMatch::InferenceFailed => {
                         panic!("failed to infer type for binary expression")
@@ -259,7 +259,22 @@ impl Typer {
                         "types {:?} and {:?} do not match in binary expression",
                         l_type, r_type
                     ),
-                }
+                };
+
+                let result_type = match operator {
+                    BinaryOp::Equal
+                    | BinaryOp::NotEqual
+                    | BinaryOp::LessThan
+                    | BinaryOp::LessThanOrEqual
+                    | BinaryOp::GreaterThan
+                    | BinaryOp::GreaterThanOrEqual
+                    | BinaryOp::LogicalAnd
+                    | BinaryOp::LogicalOr => TypeSpec::Bool,
+                    _ => operand_type,
+                };
+
+                node_tree.type_map.add(node_id, result_type.clone());
+                result_type
             }
             Node::Identifier { .. } => {
                 // Identifiers should get their types from context (e.g. from assignment or
