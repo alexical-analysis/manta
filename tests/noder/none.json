@@ -1,0 +1,877 @@
+{
+  "nodes": [
+    {
+      "Identifier": {
+        "module": null,
+        "name": 10
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 0
+      }
+    },
+    {
+      "Return": {
+        "value": null
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          2
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 9
+      }
+    },
+    {
+      "FunctionDecl": {
+        "ident": 4,
+        "params": [
+          1
+        ],
+        "body": 3
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 15
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 6
+      }
+    },
+    {
+      "Return": {
+        "value": null
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          8
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 14
+      }
+    },
+    {
+      "FunctionDecl": {
+        "ident": 10,
+        "params": [
+          7
+        ],
+        "body": 9
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 17
+      }
+    },
+    {
+      "TypeDecl": {
+        "ident": 12
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 23
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 14
+      }
+    },
+    "MetaType",
+    {
+      "Alloc": {
+        "meta_type": 16,
+        "options": []
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 10
+      }
+    },
+    {
+      "Pattern": {
+        "TypeSpec": {
+          "payload": 18
+        }
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 10
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 20
+      }
+    },
+    {
+      "Assign": {
+        "target": 20,
+        "value": 18
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          22
+        ]
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": 19,
+        "body": 23
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551601
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551601
+      }
+    },
+    {
+      "Call": {
+        "func": 25,
+        "args": [
+          26
+        ]
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          27
+        ]
+      }
+    },
+    {
+      "Pattern": {
+        "Default": {
+          "payload": 26
+        }
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": 29,
+        "body": 28
+      }
+    },
+    {
+      "Match": {
+        "target": 17,
+        "arms": [
+          24,
+          30
+        ]
+      }
+    },
+    {
+      "Unary": {
+        "operator": "Dereference",
+        "operand": 20
+      }
+    },
+    {
+      "IntLiteral": 42
+    },
+    {
+      "Assign": {
+        "target": 32,
+        "value": 33
+      }
+    },
+    {
+      "EnumConstructor": {
+        "target": null,
+        "variant": 19,
+        "payload": 20
+      }
+    },
+    {
+      "Return": {
+        "value": 35
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          21,
+          31,
+          34,
+          36
+        ]
+      }
+    },
+    {
+      "If": {
+        "condition": 14,
+        "then_block": 37,
+        "else_block": null
+      }
+    },
+    {
+      "EnumConstructor": {
+        "target": null,
+        "variant": 20,
+        "payload": null
+      }
+    },
+    {
+      "Return": {
+        "value": 39
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          38,
+          40
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 22
+      }
+    },
+    {
+      "FunctionDecl": {
+        "ident": 42,
+        "params": [
+          15
+        ],
+        "body": 41
+      }
+    },
+    {
+      "BoolLiteral": false
+    },
+    {
+      "Call": {
+        "func": 42,
+        "args": [
+          44
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 10
+      }
+    },
+    {
+      "Pattern": {
+        "EnumVariant": {
+          "enum_name": null,
+          "variant": 19,
+          "payload": 46
+        }
+      }
+    },
+    {
+      "Call": {
+        "func": 4,
+        "args": [
+          46
+        ]
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          48
+        ]
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": 47,
+        "body": 49
+      }
+    },
+    {
+      "Pattern": {
+        "EnumVariant": {
+          "enum_name": null,
+          "variant": 20,
+          "payload": null
+        }
+      }
+    },
+    {
+      "StringLiteral": 36
+    },
+    {
+      "Call": {
+        "func": 10,
+        "args": [
+          52
+        ]
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          53
+        ]
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": 51,
+        "body": 54
+      }
+    },
+    {
+      "Match": {
+        "target": 45,
+        "arms": [
+          50,
+          55
+        ]
+      }
+    },
+    {
+      "Return": {
+        "value": null
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          56,
+          57
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 1
+      }
+    },
+    {
+      "FunctionDecl": {
+        "ident": 59,
+        "params": [],
+        "body": 58
+      }
+    }
+  ],
+  "roots": [
+    5,
+    11,
+    13,
+    43,
+    60
+  ],
+  "type_map": {
+    "keys": {
+      "0": 0,
+      "1": 16,
+      "2": 18,
+      "3": 17,
+      "4": 1,
+      "5": 2,
+      "6": 3,
+      "7": 19,
+      "8": 21,
+      "9": 20,
+      "10": 4,
+      "11": 5,
+      "12": 22,
+      "13": 6,
+      "14": 7,
+      "15": 23,
+      "16": 8,
+      "17": 9,
+      "18": 29,
+      "19": 10,
+      "20": 33,
+      "21": 27,
+      "22": 32,
+      "23": 31,
+      "24": 30,
+      "25": 11,
+      "26": 35,
+      "27": 38,
+      "28": 37,
+      "29": 34,
+      "30": 36,
+      "31": 28,
+      "32": 41,
+      "33": 40,
+      "34": 39,
+      "35": 43,
+      "36": 42,
+      "37": 26,
+      "38": 25,
+      "39": 45,
+      "40": 44,
+      "41": 24,
+      "42": 12,
+      "43": 13,
+      "44": 48,
+      "45": 49,
+      "46": 50,
+      "47": 51,
+      "48": 54,
+      "49": 53,
+      "50": 52,
+      "51": 55,
+      "52": 58,
+      "53": 59,
+      "54": 57,
+      "55": 56,
+      "56": 47,
+      "57": 60,
+      "58": 46,
+      "59": 14,
+      "60": 15
+    },
+    "values": [
+      {
+        "Pointer": "Int32"
+      },
+      {
+        "Function": {
+          "params": [
+            {
+              "Pointer": "Int32"
+            }
+          ],
+          "return_type": "Unit"
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            {
+              "Pointer": "Int32"
+            }
+          ],
+          "return_type": "Unit"
+        }
+      },
+      "String",
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": "Unit"
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": "Unit"
+        }
+      },
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 19,
+              "payload": {
+                "Pointer": "Int32"
+              }
+            },
+            {
+              "name": 20,
+              "payload": null
+            },
+            {
+              "name": 21,
+              "payload": null
+            }
+          ]
+        }
+      },
+      "Bool",
+      {
+        "Struct": {
+          "fields": [
+            {
+              "name": 18446744073709551600,
+              "type_spec": "UInt64"
+            },
+            {
+              "name": 18446744073709551599,
+              "type_spec": "UInt64"
+            },
+            {
+              "name": 18446744073709551598,
+              "type_spec": "UInt64"
+            }
+          ]
+        }
+      },
+      "UnsafePtr",
+      {
+        "Pointer": "Int32"
+      },
+      {
+        "Function": {
+          "params": [
+            "Any"
+          ],
+          "return_type": "Panic"
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            "Bool"
+          ],
+          "return_type": {
+            "Named": {
+              "name": 12,
+              "type_spec": {
+                "Enum": {
+                  "variants": [
+                    {
+                      "name": 19,
+                      "payload": {
+                        "Pointer": "Int32"
+                      }
+                    },
+                    {
+                      "name": 20,
+                      "payload": null
+                    },
+                    {
+                      "name": 21,
+                      "payload": null
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            "Bool"
+          ],
+          "return_type": {
+            "Named": {
+              "name": 12,
+              "type_spec": {
+                "Enum": {
+                  "variants": [
+                    {
+                      "name": 19,
+                      "payload": {
+                        "Pointer": "Int32"
+                      }
+                    },
+                    {
+                      "name": 20,
+                      "payload": null
+                    },
+                    {
+                      "name": 21,
+                      "payload": null
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "Function": {
+          "params": [],
+          "return_type": "Unit"
+        }
+      },
+      {
+        "Function": {
+          "params": [],
+          "return_type": "Unit"
+        }
+      },
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      {
+        "Named": {
+          "name": 12,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 19,
+                  "payload": {
+                    "Pointer": "Int32"
+                  }
+                },
+                {
+                  "name": 20,
+                  "payload": null
+                },
+                {
+                  "name": 21,
+                  "payload": null
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      {
+        "Pointer": "Int32"
+      },
+      {
+        "Pointer": "Int32"
+      },
+      "Unit",
+      "Unit",
+      {
+        "Pointer": "Int32"
+      },
+      "UnsafePtr",
+      "Any",
+      "UnsafePtr",
+      "Unit",
+      "Panic",
+      "Unit",
+      "Int32",
+      "Int32",
+      "Unit",
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 19,
+              "payload": {
+                "Pointer": "Int32"
+              }
+            },
+            {
+              "name": 20,
+              "payload": null
+            },
+            {
+              "name": 21,
+              "payload": null
+            }
+          ]
+        }
+      },
+      "Unit",
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 19,
+              "payload": {
+                "Pointer": "Int32"
+              }
+            },
+            {
+              "name": 20,
+              "payload": null
+            },
+            {
+              "name": 21,
+              "payload": null
+            }
+          ]
+        }
+      },
+      "Unit",
+      "Unit",
+      "Bool",
+      {
+        "Named": {
+          "name": 12,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 19,
+                  "payload": {
+                    "Pointer": "Int32"
+                  }
+                },
+                {
+                  "name": 20,
+                  "payload": null
+                },
+                {
+                  "name": 21,
+                  "payload": null
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "Pointer": "Int32"
+      },
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 19,
+              "payload": {
+                "Pointer": "Int32"
+              }
+            },
+            {
+              "name": 20,
+              "payload": null
+            },
+            {
+              "name": 21,
+              "payload": null
+            }
+          ]
+        }
+      },
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 19,
+              "payload": {
+                "Pointer": "Int32"
+              }
+            },
+            {
+              "name": 20,
+              "payload": null
+            },
+            {
+              "name": 21,
+              "payload": null
+            }
+          ]
+        }
+      },
+      "Unit",
+      "Unit",
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 19,
+              "payload": {
+                "Pointer": "Int32"
+              }
+            },
+            {
+              "name": 20,
+              "payload": null
+            },
+            {
+              "name": 21,
+              "payload": null
+            }
+          ]
+        }
+      },
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 19,
+              "payload": {
+                "Pointer": "Int32"
+              }
+            },
+            {
+              "name": 20,
+              "payload": null
+            },
+            {
+              "name": 21,
+              "payload": null
+            }
+          ]
+        }
+      },
+      "Unit",
+      "String",
+      "Unit",
+      "Unit"
+    ]
+  },
+  "symbol_map": {
+    "keys": {
+      "12": 1,
+      "13": 0,
+      "14": 3,
+      "15": 2,
+      "16": 4,
+      "17": 7,
+      "18": 5,
+      "19": 6,
+      "20": 9,
+      "21": 8
+    },
+    "values": [
+      0,
+      4,
+      6,
+      10,
+      12,
+      14,
+      20,
+      42,
+      46,
+      59
+    ]
+  }
+}
