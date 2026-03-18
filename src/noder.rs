@@ -537,9 +537,6 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
                     name: pay,
                     module: None,
                 });
-                node_tree.add_node(Node::VarDecl {
-                    ident: payload_ident,
-                });
 
                 let scope_pos = module
                     .get_scope_pos(pat.id)
@@ -563,9 +560,6 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
             let payload_ident = node_tree.add_node(Node::Identifier {
                 name: pat.name,
                 module: None,
-            });
-            node_tree.add_node(Node::VarDecl {
-                ident: payload_ident,
             });
 
             let scope_pos = module
