@@ -238,7 +238,7 @@
                     },
                     "args": [
                       {
-                        "FloatLiteral": 10.0
+                        "IntLiteral": 10
                       }
                     ]
                   }
@@ -250,7 +250,7 @@
               "Let": {
                 "pattern": {
                   "Identifier": {
-                    "id": 641,
+                    "id": 639,
                     "name": 33
                   }
                 },
@@ -258,7 +258,7 @@
                   "Call": {
                     "func": {
                       "Identifier": {
-                        "id": 655,
+                        "id": 653,
                         "module": null,
                         "name": 22
                       }
@@ -266,7 +266,7 @@
                     "args": [
                       {
                         "Identifier": {
-                          "id": 660,
+                          "id": 658,
                           "module": null,
                           "name": 31
                         }
@@ -283,7 +283,7 @@
                   "Call": {
                     "func": {
                       "Identifier": {
-                        "id": 672,
+                        "id": 670,
                         "module": null,
                         "name": 13
                       }
@@ -291,7 +291,7 @@
                     "args": [
                       {
                         "Identifier": {
-                          "id": 684,
+                          "id": 682,
                           "module": null,
                           "name": 33
                         }
@@ -305,7 +305,7 @@
               "Let": {
                 "pattern": {
                   "Identifier": {
-                    "id": 706,
+                    "id": 704,
                     "name": 34
                   }
                 },
@@ -315,7 +315,7 @@
                       "DotAccess": {
                         "target": {
                           "Identifier": {
-                            "id": 715,
+                            "id": 713,
                             "module": null,
                             "name": 18
                           }
@@ -325,7 +325,7 @@
                     },
                     "args": [
                       {
-                        "FloatLiteral": 3.0
+                        "IntLiteral": 3
                       }
                     ]
                   }
@@ -337,7 +337,7 @@
               "Let": {
                 "pattern": {
                   "Identifier": {
-                    "id": 741,
+                    "id": 737,
                     "name": 36
                   }
                 },
@@ -345,7 +345,7 @@
                   "Call": {
                     "func": {
                       "Identifier": {
-                        "id": 755,
+                        "id": 751,
                         "module": null,
                         "name": 22
                       }
@@ -353,7 +353,7 @@
                     "args": [
                       {
                         "Identifier": {
-                          "id": 760,
+                          "id": 756,
                           "module": null,
                           "name": 34
                         }
@@ -370,7 +370,7 @@
                   "Call": {
                     "func": {
                       "Identifier": {
-                        "id": 772,
+                        "id": 768,
                         "module": null,
                         "name": 13
                       }
@@ -378,7 +378,7 @@
                     "args": [
                       {
                         "Identifier": {
-                          "id": 784,
+                          "id": 780,
                           "module": null,
                           "name": 36
                         }
@@ -764,51 +764,51 @@
         "scope_id": 10,
         "scope_depth": 1
       },
-      "641": {
+      "639": {
         "scope_id": 10,
         "scope_depth": 2
       },
-      "655": {
+      "653": {
         "scope_id": 10,
         "scope_depth": 2
       },
-      "660": {
+      "658": {
         "scope_id": 10,
         "scope_depth": 2
       },
-      "672": {
+      "670": {
         "scope_id": 10,
         "scope_depth": 2
       },
-      "684": {
+      "682": {
         "scope_id": 10,
         "scope_depth": 2
       },
-      "706": {
+      "704": {
         "scope_id": 10,
         "scope_depth": 3
       },
-      "715": {
+      "713": {
         "scope_id": 10,
         "scope_depth": 3
       },
-      "741": {
+      "737": {
         "scope_id": 10,
         "scope_depth": 4
       },
-      "755": {
+      "751": {
         "scope_id": 10,
         "scope_depth": 4
       },
-      "760": {
+      "756": {
         "scope_id": 10,
         "scope_depth": 4
       },
-      "772": {
+      "768": {
         "scope_id": 10,
         "scope_depth": 4
       },
-      "784": {
+      "780": {
         "scope_id": 10,
         "scope_depth": 4
       }

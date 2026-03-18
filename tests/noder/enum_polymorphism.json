@@ -216,7 +216,7 @@
       }
     },
     {
-      "FloatLiteral": 10.0
+      "IntLiteral": 10
     },
     {
       "Identifier": {
@@ -276,7 +276,7 @@
       }
     },
     {
-      "FloatLiteral": 3.0
+      "IntLiteral": 3
     },
     {
       "Identifier": {
