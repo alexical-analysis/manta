@@ -135,7 +135,7 @@ impl Typer {
                     self.type_node(node_tree, node);
                 }
             }
-            Node::FunctionDecl { body, .. } => {
+            Node::FunctionDecl { params, body, .. } => {
                 // we have to have the type in the type_map already
                 let function_type = node_tree
                     .type_map
@@ -147,7 +147,11 @@ impl Typer {
                     _ => panic!("invalid type for function decl"),
                 };
 
+                let params = params.clone();
                 self.return_type = Some(return_type);
+                for param in &params {
+                    self.type_node(node_tree, *param);
+                }
                 self.type_node(node_tree, body);
 
                 // reset the return type after were done typing the function body since there are
