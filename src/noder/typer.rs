@@ -559,6 +559,17 @@ impl Typer {
                     .expect("missing type for type spec pattern")
                     .clone();
 
+                match match_types(&target_type, &type_spec) {
+                    TypeMatch::ExactType => {}
+                    TypeMatch::Inference(_) => panic!(
+                        "this should not occur since neither type spec patterns, nor match expressions are allowed to be inferrable"
+                    ),
+                    TypeMatch::InferenceFailed | TypeMatch::Mismatch => panic!(
+                        "type spec pattern {:?} is not compatible with match target type {:?}",
+                        type_spec, target_type
+                    ),
+                }
+
                 if let Some(pay) = ts.payload {
                     // the payload of a type spec get's that same typespec
                     node_tree.type_map.add(pay, type_spec.clone())
@@ -789,6 +800,9 @@ fn match_types(a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
         (inner_a, TypeSpec::InferredEnumPat(inner_b)) => match_enum_pat(inner_a, inner_b),
         (TypeSpec::Any, inner_b) => TypeMatch::Inference(inner_b.clone()),
         (inner_a, TypeSpec::Any) => TypeMatch::Inference(inner_a.clone()),
+        // unsafe pointers can be pattern matched into any pointer type so we consider this to be
+        // an exact match for the purposes of the type checker
+        (TypeSpec::UnsafePtr, TypeSpec::Pointer(_)) => TypeMatch::ExactType,
         _ => TypeMatch::Mismatch,
     }
 }
