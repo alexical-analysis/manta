@@ -747,6 +747,13 @@ fn match_types(a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
         (TypeSpec::IntLiteral(_), TypeSpec::IntLiteral(_)) => TypeMatch::Inference(TypeSpec::Int64),
         (TypeSpec::IntLiteral(_), TypeSpec::Any) => TypeMatch::Inference(TypeSpec::Int64),
         (TypeSpec::Any, TypeSpec::IntLiteral(_)) => TypeMatch::Inference(TypeSpec::Int64),
+        // an integer literal matched against a float literal resolves to float64
+        (TypeSpec::IntLiteral(_), TypeSpec::FloatLiteral(_)) => {
+            TypeMatch::Inference(TypeSpec::Float64)
+        }
+        (TypeSpec::FloatLiteral(_), TypeSpec::IntLiteral(_)) => {
+            TypeMatch::Inference(TypeSpec::Float64)
+        }
         (TypeSpec::IntLiteral(i), inner_b) => match inner_b {
             TypeSpec::Int64 => match_int(i, i64::MIN, i64::MAX, TypeSpec::Int64),
             TypeSpec::Int32 => match_int(i, i32::MIN as i64, i32::MAX as i64, TypeSpec::Int32),
@@ -758,6 +765,14 @@ fn match_types(a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
             TypeSpec::UInt32 => match_int(i, u32::MIN as i64, u32::MAX as i64, TypeSpec::UInt32),
             TypeSpec::UInt16 => match_int(i, u16::MIN as i64, u16::MAX as i64, TypeSpec::UInt16),
             TypeSpec::UInt8 => match_int(i, u8::MIN as i64, u8::MAX as i64, TypeSpec::UInt8),
+            // integer literals can be coerced into float types
+            TypeSpec::Float64 => match_float(&(*i as f64), f64::MIN, f64::MAX, TypeSpec::Float64),
+            TypeSpec::Float32 => match_float(
+                &(*i as f64),
+                f32::MIN as f64,
+                f32::MAX as f64,
+                TypeSpec::Float32,
+            ),
             _ => TypeMatch::Mismatch,
         },
         (inner_a, TypeSpec::IntLiteral(i)) => match inner_a {
@@ -771,6 +786,14 @@ fn match_types(a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
             TypeSpec::UInt32 => match_int(i, u32::MIN as i64, u32::MAX as i64, TypeSpec::UInt32),
             TypeSpec::UInt16 => match_int(i, u16::MIN as i64, u16::MAX as i64, TypeSpec::UInt16),
             TypeSpec::UInt8 => match_int(i, u8::MIN as i64, u8::MAX as i64, TypeSpec::UInt8),
+            // integer literals can be coerced into float types
+            TypeSpec::Float64 => match_float(&(*i as f64), f64::MIN, f64::MAX, TypeSpec::Float64),
+            TypeSpec::Float32 => match_float(
+                &(*i as f64),
+                f32::MIN as f64,
+                f32::MAX as f64,
+                TypeSpec::Float32,
+            ),
             _ => TypeMatch::Mismatch,
         },
         // if both the left and right hand side are typed as literals, just conver the type to a
@@ -1260,6 +1283,42 @@ mod tests {
         assert!(matches!(
             match_types(&TypeSpec::FloatLiteral(1.5), &TypeSpec::Int64),
             TypeMatch::Mismatch
+        ));
+    }
+
+    #[test]
+    fn match_types_int_literal_with_float64_infers_float64() {
+        assert!(matches!(
+            match_types(&TypeSpec::IntLiteral(42), &TypeSpec::Float64),
+            TypeMatch::Inference(TypeSpec::Float64)
+        ));
+        assert!(matches!(
+            match_types(&TypeSpec::Float64, &TypeSpec::IntLiteral(42)),
+            TypeMatch::Inference(TypeSpec::Float64)
+        ));
+    }
+
+    #[test]
+    fn match_types_int_literal_with_float32_infers_float32() {
+        assert!(matches!(
+            match_types(&TypeSpec::IntLiteral(42), &TypeSpec::Float32),
+            TypeMatch::Inference(TypeSpec::Float32)
+        ));
+        assert!(matches!(
+            match_types(&TypeSpec::Float32, &TypeSpec::IntLiteral(42)),
+            TypeMatch::Inference(TypeSpec::Float32)
+        ));
+    }
+
+    #[test]
+    fn match_types_int_literal_and_float_literal_infer_float64() {
+        assert!(matches!(
+            match_types(&TypeSpec::IntLiteral(5), &TypeSpec::FloatLiteral(1.5)),
+            TypeMatch::Inference(TypeSpec::Float64)
+        ));
+        assert!(matches!(
+            match_types(&TypeSpec::FloatLiteral(1.5), &TypeSpec::IntLiteral(5)),
+            TypeMatch::Inference(TypeSpec::Float64)
         ));
     }
 
