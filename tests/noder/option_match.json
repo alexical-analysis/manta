@@ -479,33 +479,43 @@
       "Unit",
       "Unit",
       {
-        "Enum": {
-          "variants": [
-            {
-              "name": 15,
-              "payload": "Int32"
-            },
-            {
-              "name": 16,
-              "payload": null
+        "Named": {
+          "name": 6,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 15,
+                  "payload": "Int32"
+                },
+                {
+                  "name": 16,
+                  "payload": null
+                }
+              ]
             }
-          ]
+          }
         }
       },
       "Unit",
       "Int32",
       {
-        "Enum": {
-          "variants": [
-            {
-              "name": 15,
-              "payload": "Int32"
-            },
-            {
-              "name": 16,
-              "payload": null
+        "Named": {
+          "name": 6,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 15,
+                  "payload": "Int32"
+                },
+                {
+                  "name": 16,
+                  "payload": null
+                }
+              ]
             }
-          ]
+          }
         }
       },
       "Unit",
@@ -554,62 +564,82 @@
       "Unit",
       "Int32",
       {
-        "Enum": {
-          "variants": [
-            {
-              "name": 15,
-              "payload": "Int32"
-            },
-            {
-              "name": 16,
-              "payload": null
+        "Named": {
+          "name": 6,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 15,
+                  "payload": "Int32"
+                },
+                {
+                  "name": 16,
+                  "payload": null
+                }
+              ]
             }
-          ]
+          }
         }
       },
       {
-        "Enum": {
-          "variants": [
-            {
-              "name": 15,
-              "payload": "Int32"
-            },
-            {
-              "name": 16,
-              "payload": null
+        "Named": {
+          "name": 6,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 15,
+                  "payload": "Int32"
+                },
+                {
+                  "name": 16,
+                  "payload": null
+                }
+              ]
             }
-          ]
+          }
         }
       },
       "Unit",
       "String",
       "Unit",
       {
-        "Enum": {
-          "variants": [
-            {
-              "name": 15,
-              "payload": "Int32"
-            },
-            {
-              "name": 16,
-              "payload": null
+        "Named": {
+          "name": 6,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 15,
+                  "payload": "Int32"
+                },
+                {
+                  "name": 16,
+                  "payload": null
+                }
+              ]
             }
-          ]
+          }
         }
       },
       {
-        "Enum": {
-          "variants": [
-            {
-              "name": 15,
-              "payload": "Int32"
-            },
-            {
-              "name": 16,
-              "payload": null
+        "Named": {
+          "name": 6,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 15,
+                  "payload": "Int32"
+                },
+                {
+                  "name": 16,
+                  "payload": null
+                }
+              ]
             }
-          ]
+          }
         }
       },
       "Unit",
