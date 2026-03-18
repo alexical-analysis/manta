@@ -1320,6 +1320,27 @@ mod tests {
 
         let node_tree = node_module(module);
 
+        let total = node_tree.nodes.len();
+        let untyped: Vec<usize> = (0..total)
+            .filter(|&i| {
+                node_tree
+                    .type_map
+                    .get(NodeID::from_usize(i))
+                    .is_none()
+            })
+            .collect();
+        if !untyped.is_empty() {
+            let pct = (untyped.len() as f64 / total as f64) * 100.0;
+            panic!(
+                "{}: {}/{} nodes ({:.1}%) are missing types. Untyped node IDs: {:?}",
+                file_name,
+                untyped.len(),
+                total,
+                pct,
+                untyped,
+            );
+        }
+
         let json_output =
             serde_json::to_string_pretty(&node_tree).expect("Failed to serialize NodeTree to JSON");
 
