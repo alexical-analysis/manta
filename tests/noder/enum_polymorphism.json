@@ -566,31 +566,41 @@
       "Unit",
       "Float64",
       {
-        "Enum": {
-          "variants": [
-            {
-              "name": 20,
-              "payload": "Float64"
-            },
-            {
-              "name": 21,
-              "payload": "Float64"
+        "Named": {
+          "name": 10,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 20,
+                  "payload": "Float64"
+                },
+                {
+                  "name": 21,
+                  "payload": "Float64"
+                }
+              ]
             }
-          ]
+          }
         }
       },
       {
-        "Enum": {
-          "variants": [
-            {
-              "name": 20,
-              "payload": "Float64"
-            },
-            {
-              "name": 21,
-              "payload": "Float64"
+        "Named": {
+          "name": 10,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 20,
+                  "payload": "Float64"
+                },
+                {
+                  "name": 21,
+                  "payload": "Float64"
+                }
+              ]
             }
-          ]
+          }
         }
       },
       "Unit",
@@ -599,31 +609,41 @@
       "Float64",
       "Float64",
       {
-        "Enum": {
-          "variants": [
-            {
-              "name": 20,
-              "payload": "Float64"
-            },
-            {
-              "name": 21,
-              "payload": "Float64"
+        "Named": {
+          "name": 10,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 20,
+                  "payload": "Float64"
+                },
+                {
+                  "name": 21,
+                  "payload": "Float64"
+                }
+              ]
             }
-          ]
+          }
         }
       },
       {
-        "Enum": {
-          "variants": [
-            {
-              "name": 20,
-              "payload": "Float64"
-            },
-            {
-              "name": 21,
-              "payload": "Float64"
+        "Named": {
+          "name": 10,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 20,
+                  "payload": "Float64"
+                },
+                {
+                  "name": 21,
+                  "payload": "Float64"
+                }
+              ]
             }
-          ]
+          }
         }
       },
       "Unit",
