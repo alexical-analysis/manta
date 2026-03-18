@@ -1,0 +1,1913 @@
+{
+  "nodes": [
+    {
+      "Identifier": {
+        "module": null,
+        "name": 8
+      }
+    },
+    {
+      "TypeDecl": {
+        "ident": 0
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 12
+      }
+    },
+    {
+      "TypeDecl": {
+        "ident": 2
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 18
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 4
+      }
+    },
+    {
+      "EnumConstructor": {
+        "target": null,
+        "variant": 15,
+        "payload": null
+      }
+    },
+    {
+      "Return": {
+        "value": 6
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          7
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 17
+      }
+    },
+    {
+      "FunctionDecl": {
+        "ident": 9,
+        "params": [
+          5
+        ],
+        "body": 8
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 22
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 11
+      }
+    },
+    {
+      "Return": {
+        "value": null
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          13
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 21
+      }
+    },
+    {
+      "FunctionDecl": {
+        "ident": 15,
+        "params": [
+          12
+        ],
+        "body": 14
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 23
+      }
+    },
+    {
+      "TypeDecl": {
+        "ident": 17
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 22
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 19
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 26
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 21
+      }
+    },
+    {
+      "EnumConstructor": {
+        "target": null,
+        "variant": 15,
+        "payload": null
+      }
+    },
+    {
+      "Return": {
+        "value": 23
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          24
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 24
+      }
+    },
+    {
+      "FunctionDecl": {
+        "ident": 26,
+        "params": [
+          20,
+          22
+        ],
+        "body": 25
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 29
+      }
+    },
+    {
+      "TypeDecl": {
+        "ident": 28
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 18
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 30
+      }
+    },
+    {
+      "Call": {
+        "func": 9,
+        "args": [
+          30
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 22
+      }
+    },
+    {
+      "Pattern": {
+        "EnumVariant": {
+          "enum_name": null,
+          "variant": 14,
+          "payload": 33
+        }
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 22
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 35
+      }
+    },
+    {
+      "Assign": {
+        "target": 35,
+        "value": 33
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          37
+        ]
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": 34,
+        "body": 38
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551602
+      }
+    },
+    {
+      "EnumConstructor": {
+        "target": null,
+        "variant": 30,
+        "payload": 40
+      }
+    },
+    {
+      "Return": {
+        "value": 41
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          42
+        ]
+      }
+    },
+    {
+      "Pattern": {
+        "Default": {
+          "payload": 40
+        }
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": 44,
+        "body": 43
+      }
+    },
+    {
+      "Match": {
+        "target": 32,
+        "arms": [
+          39,
+          45
+        ]
+      }
+    },
+    {
+      "Call": {
+        "func": 15,
+        "args": [
+          35
+        ]
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          47
+        ]
+      }
+    },
+    {
+      "Defer": {
+        "block": 48
+      }
+    },
+    "MetaType",
+    {
+      "Alloc": {
+        "meta_type": 50,
+        "options": []
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 26
+      }
+    },
+    {
+      "Pattern": {
+        "TypeSpec": {
+          "payload": 52
+        }
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 26
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 54
+      }
+    },
+    {
+      "Assign": {
+        "target": 54,
+        "value": 52
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          56
+        ]
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": 53,
+        "body": 57
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551601
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551601
+      }
+    },
+    {
+      "Call": {
+        "func": 59,
+        "args": [
+          60
+        ]
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          61
+        ]
+      }
+    },
+    {
+      "Pattern": {
+        "Default": {
+          "payload": 60
+        }
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": 63,
+        "body": 62
+      }
+    },
+    {
+      "Match": {
+        "target": 51,
+        "arms": [
+          58,
+          64
+        ]
+      }
+    },
+    {
+      "Free": {
+        "expr": 54
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          66
+        ]
+      }
+    },
+    {
+      "Defer": {
+        "block": 67
+      }
+    },
+    {
+      "Unary": {
+        "operator": "Dereference",
+        "operand": 54
+      }
+    },
+    {
+      "Call": {
+        "func": 26,
+        "args": [
+          35,
+          69
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 43
+      }
+    },
+    {
+      "Pattern": {
+        "EnumVariant": {
+          "enum_name": null,
+          "variant": 14,
+          "payload": 71
+        }
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 43
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 73
+      }
+    },
+    {
+      "Assign": {
+        "target": 73,
+        "value": 71
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          75
+        ]
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": 72,
+        "body": 76
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551602
+      }
+    },
+    {
+      "EnumConstructor": {
+        "target": null,
+        "variant": 31,
+        "payload": 78
+      }
+    },
+    {
+      "Return": {
+        "value": 79
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          80
+        ]
+      }
+    },
+    {
+      "Pattern": {
+        "Default": {
+          "payload": 78
+        }
+      }
+    },
+    {
+      "MatchArm": {
+        "pattern": 82,
+        "body": 81
+      }
+    },
+    {
+      "Match": {
+        "target": 70,
+        "arms": [
+          77,
+          83
+        ]
+      }
+    },
+    {
+      "EnumConstructor": {
+        "target": null,
+        "variant": 14,
+        "payload": null
+      }
+    },
+    {
+      "Return": {
+        "value": 85
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          36,
+          46,
+          49,
+          55,
+          65,
+          68,
+          74,
+          84,
+          86
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 32
+      }
+    },
+    {
+      "FunctionDecl": {
+        "ident": 88,
+        "params": [
+          31
+        ],
+        "body": 87
+      }
+    }
+  ],
+  "roots": [
+    1,
+    3,
+    10,
+    16,
+    18,
+    27,
+    29,
+    89
+  ],
+  "type_map": {
+    "keys": {
+      "0": 21,
+      "1": 0,
+      "2": 22,
+      "3": 1,
+      "4": 2,
+      "5": 23,
+      "6": 26,
+      "7": 25,
+      "8": 24,
+      "9": 3,
+      "10": 4,
+      "11": 5,
+      "12": 27,
+      "13": 29,
+      "14": 28,
+      "15": 6,
+      "16": 7,
+      "17": 30,
+      "18": 8,
+      "19": 9,
+      "20": 31,
+      "21": 10,
+      "22": 32,
+      "23": 35,
+      "24": 34,
+      "25": 33,
+      "26": 11,
+      "27": 12,
+      "28": 36,
+      "29": 13,
+      "30": 14,
+      "31": 37,
+      "32": 41,
+      "33": 42,
+      "34": 43,
+      "35": 47,
+      "36": 39,
+      "37": 46,
+      "38": 45,
+      "39": 44,
+      "40": 49,
+      "41": 53,
+      "42": 52,
+      "43": 51,
+      "44": 48,
+      "45": 50,
+      "46": 40,
+      "47": 56,
+      "48": 55,
+      "49": 54,
+      "50": 15,
+      "51": 16,
+      "52": 59,
+      "53": 17,
+      "54": 63,
+      "55": 57,
+      "56": 62,
+      "57": 61,
+      "58": 60,
+      "59": 18,
+      "60": 65,
+      "61": 68,
+      "62": 67,
+      "63": 64,
+      "64": 66,
+      "65": 58,
+      "66": 71,
+      "67": 70,
+      "68": 69,
+      "69": 74,
+      "70": 75,
+      "71": 76,
+      "72": 77,
+      "73": 81,
+      "74": 72,
+      "75": 80,
+      "76": 79,
+      "77": 78,
+      "78": 83,
+      "79": 87,
+      "80": 86,
+      "81": 85,
+      "82": 82,
+      "83": 84,
+      "84": 73,
+      "85": 89,
+      "86": 88,
+      "87": 38,
+      "88": 19,
+      "89": 20
+    },
+    "values": [
+      {
+        "Struct": {
+          "fields": []
+        }
+      },
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 14,
+              "payload": {
+                "Named": {
+                  "name": 0,
+                  "type_spec": {
+                    "Struct": {
+                      "fields": []
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": 15,
+              "payload": null
+            }
+          ]
+        }
+      },
+      "String",
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": {
+            "Named": {
+              "name": 2,
+              "type_spec": {
+                "Enum": {
+                  "variants": [
+                    {
+                      "name": 14,
+                      "payload": {
+                        "Named": {
+                          "name": 0,
+                          "type_spec": {
+                            "Struct": {
+                              "fields": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "name": 15,
+                      "payload": null
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": {
+            "Named": {
+              "name": 2,
+              "type_spec": {
+                "Enum": {
+                  "variants": [
+                    {
+                      "name": 14,
+                      "payload": {
+                        "Named": {
+                          "name": 0,
+                          "type_spec": {
+                            "Struct": {
+                              "fields": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "name": 15,
+                      "payload": null
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "Named": {
+          "name": 0,
+          "type_spec": {
+            "Struct": {
+              "fields": []
+            }
+          }
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            {
+              "Named": {
+                "name": 0,
+                "type_spec": {
+                  "Struct": {
+                    "fields": []
+                  }
+                }
+              }
+            }
+          ],
+          "return_type": "Unit"
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            {
+              "Named": {
+                "name": 0,
+                "type_spec": {
+                  "Struct": {
+                    "fields": []
+                  }
+                }
+              }
+            }
+          ],
+          "return_type": "Unit"
+        }
+      },
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 14,
+              "payload": "UInt64"
+            },
+            {
+              "name": 15,
+              "payload": null
+            }
+          ]
+        }
+      },
+      {
+        "Named": {
+          "name": 0,
+          "type_spec": {
+            "Struct": {
+              "fields": []
+            }
+          }
+        }
+      },
+      {
+        "Slice": "UInt8"
+      },
+      {
+        "Function": {
+          "params": [
+            {
+              "Named": {
+                "name": 0,
+                "type_spec": {
+                  "Struct": {
+                    "fields": []
+                  }
+                }
+              }
+            },
+            {
+              "Slice": "UInt8"
+            }
+          ],
+          "return_type": {
+            "Named": {
+              "name": 17,
+              "type_spec": {
+                "Enum": {
+                  "variants": [
+                    {
+                      "name": 14,
+                      "payload": "UInt64"
+                    },
+                    {
+                      "name": 15,
+                      "payload": null
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            {
+              "Named": {
+                "name": 0,
+                "type_spec": {
+                  "Struct": {
+                    "fields": []
+                  }
+                }
+              }
+            },
+            {
+              "Slice": "UInt8"
+            }
+          ],
+          "return_type": {
+            "Named": {
+              "name": 17,
+              "type_spec": {
+                "Enum": {
+                  "variants": [
+                    {
+                      "name": 14,
+                      "payload": "UInt64"
+                    },
+                    {
+                      "name": 15,
+                      "payload": null
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 14,
+              "payload": null
+            },
+            {
+              "name": 30,
+              "payload": {
+                "Named": {
+                  "name": 2,
+                  "type_spec": {
+                    "Enum": {
+                      "variants": [
+                        {
+                          "name": 14,
+                          "payload": {
+                            "Named": {
+                              "name": 0,
+                              "type_spec": {
+                                "Struct": {
+                                  "fields": []
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "name": 15,
+                          "payload": null
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": 31,
+              "payload": {
+                "Named": {
+                  "name": 17,
+                  "type_spec": {
+                    "Enum": {
+                      "variants": [
+                        {
+                          "name": 14,
+                          "payload": "UInt64"
+                        },
+                        {
+                          "name": 15,
+                          "payload": null
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "String",
+      {
+        "Struct": {
+          "fields": [
+            {
+              "name": 18446744073709551600,
+              "type_spec": "UInt64"
+            },
+            {
+              "name": 18446744073709551599,
+              "type_spec": "UInt64"
+            },
+            {
+              "name": 18446744073709551598,
+              "type_spec": "UInt64"
+            }
+          ]
+        }
+      },
+      "UnsafePtr",
+      {
+        "Pointer": {
+          "Slice": "UInt8"
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            "Any"
+          ],
+          "return_type": "Panic"
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": {
+            "Named": {
+              "name": 28,
+              "type_spec": {
+                "Enum": {
+                  "variants": [
+                    {
+                      "name": 14,
+                      "payload": null
+                    },
+                    {
+                      "name": 30,
+                      "payload": {
+                        "Named": {
+                          "name": 2,
+                          "type_spec": {
+                            "Enum": {
+                              "variants": [
+                                {
+                                  "name": 14,
+                                  "payload": {
+                                    "Named": {
+                                      "name": 0,
+                                      "type_spec": {
+                                        "Struct": {
+                                          "fields": []
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                {
+                                  "name": 15,
+                                  "payload": null
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "name": 31,
+                      "payload": {
+                        "Named": {
+                          "name": 17,
+                          "type_spec": {
+                            "Enum": {
+                              "variants": [
+                                {
+                                  "name": 14,
+                                  "payload": "UInt64"
+                                },
+                                {
+                                  "name": 15,
+                                  "payload": null
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": {
+            "Named": {
+              "name": 28,
+              "type_spec": {
+                "Enum": {
+                  "variants": [
+                    {
+                      "name": 14,
+                      "payload": null
+                    },
+                    {
+                      "name": 30,
+                      "payload": {
+                        "Named": {
+                          "name": 2,
+                          "type_spec": {
+                            "Enum": {
+                              "variants": [
+                                {
+                                  "name": 14,
+                                  "payload": {
+                                    "Named": {
+                                      "name": 0,
+                                      "type_spec": {
+                                        "Struct": {
+                                          "fields": []
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                {
+                                  "name": 15,
+                                  "payload": null
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "name": 31,
+                      "payload": {
+                        "Named": {
+                          "name": 17,
+                          "type_spec": {
+                            "Enum": {
+                              "variants": [
+                                {
+                                  "name": 14,
+                                  "payload": "UInt64"
+                                },
+                                {
+                                  "name": 15,
+                                  "payload": null
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "Named": {
+          "name": 0,
+          "type_spec": {
+            "Struct": {
+              "fields": []
+            }
+          }
+        }
+      },
+      {
+        "Named": {
+          "name": 2,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 14,
+                  "payload": {
+                    "Named": {
+                      "name": 0,
+                      "type_spec": {
+                        "Struct": {
+                          "fields": []
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 15,
+                  "payload": null
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Unit",
+      "Unit",
+      "Unit",
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 14,
+              "payload": {
+                "Named": {
+                  "name": 0,
+                  "type_spec": {
+                    "Struct": {
+                      "fields": []
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": 15,
+              "payload": null
+            }
+          ]
+        }
+      },
+      "Unit",
+      "Unit",
+      "Unit",
+      {
+        "Named": {
+          "name": 17,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 14,
+                  "payload": "UInt64"
+                },
+                {
+                  "name": 15,
+                  "payload": null
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 14,
+              "payload": "UInt64"
+            },
+            {
+              "name": 15,
+              "payload": null
+            }
+          ]
+        }
+      },
+      {
+        "Named": {
+          "name": 28,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 14,
+                  "payload": null
+                },
+                {
+                  "name": 30,
+                  "payload": {
+                    "Named": {
+                      "name": 2,
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 14,
+                              "payload": {
+                                "Named": {
+                                  "name": 0,
+                                  "type_spec": {
+                                    "Struct": {
+                                      "fields": []
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "name": 15,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 31,
+                  "payload": {
+                    "Named": {
+                      "name": 17,
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 14,
+                              "payload": "UInt64"
+                            },
+                            {
+                              "name": 15,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      {
+        "Named": {
+          "name": 2,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 14,
+                  "payload": {
+                    "Named": {
+                      "name": 0,
+                      "type_spec": {
+                        "Struct": {
+                          "fields": []
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 15,
+                  "payload": null
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "Named": {
+          "name": 0,
+          "type_spec": {
+            "Struct": {
+              "fields": []
+            }
+          }
+        }
+      },
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 14,
+              "payload": {
+                "Named": {
+                  "name": 0,
+                  "type_spec": {
+                    "Struct": {
+                      "fields": []
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": 15,
+              "payload": null
+            }
+          ]
+        }
+      },
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 14,
+              "payload": {
+                "Named": {
+                  "name": 0,
+                  "type_spec": {
+                    "Struct": {
+                      "fields": []
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": 15,
+              "payload": null
+            }
+          ]
+        }
+      },
+      "Unit",
+      "Unit",
+      {
+        "Named": {
+          "name": 0,
+          "type_spec": {
+            "Struct": {
+              "fields": []
+            }
+          }
+        }
+      },
+      {
+        "Named": {
+          "name": 2,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 14,
+                  "payload": {
+                    "Named": {
+                      "name": 0,
+                      "type_spec": {
+                        "Struct": {
+                          "fields": []
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 15,
+                  "payload": null
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "Named": {
+          "name": 2,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 14,
+                  "payload": {
+                    "Named": {
+                      "name": 0,
+                      "type_spec": {
+                        "Struct": {
+                          "fields": []
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 15,
+                  "payload": null
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "Named": {
+          "name": 2,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 14,
+                  "payload": {
+                    "Named": {
+                      "name": 0,
+                      "type_spec": {
+                        "Struct": {
+                          "fields": []
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 15,
+                  "payload": null
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Unit",
+      "Unit",
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 14,
+              "payload": null
+            },
+            {
+              "name": 30,
+              "payload": {
+                "Named": {
+                  "name": 2,
+                  "type_spec": {
+                    "Enum": {
+                      "variants": [
+                        {
+                          "name": 14,
+                          "payload": {
+                            "Named": {
+                              "name": 0,
+                              "type_spec": {
+                                "Struct": {
+                                  "fields": []
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "name": 15,
+                          "payload": null
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": 31,
+              "payload": {
+                "Named": {
+                  "name": 17,
+                  "type_spec": {
+                    "Enum": {
+                      "variants": [
+                        {
+                          "name": 14,
+                          "payload": "UInt64"
+                        },
+                        {
+                          "name": 15,
+                          "payload": null
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      {
+        "Pointer": {
+          "Slice": "UInt8"
+        }
+      },
+      {
+        "Pointer": {
+          "Slice": "UInt8"
+        }
+      },
+      "Unit",
+      "Unit",
+      {
+        "Pointer": {
+          "Slice": "UInt8"
+        }
+      },
+      "UnsafePtr",
+      "Any",
+      "UnsafePtr",
+      "Unit",
+      "Panic",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      {
+        "Slice": "UInt8"
+      },
+      {
+        "Named": {
+          "name": 17,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 14,
+                  "payload": "UInt64"
+                },
+                {
+                  "name": 15,
+                  "payload": null
+                }
+              ]
+            }
+          }
+        }
+      },
+      "UInt64",
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 14,
+              "payload": "UInt64"
+            },
+            {
+              "name": 15,
+              "payload": null
+            }
+          ]
+        }
+      },
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 14,
+              "payload": "UInt64"
+            },
+            {
+              "name": 15,
+              "payload": null
+            }
+          ]
+        }
+      },
+      "Unit",
+      "Unit",
+      "UInt64",
+      {
+        "Named": {
+          "name": 17,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 14,
+                  "payload": "UInt64"
+                },
+                {
+                  "name": 15,
+                  "payload": null
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "Named": {
+          "name": 17,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 14,
+                  "payload": "UInt64"
+                },
+                {
+                  "name": 15,
+                  "payload": null
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "Named": {
+          "name": 17,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 14,
+                  "payload": "UInt64"
+                },
+                {
+                  "name": 15,
+                  "payload": null
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Unit",
+      "Unit",
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 14,
+              "payload": null
+            },
+            {
+              "name": 30,
+              "payload": {
+                "Named": {
+                  "name": 2,
+                  "type_spec": {
+                    "Enum": {
+                      "variants": [
+                        {
+                          "name": 14,
+                          "payload": {
+                            "Named": {
+                              "name": 0,
+                              "type_spec": {
+                                "Struct": {
+                                  "fields": []
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "name": 15,
+                          "payload": null
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": 31,
+              "payload": {
+                "Named": {
+                  "name": 17,
+                  "type_spec": {
+                    "Enum": {
+                      "variants": [
+                        {
+                          "name": 14,
+                          "payload": "UInt64"
+                        },
+                        {
+                          "name": 15,
+                          "payload": null
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "Unit",
+      {
+        "Enum": {
+          "variants": [
+            {
+              "name": 14,
+              "payload": null
+            },
+            {
+              "name": 30,
+              "payload": {
+                "Named": {
+                  "name": 2,
+                  "type_spec": {
+                    "Enum": {
+                      "variants": [
+                        {
+                          "name": 14,
+                          "payload": {
+                            "Named": {
+                              "name": 0,
+                              "type_spec": {
+                                "Struct": {
+                                  "fields": []
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "name": 15,
+                          "payload": null
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": 31,
+              "payload": {
+                "Named": {
+                  "name": 17,
+                  "type_spec": {
+                    "Enum": {
+                      "variants": [
+                        {
+                          "name": 14,
+                          "payload": "UInt64"
+                        },
+                        {
+                          "name": 15,
+                          "payload": null
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "symbol_map": {
+    "keys": {
+      "12": 0,
+      "13": 1,
+      "14": 3,
+      "15": 2,
+      "16": 5,
+      "17": 4,
+      "18": 6,
+      "19": 9,
+      "20": 7,
+      "21": 8,
+      "22": 10,
+      "23": 15,
+      "24": 11,
+      "25": 12,
+      "26": 13,
+      "27": 14
+    },
+    "values": [
+      0,
+      2,
+      4,
+      9,
+      11,
+      15,
+      17,
+      19,
+      21,
+      26,
+      28,
+      30,
+      35,
+      54,
+      73,
+      88
+    ]
+  }
+}

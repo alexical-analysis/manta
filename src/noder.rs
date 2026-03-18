@@ -489,7 +489,6 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
                     name: pay,
                     module: None,
                 });
-                node_tree.add_node(Node::VarDecl { ident: payload_id });
 
                 let scope_pos = module
                     .get_scope_pos(pat.id)
@@ -621,7 +620,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                     name: pay,
                     module: None,
                 });
-                node_tree.add_node(Node::VarDecl { ident: outer_ident });
+                nodes.push(node_tree.add_node(Node::VarDecl { ident: outer_ident }));
 
                 let assign_id = node_tree.add_node(Node::Assign {
                     target: outer_ident,
@@ -732,7 +731,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                         name: pay,
                         module: None,
                     });
-                    node_tree.add_node(Node::VarDecl { ident: outer_ident });
+                    nodes.push(node_tree.add_node(Node::VarDecl { ident: outer_ident }));
 
                     let assign_id = node_tree.add_node(Node::Assign {
                         target: outer_ident,
