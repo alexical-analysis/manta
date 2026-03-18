@@ -425,26 +425,26 @@
       }
     },
     {
-      "Unary": {
-        "operator": "AddressOf",
-        "operand": 56
-      }
-    },
-    {
       "Free": {
-        "expr": 68
+        "expr": 56
       }
     },
     {
       "Block": {
         "statements": [
-          69
+          68
         ]
       }
     },
     {
       "Defer": {
-        "block": 70
+        "block": 69
+      }
+    },
+    {
+      "Unary": {
+        "operator": "Dereference",
+        "operand": 56
       }
     },
     {
@@ -452,7 +452,7 @@
         "func": 26,
         "args": [
           36,
-          56
+          71
         ]
       }
     },
@@ -571,7 +571,7 @@
           47,
           50,
           67,
-          71,
+          70,
           87,
           89
         ]
@@ -664,10 +664,10 @@
       "65": 57,
       "66": 59,
       "67": 51,
-      "68": 65,
-      "69": 64,
-      "70": 63,
-      "71": 62,
+      "68": 64,
+      "69": 63,
+      "70": 62,
+      "71": 66,
       "72": 67,
       "73": 68,
       "75": 69,
@@ -681,7 +681,7 @@
       "84": 77,
       "85": 74,
       "86": 76,
-      "87": 66,
+      "87": 65,
       "88": 81,
       "89": 80,
       "90": 33,
@@ -1019,7 +1019,9 @@
       },
       "UnsafePtr",
       {
-        "Slice": "UInt8"
+        "Pointer": {
+          "Slice": "UInt8"
+        }
       },
       {
         "Function": {
@@ -1599,15 +1601,21 @@
       "Unit",
       "Unit",
       {
-        "Slice": "UInt8"
+        "Pointer": {
+          "Slice": "UInt8"
+        }
       },
       {
-        "Slice": "UInt8"
+        "Pointer": {
+          "Slice": "UInt8"
+        }
       },
       "Unit",
       "Unit",
       {
-        "Slice": "UInt8"
+        "Pointer": {
+          "Slice": "UInt8"
+        }
       },
       "UnsafePtr",
       "Any",
@@ -1617,12 +1625,10 @@
       "Unit",
       "Unit",
       "Unit",
-      {
-        "Pointer": {
-          "Slice": "UInt8"
-        }
-      },
       "Unit",
+      {
+        "Slice": "UInt8"
+      },
       {
         "Named": {
           "name": 17,

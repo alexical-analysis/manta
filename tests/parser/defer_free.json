@@ -323,7 +323,9 @@
                   "TypeSpec": {
                     "id": 1048,
                     "type_spec": {
-                      "Slice": "UInt8"
+                      "Pointer": {
+                        "Slice": "UInt8"
+                      }
                     },
                     "payload": {
                       "Some": 26
@@ -348,22 +350,17 @@
             {
               "Defer": {
                 "block": {
-                  "id": 1085,
+                  "id": 1086,
                   "statements": [
                     {
                       "Expr": {
                         "expr": {
                           "Free": {
                             "expr": {
-                              "Unary": {
-                                "operator": "AddressOf",
-                                "operand": {
-                                  "Identifier": {
-                                    "id": 1093,
-                                    "module": null,
-                                    "name": 26
-                                  }
-                                }
+                              "Identifier": {
+                                "id": 1093,
+                                "module": null,
+                                "name": 26
                               }
                             }
                           }
@@ -404,10 +401,15 @@
                         }
                       },
                       {
-                        "Identifier": {
-                          "id": 1130,
-                          "module": null,
-                          "name": 26
+                        "Unary": {
+                          "operator": "Dereference",
+                          "operand": {
+                            "Identifier": {
+                              "id": 1131,
+                              "module": null,
+                              "name": 26
+                            }
+                          }
                         }
                       }
                     ]
@@ -967,7 +969,7 @@
         "scope_id": 8,
         "scope_depth": 2
       },
-      "1085": {
+      "1086": {
         "scope_id": 10,
         "scope_depth": 0
       },
@@ -987,7 +989,7 @@
         "scope_id": 8,
         "scope_depth": 3
       },
-      "1130": {
+      "1131": {
         "scope_id": 8,
         "scope_depth": 3
       }
