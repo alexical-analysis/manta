@@ -221,13 +221,10 @@ impl FunctionBuilder {
         // blocks and cull any that are not referenced by any other blocks in the function
         let mut valid_blocks = vec![];
 
-        eprintln!("to_mir_function");
-
         let mut block_que = SetQueue::new();
         block_que.push(BlockId::from_u32(1));
         while let Some(b) = block_que.pop() {
             let block_builder = self.blocks[b.as_idx()].clone();
-            eprintln!("\tvalid block {:?}", block_builder);
             let block = block_builder.to_basic_block();
 
             match block.terminator {
@@ -492,20 +489,41 @@ pub fn block_statement(
             }
 
             let merge_block_id = fn_builder.add_block();
-            fn_builder.set_terminator(
-                true_block_id,
-                Terminator::Jump {
-                    target: merge_block_id,
-                },
-            );
-            fn_builder.set_terminator(
-                false_block_id,
-                Terminator::Jump {
-                    target: merge_block_id,
-                },
-            );
+            if !fn_builder.block_is_closed(true_block_id) {
+                // jump to the merge block if the block isn't already closed (e.g. from a return or
+                // panic statment)
+                fn_builder.set_terminator(
+                    true_block_id,
+                    Terminator::Jump {
+                        target: merge_block_id,
+                    },
+                );
+            }
+
+            if !fn_builder.block_is_closed(false_block_id) {
+                // jump to the merge block if the block isn't already closed (e.g. from a return or
+                // panic statment)
+                fn_builder.set_terminator(
+                    false_block_id,
+                    Terminator::Jump {
+                        target: merge_block_id,
+                    },
+                );
+            }
 
             Some(merge_block_id)
+        }
+        Node::Return { value } => {
+            let ret = if let Some(v) = value {
+                let ret = block_expression(node_tree, v, fn_builder, block_id);
+                Some(ret)
+            } else {
+                None
+            };
+
+            fn_builder.set_terminator(block_id, Terminator::Return { value: ret });
+
+            None
         }
         _ => {
             // TODO: remove me once all the nodes have been covered.
