@@ -42,7 +42,11 @@
         {
           "block_args": [],
           "instructions": [],
-          "terminator": "Unreachable"
+          "terminator": {
+            "Return": {
+              "value": null
+            }
+          }
         }
       ],
       "entry_block": 1,
@@ -62,7 +66,11 @@
         {
           "block_args": [],
           "instructions": [],
-          "terminator": "Unreachable"
+          "terminator": {
+            "Return": {
+              "value": null
+            }
+          }
         }
       ],
       "entry_block": 1,
