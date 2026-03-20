@@ -12,23 +12,16 @@
     "blocks": [
       {
         "block_args": [],
-        "instructions": [
-          {
-            "Const": {
-              "result": 1,
-              "value": {
-                "ConstInt": 1
-              }
-            }
+        "instructions": [],
+        "terminator": {
+          "Return": {
+            "value": null
           }
-        ],
-        "terminator": "Unreachable"
+        }
       }
     ],
     "entry_block": 1,
-    "value_types": [
-      "Int64"
-    ]
+    "value_types": []
   },
   "functions": [
     {
@@ -48,23 +41,12 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [
-            {
-              "Const": {
-                "result": 1,
-                "value": {
-                  "ConstInt": 1
-                }
-              }
-            }
-          ],
+          "instructions": [],
           "terminator": "Unreachable"
         }
       ],
       "entry_block": 1,
-      "value_types": [
-        "Int64"
-      ]
+      "value_types": []
     },
     {
       "name": 22,
@@ -101,23 +83,12 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [
-            {
-              "Const": {
-                "result": 1,
-                "value": {
-                  "ConstInt": 1
-                }
-              }
-            }
-          ],
+          "instructions": [],
           "terminator": "Unreachable"
         }
       ],
       "entry_block": 1,
-      "value_types": [
-        "Int64"
-      ]
+      "value_types": []
     },
     {
       "name": 1,
@@ -132,23 +103,12 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [
-            {
-              "Const": {
-                "result": 1,
-                "value": {
-                  "ConstInt": 1
-                }
-              }
-            }
-          ],
+          "instructions": [],
           "terminator": "Unreachable"
         }
       ],
       "entry_block": 1,
-      "value_types": [
-        "Int64"
-      ]
+      "value_types": []
     }
   ]
 }

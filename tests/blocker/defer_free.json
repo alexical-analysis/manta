@@ -12,23 +12,16 @@
     "blocks": [
       {
         "block_args": [],
-        "instructions": [
-          {
-            "Const": {
-              "result": 1,
-              "value": {
-                "ConstInt": 1
-              }
-            }
+        "instructions": [],
+        "terminator": {
+          "Return": {
+            "value": null
           }
-        ],
-        "terminator": "Unreachable"
+        }
       }
     ],
     "entry_block": 1,
-    "value_types": [
-      "Int64"
-    ]
+    "value_types": []
   },
   "functions": [
     {
@@ -75,23 +68,12 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [
-            {
-              "Const": {
-                "result": 1,
-                "value": {
-                  "ConstInt": 1
-                }
-              }
-            }
-          ],
+          "instructions": [],
           "terminator": "Unreachable"
         }
       ],
       "entry_block": 1,
-      "value_types": [
-        "Int64"
-      ]
+      "value_types": []
     },
     {
       "name": 21,
@@ -119,23 +101,12 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [
-            {
-              "Const": {
-                "result": 1,
-                "value": {
-                  "ConstInt": 1
-                }
-              }
-            }
-          ],
+          "instructions": [],
           "terminator": "Unreachable"
         }
       ],
       "entry_block": 1,
-      "value_types": [
-        "Int64"
-      ]
+      "value_types": []
     },
     {
       "name": 24,
@@ -185,23 +156,12 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [
-            {
-              "Const": {
-                "result": 1,
-                "value": {
-                  "ConstInt": 1
-                }
-              }
-            }
-          ],
+          "instructions": [],
           "terminator": "Unreachable"
         }
       ],
       "entry_block": 1,
-      "value_types": [
-        "Int64"
-      ]
+      "value_types": []
     },
     {
       "name": 32,
@@ -287,23 +247,12 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [
-            {
-              "Const": {
-                "result": 1,
-                "value": {
-                  "ConstInt": 1
-                }
-              }
-            }
-          ],
+          "instructions": [],
           "terminator": "Unreachable"
         }
       ],
       "entry_block": 1,
-      "value_types": [
-        "Int64"
-      ]
+      "value_types": []
     }
   ]
 }

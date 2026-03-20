@@ -12,23 +12,16 @@
     "blocks": [
       {
         "block_args": [],
-        "instructions": [
-          {
-            "Const": {
-              "result": 1,
-              "value": {
-                "ConstInt": 1
-              }
-            }
+        "instructions": [],
+        "terminator": {
+          "Return": {
+            "value": null
           }
-        ],
-        "terminator": "Unreachable"
+        }
       }
     ],
     "entry_block": 1,
-    "value_types": [
-      "Int64"
-    ]
+    "value_types": []
   },
   "functions": [
     {
@@ -48,23 +41,12 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [
-            {
-              "Const": {
-                "result": 1,
-                "value": {
-                  "ConstInt": 1
-                }
-              }
-            }
-          ],
+          "instructions": [],
           "terminator": "Unreachable"
         }
       ],
       "entry_block": 1,
-      "value_types": [
-        "Int64"
-      ]
+      "value_types": []
     },
     {
       "name": 1,
@@ -79,23 +61,70 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [
-            {
-              "Const": {
-                "result": 1,
-                "value": {
-                  "ConstInt": 1
-                }
-              }
+          "instructions": [],
+          "terminator": {
+            "Branch": {
+              "cond": 0,
+              "true_target": 2,
+              "false_target": 3
             }
-          ],
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 4
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Branch": {
+              "cond": 0,
+              "true_target": 5,
+              "false_target": 6
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 7
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
           "terminator": "Unreachable"
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 7
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 4
+            }
+          }
         }
       ],
       "entry_block": 1,
-      "value_types": [
-        "Int64"
-      ]
+      "value_types": []
     }
   ]
 }

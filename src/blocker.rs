@@ -2,12 +2,12 @@ use std::collections::HashSet;
 
 use crate::hir::{FunctionType, Node, NodeID, TypeSpec};
 use crate::mir::{
-    BasicBlock, BlockId, ConstValue, Instruction, Local, MirFunction, MirModule, Terminator,
-    ValueId,
+    BasicBlock, BlockId, Instruction, Local, LocalId, MirFunction, MirModule, Terminator, ValueId,
 };
 use crate::noder::NodeTree;
 use crate::str_store::{self, StrID};
 
+#[derive(Debug, Clone)]
 pub struct BlockBuilder {
     instructions: Vec<Instruction>,
     terminator: Option<Terminator>,
@@ -29,6 +29,10 @@ impl BlockBuilder {
     }
 
     fn set_terminator(&mut self, term: Terminator) {
+        if self.terminator.is_some() {
+            panic!("terminator was already set for this block")
+        }
+
         self.terminator = Some(term);
     }
 
@@ -39,7 +43,12 @@ impl BlockBuilder {
     fn to_basic_block(&self) -> BasicBlock {
         let term = match &self.terminator {
             Some(term) => term,
-            None => panic!("basic block must have a terminator"),
+            None => {
+                eprintln!(
+                    "TODO: basic block must have a terminator setting to unreachable for now"
+                );
+                &Terminator::Unreachable
+            }
         };
 
         let mut created_values = HashSet::new();
@@ -127,7 +136,6 @@ impl BlockBuilder {
     }
 }
 
-// TODO: do I need a function builder actually? The MirFunction might be enough actually
 pub struct FunctionBuilder {
     name: StrID,
     params: Vec<StrID>,
@@ -173,6 +181,15 @@ impl FunctionBuilder {
         ValueId::from_u32(self.value_types.len() as u32)
     }
 
+    fn add_local(&mut self, name: StrID, type_spec: TypeSpec) -> LocalId {
+        let local_id = LocalId::from_u32(self.locals.len() as u32);
+        let local = Local { name, type_spec };
+
+        self.locals.push(local);
+
+        local_id
+    }
+
     fn get_block(&self, block_id: BlockId) -> &BlockBuilder {
         match self.blocks.get(block_id.as_idx()) {
             Some(block) => block,
@@ -196,17 +213,80 @@ impl FunctionBuilder {
             panic!("function must have an entry block")
         };
 
-        let blocks = self.blocks.iter().map(|b| b.to_basic_block()).collect();
+        // TODO: this logic is complex enough that I should move it into a dedicated function
+
+        // it's possible for a basic block in the function to be empty if all other blocks
+        // terminated without jumping to it. For example if every arm in a match statement
+        // returns before the end of the function. here we take a quick walk through the
+        // blocks and cull any that are not referenced by any other blocks in the function
+        let mut valid_blocks = vec![];
+
+        eprintln!("to_mir_function");
+
+        let mut block_que = SetQueue::new();
+        block_que.push(BlockId::from_u32(1));
+        while let Some(b) = block_que.pop() {
+            let block_builder = self.blocks[b.as_idx()].clone();
+            eprintln!("\tvalid block {:?}", block_builder);
+            let block = block_builder.to_basic_block();
+
+            match block.terminator {
+                Terminator::Return { .. } => {}
+                Terminator::Unreachable => {}
+                Terminator::Jump { target } => {
+                    block_que.push(target);
+                }
+                Terminator::Branch {
+                    true_target,
+                    false_target,
+                    ..
+                } => {
+                    block_que.push(true_target);
+                    block_que.push(false_target);
+                }
+                Terminator::SwitchVariant { ref arms, .. } => {
+                    for arm in arms {
+                        block_que.push(arm.block);
+                    }
+                }
+            }
+
+            valid_blocks.push(block);
+        }
 
         MirFunction {
             name: self.name,
-            params: self.params.clone(), // Parameter names and types
+            params: self.params.clone(),
             type_spec: self.type_spec.clone(),
-            blocks,
+            blocks: valid_blocks,
             entry_block: BlockId::from_u32(1),
             locals: self.locals.clone(),
             value_types: self.value_types.clone(),
         }
+    }
+}
+
+struct SetQueue {
+    queue: Vec<BlockId>,
+    set: HashSet<BlockId>,
+}
+
+impl SetQueue {
+    fn new() -> Self {
+        SetQueue {
+            queue: vec![],
+            set: HashSet::new(),
+        }
+    }
+
+    fn push(&mut self, block_id: BlockId) {
+        if self.set.insert(block_id) {
+            self.queue.push(block_id)
+        }
+    }
+
+    fn pop(&mut self) -> Option<BlockId> {
+        self.queue.pop()
     }
 }
 
@@ -221,12 +301,17 @@ pub fn block_hir(node_tree: &NodeTree) -> MirModule {
         }),
     );
 
-    let mut block_id = fn_builder.add_block();
+    let mut init_block_id = fn_builder.add_block();
 
     for node_id in &node_tree.roots {
-        block_id = block_statement(node_tree, *node_id, &mut fn_builder, block_id);
+        match block_init_statement(node_tree, *node_id, &mut fn_builder, init_block_id) {
+            Some(block) => init_block_id = block,
+            None => break,
+        }
     }
 
+    // make sure we close the init block
+    fn_builder.set_terminator(init_block_id, Terminator::Return { value: None });
     let init = fn_builder.to_mir_function();
 
     // block the rest of the functions
@@ -253,15 +338,7 @@ pub fn block_root_node(node_tree: &NodeTree, node_id: NodeID) -> Option<MirFunct
             params,
             body,
         } => {
-            let name = match node_tree.get_node(ident) {
-                Some(n) => n,
-                None => panic!("missing function name (can not find node)"),
-            };
-
-            let name = match name {
-                Node::Identifier { name, .. } => name,
-                _ => panic!("function name wasn't an identifier"),
-            };
+            let name = get_ident_name(node_tree, ident);
 
             let params: Vec<StrID> = params
                 .iter()
@@ -293,12 +370,15 @@ pub fn block_root_node(node_tree: &NodeTree, node_id: NodeID) -> Option<MirFunct
                 None => panic!("missing type for function decl"),
             };
 
-            let mut fn_builder = FunctionBuilder::new(*name, params, func_type.clone());
+            let mut fn_builder = FunctionBuilder::new(name, params, func_type.clone());
 
             let mut block_id = fn_builder.add_block();
             let body = get_block_stmts(node_tree, body);
             for stmt in body {
-                block_id = block_statement(node_tree, *stmt, &mut fn_builder, block_id);
+                match block_statement(node_tree, *stmt, &mut fn_builder, block_id) {
+                    Some(block) => block_id = block,
+                    None => break,
+                }
             }
 
             Some(fn_builder.to_mir_function())
@@ -307,16 +387,48 @@ pub fn block_root_node(node_tree: &NodeTree, node_id: NodeID) -> Option<MirFunct
     }
 }
 
+pub fn block_init_statement(
+    node_tree: &NodeTree,
+    node_id: NodeID,
+    fn_builder: &mut FunctionBuilder,
+    block_id: BlockId,
+) -> Option<BlockId> {
+    if fn_builder.block_is_closed(block_id) {
+        // if the block is closed just skip all the remaining instructions as they are no longer
+        // reachable, trying to adding them would cause a panic
+        return None;
+    }
+
+    let node = match node_tree.get_node(node_id) {
+        Some(n) => n,
+        None => panic!("type checking unknown node"),
+    };
+    let node = node.clone();
+
+    match node {
+        // Function declarations are skipped in the init function
+        Node::FunctionDecl { .. } => Some(block_id),
+        Node::Return { .. } => panic!("can not return from the root context"),
+        _ => {
+            let block_id = block_statement(node_tree, node_id, fn_builder, block_id);
+            match block_id {
+                Some(block) => Some(block),
+                None => panic!("invalid root statement"),
+            }
+        }
+    }
+}
+
 pub fn block_statement(
     node_tree: &NodeTree,
     node_id: NodeID,
     fn_builder: &mut FunctionBuilder,
     block_id: BlockId,
-) -> BlockId {
+) -> Option<BlockId> {
     if fn_builder.block_is_closed(block_id) {
         // if the block is closed just skip all the remaining instructions as they are no longer
         // reachable, trying to adding them would cause a panic
-        return block_id;
+        return None;
     }
 
     let node = match node_tree.get_node(node_id) {
@@ -340,7 +452,9 @@ pub fn block_statement(
             );
             fn_builder.set_terminator(block_id, Terminator::Unreachable);
 
-            block_id
+            // return a None because this block is closed and there's no more blocks that we know
+            // about at this level
+            None
         }
         Node::If {
             condition,
@@ -377,36 +491,30 @@ pub fn block_statement(
                 }
             }
 
-            let new_block_id = fn_builder.add_block();
+            let merge_block_id = fn_builder.add_block();
             fn_builder.set_terminator(
                 true_block_id,
                 Terminator::Jump {
-                    target: new_block_id,
+                    target: merge_block_id,
                 },
             );
             fn_builder.set_terminator(
                 false_block_id,
                 Terminator::Jump {
-                    target: new_block_id,
+                    target: merge_block_id,
                 },
             );
 
-            new_block_id
+            Some(merge_block_id)
         }
         _ => {
             // TODO: remove me once all the nodes have been covered.
-            // for now just create a default block
-            let result = fn_builder.add_value(TypeSpec::Int64);
-            fn_builder.add_instruction(
-                block_id,
-                Instruction::Const {
-                    result,
-                    value: ConstValue::ConstInt(1),
-                },
+            // for now just return the block
+            eprintln!(
+                "TODO: skipping {:?} for now and just returning the block_id",
+                node
             );
-            fn_builder.set_terminator(block_id, Terminator::Unreachable);
-
-            block_id
+            Some(block_id)
         }
     }
 }
@@ -438,13 +546,22 @@ fn block_expression(
 }
 
 fn get_block_stmts(node_tree: &NodeTree, node_id: NodeID) -> &Vec<NodeID> {
-    let node = node_tree
-        .get_node(node_id)
-        .expect("missing then block of the if statement");
+    let node = node_tree.get_node(node_id).expect("missing block node");
 
     match node {
         Node::Block { statements } => statements,
         _ => panic!("the node was not a valid block"),
+    }
+}
+
+fn get_ident_name(node_tree: &NodeTree, node_id: NodeID) -> StrID {
+    let node = node_tree
+        .get_node(node_id)
+        .expect("missing identifier node");
+
+    match node {
+        Node::Identifier { name, .. } => *name,
+        _ => panic!("node was not an identifier"),
     }
 }
 
