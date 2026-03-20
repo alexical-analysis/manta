@@ -2,12 +2,7 @@
   "init": {
     "name": 18446744073709551596,
     "params": [],
-    "type_spec": {
-      "Function": {
-        "params": [],
-        "return_type": "Unit"
-      }
-    },
+    "type_spec": "Unit",
     "locals": [],
     "blocks": [
       {
@@ -30,38 +25,14 @@
         18
       ],
       "type_spec": {
-        "Function": {
-          "params": [
-            "String"
-          ],
-          "return_type": {
-            "Named": {
-              "name": 2,
-              "type_spec": {
-                "Enum": {
-                  "variants": [
-                    {
-                      "name": 14,
-                      "payload": {
-                        "Named": {
-                          "name": 0,
-                          "type_spec": {
-                            "Struct": {
-                              "fields": []
-                            }
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "name": 15,
-                      "payload": null
-                    }
-                  ]
-                }
-              }
-            }
-          }
+        "Enum": {
+          "tag_size": "U8",
+          "variants": [
+            {
+              "Struct": []
+            },
+            null
+          ]
         }
       },
       "locals": [],
@@ -84,23 +55,7 @@
       "params": [
         22
       ],
-      "type_spec": {
-        "Function": {
-          "params": [
-            {
-              "Named": {
-                "name": 0,
-                "type_spec": {
-                  "Struct": {
-                    "fields": []
-                  }
-                }
-              }
-            }
-          ],
-          "return_type": "Unit"
-        }
-      },
+      "type_spec": "Unit",
       "locals": [],
       "blocks": [
         {
@@ -123,41 +78,12 @@
         26
       ],
       "type_spec": {
-        "Function": {
-          "params": [
-            {
-              "Named": {
-                "name": 0,
-                "type_spec": {
-                  "Struct": {
-                    "fields": []
-                  }
-                }
-              }
-            },
-            {
-              "Slice": "UInt8"
-            }
-          ],
-          "return_type": {
-            "Named": {
-              "name": 17,
-              "type_spec": {
-                "Enum": {
-                  "variants": [
-                    {
-                      "name": 14,
-                      "payload": "UInt64"
-                    },
-                    {
-                      "name": 15,
-                      "payload": null
-                    }
-                  ]
-                }
-              }
-            }
-          }
+        "Enum": {
+          "tag_size": "U8",
+          "variants": [
+            "U64",
+            null
+          ]
         }
       },
       "locals": [],
@@ -181,78 +107,31 @@
         18
       ],
       "type_spec": {
-        "Function": {
-          "params": [
-            "String"
-          ],
-          "return_type": {
-            "Named": {
-              "name": 28,
-              "type_spec": {
-                "Enum": {
-                  "variants": [
-                    {
-                      "name": 14,
-                      "payload": null
-                    },
-                    {
-                      "name": 30,
-                      "payload": {
-                        "Named": {
-                          "name": 2,
-                          "type_spec": {
-                            "Enum": {
-                              "variants": [
-                                {
-                                  "name": 14,
-                                  "payload": {
-                                    "Named": {
-                                      "name": 0,
-                                      "type_spec": {
-                                        "Struct": {
-                                          "fields": []
-                                        }
-                                      }
-                                    }
-                                  }
-                                },
-                                {
-                                  "name": 15,
-                                  "payload": null
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "name": 31,
-                      "payload": {
-                        "Named": {
-                          "name": 17,
-                          "type_spec": {
-                            "Enum": {
-                              "variants": [
-                                {
-                                  "name": 14,
-                                  "payload": "UInt64"
-                                },
-                                {
-                                  "name": 15,
-                                  "payload": null
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+        "Enum": {
+          "tag_size": "U8",
+          "variants": [
+            null,
+            {
+              "Enum": {
+                "tag_size": "U8",
+                "variants": [
+                  {
+                    "Struct": []
+                  },
+                  null
+                ]
+              }
+            },
+            {
+              "Enum": {
+                "tag_size": "U8",
+                "variants": [
+                  "U64",
+                  null
+                ]
               }
             }
-          }
+          ]
         }
       },
       "locals": [],

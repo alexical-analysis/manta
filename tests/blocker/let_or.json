@@ -2,12 +2,7 @@
   "init": {
     "name": 18446744073709551596,
     "params": [],
-    "type_spec": {
-      "Function": {
-        "params": [],
-        "return_type": "Unit"
-      }
-    },
+    "type_spec": "Unit",
     "locals": [],
     "blocks": [
       {
@@ -30,38 +25,14 @@
         20
       ],
       "type_spec": {
-        "Function": {
-          "params": [
-            "String"
-          ],
-          "return_type": {
-            "Named": {
-              "name": 2,
-              "type_spec": {
-                "Enum": {
-                  "variants": [
-                    {
-                      "name": 16,
-                      "payload": {
-                        "Named": {
-                          "name": 0,
-                          "type_spec": {
-                            "Struct": {
-                              "fields": []
-                            }
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "name": 17,
-                      "payload": null
-                    }
-                  ]
-                }
-              }
-            }
-          }
+        "Enum": {
+          "tag_size": "U8",
+          "variants": [
+            {
+              "Struct": []
+            },
+            null
+          ]
         }
       },
       "locals": [],
@@ -84,23 +55,7 @@
       "params": [
         24
       ],
-      "type_spec": {
-        "Function": {
-          "params": [
-            {
-              "Named": {
-                "name": 0,
-                "type_spec": {
-                  "Struct": {
-                    "fields": []
-                  }
-                }
-              }
-            }
-          ],
-          "return_type": "Unit"
-        }
-      },
+      "type_spec": "Unit",
       "locals": [],
       "blocks": [
         {
@@ -122,38 +77,12 @@
         24
       ],
       "type_spec": {
-        "Function": {
-          "params": [
-            {
-              "Named": {
-                "name": 0,
-                "type_spec": {
-                  "Struct": {
-                    "fields": []
-                  }
-                }
-              }
-            }
-          ],
-          "return_type": {
-            "Named": {
-              "name": 17,
-              "type_spec": {
-                "Enum": {
-                  "variants": [
-                    {
-                      "name": 16,
-                      "payload": "String"
-                    },
-                    {
-                      "name": 17,
-                      "payload": null
-                    }
-                  ]
-                }
-              }
-            }
-          }
+        "Enum": {
+          "tag_size": "U8",
+          "variants": [
+            "String",
+            null
+          ]
         }
       },
       "locals": [],
@@ -176,14 +105,7 @@
       "params": [
         28
       ],
-      "type_spec": {
-        "Function": {
-          "params": [
-            "String"
-          ],
-          "return_type": "Unit"
-        }
-      },
+      "type_spec": "Unit",
       "locals": [],
       "blocks": [
         {
@@ -205,78 +127,31 @@
         20
       ],
       "type_spec": {
-        "Function": {
-          "params": [
-            "String"
-          ],
-          "return_type": {
-            "Named": {
-              "name": 32,
-              "type_spec": {
-                "Enum": {
-                  "variants": [
-                    {
-                      "name": 16,
-                      "payload": "String"
-                    },
-                    {
-                      "name": 30,
-                      "payload": {
-                        "Named": {
-                          "name": 2,
-                          "type_spec": {
-                            "Enum": {
-                              "variants": [
-                                {
-                                  "name": 16,
-                                  "payload": {
-                                    "Named": {
-                                      "name": 0,
-                                      "type_spec": {
-                                        "Struct": {
-                                          "fields": []
-                                        }
-                                      }
-                                    }
-                                  }
-                                },
-                                {
-                                  "name": 17,
-                                  "payload": null
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "name": 31,
-                      "payload": {
-                        "Named": {
-                          "name": 17,
-                          "type_spec": {
-                            "Enum": {
-                              "variants": [
-                                {
-                                  "name": 16,
-                                  "payload": "String"
-                                },
-                                {
-                                  "name": 17,
-                                  "payload": null
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+        "Enum": {
+          "tag_size": "U8",
+          "variants": [
+            "String",
+            {
+              "Enum": {
+                "tag_size": "U8",
+                "variants": [
+                  {
+                    "Struct": []
+                  },
+                  null
+                ]
+              }
+            },
+            {
+              "Enum": {
+                "tag_size": "U8",
+                "variants": [
+                  "String",
+                  null
+                ]
               }
             }
-          }
+          ]
         }
       },
       "locals": [],
@@ -297,12 +172,7 @@
     {
       "name": 1,
       "params": [],
-      "type_spec": {
-        "Function": {
-          "params": [],
-          "return_type": "Unit"
-        }
-      },
+      "type_spec": "Unit",
       "locals": [],
       "blocks": [
         {
