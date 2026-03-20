@@ -1,7 +1,62 @@
 use crate::ast::{BinaryOp, UnaryOp};
-use crate::hir::TypeSpec;
 use crate::str_store::StrID;
 use serde::Serialize;
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub enum TagSize {
+    U8,
+    U16,
+    U32,
+    U64,
+}
+
+/// MIR-level type: all variants are concrete and map directly to LLVM types.
+/// No inference artifacts or HIR back-references.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub enum TypeSpec {
+    I8,
+    I16,
+    I32,
+    I64,
+    U8,
+    U16,
+    U32,
+    U64,
+    F32,
+    F64,
+    Bool,
+    Unit,
+
+    /// Typed pointer: *T
+    Ptr(Box<TypeSpec>),
+
+    /// Opaque pointer for alloc/free (LLVM `ptr` with no inner type)
+    OpaquePtr,
+
+    /// Fixed-size array: [N x T]
+    Array {
+        elem: Box<TypeSpec>,
+        len: usize,
+    },
+
+    /// Immutable string fat pointer: { ptr: *u8, len: usize }
+    String,
+
+    /// Growable slice fat pointer: { ptr: *T, len: usize, cap: usize }
+    Slice(Box<TypeSpec>),
+
+    /// Struct with positional fields (no names needed at this level).
+    /// The blocker maintains a name→index mapping for field access.
+    Struct(Vec<TypeSpec>),
+
+    /// Layout for an enum type. Variants are indexed by variant_id; `None` means a unit variant
+    /// (no payload). The discriminant size defaults to a u8 but may be larger in cases where there
+    /// are more than 256 variants
+    Enum {
+        tag_size: TagSize,
+        variants: Vec<Option<TypeSpec>>,
+    },
+}
 
 /// A unique identifier for a value (temporary or SSA-like result from an instruction).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize)]
