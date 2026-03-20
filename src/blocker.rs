@@ -242,7 +242,7 @@ impl FunctionBuilder {
                 }
                 Terminator::SwitchVariant { ref arms, .. } => {
                     for arm in arms {
-                        block_que.push(arm.block);
+                        block_que.push(arm.jump);
                     }
                 }
             }
