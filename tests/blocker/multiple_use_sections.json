@@ -2,12 +2,7 @@
   "init": {
     "name": 18446744073709551596,
     "params": [],
-    "type_spec": {
-      "Function": {
-        "params": [],
-        "return_type": "Unit"
-      }
-    },
+    "type_spec": "Unit",
     "locals": [],
     "blocks": [
       {
@@ -29,14 +24,7 @@
       "params": [
         9
       ],
-      "type_spec": {
-        "Function": {
-          "params": [
-            "String"
-          ],
-          "return_type": "Unit"
-        }
-      },
+      "type_spec": "Unit",
       "locals": [],
       "blocks": [
         {
@@ -55,12 +43,7 @@
     {
       "name": 1,
       "params": [],
-      "type_spec": {
-        "Function": {
-          "params": [],
-          "return_type": "Unit"
-        }
-      },
+      "type_spec": "Unit",
       "locals": [],
       "blocks": [
         {

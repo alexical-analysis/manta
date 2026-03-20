@@ -2,12 +2,7 @@
   "init": {
     "name": 18446744073709551596,
     "params": [],
-    "type_spec": {
-      "Function": {
-        "params": [],
-        "return_type": "Unit"
-      }
-    },
+    "type_spec": "Unit",
     "locals": [],
     "blocks": [
       {
@@ -29,14 +24,7 @@
       "params": [
         14
       ],
-      "type_spec": {
-        "Function": {
-          "params": [
-            "Float64"
-          ],
-          "return_type": "Unit"
-        }
-      },
+      "type_spec": "Unit",
       "locals": [],
       "blocks": [
         {
@@ -57,32 +45,7 @@
       "params": [
         23
       ],
-      "type_spec": {
-        "Function": {
-          "params": [
-            {
-              "Named": {
-                "name": 10,
-                "type_spec": {
-                  "Enum": {
-                    "variants": [
-                      {
-                        "name": 20,
-                        "payload": "Float64"
-                      },
-                      {
-                        "name": 21,
-                        "payload": "Float64"
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          ],
-          "return_type": "Float64"
-        }
-      },
+      "type_spec": "F64",
       "locals": [],
       "blocks": [
         {
@@ -97,12 +60,7 @@
     {
       "name": 1,
       "params": [],
-      "type_spec": {
-        "Function": {
-          "params": [],
-          "return_type": "Unit"
-        }
-      },
+      "type_spec": "Unit",
       "locals": [],
       "blocks": [
         {

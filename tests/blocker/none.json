@@ -2,12 +2,7 @@
   "init": {
     "name": 18446744073709551596,
     "params": [],
-    "type_spec": {
-      "Function": {
-        "params": [],
-        "return_type": "Unit"
-      }
-    },
+    "type_spec": "Unit",
     "locals": [],
     "blocks": [
       {
@@ -29,16 +24,7 @@
       "params": [
         10
       ],
-      "type_spec": {
-        "Function": {
-          "params": [
-            {
-              "Pointer": "Int32"
-            }
-          ],
-          "return_type": "Unit"
-        }
-      },
+      "type_spec": "Unit",
       "locals": [],
       "blocks": [
         {
@@ -59,14 +45,7 @@
       "params": [
         15
       ],
-      "type_spec": {
-        "Function": {
-          "params": [
-            "String"
-          ],
-          "return_type": "Unit"
-        }
-      },
+      "type_spec": "Unit",
       "locals": [],
       "blocks": [
         {
@@ -88,35 +67,15 @@
         23
       ],
       "type_spec": {
-        "Function": {
-          "params": [
-            "Bool"
-          ],
-          "return_type": {
-            "Named": {
-              "name": 12,
-              "type_spec": {
-                "Enum": {
-                  "variants": [
-                    {
-                      "name": 19,
-                      "payload": {
-                        "Pointer": "Int32"
-                      }
-                    },
-                    {
-                      "name": 20,
-                      "payload": null
-                    },
-                    {
-                      "name": 21,
-                      "payload": null
-                    }
-                  ]
-                }
-              }
-            }
-          }
+        "Enum": {
+          "tag_size": "U8",
+          "variants": [
+            {
+              "Ptr": "I32"
+            },
+            null,
+            null
+          ]
         }
       },
       "locals": [],
@@ -166,12 +125,7 @@
     {
       "name": 1,
       "params": [],
-      "type_spec": {
-        "Function": {
-          "params": [],
-          "return_type": "Unit"
-        }
-      },
+      "type_spec": "Unit",
       "locals": [],
       "blocks": [
         {
