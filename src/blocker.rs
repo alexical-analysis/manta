@@ -1,8 +1,9 @@
 use std::collections::HashSet;
 
-use crate::hir::{FunctionType, Node, NodeID, TypeSpec};
+use crate::hir::{self, Node, NodeID};
 use crate::mir::{
-    BasicBlock, BlockId, Instruction, Local, LocalId, MirFunction, MirModule, Terminator, ValueId,
+    BasicBlock, BlockId, Instruction, Local, LocalId, MirFunction, MirModule, TagSize, Terminator,
+    TypeSpec, ValueId,
 };
 use crate::noder::NodeTree;
 use crate::str_store::{self, StrID};
@@ -139,8 +140,6 @@ impl BlockBuilder {
 pub struct FunctionBuilder {
     name: StrID,
     params: Vec<StrID>,
-    // TODO: the MIR probably needs it's own TypeSpec type that's more focused on the low level
-    // details of the type (e.g. byte-size, layout, etc.)
     type_spec: TypeSpec,
     locals: Vec<Local>,         // Indexed by LocalId
     blocks: Vec<BlockBuilder>,  // Indexed by BlockId
@@ -289,14 +288,7 @@ impl SetQueue {
 
 pub fn block_hir(node_tree: &NodeTree) -> MirModule {
     // init block constructed to contain global initializations
-    let mut fn_builder = FunctionBuilder::new(
-        str_store::INIT,
-        vec![],
-        TypeSpec::Function(FunctionType {
-            params: vec![],
-            return_type: Box::new(TypeSpec::Unit),
-        }),
-    );
+    let mut fn_builder = FunctionBuilder::new(str_store::INIT, vec![], TypeSpec::Unit);
 
     let mut init_block_id = fn_builder.add_block();
 
@@ -362,12 +354,12 @@ pub fn block_root_node(node_tree: &NodeTree, node_id: NodeID) -> Option<MirFunct
                 })
                 .collect();
 
-            let func_type = match node_tree.get_type(node_id) {
-                Some(ts) => ts.clone(),
+            let return_type = match node_tree.get_type(node_id) {
+                Some(ts) => lower_type_spec(ts),
                 None => panic!("missing type for function decl"),
             };
 
-            let mut fn_builder = FunctionBuilder::new(name, params, func_type.clone());
+            let mut fn_builder = FunctionBuilder::new(name, params, return_type);
 
             let mut block_id = fn_builder.add_block();
             let body = get_block_stmts(node_tree, body);
@@ -436,7 +428,7 @@ pub fn block_statement(
 
     match node {
         Node::Invalid => {
-            let result = fn_builder.add_value(TypeSpec::Panic);
+            let result = fn_builder.add_value(TypeSpec::Unit);
             fn_builder.add_instruction(
                 block_id,
                 Instruction::Call {
@@ -569,6 +561,70 @@ fn get_block_stmts(node_tree: &NodeTree, node_id: NodeID) -> &Vec<NodeID> {
     match node {
         Node::Block { statements } => statements,
         _ => panic!("the node was not a valid block"),
+    }
+}
+
+fn lower_type_spec(hir_ts: &hir::TypeSpec) -> TypeSpec {
+    match hir_ts {
+        hir::TypeSpec::Int8 => TypeSpec::I8,
+        hir::TypeSpec::Int16 => TypeSpec::I16,
+        hir::TypeSpec::Int32 => TypeSpec::I32,
+        hir::TypeSpec::Int64 => TypeSpec::I64,
+        hir::TypeSpec::UInt8 => TypeSpec::U8,
+        hir::TypeSpec::UInt16 => TypeSpec::U16,
+        hir::TypeSpec::UInt32 => TypeSpec::U32,
+        hir::TypeSpec::UInt64 => TypeSpec::U64,
+        hir::TypeSpec::Float32 => TypeSpec::F32,
+        hir::TypeSpec::Float64 => TypeSpec::F64,
+        hir::TypeSpec::Bool => TypeSpec::Bool,
+        // panic types become unit types because the CFG lets us explicitly represent the control
+        // flow of a panic.
+        hir::TypeSpec::Unit | hir::TypeSpec::Panic => TypeSpec::Unit,
+        hir::TypeSpec::String => TypeSpec::String,
+        hir::TypeSpec::Pointer(inner) => TypeSpec::Ptr(Box::new(lower_type_spec(inner))),
+        hir::TypeSpec::UnsafePtr => TypeSpec::OpaquePtr,
+        hir::TypeSpec::Slice(inner) => TypeSpec::Slice(Box::new(lower_type_spec(inner))),
+        hir::TypeSpec::Array(at) => TypeSpec::Array {
+            elem: Box::new(lower_type_spec(&at.type_spec)),
+            len: at.size,
+        },
+        hir::TypeSpec::Struct(st) => TypeSpec::Struct(
+            st.fields
+                .iter()
+                .map(|f| lower_type_spec(&f.type_spec))
+                .collect(),
+        ),
+        hir::TypeSpec::Enum(et) => TypeSpec::Enum {
+            tag_size: tag_size_for(et.variants.len()),
+            variants: et
+                .variants
+                .iter()
+                .map(|v| v.payload.as_ref().map(lower_type_spec))
+                .collect(),
+        },
+        hir::TypeSpec::Named(nt) => lower_type_spec(&nt.type_spec),
+        // For function types we lower to the return type, since MirFunction tracks params
+        // separately and mir::TypeSpec has no Function variant.
+        hir::TypeSpec::Function(ft) => lower_type_spec(&ft.return_type),
+        hir::TypeSpec::Any
+        | hir::TypeSpec::IntLiteral(_)
+        | hir::TypeSpec::FloatLiteral(_)
+        | hir::TypeSpec::InferredEnumExpr(_)
+        | hir::TypeSpec::InferredEnumPat(_) => {
+            panic!("unresolved type {:?} reached MIR lowering", hir_ts)
+        }
+    }
+}
+
+fn tag_size_for(variant_count: usize) -> TagSize {
+    if variant_count <= u8::MAX as usize + 1 {
+        TagSize::U8
+    } else if variant_count <= u16::MAX as usize + 1 {
+        TagSize::U16
+    } else if variant_count <= u32::MAX as usize + 1 {
+        TagSize::U32
+    } else {
+        TagSize::U64
     }
 }
 
