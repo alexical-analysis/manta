@@ -16,6 +16,7 @@
       }
     ],
     "entry_block": 1,
+    "instructions": [],
     "value_types": []
   },
   "functions": [
@@ -38,6 +39,7 @@
         }
       ],
       "entry_block": 1,
+      "instructions": [],
       "value_types": []
     },
     {
@@ -106,6 +108,7 @@
         }
       ],
       "entry_block": 1,
+      "instructions": [],
       "value_types": []
     }
   ]

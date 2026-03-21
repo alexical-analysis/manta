@@ -16,6 +16,7 @@
       }
     ],
     "entry_block": 1,
+    "instructions": [],
     "value_types": []
   },
   "functions": [
@@ -48,6 +49,7 @@
         }
       ],
       "entry_block": 1,
+      "instructions": [],
       "value_types": []
     },
     {
@@ -69,6 +71,7 @@
         }
       ],
       "entry_block": 1,
+      "instructions": [],
       "value_types": []
     },
     {
@@ -98,6 +101,7 @@
         }
       ],
       "entry_block": 1,
+      "instructions": [],
       "value_types": []
     },
     {
@@ -119,6 +123,7 @@
         }
       ],
       "entry_block": 1,
+      "instructions": [],
       "value_types": []
     },
     {
@@ -198,12 +203,7 @@
             0
           ],
           "instructions": [
-            {
-              "VariantGetTag": {
-                "result": 1,
-                "src": 0
-              }
-            }
+            1
           ],
           "terminator": {
             "SwitchVariant": {
@@ -225,21 +225,8 @@
             0
           ],
           "instructions": [
-            {
-              "VariantGetPayload": {
-                "result": 2,
-                "src": 0,
-                "variant_id": {
-                  "ConstUInt": 0
-                }
-              }
-            },
-            {
-              "StoreLocal": {
-                "local": 1,
-                "value": 2
-              }
-            }
+            2,
+            3
           ],
           "terminator": {
             "Jump": {
@@ -252,16 +239,11 @@
             0
           ],
           "instructions": [
-            {
-              "VariantGetTag": {
-                "result": 3,
-                "src": 0
-              }
-            }
+            5
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 3,
+              "discriminant": 5,
               "default": 7,
               "arms": [
                 {
@@ -279,21 +261,8 @@
             0
           ],
           "instructions": [
-            {
-              "VariantGetPayload": {
-                "result": 4,
-                "src": 0,
-                "variant_id": {
-                  "ConstUInt": 0
-                }
-              }
-            },
-            {
-              "StoreLocal": {
-                "local": 3,
-                "value": 4
-              }
-            }
+            6,
+            7
           ],
           "terminator": {
             "Jump": {
@@ -315,12 +284,7 @@
             0
           ],
           "instructions": [
-            {
-              "StoreLocal": {
-                "local": 4,
-                "value": 0
-              }
-            }
+            8
           ],
           "terminator": {
             "Return": {
@@ -333,12 +297,7 @@
             0
           ],
           "instructions": [
-            {
-              "StoreLocal": {
-                "local": 2,
-                "value": 0
-              }
-            }
+            4
           ],
           "terminator": {
             "Return": {
@@ -348,13 +307,69 @@
         }
       ],
       "entry_block": 1,
+      "instructions": [
+        {
+          "VariantGetTag": {
+            "src": 0
+          }
+        },
+        {
+          "VariantGetPayload": {
+            "src": 0,
+            "variant_id": {
+              "ConstUInt": 0
+            }
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 1,
+            "value": 2
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 2,
+            "value": 0
+          }
+        },
+        {
+          "VariantGetTag": {
+            "src": 0
+          }
+        },
+        {
+          "VariantGetPayload": {
+            "src": 0,
+            "variant_id": {
+              "ConstUInt": 0
+            }
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 3,
+            "value": 6
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 4,
+            "value": 0
+          }
+        }
+      ],
       "value_types": [
         "U8",
         {
           "Struct": []
         },
+        "Unit",
+        "Unit",
         "U8",
-        "String"
+        "String",
+        "Unit",
+        "Unit"
       ]
     },
     {
@@ -439,12 +454,7 @@
             0
           ],
           "instructions": [
-            {
-              "VariantGetTag": {
-                "result": 1,
-                "src": 0
-              }
-            }
+            1
           ],
           "terminator": {
             "SwitchVariant": {
@@ -466,21 +476,8 @@
             0
           ],
           "instructions": [
-            {
-              "VariantGetPayload": {
-                "result": 2,
-                "src": 0,
-                "variant_id": {
-                  "ConstUInt": 0
-                }
-              }
-            },
-            {
-              "StoreLocal": {
-                "local": 1,
-                "value": 2
-              }
-            }
+            2,
+            3
           ],
           "terminator": {
             "Jump": {
@@ -493,16 +490,11 @@
             0
           ],
           "instructions": [
-            {
-              "VariantGetTag": {
-                "result": 3,
-                "src": 0
-              }
-            }
+            5
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 3,
+              "discriminant": 5,
               "default": 7,
               "arms": [
                 {
@@ -520,21 +512,8 @@
             0
           ],
           "instructions": [
-            {
-              "VariantGetPayload": {
-                "result": 4,
-                "src": 0,
-                "variant_id": {
-                  "ConstUInt": 0
-                }
-              }
-            },
-            {
-              "StoreLocal": {
-                "local": 3,
-                "value": 4
-              }
-            }
+            6,
+            7
           ],
           "terminator": {
             "Jump": {
@@ -556,12 +535,7 @@
             0
           ],
           "instructions": [
-            {
-              "StoreLocal": {
-                "local": 4,
-                "value": 0
-              }
-            }
+            8
           ],
           "terminator": {
             "Jump": {
@@ -574,12 +548,7 @@
             0
           ],
           "instructions": [
-            {
-              "StoreLocal": {
-                "local": 2,
-                "value": 0
-              }
-            }
+            4
           ],
           "terminator": {
             "Return": {
@@ -589,11 +558,67 @@
         }
       ],
       "entry_block": 1,
+      "instructions": [
+        {
+          "VariantGetTag": {
+            "src": 0
+          }
+        },
+        {
+          "VariantGetPayload": {
+            "src": 0,
+            "variant_id": {
+              "ConstUInt": 0
+            }
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 1,
+            "value": 2
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 2,
+            "value": 0
+          }
+        },
+        {
+          "VariantGetTag": {
+            "src": 0
+          }
+        },
+        {
+          "VariantGetPayload": {
+            "src": 0,
+            "variant_id": {
+              "ConstUInt": 0
+            }
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 3,
+            "value": 6
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 4,
+            "value": 0
+          }
+        }
+      ],
       "value_types": [
         "U8",
         "String",
+        "Unit",
+        "Unit",
         "U8",
-        "String"
+        "String",
+        "Unit",
+        "Unit"
       ]
     }
   ]

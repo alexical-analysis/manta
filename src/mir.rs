@@ -69,6 +69,17 @@ impl ValueId {
         ValueId(id)
     }
 
+    /// Creates a ValueId from a raw usize
+    pub fn from_usize(id: usize) -> Self {
+        ValueId(id as u32)
+    }
+
+    /// Returns the ValueId as an index
+    pub fn as_idx(self) -> usize {
+        assert_ne!(self.0, 0, "ValueId(0) is reserved as nil");
+        (self.0 - 1) as usize
+    }
+
     /// Returns the raw u32 value.
     pub fn as_u32(self) -> u32 {
         self.0
@@ -171,36 +182,32 @@ pub enum ConstValue {
 }
 
 /// An instruction that produces a value or modifies state.
+/// The result ValueId of each instruction is its position in the function's flat instruction
+/// array (1-indexed). Instructions that don't produce a meaningful value are assigned TypeSpec::Unit
+/// in the parallel value_types vec so instructions and value_types stay aligned.
 #[derive(Debug, Clone, Serialize)]
 pub enum Instruction {
-    /// const ty, value -> ValueId
-    Const { result: ValueId, value: ConstValue },
+    /// const ty, value -> ValueId (implicit: instruction's own id)
+    Const { value: ConstValue },
     /// unary op, value -> ValueId
-    UnaryOp {
-        result: ValueId,
-        op: UnaryOp,
-        operand: ValueId,
-    },
+    UnaryOp { op: UnaryOp, operand: ValueId },
     /// binary op, lhs, rhs -> ValueId
     BinaryOp {
-        result: ValueId,
         op: BinaryOp,
         lhs: ValueId,
         rhs: ValueId,
     },
     /// load_local(LocalId) -> ValueId
-    LoadLocal { result: ValueId, local: LocalId },
-    /// store_local(LocalId, ValueId)
+    LoadLocal { local: LocalId },
+    /// store_local(LocalId, ValueId) — produces Unit
     StoreLocal { local: LocalId, value: ValueId },
     /// call(func, args...) -> ValueId
     Call {
-        result: ValueId,
         func: StrID, // Function name or identifier
         args: Vec<ValueId>,
     },
     /// call_try(func, args..., handler: BlockId) -> ValueId
     CallTry {
-        result: ValueId,
         func: StrID,
         args: Vec<ValueId>,
         handler: BlockId,
@@ -209,23 +216,22 @@ pub enum Instruction {
     /// variants can only ever contain a single value in Manta so there's no need to extract a
     /// specific field
     VariantGetPayload {
-        result: ValueId,
         src: ValueId,
         variant_id: ConstValue,
     },
     /// variant_get_tag(src: ValueId) -> ValueId
     /// Extracts the discriminant tag from an enum value as an integer.
-    VariantGetTag { result: ValueId, src: ValueId },
+    VariantGetTag { src: ValueId },
 
-    /// move(dst_local, src_value)
+    /// move(dst_local, src_value) — produces Unit
     Move { dst: LocalId, src: ValueId },
-    /// copy(dst_local, src_value)
+    /// copy(dst_local, src_value) — produces Unit
     Copy { dst: LocalId, src: ValueId },
-    /// drop_local(LocalId)
+    /// drop_local(LocalId) — produces Unit
     DropLocal { local: LocalId },
-    /// declare_local(LocalId) - declares a local as uninitialized (mostly for clarity)
+    /// declare_local(LocalId) — produces Unit (declares a local as uninitialized)
     DeclareLocal { local: LocalId },
-    /// set_initialized(LocalId) - marks a local as initialized
+    /// set_initialized(LocalId) — produces Unit
     SetInitialized { local: LocalId },
 }
 
@@ -260,17 +266,18 @@ pub enum Terminator {
 }
 
 /// A basic block in the control-flow graph.
+/// `instructions` holds ValueIds that index into the owning MirFunction's flat instruction array.
 #[derive(Debug, Clone, Serialize)]
 pub struct BasicBlock {
     pub block_args: Vec<ValueId>,
-    pub instructions: Vec<Instruction>,
+    pub instructions: Vec<ValueId>,
     pub terminator: Terminator,
 }
 
 impl BasicBlock {
     pub fn new(
         block_args: Vec<ValueId>,
-        instructions: Vec<Instruction>,
+        instructions: Vec<ValueId>,
         terminator: Terminator,
     ) -> Self {
         BasicBlock {
@@ -293,6 +300,10 @@ pub struct MirFunction {
     // make sense to have all the basic blocks live together than then only have the functions
     // index into that larger store? My current implementation always set's this to 1
     pub entry_block: BlockId,
+    /// Flat instruction array owned by the function. Indexed by ValueId (1-based).
+    pub instructions: Vec<Instruction>,
+    /// Result type for each instruction, parallel to `instructions`. Instructions that don't
+    /// produce a meaningful value use TypeSpec::Unit.
     pub value_types: Vec<TypeSpec>,
 }
 
@@ -305,6 +316,7 @@ impl MirFunction {
             locals: vec![],
             blocks: vec![],
             entry_block,
+            instructions: vec![],
             value_types: vec![],
         }
     }
@@ -323,6 +335,22 @@ impl MirFunction {
             return None;
         }
         self.blocks.get((id.as_u32() - 1) as usize)
+    }
+
+    /// Gets an instruction by ValueId.
+    pub fn get_instruction(&self, id: ValueId) -> Option<&Instruction> {
+        if id.is_nil() {
+            return None;
+        }
+        self.instructions.get(id.as_u32() as usize - 1)
+    }
+
+    /// Gets the result type for a ValueId.
+    pub fn get_value_type(&self, id: ValueId) -> Option<&TypeSpec> {
+        if id.is_nil() {
+            return None;
+        }
+        self.value_types.get(id.as_u32() as usize - 1)
     }
 }
 
