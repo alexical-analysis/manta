@@ -566,13 +566,18 @@ pub fn block_statement(
                 | hir::TypeSpec::Int16
                 | hir::TypeSpec::Int32
                 | hir::TypeSpec::Int64 => {
-                    let merge_block = fn_builder.add_block();
-                    block_int_match(node_tree, fn_builder, block_id, merge_block, target, arms);
-                    Some(block_id)
+                    let merge_block =
+                        block_int_match(node_tree, fn_builder, block_id, target, arms);
+                    Some(merge_block)
                 }
                 hir::TypeSpec::Enum(_) => {
-                    let merge_block = fn_builder.add_block();
-                    block_enum_match(node_tree, fn_builder, block_id, merge_block, target, arms);
+                    let merge_block =
+                        block_enum_match(node_tree, fn_builder, block_id, target, arms);
+                    Some(merge_block)
+                }
+                hir::TypeSpec::UnsafePtr => {
+                    let merge_block =
+                        block_type_match(node_tree, fn_builder, block_id, target, arms);
                     Some(merge_block)
                 }
                 _ => {
@@ -620,15 +625,11 @@ fn block_int_match(
     node_tree: &NodeTree,
     fn_builder: &mut FunctionBuilder,
     block_id: BlockId,
-    merge_block: BlockId,
     target: NodeID,
     arms: Vec<NodeID>,
-) {
+) -> BlockId {
+    let merge_block = fn_builder.add_block();
     let discriminant = block_expression(node_tree, target, fn_builder, block_id);
-
-    let target_ts = node_tree
-        .get_type(target)
-        .expect("missing type for match target");
 
     let mut match_arms = vec![];
     let mut default_arm = None;
@@ -670,7 +671,12 @@ fn block_int_match(
             PatternNode::Default(pat) => {
                 if let Some(p) = pat.payload {
                     let name = get_ident_name(node_tree, p);
+
+                    let target_ts = node_tree
+                        .get_type(target)
+                        .expect("missing type for match target");
                     let ts = lower_type_spec(target_ts);
+
                     let payload_local = fn_builder.add_local(name, ts);
                     fn_builder.emit_store_local(arm_block, payload_local, discriminant);
                 }
@@ -712,16 +718,18 @@ fn block_int_match(
             arms: match_arms,
         },
     );
+
+    merge_block
 }
 
 fn block_enum_match(
     node_tree: &NodeTree,
     fn_builder: &mut FunctionBuilder,
     block_id: BlockId,
-    merge_block: BlockId,
     target: NodeID,
     arms: Vec<NodeID>,
-) {
+) -> BlockId {
+    let merge_block = fn_builder.add_block();
     let target_id = block_expression(node_tree, target, fn_builder, block_id);
 
     let target_ts = node_tree
@@ -837,6 +845,137 @@ fn block_enum_match(
             arms: match_arms,
         },
     );
+
+    merge_block
+}
+
+fn block_type_match(
+    node_tree: &NodeTree,
+    fn_builder: &mut FunctionBuilder,
+    block_id: BlockId,
+    target: NodeID,
+    arms: Vec<NodeID>,
+) -> BlockId {
+    let merge_block = fn_builder.add_block();
+    let target_id = block_expression(node_tree, target, fn_builder, block_id);
+
+    let target_ts = node_tree
+        .get_type(target)
+        .expect("missing type for match target");
+
+    let mut success_arm = None;
+    let mut default_arm = None;
+    for arm in arms {
+        let arm_block;
+        let arm_node = node_tree.get_node(arm).expect("missing arm node");
+
+        let (pattern_id, body) = match arm_node {
+            Node::MatchArm { pattern, body } => (pattern, body),
+            _ => panic!("expected a match arm"),
+        };
+
+        let pattern = node_tree
+            .get_node(*pattern_id)
+            .expect("missing pattern for match arm");
+        let pattern = match pattern {
+            Node::Pattern(p) => p,
+            _ => panic!("pattern was an invalid node"),
+        };
+
+        match pattern {
+            PatternNode::TypeSpec(ts) => {
+                if success_arm.is_some() {
+                    // The first type spec will always match before other type specs so the only
+                    // successful match that's possible after the first type spec is a default
+                    continue;
+                }
+                arm_block = fn_builder.add_block();
+
+                if let Some(p) = ts.payload {
+                    let name = get_ident_name(node_tree, p);
+
+                    let ts = node_tree
+                        .get_type(*pattern_id)
+                        .expect("missing type for type spec pattern");
+                    let ts = lower_type_spec(ts);
+
+                    // the target type will be UnsafePtr but we need this payload to change the
+                    // type into whatever the target match is
+                    let payload_local = fn_builder.add_local(name, ts);
+                    fn_builder.emit_store_local(arm_block, payload_local, target_id);
+                }
+
+                let block = block_statement(node_tree, *body, fn_builder, arm_block);
+                if let Some(b) = block {
+                    fn_builder.set_terminator(
+                        b,
+                        Terminator::Jump {
+                            target: merge_block,
+                        },
+                    );
+                }
+
+                success_arm = Some(arm_block);
+            }
+            PatternNode::Default(pat) => {
+                arm_block = fn_builder.add_block();
+                if let Some(p) = pat.payload {
+                    let name = get_ident_name(node_tree, p);
+                    let ts = lower_type_spec(target_ts);
+                    let payload_local = fn_builder.add_local(name, ts);
+                    fn_builder.emit_store_local(arm_block, payload_local, target_id);
+                }
+
+                let block = block_statement(node_tree, *body, fn_builder, arm_block);
+                if let Some(b) = block {
+                    fn_builder.set_terminator(
+                        b,
+                        Terminator::Jump {
+                            target: merge_block,
+                        },
+                    );
+                }
+
+                default_arm = Some(arm_block);
+            }
+            _ => panic!("can not convert pattern into a switch terminator"),
+        }
+
+        if default_arm.is_some() {
+            // once we have the deafult arm then no other pattern will ever match
+            break;
+        }
+    }
+
+    // TODO: this could potentially fail where match expressions contain only a single default arm.
+    // We probably don't want that to be an error (even though it's weird) because it's a valid
+    // state that might exist durring development. We need to update this logic to handle that
+    let true_target = match success_arm {
+        Some(d) => d,
+        None => panic!("missing target for unsafe pointer match"),
+    };
+
+    // TODO: we enfoce that both exist here because using the `let` statement will ensure this is
+    // set up correctly for now. We need this to be more robust in the future or we need to
+    // establish some semantic rules that prevents users from constructing weird match structures
+    let false_target = match default_arm {
+        Some(d) => d,
+        None => panic!("missing false arm for unsafe pointer match"),
+    };
+
+    fn_builder.set_terminator(
+        block_id,
+        Terminator::Branch {
+            // target is an unsafe pointer that will get truncated to an i1
+            // durring codegen. For now, any non-nil pointer is considered
+            // truthy and any nil pointer is considered falsey.
+            cond: target_id,
+            true_target,
+            false_target,
+        },
+    );
+
+    merge_block
 }
 
 fn block_expression(

@@ -156,6 +156,18 @@
           "name": 18446744073709551602
         },
         {
+          "type_spec": {
+            "Ptr": {
+              "Slice": "U8"
+            }
+          },
+          "name": 26
+        },
+        {
+          "type_spec": "OpaquePtr",
+          "name": 18446744073709551601
+        },
+        {
           "type_spec": "U64",
           "name": 43
         },
@@ -228,6 +240,35 @@
           }
         },
         {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Branch": {
+              "cond": 0,
+              "true_target": 6,
+              "false_target": 7
+            }
+          }
+        },
+        {
+          "block_args": [
+            0
+          ],
+          "instructions": [
+            {
+              "StoreLocal": {
+                "local": 4,
+                "value": 0
+              }
+            }
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 5
+            }
+          }
+        },
+        {
           "block_args": [
             0
           ],
@@ -242,13 +283,13 @@
           "terminator": {
             "SwitchVariant": {
               "discriminant": 3,
-              "default": 7,
+              "default": 10,
               "arms": [
                 {
                   "target": {
                     "ConstUInt": 0
                   },
-                  "jump": 6
+                  "jump": 9
                 }
               ]
             }
@@ -270,14 +311,14 @@
             },
             {
               "StoreLocal": {
-                "local": 3,
+                "local": 5,
                 "value": 4
               }
             }
           ],
           "terminator": {
             "Jump": {
-              "target": 5
+              "target": 8
             }
           }
         },
@@ -297,7 +338,7 @@
           "instructions": [
             {
               "StoreLocal": {
-                "local": 4,
+                "local": 6,
                 "value": 0
               }
             }
@@ -305,6 +346,24 @@
           "terminator": {
             "Return": {
               "value": 0
+            }
+          }
+        },
+        {
+          "block_args": [
+            0
+          ],
+          "instructions": [
+            {
+              "StoreLocal": {
+                "local": 3,
+                "value": 0
+              }
+            }
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 5
             }
           }
         },
