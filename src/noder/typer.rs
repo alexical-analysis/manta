@@ -692,7 +692,7 @@ fn is_natural_number(ts: &TypeSpec) -> bool {
 }
 
 // resolve_type will unwrap named type aliases to find the underlying type
-fn resolve_type(ts: &TypeSpec) -> &TypeSpec {
+pub fn resolve_type(ts: &TypeSpec) -> &TypeSpec {
     match ts {
         TypeSpec::Named(t) => resolve_type(&t.type_spec),
         _ => ts,

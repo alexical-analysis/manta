@@ -210,8 +210,12 @@ pub enum Instruction {
     VariantGetPayload {
         result: ValueId,
         src: ValueId,
-        variant_id: u32,
+        variant_id: ConstValue,
     },
+    /// variant_get_tag(src: ValueId) -> ValueId
+    /// Extracts the discriminant tag from an enum value as an integer.
+    VariantGetTag { result: ValueId, src: ValueId },
+
     /// move(dst_local, src_value)
     Move { dst: LocalId, src: ValueId },
     /// copy(dst_local, src_value)
