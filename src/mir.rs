@@ -162,7 +162,8 @@ pub struct Local {
 #[derive(Debug, Clone, Serialize)]
 pub enum ConstValue {
     ConstString(StrID),
-    ConstInt(u64),
+    ConstInt(i64),
+    ConstUInt(u64),
     ConstFloat(f64),
     ConstBool(bool),
     ConstArray(Vec<ConstValue>),
