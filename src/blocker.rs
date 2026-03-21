@@ -10,7 +10,7 @@ use crate::str_store::{self, StrID};
 
 #[derive(Debug, Clone)]
 pub struct BlockBuilder {
-    instructions: Vec<Instruction>,
+    instructions: Vec<ValueId>,
     terminator: Option<Terminator>,
 }
 
@@ -22,11 +22,11 @@ impl BlockBuilder {
         }
     }
 
-    fn add_instruction(&mut self, inst: Instruction) {
+    fn add_instruction(&mut self, id: ValueId) {
         if self.is_closed() {
-            panic!("can not add instructions to a block that's aready closed");
+            panic!("can not add instructions to a block that's already closed");
         }
-        self.instructions.push(inst);
+        self.instructions.push(id);
     }
 
     fn set_terminator(&mut self, term: Terminator) {
@@ -41,7 +41,7 @@ impl BlockBuilder {
         self.terminator.is_some()
     }
 
-    fn to_basic_block(&self) -> BasicBlock {
+    fn to_basic_block(&self, all_instructions: &[Instruction]) -> BasicBlock {
         let term = match &self.terminator {
             Some(term) => term,
             None => {
@@ -52,87 +52,20 @@ impl BlockBuilder {
             }
         };
 
-        let mut created_values = HashSet::new();
+        // All values defined in this block — any referenced value not in this set is a block arg.
+        // note that because we do this before checking for block arguments which means there are
+        // cases where values get used before they are defined. This means when building
+        // instructions we must be careful to ensure we always create values BEFORE they are used
+        // or they should not be created at all
+        let created_values: HashSet<ValueId> = self.instructions.iter().cloned().collect();
         let mut block_args = vec![];
-        for inst in self.instructions.clone() {
-            match inst {
-                Instruction::Const { result, .. } => {
-                    created_values.insert(result);
-                }
-                Instruction::UnaryOp {
-                    result, operand, ..
-                } => {
-                    created_values.insert(result);
 
-                    if !created_values.contains(&operand) {
-                        block_args.push(operand)
-                    }
+        for &id in &self.instructions {
+            let inst = &all_instructions[id.as_idx()];
+            for input in instruction_inputs(inst) {
+                if !created_values.contains(&input) {
+                    block_args.push(input);
                 }
-                Instruction::BinaryOp {
-                    result, lhs, rhs, ..
-                } => {
-                    created_values.insert(result);
-
-                    if !created_values.contains(&lhs) {
-                        block_args.push(lhs)
-                    }
-                    if !created_values.contains(&rhs) {
-                        block_args.push(rhs);
-                    }
-                }
-                Instruction::LoadLocal { result, .. } => {
-                    created_values.insert(result);
-                }
-                Instruction::StoreLocal { value, .. } => {
-                    if !created_values.contains(&value) {
-                        block_args.push(value)
-                    }
-                }
-                Instruction::Call { result, args, .. } => {
-                    created_values.insert(result);
-
-                    for arg in args {
-                        if !created_values.contains(&arg) {
-                            block_args.push(arg)
-                        }
-                    }
-                }
-                Instruction::CallTry { result, args, .. } => {
-                    created_values.insert(result);
-
-                    for arg in args {
-                        if !created_values.contains(&arg) {
-                            block_args.push(arg)
-                        }
-                    }
-                }
-                Instruction::VariantGetPayload { result, src, .. } => {
-                    created_values.insert(result);
-
-                    if !created_values.contains(&src) {
-                        block_args.push(src)
-                    }
-                }
-                Instruction::VariantGetTag { result, src } => {
-                    created_values.insert(result);
-
-                    if !created_values.contains(&src) {
-                        block_args.push(src)
-                    }
-                }
-                Instruction::Move { src, .. } => {
-                    if !created_values.contains(&src) {
-                        block_args.push(src)
-                    }
-                }
-                Instruction::Copy { src, .. } => {
-                    if !created_values.contains(&src) {
-                        block_args.push(src)
-                    }
-                }
-                Instruction::DropLocal { .. } => { /* no value IDs here */ }
-                Instruction::DeclareLocal { .. } => { /* no value IDs here */ }
-                Instruction::SetInitialized { .. } => { /* no value IDs here */ }
             }
         }
 
@@ -144,13 +77,33 @@ impl BlockBuilder {
     }
 }
 
+fn instruction_inputs(inst: &Instruction) -> Vec<ValueId> {
+    match inst {
+        Instruction::Const { .. } => vec![],
+        Instruction::UnaryOp { operand, .. } => vec![*operand],
+        Instruction::BinaryOp { lhs, rhs, .. } => vec![*lhs, *rhs],
+        Instruction::LoadLocal { .. } => vec![],
+        Instruction::StoreLocal { value, .. } => vec![*value],
+        Instruction::Call { args, .. } => args.clone(),
+        Instruction::CallTry { args, .. } => args.clone(),
+        Instruction::VariantGetPayload { src, .. } => vec![*src],
+        Instruction::VariantGetTag { src } => vec![*src],
+        Instruction::Move { src, .. } => vec![*src],
+        Instruction::Copy { src, .. } => vec![*src],
+        Instruction::DropLocal { .. } => vec![],
+        Instruction::DeclareLocal { .. } => vec![],
+        Instruction::SetInitialized { .. } => vec![],
+    }
+}
+
 pub struct FunctionBuilder {
     name: StrID,
     params: Vec<StrID>,
     type_spec: TypeSpec,
-    locals: Vec<Local>,         // Indexed by LocalId
-    blocks: Vec<BlockBuilder>,  // Indexed by BlockId
-    value_types: Vec<TypeSpec>, // Indexed by ValueId
+    locals: Vec<Local>,             // Indexed by LocalId
+    blocks: Vec<BlockBuilder>,      // Indexed by BlockId
+    instructions: Vec<Instruction>, // Flat instruction array, indexed by ValueId
+    value_types: Vec<TypeSpec>,     // Parallel to instructions, indexed by ValueId
 }
 
 impl FunctionBuilder {
@@ -161,8 +114,19 @@ impl FunctionBuilder {
             params,
             locals: vec![],
             blocks: vec![],
+            instructions: vec![],
             value_types: vec![],
         }
+    }
+
+    fn emit_call(
+        &mut self,
+        block: BlockId,
+        func: StrID,
+        args: Vec<ValueId>,
+        return_type: TypeSpec,
+    ) -> ValueId {
+        self.add_instruction(block, return_type, Instruction::Call { func, args })
     }
 
     fn emit_variant_get_tag(
@@ -181,16 +145,7 @@ impl FunctionBuilder {
             _ => panic!("incorrect type for enum match"),
         };
 
-        let result = self.add_value(tag_type);
-        self.add_instruction(
-            block,
-            Instruction::VariantGetTag {
-                result,
-                src: target,
-            },
-        );
-
-        result
+        self.add_instruction(block, tag_type, Instruction::VariantGetTag { src: target })
     }
 
     fn emit_variant_get_payload(
@@ -200,26 +155,38 @@ impl FunctionBuilder {
         variant_id: ConstValue,
         result_type: TypeSpec,
     ) -> ValueId {
-        let result = self.add_value(result_type);
         self.add_instruction(
             block,
+            result_type,
             Instruction::VariantGetPayload {
-                result,
                 src: target,
                 variant_id,
             },
-        );
-
-        result
+        )
     }
 
     fn emit_store_local(&mut self, block: BlockId, local: LocalId, value: ValueId) {
-        self.add_instruction(block, Instruction::StoreLocal { local, value });
+        self.add_instruction(
+            block,
+            TypeSpec::Unit,
+            Instruction::StoreLocal { local, value },
+        );
     }
 
-    fn add_instruction(&mut self, block_id: BlockId, inst: Instruction) {
+    /// Appends an instruction to the function's flat instruction array and records it in the given
+    /// block. Returns the ValueId (= position in the flat array) for the instruction's result.
+    fn add_instruction(
+        &mut self,
+        block_id: BlockId,
+        type_spec: TypeSpec,
+        inst: Instruction,
+    ) -> ValueId {
+        self.instructions.push(inst);
+        self.value_types.push(type_spec);
+        let id = ValueId::from_usize(self.instructions.len());
         let block = self.get_block_mut(block_id);
-        block.add_instruction(inst);
+        block.add_instruction(id);
+        id
     }
 
     fn set_terminator(&mut self, block_id: BlockId, term: Terminator) {
@@ -232,11 +199,6 @@ impl FunctionBuilder {
 
         self.blocks.push(block_builder);
         BlockId::from_u32(self.blocks.len() as u32)
-    }
-
-    fn add_value(&mut self, type_spec: TypeSpec) -> ValueId {
-        self.value_types.push(type_spec);
-        ValueId::from_u32(self.value_types.len() as u32)
     }
 
     // TODO: locals should probably be 1:1 mapped to node_id so we're reusing them correctly.
@@ -284,7 +246,7 @@ impl FunctionBuilder {
         block_stack.push(BlockId::from_u32(1));
         while let Some(b) = block_stack.pop() {
             let block_builder = self.blocks[b.as_idx()].clone();
-            let block = block_builder.to_basic_block();
+            let block = block_builder.to_basic_block(&self.instructions);
 
             match block.terminator {
                 Terminator::Return { .. } => {}
@@ -320,6 +282,7 @@ impl FunctionBuilder {
             blocks: valid_blocks,
             entry_block: BlockId::from_u32(1),
             locals: self.locals.clone(),
+            instructions: self.instructions.clone(),
             value_types: self.value_types.clone(),
         }
     }
@@ -485,17 +448,9 @@ pub fn block_statement(
 
     match node {
         Node::Invalid => {
-            let result = fn_builder.add_value(TypeSpec::Unit);
-            fn_builder.add_instruction(
-                block_id,
-                Instruction::Call {
-                    result,
-                    func: str_store::PANIC,
-                    // TODO: what are the args here? Should the 'Node::Invalid' have associated error
-                    // info so that we panic with a syntax error or something?
-                    args: vec![],
-                },
-            );
+            // TODO: what are the args here? Should the 'Node::Invalid' have associated error
+            // info so that we panic with a syntax error or something?
+            fn_builder.emit_call(block_id, str_store::PANIC, vec![], TypeSpec::Unit);
             fn_builder.set_terminator(block_id, Terminator::Unreachable);
 
             // return a None because this block is closed and there's no more blocks that we know

@@ -16,6 +16,7 @@
       }
     ],
     "entry_block": 1,
+    "instructions": [],
     "value_types": []
   },
   "functions": [
@@ -38,6 +39,7 @@
         }
       ],
       "entry_block": 1,
+      "instructions": [],
       "value_types": []
     },
     {
@@ -62,12 +64,7 @@
             0
           ],
           "instructions": [
-            {
-              "VariantGetTag": {
-                "result": 1,
-                "src": 0
-              }
-            }
+            1
           ],
           "terminator": {
             "SwitchVariant": {
@@ -95,21 +92,8 @@
             0
           ],
           "instructions": [
-            {
-              "VariantGetPayload": {
-                "result": 3,
-                "src": 0,
-                "variant_id": {
-                  "ConstUInt": 1
-                }
-              }
-            },
-            {
-              "StoreLocal": {
-                "local": 2,
-                "value": 3
-              }
-            }
+            4,
+            5
           ],
           "terminator": {
             "Return": {
@@ -122,21 +106,8 @@
             0
           ],
           "instructions": [
-            {
-              "VariantGetPayload": {
-                "result": 2,
-                "src": 0,
-                "variant_id": {
-                  "ConstUInt": 0
-                }
-              }
-            },
-            {
-              "StoreLocal": {
-                "local": 1,
-                "value": 2
-              }
-            }
+            2,
+            3
           ],
           "terminator": {
             "Return": {
@@ -151,10 +122,47 @@
         }
       ],
       "entry_block": 1,
+      "instructions": [
+        {
+          "VariantGetTag": {
+            "src": 0
+          }
+        },
+        {
+          "VariantGetPayload": {
+            "src": 0,
+            "variant_id": {
+              "ConstUInt": 0
+            }
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 1,
+            "value": 2
+          }
+        },
+        {
+          "VariantGetPayload": {
+            "src": 0,
+            "variant_id": {
+              "ConstUInt": 1
+            }
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 2,
+            "value": 4
+          }
+        }
+      ],
       "value_types": [
         "U8",
         "F64",
-        "F64"
+        "Unit",
+        "F64",
+        "Unit"
       ]
     },
     {
@@ -174,6 +182,7 @@
         }
       ],
       "entry_block": 1,
+      "instructions": [],
       "value_types": []
     }
   ]
