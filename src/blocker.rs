@@ -1,11 +1,11 @@
 use std::collections::HashSet;
 
-use crate::hir::{self, Node, NodeID};
+use crate::hir::{self, Node, NodeID, PatternNode};
 use crate::mir::{
-    BasicBlock, BlockId, Instruction, Local, LocalId, MirFunction, MirModule, TagSize, Terminator,
-    TypeSpec, ValueId,
+    BasicBlock, BlockId, ConstValue, Instruction, Local, LocalId, MirFunction, MirModule,
+    SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
 };
-use crate::noder::NodeTree;
+use crate::noder::{NodeTree, typer};
 use crate::str_store::{self, StrID};
 
 #[derive(Debug, Clone)]
@@ -113,6 +113,13 @@ impl BlockBuilder {
                         block_args.push(src)
                     }
                 }
+                Instruction::VariantGetTag { result, src } => {
+                    created_values.insert(result);
+
+                    if !created_values.contains(&src) {
+                        block_args.push(src)
+                    }
+                }
                 Instruction::Move { src, .. } => {
                     if !created_values.contains(&src) {
                         block_args.push(src)
@@ -158,6 +165,58 @@ impl FunctionBuilder {
         }
     }
 
+    fn emit_variant_get_tag(
+        &mut self,
+        block: BlockId,
+        target: ValueId,
+        target_type: TypeSpec,
+    ) -> ValueId {
+        let tag_type = match target_type {
+            TypeSpec::Enum { tag_size, .. } => match tag_size {
+                TagSize::U8 => TypeSpec::U8,
+                TagSize::U16 => TypeSpec::U16,
+                TagSize::U32 => TypeSpec::U32,
+                TagSize::U64 => TypeSpec::U64,
+            },
+            _ => panic!("incorrect type for enum match"),
+        };
+
+        let result = self.add_value(tag_type);
+        self.add_instruction(
+            block,
+            Instruction::VariantGetTag {
+                result,
+                src: target,
+            },
+        );
+
+        result
+    }
+
+    fn emit_variant_get_payload(
+        &mut self,
+        block: BlockId,
+        target: ValueId,
+        variant_id: ConstValue,
+        result_type: TypeSpec,
+    ) -> ValueId {
+        let result = self.add_value(result_type);
+        self.add_instruction(
+            block,
+            Instruction::VariantGetPayload {
+                result,
+                src: target,
+                variant_id,
+            },
+        );
+
+        result
+    }
+
+    fn emit_store_local(&mut self, block: BlockId, local: LocalId, value: ValueId) {
+        self.add_instruction(block, Instruction::StoreLocal { local, value });
+    }
+
     fn add_instruction(&mut self, block_id: BlockId, inst: Instruction) {
         let block = self.get_block_mut(block_id);
         block.add_instruction(inst);
@@ -181,7 +240,7 @@ impl FunctionBuilder {
     }
 
     fn add_local(&mut self, name: StrID, type_spec: TypeSpec) -> LocalId {
-        let local_id = LocalId::from_u32(self.locals.len() as u32);
+        let local_id = LocalId::from_u32(self.locals.len() as u32 + 1);
         let local = Local { name, type_spec };
 
         self.locals.push(local);
@@ -212,17 +271,15 @@ impl FunctionBuilder {
             panic!("function must have an entry block")
         };
 
-        // TODO: this logic is complex enough that I should move it into a dedicated function
-
         // it's possible for a basic block in the function to be empty if all other blocks
         // terminated without jumping to it. For example if every arm in a match statement
         // returns before the end of the function. here we take a quick walk through the
         // blocks and cull any that are not referenced by any other blocks in the function
         let mut valid_blocks = vec![];
 
-        let mut block_que = SetQueue::new();
-        block_que.push(BlockId::from_u32(1));
-        while let Some(b) = block_que.pop() {
+        let mut block_stack = SetStack::new();
+        block_stack.push(BlockId::from_u32(1));
+        while let Some(b) = block_stack.pop() {
             let block_builder = self.blocks[b.as_idx()].clone();
             let block = block_builder.to_basic_block();
 
@@ -230,19 +287,22 @@ impl FunctionBuilder {
                 Terminator::Return { .. } => {}
                 Terminator::Unreachable => {}
                 Terminator::Jump { target } => {
-                    block_que.push(target);
+                    block_stack.push(target);
                 }
                 Terminator::Branch {
                     true_target,
                     false_target,
                     ..
                 } => {
-                    block_que.push(true_target);
-                    block_que.push(false_target);
+                    block_stack.push(true_target);
+                    block_stack.push(false_target);
                 }
-                Terminator::SwitchVariant { ref arms, .. } => {
+                Terminator::SwitchVariant {
+                    default, ref arms, ..
+                } => {
+                    block_stack.push(default);
                     for arm in arms {
-                        block_que.push(arm.jump);
+                        block_stack.push(arm.jump);
                     }
                 }
             }
@@ -262,14 +322,14 @@ impl FunctionBuilder {
     }
 }
 
-struct SetQueue {
+struct SetStack {
     queue: Vec<BlockId>,
     set: HashSet<BlockId>,
 }
 
-impl SetQueue {
+impl SetStack {
     fn new() -> Self {
-        SetQueue {
+        SetStack {
             queue: vec![],
             set: HashSet::new(),
         }
@@ -361,14 +421,8 @@ pub fn block_root_node(node_tree: &NodeTree, node_id: NodeID) -> Option<MirFunct
 
             let mut fn_builder = FunctionBuilder::new(name, params, return_type);
 
-            let mut block_id = fn_builder.add_block();
-            let body = get_block_stmts(node_tree, body);
-            for stmt in body {
-                match block_statement(node_tree, *stmt, &mut fn_builder, block_id) {
-                    Some(block) => block_id = block,
-                    None => break,
-                }
-            }
+            let block_id = fn_builder.add_block();
+            block_statement(node_tree, body, &mut fn_builder, block_id);
 
             Some(fn_builder.to_mir_function())
         }
@@ -455,12 +509,30 @@ pub fn block_statement(
             let expr_value = block_expression(node_tree, condition, fn_builder, block_id);
 
             let true_block_id = fn_builder.add_block();
-            let false_block_id = fn_builder.add_block();
+            let merge_block_id = fn_builder.add_block();
 
-            let block = get_block_stmts(node_tree, then_block);
+            let block = block_statement(node_tree, then_block, fn_builder, true_block_id);
+            if let Some(b) = block {
+                fn_builder.set_terminator(
+                    b,
+                    Terminator::Jump {
+                        target: merge_block_id,
+                    },
+                )
+            }
 
-            for stmt in block {
-                block_statement(node_tree, *stmt, fn_builder, true_block_id);
+            let mut false_block_id = merge_block_id;
+            if let Some(e) = else_block {
+                false_block_id = fn_builder.add_block();
+                let block = block_statement(node_tree, e, fn_builder, false_block_id);
+                if let Some(b) = block {
+                    fn_builder.set_terminator(
+                        b,
+                        Terminator::Jump {
+                            target: merge_block_id,
+                        },
+                    );
+                }
             }
 
             fn_builder.set_terminator(
@@ -472,38 +544,49 @@ pub fn block_statement(
                 },
             );
 
-            if let Some(n) = else_block {
-                let block = get_block_stmts(node_tree, n);
+            Some(merge_block_id)
+        }
+        Node::Match { target, arms } => {
+            // check the type of the discriminant to figure out if we need to build a switch or a
+            // series of if checks and jumps
+            let discriminant_type = node_tree
+                .get_type(target)
+                .expect("missing type for discriminant");
 
-                for stmt in block {
-                    block_statement(node_tree, *stmt, fn_builder, false_block_id);
+            let discriminant_type = typer::resolve_type(discriminant_type);
+            match discriminant_type {
+                hir::TypeSpec::UInt8
+                | hir::TypeSpec::UInt16
+                | hir::TypeSpec::UInt32
+                | hir::TypeSpec::UInt64
+                | hir::TypeSpec::Int8
+                | hir::TypeSpec::Int16
+                | hir::TypeSpec::Int32
+                | hir::TypeSpec::Int64 => {
+                    eprintln!("TODO: int variants can be converted into switch blocks");
+                    Some(block_id)
+                }
+                hir::TypeSpec::Enum(_) => {
+                    let merge_block = fn_builder.add_block();
+                    block_switch_match(node_tree, fn_builder, block_id, merge_block, target, arms);
+                    Some(merge_block)
+                }
+                _ => {
+                    eprintln!("TODO: other expressions need to be converted into if blocks");
+                    Some(block_id)
+                }
+            }
+        }
+        Node::Block { statements } => {
+            let mut current_block = block_id;
+            for stmt in statements {
+                match block_statement(node_tree, stmt, fn_builder, current_block) {
+                    Some(b) => current_block = b,
+                    None => return None,
                 }
             }
 
-            let merge_block_id = fn_builder.add_block();
-            if !fn_builder.block_is_closed(true_block_id) {
-                // jump to the merge block if the block isn't already closed (e.g. from a return or
-                // panic statment)
-                fn_builder.set_terminator(
-                    true_block_id,
-                    Terminator::Jump {
-                        target: merge_block_id,
-                    },
-                );
-            }
-
-            if !fn_builder.block_is_closed(false_block_id) {
-                // jump to the merge block if the block isn't already closed (e.g. from a return or
-                // panic statment)
-                fn_builder.set_terminator(
-                    false_block_id,
-                    Terminator::Jump {
-                        target: merge_block_id,
-                    },
-                );
-            }
-
-            Some(merge_block_id)
+            Some(current_block)
         }
         Node::Return { value } => {
             let ret = if let Some(v) = value {
@@ -529,6 +612,144 @@ pub fn block_statement(
     }
 }
 
+fn block_switch_match(
+    node_tree: &NodeTree,
+    fn_builder: &mut FunctionBuilder,
+    block_id: BlockId,
+    merge_block: BlockId,
+    target: NodeID,
+    arms: Vec<NodeID>,
+) {
+    let target_id = block_expression(node_tree, target, fn_builder, block_id);
+
+    let target_ts = node_tree
+        .get_type(target)
+        .expect("missing type for match target");
+    let ts = lower_type_spec(target_ts);
+
+    let discriminant = fn_builder.emit_variant_get_tag(block_id, target_id, ts);
+
+    let mut match_arms = vec![];
+    let mut default_arm = None;
+    for arm in arms {
+        let arm_block = fn_builder.add_block();
+        let arm_node = node_tree.get_node(arm).expect("missing arm node");
+
+        let (pattern, body) = match arm_node {
+            Node::MatchArm { pattern, body } => (pattern, body),
+            _ => panic!("expected a match arm"),
+        };
+
+        let pattern = node_tree
+            .get_node(*pattern)
+            .expect("missing pattern for match arm");
+        let pattern = match pattern {
+            Node::Pattern(p) => p,
+            _ => panic!("pattern was an invalid node"),
+        };
+
+        match pattern {
+            PatternNode::EnumVariant(pat) => {
+                if default_arm.is_some() {
+                    // this block will never be reached if theres an eariler default arm
+                    continue;
+                }
+
+                let variant_id = get_variant_id(target_ts, pat.variant);
+
+                match pat.payload {
+                    Some(p) => {
+                        let ts = node_tree
+                            .get_type(p)
+                            .expect("missing type spec for enum variant");
+                        let ts = lower_type_spec(ts);
+
+                        let payload_value = fn_builder.emit_variant_get_payload(
+                            arm_block,
+                            target_id,
+                            variant_id.clone(),
+                            ts.clone(),
+                        );
+
+                        let name = get_ident_name(node_tree, p);
+                        let payload_local = fn_builder.add_local(name, ts);
+                        fn_builder.emit_store_local(arm_block, payload_local, payload_value);
+                    }
+                    None => {
+                        // nothing to do because there's no payload to set up into a local
+                    }
+                }
+
+                let block = block_statement(node_tree, *body, fn_builder, arm_block);
+                match block {
+                    Some(b) => fn_builder.set_terminator(
+                        b,
+                        Terminator::Jump {
+                            target: merge_block,
+                        },
+                    ),
+                    None => {
+                        // nothing to do because this block terminates in some other way
+                    }
+                }
+
+                match_arms.push(SwitchArm {
+                    target: variant_id,
+                    jump: arm_block,
+                });
+            }
+            PatternNode::Default(pat) => {
+                if default_arm.is_some() {
+                    // this block will never be reached if theres an eariler default arm
+                    continue;
+                }
+
+                match pat.payload {
+                    Some(p) => {
+                        let name = get_ident_name(node_tree, p);
+                        let ts = lower_type_spec(target_ts);
+                        let payload_local = fn_builder.add_local(name, ts);
+                        fn_builder.emit_store_local(arm_block, payload_local, target_id);
+                    }
+                    None => {
+                        // nothing to do because there's no payload to set up into a local
+                    }
+                }
+
+                let block = block_statement(node_tree, *body, fn_builder, arm_block);
+                if let Some(b) = block {
+                    fn_builder.set_terminator(
+                        b,
+                        Terminator::Jump {
+                            target: merge_block,
+                        },
+                    );
+                }
+
+                default_arm = Some(arm_block);
+            }
+            _ => panic!("can not convert pattern into a switch terminator"),
+        }
+    }
+
+    let default = match default_arm {
+        Some(d) => d,
+        None => {
+            eprintln!("TODO: currently we don't always insist that pattern matching is exaustive");
+            merge_block
+        }
+    };
+
+    fn_builder.set_terminator(
+        block_id,
+        Terminator::SwitchVariant {
+            discriminant,
+            default,
+            arms: match_arms,
+        },
+    );
+}
+
 fn block_expression(
     node_tree: &NodeTree,
     node_id: NodeID,
@@ -552,15 +773,6 @@ fn block_expression(
             // TODO: implement this
             ValueId::nil()
         }
-    }
-}
-
-fn get_block_stmts(node_tree: &NodeTree, node_id: NodeID) -> &Vec<NodeID> {
-    let node = node_tree.get_node(node_id).expect("missing block node");
-
-    match node {
-        Node::Block { statements } => statements,
-        _ => panic!("the node was not a valid block"),
     }
 }
 
@@ -636,6 +848,20 @@ fn get_ident_name(node_tree: &NodeTree, node_id: NodeID) -> StrID {
     match node {
         Node::Identifier { name, .. } => *name,
         _ => panic!("node was not an identifier"),
+    }
+}
+
+fn get_variant_id(type_spec: &hir::TypeSpec, variant_name: StrID) -> ConstValue {
+    match typer::resolve_type(type_spec) {
+        hir::TypeSpec::Enum(e) => {
+            for (i, v) in e.variants.iter().enumerate() {
+                if variant_name == v.name {
+                    return ConstValue::ConstInt(i as u64);
+                }
+            }
+            panic!("missing variant!")
+        }
+        _ => panic!("invalid type spec, not an enum"),
     }
 }
 

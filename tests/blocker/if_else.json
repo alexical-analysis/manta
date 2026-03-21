@@ -61,18 +61,9 @@
           "block_args": [],
           "instructions": [],
           "terminator": {
-            "Jump": {
-              "target": 4
-            }
-          }
-        },
-        {
-          "block_args": [],
-          "instructions": [],
-          "terminator": {
             "Branch": {
               "cond": 0,
-              "true_target": 5,
+              "true_target": 4,
               "false_target": 6
             }
           }
@@ -82,7 +73,7 @@
           "instructions": [],
           "terminator": {
             "Jump": {
-              "target": 7
+              "target": 5
             }
           }
         },
@@ -100,7 +91,7 @@
           "instructions": [],
           "terminator": {
             "Jump": {
-              "target": 7
+              "target": 5
             }
           }
         },
@@ -109,7 +100,7 @@
           "instructions": [],
           "terminator": {
             "Jump": {
-              "target": 4
+              "target": 3
             }
           }
         }

@@ -95,15 +95,6 @@
           "block_args": [],
           "instructions": [],
           "terminator": {
-            "Jump": {
-              "target": 4
-            }
-          }
-        },
-        {
-          "block_args": [],
-          "instructions": [],
-          "terminator": {
             "Return": {
               "value": 0
             }
@@ -126,8 +117,84 @@
       "name": 1,
       "params": [],
       "type_spec": "Unit",
-      "locals": [],
+      "locals": [
+        {
+          "type_spec": {
+            "Ptr": "I32"
+          },
+          "name": 10
+        }
+      ],
       "blocks": [
+        {
+          "block_args": [
+            0
+          ],
+          "instructions": [
+            {
+              "VariantGetTag": {
+                "result": 1,
+                "src": 0
+              }
+            }
+          ],
+          "terminator": {
+            "SwitchVariant": {
+              "discriminant": 1,
+              "default": 2,
+              "arms": [
+                {
+                  "target": {
+                    "ConstInt": 0
+                  },
+                  "jump": 3
+                },
+                {
+                  "target": {
+                    "ConstInt": 1
+                  },
+                  "jump": 4
+                }
+              ]
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 2
+            }
+          }
+        },
+        {
+          "block_args": [
+            0
+          ],
+          "instructions": [
+            {
+              "VariantGetPayload": {
+                "result": 2,
+                "src": 0,
+                "variant_id": {
+                  "ConstInt": 0
+                }
+              }
+            },
+            {
+              "StoreLocal": {
+                "local": 1,
+                "value": 2
+              }
+            }
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 2
+            }
+          }
+        },
         {
           "block_args": [],
           "instructions": [],
@@ -139,7 +206,12 @@
         }
       ],
       "entry_block": 1,
-      "value_types": []
+      "value_types": [
+        "U8",
+        {
+          "Ptr": "I32"
+        }
+      ]
     }
   ]
 }
