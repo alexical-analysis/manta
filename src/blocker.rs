@@ -239,6 +239,9 @@ impl FunctionBuilder {
         ValueId::from_u32(self.value_types.len() as u32)
     }
 
+    // TODO: locals should probably be 1:1 mapped to node_id so we're reusing them correctly.
+    // also this should probably be `get_local` since we wont necessarily know if we're creating
+    // a new local or reusing an existing one
     fn add_local(&mut self, name: StrID, type_spec: TypeSpec) -> LocalId {
         let local_id = LocalId::from_u32(self.locals.len() as u32 + 1);
         let local = Local { name, type_spec };
@@ -563,12 +566,13 @@ pub fn block_statement(
                 | hir::TypeSpec::Int16
                 | hir::TypeSpec::Int32
                 | hir::TypeSpec::Int64 => {
-                    eprintln!("TODO: int variants can be converted into switch blocks");
+                    let merge_block = fn_builder.add_block();
+                    block_int_match(node_tree, fn_builder, block_id, merge_block, target, arms);
                     Some(block_id)
                 }
                 hir::TypeSpec::Enum(_) => {
                     let merge_block = fn_builder.add_block();
-                    block_switch_match(node_tree, fn_builder, block_id, merge_block, target, arms);
+                    block_enum_match(node_tree, fn_builder, block_id, merge_block, target, arms);
                     Some(merge_block)
                 }
                 _ => {
@@ -612,7 +616,105 @@ pub fn block_statement(
     }
 }
 
-fn block_switch_match(
+fn block_int_match(
+    node_tree: &NodeTree,
+    fn_builder: &mut FunctionBuilder,
+    block_id: BlockId,
+    merge_block: BlockId,
+    target: NodeID,
+    arms: Vec<NodeID>,
+) {
+    let discriminant = block_expression(node_tree, target, fn_builder, block_id);
+
+    let target_ts = node_tree
+        .get_type(target)
+        .expect("missing type for match target");
+
+    let mut match_arms = vec![];
+    let mut default_arm = None;
+    for arm in arms {
+        let arm_block = fn_builder.add_block();
+        let arm_node = node_tree.get_node(arm).expect("missing arm node");
+
+        let (pattern, body) = match arm_node {
+            Node::MatchArm { pattern, body } => (pattern, body),
+            _ => panic!("expect a match arm"),
+        };
+
+        let pattern = node_tree
+            .get_node(*pattern)
+            .expect("missing pattern for match arm");
+        let pattern = match pattern {
+            Node::Pattern(p) => p,
+            _ => panic!("pattern was an invalid node"),
+        };
+
+        match pattern {
+            PatternNode::IntLiteral(i) => {
+                // Int literal patterns can never have a payload so this is pretty easy
+                let block = block_statement(node_tree, *body, fn_builder, arm_block);
+                if let Some(b) = block {
+                    fn_builder.set_terminator(
+                        b,
+                        Terminator::Jump {
+                            target: merge_block,
+                        },
+                    );
+                }
+
+                match_arms.push(SwitchArm {
+                    target: ConstValue::ConstInt(*i),
+                    jump: arm_block,
+                });
+            }
+            PatternNode::Default(pat) => {
+                if let Some(p) = pat.payload {
+                    let name = get_ident_name(node_tree, p);
+                    let ts = lower_type_spec(target_ts);
+                    let payload_local = fn_builder.add_local(name, ts);
+                    fn_builder.emit_store_local(arm_block, payload_local, discriminant);
+                }
+
+                let block = block_statement(node_tree, *body, fn_builder, arm_block);
+                if let Some(b) = block {
+                    fn_builder.set_terminator(
+                        b,
+                        Terminator::Jump {
+                            target: merge_block,
+                        },
+                    );
+                }
+
+                default_arm = Some(arm_block);
+            }
+            _ => panic!("invalid pattern for match statement"),
+        };
+
+        if default_arm.is_some() {
+            // once we have the default arm then no other patterns will ever match
+            break;
+        }
+    }
+
+    let default = match default_arm {
+        Some(d) => d,
+        None => {
+            eprintln!("TODO: currently we don't always insist that pattern matching is exaustive");
+            merge_block
+        }
+    };
+
+    fn_builder.set_terminator(
+        block_id,
+        Terminator::SwitchVariant {
+            discriminant,
+            default,
+            arms: match_arms,
+        },
+    );
+}
+
+fn block_enum_match(
     node_tree: &NodeTree,
     fn_builder: &mut FunctionBuilder,
     block_id: BlockId,
@@ -650,11 +752,6 @@ fn block_switch_match(
 
         match pattern {
             PatternNode::EnumVariant(pat) => {
-                if default_arm.is_some() {
-                    // this block will never be reached if theres an eariler default arm
-                    continue;
-                }
-
                 let variant_id = get_variant_id(target_ts, pat.variant);
 
                 match pat.payload {
@@ -681,16 +778,13 @@ fn block_switch_match(
                 }
 
                 let block = block_statement(node_tree, *body, fn_builder, arm_block);
-                match block {
-                    Some(b) => fn_builder.set_terminator(
+                if let Some(b) = block {
+                    fn_builder.set_terminator(
                         b,
                         Terminator::Jump {
                             target: merge_block,
                         },
-                    ),
-                    None => {
-                        // nothing to do because this block terminates in some other way
-                    }
+                    )
                 }
 
                 match_arms.push(SwitchArm {
@@ -699,21 +793,11 @@ fn block_switch_match(
                 });
             }
             PatternNode::Default(pat) => {
-                if default_arm.is_some() {
-                    // this block will never be reached if theres an eariler default arm
-                    continue;
-                }
-
-                match pat.payload {
-                    Some(p) => {
-                        let name = get_ident_name(node_tree, p);
-                        let ts = lower_type_spec(target_ts);
-                        let payload_local = fn_builder.add_local(name, ts);
-                        fn_builder.emit_store_local(arm_block, payload_local, target_id);
-                    }
-                    None => {
-                        // nothing to do because there's no payload to set up into a local
-                    }
+                if let Some(p) = pat.payload {
+                    let name = get_ident_name(node_tree, p);
+                    let ts = lower_type_spec(target_ts);
+                    let payload_local = fn_builder.add_local(name, ts);
+                    fn_builder.emit_store_local(arm_block, payload_local, target_id);
                 }
 
                 let block = block_statement(node_tree, *body, fn_builder, arm_block);
@@ -729,6 +813,11 @@ fn block_switch_match(
                 default_arm = Some(arm_block);
             }
             _ => panic!("can not convert pattern into a switch terminator"),
+        }
+
+        if default_arm.is_some() {
+            // once we have the deafult arm then no other pattern will ever match
+            break;
         }
     }
 
@@ -856,7 +945,7 @@ fn get_variant_id(type_spec: &hir::TypeSpec, variant_name: StrID) -> ConstValue 
         hir::TypeSpec::Enum(e) => {
             for (i, v) in e.variants.iter().enumerate() {
                 if variant_name == v.name {
-                    return ConstValue::ConstInt(i as u64);
+                    return ConstValue::ConstUInt(i as u64);
                 }
             }
             panic!("missing variant!")

@@ -120,13 +120,13 @@
               "arms": [
                 {
                   "target": {
-                    "ConstInt": 0
+                    "ConstUInt": 0
                   },
                   "jump": 3
                 },
                 {
                   "target": {
-                    "ConstInt": 1
+                    "ConstUInt": 1
                   },
                   "jump": 4
                 }
@@ -153,7 +153,7 @@
                 "result": 2,
                 "src": 0,
                 "variant_id": {
-                  "ConstInt": 0
+                  "ConstUInt": 0
                 }
               }
             },

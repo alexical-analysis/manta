@@ -192,7 +192,7 @@
               "arms": [
                 {
                   "target": {
-                    "ConstInt": 0
+                    "ConstUInt": 0
                   },
                   "jump": 3
                 }
@@ -210,7 +210,7 @@
                 "result": 2,
                 "src": 0,
                 "variant_id": {
-                  "ConstInt": 0
+                  "ConstUInt": 0
                 }
               }
             },
@@ -246,7 +246,7 @@
               "arms": [
                 {
                   "target": {
-                    "ConstInt": 0
+                    "ConstUInt": 0
                   },
                   "jump": 6
                 }
@@ -264,7 +264,7 @@
                 "result": 4,
                 "src": 0,
                 "variant_id": {
-                  "ConstInt": 0
+                  "ConstUInt": 0
                 }
               }
             },
