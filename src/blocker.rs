@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 
 use crate::hir::{self, Node, NodeID, PatternNode};
 use crate::mir::{
@@ -100,6 +100,7 @@ pub struct FunctionBuilder {
     name: StrID,
     params: Vec<StrID>,
     type_spec: TypeSpec,
+    local_map: BTreeMap<NodeID, LocalId>,
     locals: Vec<Local>,             // Indexed by LocalId
     blocks: Vec<BlockBuilder>,      // Indexed by BlockId
     instructions: Vec<Instruction>, // Flat instruction array, indexed by ValueId
@@ -112,6 +113,7 @@ impl FunctionBuilder {
             name,
             type_spec,
             params,
+            local_map: BTreeMap::new(),
             locals: vec![],
             blocks: vec![],
             instructions: vec![],
@@ -201,14 +203,17 @@ impl FunctionBuilder {
         BlockId::from_u32(self.blocks.len() as u32)
     }
 
-    // TODO: locals should probably be 1:1 mapped to node_id so we're reusing them correctly.
-    // also this should probably be `get_local` since we wont necessarily know if we're creating
-    // a new local or reusing an existing one
-    fn add_local(&mut self, name: StrID, type_spec: TypeSpec) -> LocalId {
-        let local_id = LocalId::from_u32(self.locals.len() as u32 + 1);
-        let local = Local { name, type_spec };
+    /// Return an existing local if one is created for the given node and create a new one otherwise
+    fn get_local(&mut self, node: NodeID, name: StrID, type_spec: TypeSpec) -> LocalId {
+        if let Some(local_id) = self.local_map.get(&node) {
+            return *local_id;
+        }
 
+        let local = Local { name, type_spec };
         self.locals.push(local);
+
+        let local_id = LocalId::from_usize(self.locals.len());
+        self.local_map.insert(node, local_id);
 
         local_id
     }
@@ -281,6 +286,7 @@ impl FunctionBuilder {
             type_spec: self.type_spec.clone(),
             blocks: valid_blocks,
             entry_block: BlockId::from_u32(1),
+            local_map: self.local_map.clone(),
             locals: self.locals.clone(),
             instructions: self.instructions.clone(),
             value_types: self.value_types.clone(),
@@ -569,7 +575,7 @@ impl<'a> Blocker<'a> {
                             .expect("missing type for match target");
                         let ts = lower_type_spec(target_ts);
 
-                        let payload_local = self.fn_builder.add_local(name, ts);
+                        let payload_local = self.fn_builder.get_local(p, name, ts);
                         self.fn_builder
                             .emit_store_local(arm_block, payload_local, discriminant);
                     }
@@ -677,7 +683,7 @@ impl<'a> Blocker<'a> {
                             );
 
                             let name = self.get_ident_name(p);
-                            let payload_local = self.fn_builder.add_local(name, ts);
+                            let payload_local = self.fn_builder.get_local(p, name, ts);
                             self.fn_builder.emit_store_local(
                                 arm_block,
                                 payload_local,
@@ -709,7 +715,7 @@ impl<'a> Blocker<'a> {
                     if let Some(p) = pat.payload {
                         let name = self.get_ident_name(p);
                         let ts = lower_type_spec(target_ts);
-                        let payload_local = self.fn_builder.add_local(name, ts);
+                        let payload_local = self.fn_builder.get_local(p, name, ts);
                         self.fn_builder
                             .emit_store_local(arm_block, payload_local, target_id);
                     }
@@ -813,7 +819,7 @@ impl<'a> Blocker<'a> {
 
                         // the target type will be UnsafePtr but we need this payload to change the
                         // type into whatever the target match is
-                        let payload_local = self.fn_builder.add_local(name, ts);
+                        let payload_local = self.fn_builder.get_local(p, name, ts);
                         self.fn_builder
                             .emit_store_local(arm_block, payload_local, target_id);
                     }
@@ -836,7 +842,7 @@ impl<'a> Blocker<'a> {
                     if let Some(p) = pat.payload {
                         let name = self.get_ident_name(p);
                         let ts = lower_type_spec(target_ts);
-                        let payload_local = self.fn_builder.add_local(name, ts);
+                        let payload_local = self.fn_builder.get_local(p, name, ts);
                         self.fn_builder
                             .emit_store_local(arm_block, payload_local, target_id);
                     }

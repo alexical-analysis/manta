@@ -3,6 +3,7 @@
     "name": 18446744073709551596,
     "params": [],
     "type_spec": "Unit",
+    "local_map": {},
     "locals": [],
     "blocks": [
       {
@@ -26,6 +27,7 @@
         7
       ],
       "type_spec": "Unit",
+      "local_map": {},
       "locals": [],
       "blocks": [
         {
@@ -46,6 +48,7 @@
       "name": 10,
       "params": [],
       "type_spec": "Unit",
+      "local_map": {},
       "locals": [],
       "blocks": [
         {

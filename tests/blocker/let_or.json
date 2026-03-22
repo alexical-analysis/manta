@@ -3,6 +3,7 @@
     "name": 18446744073709551596,
     "params": [],
     "type_spec": "Unit",
+    "local_map": {},
     "locals": [],
     "blocks": [
       {
@@ -36,6 +37,7 @@
           ]
         }
       },
+      "local_map": {},
       "locals": [],
       "blocks": [
         {
@@ -58,6 +60,7 @@
         24
       ],
       "type_spec": "Unit",
+      "local_map": {},
       "locals": [],
       "blocks": [
         {
@@ -88,6 +91,7 @@
           ]
         }
       },
+      "local_map": {},
       "locals": [],
       "blocks": [
         {
@@ -110,6 +114,7 @@
         28
       ],
       "type_spec": "Unit",
+      "local_map": {},
       "locals": [],
       "blocks": [
         {
@@ -158,6 +163,12 @@
             }
           ]
         }
+      },
+      "local_map": {
+        "37": 1,
+        "44": 2,
+        "55": 3,
+        "62": 4
       },
       "locals": [
         {
@@ -376,6 +387,12 @@
       "name": 1,
       "params": [],
       "type_spec": "Unit",
+      "local_map": {
+        "76": 1,
+        "83": 2,
+        "94": 3,
+        "102": 4
+      },
       "locals": [
         {
           "type_spec": "String",
