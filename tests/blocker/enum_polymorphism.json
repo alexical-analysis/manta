@@ -3,6 +3,7 @@
     "name": 18446744073709551596,
     "params": [],
     "type_spec": "Unit",
+    "local_map": {},
     "locals": [],
     "blocks": [
       {
@@ -26,6 +27,7 @@
         14
       ],
       "type_spec": "Unit",
+      "local_map": {},
       "locals": [],
       "blocks": [
         {
@@ -48,6 +50,10 @@
         23
       ],
       "type_spec": "F64",
+      "local_map": {
+        "14": 1,
+        "21": 2
+      },
       "locals": [
         {
           "type_spec": "F64",
@@ -169,6 +175,7 @@
       "name": 1,
       "params": [],
       "type_spec": "Unit",
+      "local_map": {},
       "locals": [],
       "blocks": [
         {

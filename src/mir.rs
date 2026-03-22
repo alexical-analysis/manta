@@ -1,4 +1,7 @@
+use std::collections::BTreeMap;
+
 use crate::ast::{BinaryOp, UnaryOp};
+use crate::hir::NodeID;
 use crate::str_store::StrID;
 use serde::Serialize;
 
@@ -137,6 +140,11 @@ impl LocalId {
     pub fn from_u32(id: u32) -> Self {
         assert_ne!(id, 0, "LocalId(0) is reserved as nil");
         LocalId(id)
+    }
+
+    pub fn from_usize(id: usize) -> Self {
+        assert_ne!(id, 0, "LocalId(0) is reserved as nil");
+        LocalId(id as u32)
     }
 
     /// Returns the raw u32 value.
@@ -294,7 +302,8 @@ pub struct MirFunction {
     pub name: StrID,
     pub params: Vec<StrID>,
     pub type_spec: TypeSpec,
-    pub locals: Vec<Local>,      // Indexed by LocalId
+    pub local_map: BTreeMap<NodeID, LocalId>,
+    pub locals: Vec<Local>,      // indexed by LocalId
     pub blocks: Vec<BasicBlock>, // Indexed by BlockId
     // TODO: do I even need this? Right now the BasicBlocks all live inside the function. Does it
     // make sense to have all the basic blocks live together than then only have the functions
@@ -313,6 +322,7 @@ impl MirFunction {
             name,
             params,
             type_spec,
+            local_map: BTreeMap::new(),
             locals: vec![],
             blocks: vec![],
             entry_block,
@@ -321,11 +331,8 @@ impl MirFunction {
         }
     }
 
-    /// Gets a local by LocalId (0-indexed into the locals Vec, but LocalIds are 1-indexed).
+    /// Gets a local by NodeID
     pub fn get_local(&self, id: LocalId) -> Option<&Local> {
-        if id.is_nil() {
-            return None;
-        }
         self.locals.get(id.as_idx())
     }
 
