@@ -912,7 +912,40 @@ impl<'a> Blocker<'a> {
         };
         let node = node.clone();
 
+        let ts = match self.node_tree.get_type(node_id) {
+            Some(ts) => lower_type_spec(ts),
+            None => panic!("missing type for expression node"),
+        };
+
         match node {
+            Node::IntLiteral(i) => self.fn_builder.add_instruction(
+                block_id,
+                ts,
+                Instruction::Const {
+                    value: ConstValue::ConstInt(i),
+                },
+            ),
+            Node::FloatLiteral(f) => self.fn_builder.add_instruction(
+                block_id,
+                ts,
+                Instruction::Const {
+                    value: ConstValue::ConstFloat(f),
+                },
+            ),
+            Node::BoolLiteral(b) => self.fn_builder.add_instruction(
+                block_id,
+                ts,
+                Instruction::Const {
+                    value: ConstValue::ConstBool(b),
+                },
+            ),
+            Node::StringLiteral(s) => self.fn_builder.add_instruction(
+                block_id,
+                ts,
+                Instruction::Const {
+                    value: ConstValue::ConstString(s),
+                },
+            ),
             _ => {
                 // TODO: implement this
                 ValueId::nil()
