@@ -175,6 +175,10 @@ impl FunctionBuilder {
         );
     }
 
+    fn emit_const(&mut self, block: BlockId, const_type: TypeSpec, value: ConstValue) -> ValueId {
+        self.add_instruction(block, const_type, Instruction::Const { value })
+    }
+
     /// Appends an instruction to the function's flat instruction array and records it in the given
     /// block. Returns the ValueId (= position in the flat array) for the instruction's result.
     fn add_instruction(
@@ -918,34 +922,22 @@ impl<'a> Blocker<'a> {
         };
 
         match node {
-            Node::IntLiteral(i) => self.fn_builder.add_instruction(
-                block_id,
-                ts,
-                Instruction::Const {
-                    value: ConstValue::ConstInt(i),
-                },
-            ),
-            Node::FloatLiteral(f) => self.fn_builder.add_instruction(
-                block_id,
-                ts,
-                Instruction::Const {
-                    value: ConstValue::ConstFloat(f),
-                },
-            ),
-            Node::BoolLiteral(b) => self.fn_builder.add_instruction(
-                block_id,
-                ts,
-                Instruction::Const {
-                    value: ConstValue::ConstBool(b),
-                },
-            ),
-            Node::StringLiteral(s) => self.fn_builder.add_instruction(
-                block_id,
-                ts,
-                Instruction::Const {
-                    value: ConstValue::ConstString(s),
-                },
-            ),
+            Node::IntLiteral(i) => {
+                self.fn_builder
+                    .emit_const(block_id, ts, ConstValue::ConstInt(i))
+            }
+            Node::FloatLiteral(f) => {
+                self.fn_builder
+                    .emit_const(block_id, ts, ConstValue::ConstFloat(f))
+            }
+            Node::BoolLiteral(b) => {
+                self.fn_builder
+                    .emit_const(block_id, ts, ConstValue::ConstBool(b))
+            }
+            Node::StringLiteral(s) => {
+                self.fn_builder
+                    .emit_const(block_id, ts, ConstValue::ConstString(s))
+            }
             _ => {
                 // TODO: implement this
                 ValueId::nil()
