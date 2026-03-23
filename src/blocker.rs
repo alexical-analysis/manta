@@ -1,344 +1,124 @@
-use std::collections::{BTreeMap, HashSet};
+mod builder;
+
+use builder::FunctionBuilder;
 
 use crate::hir::{self, Node, NodeID, PatternNode};
 use crate::mir::{
-    BasicBlock, BlockId, ConstValue, Instruction, Local, LocalId, MirFunction, MirModule,
-    SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
+    BlockId, ConstValue, MirFunction, MirModule, SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
 };
 use crate::noder::{NodeTree, typer};
 use crate::str_store::{self, StrID};
 
-#[derive(Debug, Clone)]
-pub struct BlockBuilder {
-    instructions: Vec<ValueId>,
-    terminator: Option<Terminator>,
-}
-
-impl BlockBuilder {
-    fn new() -> Self {
-        BlockBuilder {
-            instructions: vec![],
-            terminator: None,
-        }
-    }
-
-    fn add_instruction(&mut self, id: ValueId) {
-        if self.is_closed() {
-            panic!("can not add instructions to a block that's already closed");
-        }
-        self.instructions.push(id);
-    }
-
-    fn set_terminator(&mut self, term: Terminator) {
-        if self.terminator.is_some() {
-            panic!("terminator was already set for this block")
-        }
-
-        self.terminator = Some(term);
-    }
-
-    fn is_closed(&self) -> bool {
-        self.terminator.is_some()
-    }
-
-    fn to_basic_block(&self, all_instructions: &[Instruction]) -> BasicBlock {
-        let term = match &self.terminator {
-            Some(term) => term,
-            None => {
-                eprintln!(
-                    "TODO: basic block must have a terminator setting to unreachable for now"
-                );
-                &Terminator::Unreachable
-            }
-        };
-
-        // All values defined in this block — any referenced value not in this set is a block arg.
-        // note that because we do this before checking for block arguments which means there are
-        // cases where values get used before they are defined. This means when building
-        // instructions we must be careful to ensure we always create values BEFORE they are used
-        // or they should not be created at all
-        let created_values: HashSet<ValueId> = self.instructions.iter().cloned().collect();
-        let mut block_args = vec![];
-
-        for &id in &self.instructions {
-            let inst = &all_instructions[id.as_idx()];
-            for input in instruction_inputs(inst) {
-                if !created_values.contains(&input) {
-                    block_args.push(input);
-                }
-            }
-        }
-
-        BasicBlock {
-            block_args,
-            instructions: self.instructions.clone(),
-            terminator: term.clone(),
-        }
-    }
-}
-
-fn instruction_inputs(inst: &Instruction) -> Vec<ValueId> {
-    match inst {
-        Instruction::Const { .. } => vec![],
-        Instruction::UnaryOp { operand, .. } => vec![*operand],
-        Instruction::BinaryOp { lhs, rhs, .. } => vec![*lhs, *rhs],
-        Instruction::LoadLocal { .. } => vec![],
-        Instruction::StoreLocal { value, .. } => vec![*value],
-        Instruction::Call { args, .. } => args.clone(),
-        Instruction::CallTry { args, .. } => args.clone(),
-        Instruction::VariantGetPayload { src, .. } => vec![*src],
-        Instruction::VariantGetTag { src } => vec![*src],
-        Instruction::Move { src, .. } => vec![*src],
-        Instruction::Copy { src, .. } => vec![*src],
-        Instruction::DropLocal { .. } => vec![],
-        Instruction::DeclareLocal { .. } => vec![],
-        Instruction::SetInitialized { .. } => vec![],
-    }
-}
-
-pub struct FunctionBuilder {
-    name: StrID,
-    params: Vec<StrID>,
-    type_spec: TypeSpec,
-    local_map: BTreeMap<NodeID, LocalId>,
-    locals: Vec<Local>,             // Indexed by LocalId
-    blocks: Vec<BlockBuilder>,      // Indexed by BlockId
-    instructions: Vec<Instruction>, // Flat instruction array, indexed by ValueId
-    value_types: Vec<TypeSpec>,     // Parallel to instructions, indexed by ValueId
-}
-
-impl FunctionBuilder {
-    fn new(name: StrID, params: Vec<StrID>, type_spec: TypeSpec) -> Self {
-        FunctionBuilder {
-            name,
-            type_spec,
-            params,
-            local_map: BTreeMap::new(),
-            locals: vec![],
-            blocks: vec![],
-            instructions: vec![],
-            value_types: vec![],
-        }
-    }
-
-    fn emit_call(
-        &mut self,
-        block: BlockId,
-        func: StrID,
-        args: Vec<ValueId>,
-        return_type: TypeSpec,
-    ) -> ValueId {
-        self.add_instruction(block, return_type, Instruction::Call { func, args })
-    }
-
-    fn emit_variant_get_tag(
-        &mut self,
-        block: BlockId,
-        target: ValueId,
-        target_type: TypeSpec,
-    ) -> ValueId {
-        let tag_type = match target_type {
-            TypeSpec::Enum { tag_size, .. } => match tag_size {
-                TagSize::U8 => TypeSpec::U8,
-                TagSize::U16 => TypeSpec::U16,
-                TagSize::U32 => TypeSpec::U32,
-                TagSize::U64 => TypeSpec::U64,
-            },
-            _ => panic!("incorrect type for enum match"),
-        };
-
-        self.add_instruction(block, tag_type, Instruction::VariantGetTag { src: target })
-    }
-
-    fn emit_variant_get_payload(
-        &mut self,
-        block: BlockId,
-        target: ValueId,
-        variant_id: ConstValue,
-        result_type: TypeSpec,
-    ) -> ValueId {
-        self.add_instruction(
-            block,
-            result_type,
-            Instruction::VariantGetPayload {
-                src: target,
-                variant_id,
-            },
-        )
-    }
-
-    fn emit_store_local(&mut self, block: BlockId, local: LocalId, value: ValueId) {
-        self.add_instruction(
-            block,
-            TypeSpec::Unit,
-            Instruction::StoreLocal { local, value },
-        );
-    }
-
-    fn emit_const(&mut self, block: BlockId, const_type: TypeSpec, value: ConstValue) -> ValueId {
-        self.add_instruction(block, const_type, Instruction::Const { value })
-    }
-
-    /// Appends an instruction to the function's flat instruction array and records it in the given
-    /// block. Returns the ValueId (= position in the flat array) for the instruction's result.
-    fn add_instruction(
-        &mut self,
-        block_id: BlockId,
-        type_spec: TypeSpec,
-        inst: Instruction,
-    ) -> ValueId {
-        self.instructions.push(inst);
-        self.value_types.push(type_spec);
-        let id = ValueId::from_usize(self.instructions.len());
-        let block = self.get_block_mut(block_id);
-        block.add_instruction(id);
-        id
-    }
-
-    fn set_terminator(&mut self, block_id: BlockId, term: Terminator) {
-        let block = self.get_block_mut(block_id);
-        block.set_terminator(term);
-    }
-
-    fn add_block(&mut self) -> BlockId {
-        let block_builder = BlockBuilder::new();
-
-        self.blocks.push(block_builder);
-        BlockId::from_u32(self.blocks.len() as u32)
-    }
-
-    /// Return an existing local if one is created for the given node and create a new one otherwise
-    fn get_local(&mut self, node: NodeID, name: StrID, type_spec: TypeSpec) -> LocalId {
-        if let Some(local_id) = self.local_map.get(&node) {
-            return *local_id;
-        }
-
-        let local = Local { name, type_spec };
-        self.locals.push(local);
-
-        let local_id = LocalId::from_usize(self.locals.len());
-        self.local_map.insert(node, local_id);
-
-        local_id
-    }
-
-    fn get_block(&self, block_id: BlockId) -> &BlockBuilder {
-        match self.blocks.get(block_id.as_idx()) {
-            Some(block) => block,
-            None => panic!("Unknown block {:?}", block_id),
-        }
-    }
-
-    fn get_block_mut(&mut self, block_id: BlockId) -> &mut BlockBuilder {
-        match self.blocks.get_mut(block_id.as_idx()) {
-            Some(block) => block,
-            None => panic!("Unknown block {:?}", block_id),
-        }
-    }
-
-    fn block_is_closed(&self, block_id: BlockId) -> bool {
-        self.get_block(block_id).is_closed()
-    }
-
-    fn to_mir_function(&self) -> MirFunction {
-        if self.blocks.is_empty() {
-            panic!("function must have an entry block")
-        };
-
-        // it's possible for a basic block in the function to be empty if all other blocks
-        // terminated without jumping to it. For example if every arm in a match statement
-        // returns before the end of the function. here we take a quick walk through the
-        // blocks and cull any that are not referenced by any other blocks in the function
-        let mut valid_blocks = vec![];
-
-        let mut block_stack = SetStack::new();
-        block_stack.push(BlockId::from_u32(1));
-        while let Some(b) = block_stack.pop() {
-            let block_builder = self.blocks[b.as_idx()].clone();
-            let block = block_builder.to_basic_block(&self.instructions);
-
-            match block.terminator {
-                Terminator::Return { .. } => {}
-                Terminator::Unreachable => {}
-                Terminator::Jump { target } => {
-                    block_stack.push(target);
-                }
-                Terminator::Branch {
-                    true_target,
-                    false_target,
-                    ..
-                } => {
-                    block_stack.push(true_target);
-                    block_stack.push(false_target);
-                }
-                Terminator::SwitchVariant {
-                    default, ref arms, ..
-                } => {
-                    block_stack.push(default);
-                    for arm in arms {
-                        block_stack.push(arm.jump);
-                    }
-                }
-            }
-
-            valid_blocks.push(block);
-        }
-
-        MirFunction {
-            name: self.name,
-            params: self.params.clone(),
-            type_spec: self.type_spec.clone(),
-            blocks: valid_blocks,
-            entry_block: BlockId::from_u32(1),
-            local_map: self.local_map.clone(),
-            locals: self.locals.clone(),
-            instructions: self.instructions.clone(),
-            value_types: self.value_types.clone(),
-        }
-    }
-}
-
-struct SetStack {
-    queue: Vec<BlockId>,
-    set: HashSet<BlockId>,
-}
-
-impl SetStack {
-    fn new() -> Self {
-        SetStack {
-            queue: vec![],
-            set: HashSet::new(),
-        }
-    }
-
-    fn push(&mut self, block_id: BlockId) {
-        if self.set.insert(block_id) {
-            self.queue.push(block_id)
-        }
-    }
-
-    fn pop(&mut self) -> Option<BlockId> {
-        self.queue.pop()
-    }
-}
-
 /// Lowers a single HIR function's nodes into MIR, holding the shared state needed across all
 /// the recursive block_* calls: a reference to the node tree and the function being built.
-struct Blocker<'a> {
+pub struct Blocker<'a> {
     node_tree: &'a NodeTree,
     fn_builder: FunctionBuilder,
 }
 
 impl<'a> Blocker<'a> {
-    fn new(node_tree: &'a NodeTree, fn_builder: FunctionBuilder) -> Self {
+    pub fn new(node_tree: &'a NodeTree) -> Self {
+        // create the init function builder to start
+        let fn_builder = FunctionBuilder::new(str_store::INIT, vec![], TypeSpec::Unit);
         Blocker {
             node_tree,
             fn_builder,
         }
     }
 
-    fn build_mir_function(self) -> MirFunction {
-        self.fn_builder.to_mir_function()
+    pub fn build_module(&mut self) -> MirModule {
+        let mut init_block_id = self.fn_builder.add_block();
+
+        for node_id in &self.node_tree.roots {
+            match self.block_init_statement(*node_id, init_block_id) {
+                Some(block) => init_block_id = block,
+                None => break,
+            }
+        }
+
+        // make sure we close the init block
+        self.fn_builder
+            .set_terminator(init_block_id, Terminator::Return { value: None });
+        let init = self.fn_builder.build_mir_function();
+
+        // block the rest of the functions
+        let mut functions = vec![];
+        for node_id in &self.node_tree.roots {
+            if let Some(f) = self.block_function(*node_id) {
+                functions.push(f);
+            }
+        }
+
+        MirModule::new(init, functions)
+    }
+
+    fn block_function(&mut self, node_id: NodeID) -> Option<MirFunction> {
+        let node = match self.node_tree.get_node(node_id) {
+            Some(n) => n,
+            None => panic!("type checking unknown node"),
+        };
+        let node = node.clone();
+
+        match node {
+            Node::FunctionDecl {
+                ident,
+                params,
+                body,
+            } => {
+                let name = self
+                    .node_tree
+                    .get_node(ident)
+                    .and_then(|n| {
+                        if let Node::Identifier { name, .. } = n {
+                            Some(*name)
+                        } else {
+                            None
+                        }
+                    })
+                    .expect("function decl missing identifier");
+
+                let params: Vec<StrID> = params
+                    .iter()
+                    .map(|node_id| {
+                        let node = self
+                            .node_tree
+                            .get_node(*node_id)
+                            .expect("failed to find param node");
+
+                        let node_id = if let Node::VarDecl { ident } = node {
+                            ident
+                        } else {
+                            panic!("param must be a var decl but was a {:?}", node)
+                        };
+
+                        let node = self
+                            .node_tree
+                            .get_node(*node_id)
+                            .expect("failed to find param identifier");
+
+                        if let Node::Identifier { name, .. } = node {
+                            *name
+                        } else {
+                            panic!("param mut be an identifier but was a {:?}", node)
+                        }
+                    })
+                    .collect();
+
+                let return_type = match self.node_tree.get_type(node_id) {
+                    Some(ts) => lower_type_spec(ts),
+                    None => panic!("missing type for function decl"),
+                };
+
+                self.fn_builder = FunctionBuilder::new(name, params, return_type);
+                let block_id = self.fn_builder.add_block();
+                self.block_statement(body, block_id);
+
+                let mir_function = self.fn_builder.build_mir_function();
+
+                Some(mir_function)
+            }
+            _ => None,
+        }
     }
 
     fn get_ident_name(&self, node_id: NodeID) -> StrID {
@@ -354,7 +134,7 @@ impl<'a> Blocker<'a> {
     }
 
     fn block_init_statement(&mut self, node_id: NodeID, block_id: BlockId) -> Option<BlockId> {
-        if self.fn_builder.block_is_closed(block_id) {
+        if self.fn_builder.is_block_closed(block_id) {
             // if the block is closed just skip all the remaining instructions as they are no longer
             // reachable, trying to adding them would cause a panic
             return None;
@@ -381,7 +161,7 @@ impl<'a> Blocker<'a> {
     }
 
     fn block_statement(&mut self, node_id: NodeID, block_id: BlockId) -> Option<BlockId> {
-        if self.fn_builder.block_is_closed(block_id) {
+        if self.fn_builder.is_block_closed(block_id) {
             // if the block is closed just skip all the remaining instructions as they are no longer
             // reachable, trying to adding them would cause a panic
             return None;
@@ -904,7 +684,7 @@ impl<'a> Blocker<'a> {
     }
 
     fn block_expression(&mut self, node_id: NodeID, block_id: BlockId) -> ValueId {
-        if self.fn_builder.block_is_closed(block_id) {
+        if self.fn_builder.is_block_closed(block_id) {
             // if the block is closed just skip all the remaining instructions as they are no longer
             // reachable, trying to adding them would cause a panic
             panic!("can not block expressions on a closed block");
@@ -943,101 +723,6 @@ impl<'a> Blocker<'a> {
                 ValueId::nil()
             }
         }
-    }
-}
-
-pub fn block_hir(node_tree: &NodeTree) -> MirModule {
-    // init block constructed to contain global initializations
-    let fn_builder = FunctionBuilder::new(str_store::INIT, vec![], TypeSpec::Unit);
-    let mut blocker = Blocker::new(node_tree, fn_builder);
-    let mut init_block_id = blocker.fn_builder.add_block();
-
-    for node_id in &node_tree.roots {
-        match blocker.block_init_statement(*node_id, init_block_id) {
-            Some(block) => init_block_id = block,
-            None => break,
-        }
-    }
-
-    // make sure we close the init block
-    blocker
-        .fn_builder
-        .set_terminator(init_block_id, Terminator::Return { value: None });
-    let init = blocker.build_mir_function();
-
-    // block the rest of the functions
-    let mut functions = vec![];
-    for node_id in &node_tree.roots {
-        if let Some(f) = block_root_node(node_tree, *node_id) {
-            functions.push(f);
-        }
-    }
-
-    MirModule::new(init, functions)
-}
-
-pub fn block_root_node(node_tree: &NodeTree, node_id: NodeID) -> Option<MirFunction> {
-    let node = match node_tree.get_node(node_id) {
-        Some(n) => n,
-        None => panic!("type checking unknown node"),
-    };
-    let node = node.clone();
-
-    match node {
-        Node::FunctionDecl {
-            ident,
-            params,
-            body,
-        } => {
-            let name = node_tree
-                .get_node(ident)
-                .and_then(|n| {
-                    if let Node::Identifier { name, .. } = n {
-                        Some(*name)
-                    } else {
-                        None
-                    }
-                })
-                .expect("function decl missing identifier");
-
-            let params: Vec<StrID> = params
-                .iter()
-                .map(|node_id| {
-                    let node = node_tree
-                        .get_node(*node_id)
-                        .expect("failed to find param node");
-
-                    let node_id = if let Node::VarDecl { ident } = node {
-                        ident
-                    } else {
-                        panic!("param must be a var decl but was a {:?}", node)
-                    };
-
-                    let node = node_tree
-                        .get_node(*node_id)
-                        .expect("failed to find param identifier");
-
-                    if let Node::Identifier { name, .. } = node {
-                        *name
-                    } else {
-                        panic!("param mut be an identifier but was a {:?}", node)
-                    }
-                })
-                .collect();
-
-            let return_type = match node_tree.get_type(node_id) {
-                Some(ts) => lower_type_spec(ts),
-                None => panic!("missing type for function decl"),
-            };
-
-            let fn_builder = FunctionBuilder::new(name, params, return_type);
-            let mut blocker = Blocker::new(node_tree, fn_builder);
-            let block_id = blocker.fn_builder.add_block();
-            blocker.block_statement(body, block_id);
-
-            Some(blocker.build_mir_function())
-        }
-        _ => None,
     }
 }
 
@@ -1123,8 +808,15 @@ fn get_variant_id(type_spec: &hir::TypeSpec, variant_name: StrID) -> ConstValue 
 mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
+    use std::collections::BTreeMap;
     use std::fs;
     use std::path::Path;
+
+    use crate::mir::{BasicBlock, Instruction, MirModule};
+    use crate::noder::SideTable;
+    use crate::noder::node_module;
+    use crate::parser::Parser;
+    use crate::str_store::{StrID, StrStore};
 
     fn assert_file_path_eq(path: &std::path::Path, blocker_dir: &Path) {
         let ext = path.extension().expect("Failed to get file extension");
@@ -1142,12 +834,13 @@ mod tests {
             Err(_) => panic!("Failed to read {}", path.display()),
         };
 
-        let mut str_store = crate::str_store::StrStore::new();
-        let parser = crate::parser::Parser::new(source);
+        let mut str_store = StrStore::new();
+        let parser = Parser::new(source);
         let module = parser.parse_module(&mut str_store);
 
-        let node_tree = crate::noder::node_module(module);
-        let mir_module = block_hir(&node_tree);
+        let node_tree = node_module(module);
+        let mut blocker = Blocker::new(&node_tree);
+        let mir_module = blocker.build_module();
 
         let json_output = serde_json::to_string_pretty(&mir_module)
             .expect("Failed to serialize MirModule to JSON");
@@ -1181,4 +874,364 @@ mod tests {
     }
 
     include!(concat!(env!("OUT_DIR"), "/generated_blocker_tests.rs"));
+
+    macro_rules! test_blocker_function {
+        ( $( $case:ident { got: $got:expr, want: $want:expr, } ),*, ) => {
+            $(
+                #[test]
+                fn $case() {
+                    let node_tree = $got;
+                    let mut blocker = Blocker::new(&node_tree);
+                    let mir_module = blocker.build_module();
+                    assert_eq!(mir_module, $want)
+
+                }
+            )*
+        };
+    }
+
+    // ── Const expression tests ────────────────────────────────────────────────
+
+    test_blocker_function!(
+        test_blocker_const_int {
+            got: NodeTree {
+                nodes: vec![
+                    Node::Identifier {
+                        name: StrID::from_usize(1),
+                        module: None
+                    }, // NodeID(0)
+                    Node::IntLiteral(42), // NodeID(1)
+                    Node::Return {
+                        value: Some(NodeID::from_usize(1))
+                    }, // NodeID(2)
+                    Node::Block {
+                        statements: vec![NodeID::from_usize(2)]
+                    }, // NodeID(3)
+                    Node::FunctionDecl {
+                        // NodeID(4)
+                        ident: NodeID::from_usize(0),
+                        params: vec![],
+                        body: NodeID::from_usize(3),
+                    },
+                ],
+                roots: vec![NodeID::from_usize(4)],
+                type_map: SideTable {
+                    keys: BTreeMap::from([(NodeID::from_usize(1), 0), (NodeID::from_usize(4), 1),]),
+                    values: vec![hir::TypeSpec::Int32, hir::TypeSpec::Int32],
+                },
+                symbol_map: SideTable {
+                    keys: BTreeMap::new(),
+                    values: vec![],
+                },
+            },
+            want: MirModule {
+                init: MirFunction {
+                    blocks: vec![BasicBlock {
+                        block_args: vec![],
+                        instructions: vec![],
+                        terminator: Terminator::Return { value: None },
+                    }],
+                    entry_block: BlockId::from_u32(1),
+                    instructions: vec![],
+                    name: str_store::INIT,
+                    local_map: BTreeMap::new(),
+                    locals: vec![],
+                    params: vec![],
+                    type_spec: TypeSpec::Unit,
+                    value_types: vec![],
+                },
+                functions: vec![MirFunction {
+                    name: StrID::from_usize(1),
+                    params: vec![],
+                    type_spec: TypeSpec::I32,
+                    local_map: BTreeMap::new(),
+                    locals: vec![],
+                    blocks: vec![BasicBlock {
+                        block_args: vec![],
+                        instructions: vec![ValueId::from_usize(1)],
+                        terminator: Terminator::Return {
+                            value: Some(ValueId::from_usize(1)),
+                        },
+                    },],
+                    entry_block: BlockId::from_u32(1),
+                    instructions: vec![Instruction::Const {
+                        value: ConstValue::ConstInt(42),
+                    },],
+                    value_types: vec![TypeSpec::I32],
+                }],
+            },
+        },
+        test_blocker_const_bool_true {
+            got: NodeTree {
+                nodes: vec![
+                    Node::Identifier {
+                        name: StrID::from_usize(1),
+                        module: None
+                    }, // NodeID(0)
+                    Node::BoolLiteral(true), // NodeID(1)
+                    Node::Return {
+                        value: Some(NodeID::from_usize(1))
+                    }, // NodeID(2)
+                    Node::Block {
+                        statements: vec![NodeID::from_usize(2)]
+                    }, // NodeID(3)
+                    Node::FunctionDecl {
+                        // NodeID(4)
+                        ident: NodeID::from_usize(0),
+                        params: vec![],
+                        body: NodeID::from_usize(3),
+                    },
+                ],
+                roots: vec![NodeID::from_usize(4)],
+                type_map: SideTable {
+                    keys: BTreeMap::from([(NodeID::from_usize(1), 0), (NodeID::from_usize(4), 1)]),
+                    values: vec![hir::TypeSpec::Bool, hir::TypeSpec::Bool],
+                },
+                symbol_map: SideTable {
+                    keys: BTreeMap::new(),
+                    values: vec![]
+                },
+            },
+            want: MirModule {
+                init: MirFunction {
+                    name: str_store::INIT,
+                    params: vec![],
+                    type_spec: TypeSpec::Unit,
+                    local_map: BTreeMap::new(),
+                    locals: vec![],
+                    blocks: vec![BasicBlock {
+                        block_args: vec![],
+                        instructions: vec![],
+                        terminator: Terminator::Return { value: None },
+                    }],
+                    entry_block: BlockId::from_u32(1),
+                    instructions: vec![],
+                    value_types: vec![],
+                },
+                functions: vec![MirFunction {
+                    name: StrID::from_usize(1),
+                    params: vec![],
+                    type_spec: TypeSpec::Bool,
+                    local_map: BTreeMap::new(),
+                    locals: vec![],
+                    blocks: vec![BasicBlock {
+                        block_args: vec![],
+                        instructions: vec![ValueId::from_usize(1)],
+                        terminator: Terminator::Return {
+                            value: Some(ValueId::from_usize(1))
+                        },
+                    }],
+                    entry_block: BlockId::from_u32(1),
+                    instructions: vec![Instruction::Const {
+                        value: ConstValue::ConstBool(true)
+                    }],
+                    value_types: vec![TypeSpec::Bool],
+                }],
+            },
+        },
+        test_blocker_const_bool_false {
+            got: NodeTree {
+                nodes: vec![
+                    Node::Identifier {
+                        name: StrID::from_usize(1),
+                        module: None
+                    }, // NodeID(0)
+                    Node::BoolLiteral(false), // NodeID(1)
+                    Node::Return {
+                        value: Some(NodeID::from_usize(1))
+                    }, // NodeID(2)
+                    Node::Block {
+                        statements: vec![NodeID::from_usize(2)]
+                    }, // NodeID(3)
+                    Node::FunctionDecl {
+                        // NodeID(4)
+                        ident: NodeID::from_usize(0),
+                        params: vec![],
+                        body: NodeID::from_usize(3),
+                    },
+                ],
+                roots: vec![NodeID::from_usize(4)],
+                type_map: SideTable {
+                    keys: BTreeMap::from([(NodeID::from_usize(1), 0), (NodeID::from_usize(4), 1)]),
+                    values: vec![hir::TypeSpec::Bool, hir::TypeSpec::Bool],
+                },
+                symbol_map: SideTable {
+                    keys: BTreeMap::new(),
+                    values: vec![]
+                },
+            },
+            want: MirModule {
+                init: MirFunction {
+                    name: str_store::INIT,
+                    params: vec![],
+                    type_spec: TypeSpec::Unit,
+                    local_map: BTreeMap::new(),
+                    locals: vec![],
+                    blocks: vec![BasicBlock {
+                        block_args: vec![],
+                        instructions: vec![],
+                        terminator: Terminator::Return { value: None },
+                    }],
+                    entry_block: BlockId::from_u32(1),
+                    instructions: vec![],
+                    value_types: vec![],
+                },
+                functions: vec![MirFunction {
+                    name: StrID::from_usize(1),
+                    params: vec![],
+                    type_spec: TypeSpec::Bool,
+                    local_map: BTreeMap::new(),
+                    locals: vec![],
+                    blocks: vec![BasicBlock {
+                        block_args: vec![],
+                        instructions: vec![ValueId::from_usize(1)],
+                        terminator: Terminator::Return {
+                            value: Some(ValueId::from_usize(1))
+                        },
+                    }],
+                    entry_block: BlockId::from_u32(1),
+                    instructions: vec![Instruction::Const {
+                        value: ConstValue::ConstBool(false)
+                    }],
+                    value_types: vec![TypeSpec::Bool],
+                }],
+            },
+        },
+        test_blocker_const_float {
+            got: NodeTree {
+                nodes: vec![
+                    Node::Identifier {
+                        name: StrID::from_usize(1),
+                        module: None
+                    }, // NodeID(0)
+                    Node::FloatLiteral(3.45), // NodeID(1)
+                    Node::Return {
+                        value: Some(NodeID::from_usize(1))
+                    }, // NodeID(2)
+                    Node::Block {
+                        statements: vec![NodeID::from_usize(2)]
+                    }, // NodeID(3)
+                    Node::FunctionDecl {
+                        // NodeID(4)
+                        ident: NodeID::from_usize(0),
+                        params: vec![],
+                        body: NodeID::from_usize(3),
+                    },
+                ],
+                roots: vec![NodeID::from_usize(4)],
+                type_map: SideTable {
+                    keys: BTreeMap::from([(NodeID::from_usize(1), 0), (NodeID::from_usize(4), 1)]),
+                    values: vec![hir::TypeSpec::Float64, hir::TypeSpec::Float64],
+                },
+                symbol_map: SideTable {
+                    keys: BTreeMap::new(),
+                    values: vec![]
+                },
+            },
+            want: MirModule {
+                init: MirFunction {
+                    name: str_store::INIT,
+                    params: vec![],
+                    type_spec: TypeSpec::Unit,
+                    local_map: BTreeMap::new(),
+                    locals: vec![],
+                    blocks: vec![BasicBlock {
+                        block_args: vec![],
+                        instructions: vec![],
+                        terminator: Terminator::Return { value: None },
+                    }],
+                    entry_block: BlockId::from_u32(1),
+                    instructions: vec![],
+                    value_types: vec![],
+                },
+                functions: vec![MirFunction {
+                    name: StrID::from_usize(1),
+                    params: vec![],
+                    type_spec: TypeSpec::F64,
+                    local_map: BTreeMap::new(),
+                    locals: vec![],
+                    blocks: vec![BasicBlock {
+                        block_args: vec![],
+                        instructions: vec![ValueId::from_usize(1)],
+                        terminator: Terminator::Return {
+                            value: Some(ValueId::from_usize(1))
+                        },
+                    }],
+                    entry_block: BlockId::from_u32(1),
+                    instructions: vec![Instruction::Const {
+                        value: ConstValue::ConstFloat(3.45)
+                    }],
+                    value_types: vec![TypeSpec::F64],
+                }],
+            },
+        },
+        test_blocker_const_string {
+            got: NodeTree {
+                nodes: vec![
+                    Node::Identifier {
+                        name: StrID::from_usize(1),
+                        module: None
+                    }, // NodeID(0)
+                    Node::StringLiteral(StrID::from_usize(99)), // NodeID(1)
+                    Node::Return {
+                        value: Some(NodeID::from_usize(1))
+                    }, // NodeID(2)
+                    Node::Block {
+                        statements: vec![NodeID::from_usize(2)]
+                    }, // NodeID(3)
+                    Node::FunctionDecl {
+                        // NodeID(4)
+                        ident: NodeID::from_usize(0),
+                        params: vec![],
+                        body: NodeID::from_usize(3),
+                    },
+                ],
+                roots: vec![NodeID::from_usize(4)],
+                type_map: SideTable {
+                    keys: BTreeMap::from([(NodeID::from_usize(1), 0), (NodeID::from_usize(4), 1)]),
+                    values: vec![hir::TypeSpec::String, hir::TypeSpec::String],
+                },
+                symbol_map: SideTable {
+                    keys: BTreeMap::new(),
+                    values: vec![]
+                },
+            },
+            want: MirModule {
+                init: MirFunction {
+                    name: str_store::INIT,
+                    params: vec![],
+                    type_spec: TypeSpec::Unit,
+                    local_map: BTreeMap::new(),
+                    locals: vec![],
+                    blocks: vec![BasicBlock {
+                        block_args: vec![],
+                        instructions: vec![],
+                        terminator: Terminator::Return { value: None },
+                    }],
+                    entry_block: BlockId::from_u32(1),
+                    instructions: vec![],
+                    value_types: vec![],
+                },
+                functions: vec![MirFunction {
+                    name: StrID::from_usize(1),
+                    params: vec![],
+                    type_spec: TypeSpec::String,
+                    local_map: BTreeMap::new(),
+                    locals: vec![],
+                    blocks: vec![BasicBlock {
+                        block_args: vec![],
+                        instructions: vec![ValueId::from_usize(1)],
+                        terminator: Terminator::Return {
+                            value: Some(ValueId::from_usize(1))
+                        },
+                    }],
+                    entry_block: BlockId::from_u32(1),
+                    instructions: vec![Instruction::Const {
+                        value: ConstValue::ConstString(StrID::from_usize(99))
+                    }],
+                    value_types: vec![TypeSpec::String],
+                }],
+            },
+        },
+    );
 }

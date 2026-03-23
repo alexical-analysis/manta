@@ -1262,8 +1262,9 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use crate::ast::{BinaryOp, ConstDecl, TypeDecl, UnaryOp, VarDecl};
+    use crate::parser::Parser;
     use crate::parser::lexer::SourceID;
-    use crate::str_store::StrID;
+    use crate::str_store::{StrID, StrStore};
 
     #[test]
     fn typemap_new_get_none() {
@@ -1307,8 +1308,8 @@ mod tests {
             Err(_) => panic!("Failed to read {}", path.display()),
         };
 
-        let mut str_store = crate::str_store::StrStore::new();
-        let parser = crate::parser::Parser::new(source);
+        let mut str_store = StrStore::new();
+        let parser = Parser::new(source);
         let module = parser.parse_module(&mut str_store);
 
         let node_tree = node_module(module);
@@ -1363,7 +1364,7 @@ mod tests {
     include!(concat!(env!("OUT_DIR"), "/generated_noder_tests.rs"));
 
     macro_rules! test_noder {
-        ( $( $case:ident { decl: $decl:expr, expected: $expected:expr } ),* $(,)? ) => {
+        ( $( $case:ident { decl: $decl:expr, expected: $expected:expr } ),*, ) => {
             $(
                 #[test]
                 fn $case() {

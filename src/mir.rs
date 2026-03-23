@@ -169,7 +169,7 @@ impl LocalId {
 }
 
 /// Metadata about a local variable.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Local {
     pub type_spec: TypeSpec,
     pub name: StrID,
@@ -178,7 +178,7 @@ pub struct Local {
 /// ConstValue is a constant value that can be compiled directly into the final binary
 /// I'm not 100% sure we'll actually want this since we could just swap the constant values in
 /// directly to the MIR but I've added them now just in case
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum ConstValue {
     ConstString(StrID),
     ConstInt(i64),
@@ -193,7 +193,7 @@ pub enum ConstValue {
 /// The result ValueId of each instruction is its position in the function's flat instruction
 /// array (1-indexed). Instructions that don't produce a meaningful value are assigned TypeSpec::Unit
 /// in the parallel value_types vec so instructions and value_types stay aligned.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum Instruction {
     /// const ty, value -> ValueId (implicit: instruction's own id)
     Const { value: ConstValue },
@@ -243,7 +243,7 @@ pub enum Instruction {
     SetInitialized { local: LocalId },
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct SwitchArm {
     // ConstValue should always be a const int since that what will correctly map to LLVM IR
     pub target: ConstValue,
@@ -251,7 +251,7 @@ pub struct SwitchArm {
 }
 
 /// A terminator instruction that ends a basic block and directs control flow.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum Terminator {
     /// Return(value?)
     Return { value: Option<ValueId> },
@@ -275,7 +275,7 @@ pub enum Terminator {
 
 /// A basic block in the control-flow graph.
 /// `instructions` holds ValueIds that index into the owning MirFunction's flat instruction array.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct BasicBlock {
     pub block_args: Vec<ValueId>,
     pub instructions: Vec<ValueId>,
@@ -297,7 +297,7 @@ impl BasicBlock {
 }
 
 /// A function in MIR form.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct MirFunction {
     pub name: StrID,
     pub params: Vec<StrID>,
@@ -362,7 +362,7 @@ impl MirFunction {
 }
 
 /// A collection of MIR functions (represents the entire program at the MIR level).
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct MirModule {
     pub init: MirFunction,
     pub functions: Vec<MirFunction>,
