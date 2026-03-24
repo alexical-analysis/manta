@@ -24,11 +24,18 @@
     {
       "name": 8,
       "params": [
-        9
+        1
       ],
       "type_spec": "Unit",
-      "local_map": {},
-      "locals": [],
+      "local_map": {
+        "0": 1
+      },
+      "locals": [
+        {
+          "type_spec": "I64",
+          "name": 9
+        }
+      ],
       "blocks": [
         {
           "block_args": [],
@@ -48,8 +55,27 @@
       "name": 1,
       "params": [],
       "type_spec": "Unit",
-      "local_map": {},
-      "locals": [],
+      "local_map": {
+        "7": 1,
+        "11": 2,
+        "15": 3
+      },
+      "locals": [
+        {
+          "type_spec": "I64",
+          "name": 9
+        },
+        {
+          "type_spec": "I64",
+          "name": 15
+        },
+        {
+          "type_spec": {
+            "Ptr": "I64"
+          },
+          "name": 17
+        }
+      ],
       "blocks": [
         {
           "block_args": [],

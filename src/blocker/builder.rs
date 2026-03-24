@@ -121,7 +121,7 @@ impl SetStack {
 
 pub struct FunctionBuilder {
     name: StrID,
-    params: Vec<StrID>,
+    params: Vec<LocalId>,
     type_spec: TypeSpec,
     local_map: BTreeMap<NodeID, LocalId>,
     locals: Vec<Local>,             // Indexed by LocalId
@@ -131,17 +131,22 @@ pub struct FunctionBuilder {
 }
 
 impl FunctionBuilder {
-    pub fn new(name: StrID, params: Vec<StrID>, type_spec: TypeSpec) -> Self {
+    pub fn new(name: StrID, type_spec: TypeSpec) -> Self {
         FunctionBuilder {
             name,
             type_spec,
-            params,
+            params: vec![],
             local_map: BTreeMap::new(),
             locals: vec![],
             blocks: vec![],
             instructions: vec![],
             value_types: vec![],
         }
+    }
+
+    pub fn add_param(&mut self, node: NodeID, name: StrID, type_spec: TypeSpec) {
+        let local = self.get_local(node, name, type_spec);
+        self.params.push(local);
     }
 
     pub fn emit_call(
@@ -196,6 +201,22 @@ impl FunctionBuilder {
             TypeSpec::Unit,
             Instruction::StoreLocal { local, value },
         );
+    }
+
+    pub fn emit_load_local(&mut self, block: BlockId, node: NodeID) -> ValueId {
+        let local = self
+            .local_map
+            .get(&node)
+            .expect("unknown local does not exist");
+        let local = *local;
+        let ts = self
+            .locals
+            .get(local.as_idx())
+            .expect("missing type for local")
+            .clone()
+            .type_spec;
+
+        self.add_instruction(block, ts, Instruction::LoadLocal { local })
     }
 
     pub fn emit_const(

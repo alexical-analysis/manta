@@ -3,8 +3,15 @@
     "name": 18446744073709551596,
     "params": [],
     "type_spec": "Unit",
-    "local_map": {},
-    "locals": [],
+    "local_map": {
+      "0": 1
+    },
+    "locals": [
+      {
+        "type_spec": "F64",
+        "name": 9
+      }
+    ],
     "blocks": [
       {
         "block_args": [],
@@ -24,11 +31,18 @@
     {
       "name": 13,
       "params": [
-        14
+        1
       ],
       "type_spec": "Unit",
-      "local_map": {},
-      "locals": [],
+      "local_map": {
+        "4": 1
+      },
+      "locals": [
+        {
+          "type_spec": "F64",
+          "name": 14
+        }
+      ],
       "blocks": [
         {
           "block_args": [],
@@ -47,14 +61,27 @@
     {
       "name": 22,
       "params": [
-        23
+        1
       ],
       "type_spec": "F64",
       "local_map": {
-        "14": 1,
-        "21": 2
+        "12": 1,
+        "14": 2,
+        "21": 3
       },
       "locals": [
+        {
+          "type_spec": {
+            "Enum": {
+              "tag_size": "U8",
+              "variants": [
+                "F64",
+                "F64"
+              ]
+            }
+          },
+          "name": 23
+        },
         {
           "type_spec": "F64",
           "name": 26
@@ -66,15 +93,14 @@
       ],
       "blocks": [
         {
-          "block_args": [
-            0
-          ],
+          "block_args": [],
           "instructions": [
-            1
+            1,
+            2
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 1,
+              "discriminant": 2,
               "default": 2,
               "arms": [
                 {
@@ -95,11 +121,11 @@
         },
         {
           "block_args": [
-            0
+            1
           ],
           "instructions": [
-            4,
-            5
+            5,
+            6
           ],
           "terminator": {
             "Return": {
@@ -109,11 +135,11 @@
         },
         {
           "block_args": [
-            0
+            1
           ],
           "instructions": [
-            2,
-            3
+            3,
+            4
           ],
           "terminator": {
             "Return": {
@@ -130,13 +156,18 @@
       "entry_block": 1,
       "instructions": [
         {
+          "LoadLocal": {
+            "local": 1
+          }
+        },
+        {
           "VariantGetTag": {
-            "src": 0
+            "src": 1
           }
         },
         {
           "VariantGetPayload": {
-            "src": 0,
+            "src": 1,
             "variant_id": {
               "ConstUInt": 0
             }
@@ -144,13 +175,13 @@
         },
         {
           "StoreLocal": {
-            "local": 1,
-            "value": 2
+            "local": 2,
+            "value": 3
           }
         },
         {
           "VariantGetPayload": {
-            "src": 0,
+            "src": 1,
             "variant_id": {
               "ConstUInt": 1
             }
@@ -158,12 +189,21 @@
         },
         {
           "StoreLocal": {
-            "local": 2,
-            "value": 4
+            "local": 3,
+            "value": 5
           }
         }
       ],
       "value_types": [
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "F64",
+              "F64"
+            ]
+          }
+        },
         "U8",
         "F64",
         "Unit",
@@ -175,8 +215,46 @@
       "name": 1,
       "params": [],
       "type_spec": "Unit",
-      "local_map": {},
-      "locals": [],
+      "local_map": {
+        "33": 1,
+        "37": 2,
+        "43": 3,
+        "47": 4
+      },
+      "locals": [
+        {
+          "type_spec": {
+            "Enum": {
+              "tag_size": "U8",
+              "variants": [
+                "F64",
+                "F64"
+              ]
+            }
+          },
+          "name": 31
+        },
+        {
+          "type_spec": "F64",
+          "name": 33
+        },
+        {
+          "type_spec": {
+            "Enum": {
+              "tag_size": "U8",
+              "variants": [
+                "F64",
+                "F64"
+              ]
+            }
+          },
+          "name": 34
+        },
+        {
+          "type_spec": "F64",
+          "name": 36
+        }
+      ],
       "blocks": [
         {
           "block_args": [],

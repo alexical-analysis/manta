@@ -24,11 +24,18 @@
     {
       "name": 8,
       "params": [
-        9
+        1
       ],
       "type_spec": "Unit",
-      "local_map": {},
-      "locals": [],
+      "local_map": {
+        "0": 1
+      },
+      "locals": [
+        {
+          "type_spec": "String",
+          "name": 9
+        }
+      ],
       "blocks": [
         {
           "block_args": [],
@@ -48,15 +55,29 @@
       "name": 1,
       "params": [],
       "type_spec": "Unit",
-      "local_map": {},
-      "locals": [],
+      "local_map": {
+        "7": 1,
+        "15": 2
+      },
+      "locals": [
+        {
+          "type_spec": "Bool",
+          "name": 13
+        },
+        {
+          "type_spec": "I64",
+          "name": 18
+        }
+      ],
       "blocks": [
         {
           "block_args": [],
-          "instructions": [],
+          "instructions": [
+            1
+          ],
           "terminator": {
             "Branch": {
-              "cond": 0,
+              "cond": 1,
               "true_target": 2,
               "false_target": 3
             }
@@ -111,8 +132,16 @@
         }
       ],
       "entry_block": 1,
-      "instructions": [],
-      "value_types": []
+      "instructions": [
+        {
+          "LoadLocal": {
+            "local": 1
+          }
+        }
+      ],
+      "value_types": [
+        "Bool"
+      ]
     }
   ]
 }

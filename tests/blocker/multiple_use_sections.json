@@ -24,11 +24,18 @@
     {
       "name": 8,
       "params": [
-        9
+        1
       ],
       "type_spec": "Unit",
-      "local_map": {},
-      "locals": [],
+      "local_map": {
+        "0": 1
+      },
+      "locals": [
+        {
+          "type_spec": "String",
+          "name": 9
+        }
+      ],
       "blocks": [
         {
           "block_args": [],

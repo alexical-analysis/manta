@@ -24,7 +24,7 @@
     {
       "name": 19,
       "params": [
-        20
+        1
       ],
       "type_spec": {
         "Enum": {
@@ -37,8 +37,15 @@
           ]
         }
       },
-      "local_map": {},
-      "locals": [],
+      "local_map": {
+        "4": 1
+      },
+      "locals": [
+        {
+          "type_spec": "String",
+          "name": 20
+        }
+      ],
       "blocks": [
         {
           "block_args": [],
@@ -57,11 +64,20 @@
     {
       "name": 23,
       "params": [
-        24
+        1
       ],
       "type_spec": "Unit",
-      "local_map": {},
-      "locals": [],
+      "local_map": {
+        "11": 1
+      },
+      "locals": [
+        {
+          "type_spec": {
+            "Struct": []
+          },
+          "name": 24
+        }
+      ],
       "blocks": [
         {
           "block_args": [],
@@ -80,7 +96,7 @@
     {
       "name": 26,
       "params": [
-        24
+        1
       ],
       "type_spec": {
         "Enum": {
@@ -91,8 +107,17 @@
           ]
         }
       },
-      "local_map": {},
-      "locals": [],
+      "local_map": {
+        "19": 1
+      },
+      "locals": [
+        {
+          "type_spec": {
+            "Struct": []
+          },
+          "name": 24
+        }
+      ],
       "blocks": [
         {
           "block_args": [],
@@ -111,11 +136,18 @@
     {
       "name": 27,
       "params": [
-        28
+        1
       ],
       "type_spec": "Unit",
-      "local_map": {},
-      "locals": [],
+      "local_map": {
+        "26": 1
+      },
+      "locals": [
+        {
+          "type_spec": "String",
+          "name": 28
+        }
+      ],
       "blocks": [
         {
           "block_args": [],
@@ -134,7 +166,7 @@
     {
       "name": 32,
       "params": [
-        20
+        1
       ],
       "type_spec": {
         "Enum": {
@@ -165,12 +197,25 @@
         }
       },
       "local_map": {
-        "37": 1,
-        "44": 2,
-        "55": 3,
-        "62": 4
+        "34": 1,
+        "37": 3,
+        "39": 2,
+        "44": 4,
+        "55": 6,
+        "57": 5,
+        "62": 7
       },
       "locals": [
+        {
+          "type_spec": "String",
+          "name": 20
+        },
+        {
+          "type_spec": {
+            "Struct": []
+          },
+          "name": 24
+        },
         {
           "type_spec": {
             "Struct": []
@@ -190,6 +235,10 @@
             }
           },
           "name": 18446744073709551602
+        },
+        {
+          "type_spec": "String",
+          "name": 28
         },
         {
           "type_spec": "String",
@@ -334,13 +383,13 @@
         },
         {
           "StoreLocal": {
-            "local": 1,
+            "local": 3,
             "value": 2
           }
         },
         {
           "StoreLocal": {
-            "local": 2,
+            "local": 4,
             "value": 0
           }
         },
@@ -359,13 +408,13 @@
         },
         {
           "StoreLocal": {
-            "local": 3,
+            "local": 6,
             "value": 6
           }
         },
         {
           "StoreLocal": {
-            "local": 4,
+            "local": 7,
             "value": 0
           }
         }
@@ -388,12 +437,18 @@
       "params": [],
       "type_spec": "Unit",
       "local_map": {
-        "76": 1,
-        "83": 2,
-        "94": 3,
-        "102": 4
+        "76": 2,
+        "78": 1,
+        "83": 3,
+        "94": 5,
+        "96": 4,
+        "102": 6
       },
       "locals": [
+        {
+          "type_spec": "String",
+          "name": 38
+        },
         {
           "type_spec": "String",
           "name": 38
@@ -428,6 +483,10 @@
             }
           },
           "name": 41
+        },
+        {
+          "type_spec": "String",
+          "name": 38
         },
         {
           "type_spec": "String",
@@ -591,13 +650,13 @@
         },
         {
           "StoreLocal": {
-            "local": 1,
+            "local": 2,
             "value": 2
           }
         },
         {
           "StoreLocal": {
-            "local": 2,
+            "local": 3,
             "value": 0
           }
         },
@@ -616,13 +675,13 @@
         },
         {
           "StoreLocal": {
-            "local": 3,
+            "local": 5,
             "value": 6
           }
         },
         {
           "StoreLocal": {
-            "local": 4,
+            "local": 6,
             "value": 0
           }
         }
