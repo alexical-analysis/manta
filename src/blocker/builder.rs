@@ -94,6 +94,11 @@ fn instruction_inputs(inst: &Instruction) -> Vec<ValueId> {
         Instruction::DropLocal { .. } => vec![],
         Instruction::DeclareLocal { .. } => vec![],
         Instruction::SetInitialized { .. } => vec![],
+        Instruction::Add { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::Sub { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::Mul { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::SDiv { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::UDiv { lhs, rhs } => vec![*lhs, *rhs],
     }
 }
 
@@ -149,6 +154,75 @@ impl FunctionBuilder {
     pub fn add_param(&mut self, node: NodeID, name: StrID, type_spec: TypeSpec) {
         let local = self.get_local(node, name, type_spec);
         self.params.push(local);
+    }
+
+    pub fn emit_add(&mut self, block_id: BlockId, left: ValueId, right: ValueId) -> ValueId {
+        let ts = self
+            .value_types
+            .get(left.as_idx())
+            .expect("missing type for given value id");
+
+        self.add_instruction(
+            block_id,
+            ts.clone(),
+            Instruction::Add {
+                lhs: left,
+                rhs: right,
+            },
+        )
+    }
+
+    pub fn emit_sub(&mut self, block_id: BlockId, left: ValueId, right: ValueId) -> ValueId {
+        let ts = self
+            .value_types
+            .get(left.as_idx())
+            .expect("missing type for given value id");
+
+        self.add_instruction(
+            block_id,
+            ts.clone(),
+            Instruction::Sub {
+                lhs: left,
+                rhs: right,
+            },
+        )
+    }
+
+    pub fn emit_mul(&mut self, block_id: BlockId, left: ValueId, right: ValueId) -> ValueId {
+        let ts = self
+            .value_types
+            .get(left.as_idx())
+            .expect("missing type for given value id");
+
+        self.add_instruction(
+            block_id,
+            ts.clone(),
+            Instruction::Mul {
+                lhs: left,
+                rhs: right,
+            },
+        )
+    }
+
+    pub fn emit_div(&mut self, block_id: BlockId, left: ValueId, right: ValueId) -> ValueId {
+        let ts = self
+            .value_types
+            .get(left.as_idx())
+            .expect("missing type for given value id");
+
+        let inst = if is_signed_type(ts) {
+            Instruction::SDiv {
+                lhs: left,
+                rhs: right,
+            }
+        } else {
+            Instruction::UDiv {
+                lhs: left,
+                rhs: right,
+            }
+        };
+
+        self.add_instruction(block_id, ts.clone(), inst)
     }
 
     pub fn emit_call(
@@ -218,8 +292,9 @@ impl FunctionBuilder {
         let local = self
             .local_map
             .get(&node)
-            .expect("unknown local does not exist");
+            .expect("loading from unknown local");
         let local = *local;
+
         let ts = self
             .locals
             .get(local.as_idx())
@@ -361,4 +436,16 @@ impl FunctionBuilder {
             value_types: self.value_types.clone(),
         }
     }
+}
+
+fn is_signed_type(ts: &TypeSpec) -> bool {
+    matches!(
+        ts,
+        TypeSpec::I8
+            | TypeSpec::I16
+            | TypeSpec::I32
+            | TypeSpec::I64
+            | TypeSpec::F32
+            | TypeSpec::F64
+    )
 }

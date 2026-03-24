@@ -289,6 +289,16 @@ pub enum Instruction {
     DeclareLocal { local: LocalId },
     /// set_initialized(LocalId) — produces Unit
     SetInitialized { local: LocalId },
+    /// add two expressions - produces the same type as its args
+    Add { lhs: ValueId, rhs: ValueId },
+    /// subtracts two expressions - produces the same type as its args
+    Sub { lhs: ValueId, rhs: ValueId },
+    /// multiplies two expressions - produces the same type as its args
+    Mul { lhs: ValueId, rhs: ValueId },
+    /// does signed division of two expressions - produces the same type as its args
+    SDiv { lhs: ValueId, rhs: ValueId },
+    /// does unsigned division of two expressions - produces the same type as its args
+    UDiv { lhs: ValueId, rhs: ValueId },
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]

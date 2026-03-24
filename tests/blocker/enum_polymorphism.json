@@ -123,12 +123,15 @@
             1
           ],
           "instructions": [
-            5,
-            6
+            10,
+            11,
+            12,
+            13,
+            14
           ],
           "terminator": {
             "Return": {
-              "value": 0
+              "value": 14
             }
           }
         },
@@ -138,11 +141,16 @@
           ],
           "instructions": [
             3,
-            4
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
           ],
           "terminator": {
             "Return": {
-              "value": 0
+              "value": 9
             }
           }
         },
@@ -179,6 +187,33 @@
           }
         },
         {
+          "LoadGlobal": {
+            "global": 1
+          }
+        },
+        {
+          "LoadLocal": {
+            "local": 2
+          }
+        },
+        {
+          "Mul": {
+            "lhs": 5,
+            "rhs": 6
+          }
+        },
+        {
+          "LoadLocal": {
+            "local": 2
+          }
+        },
+        {
+          "Mul": {
+            "lhs": 7,
+            "rhs": 8
+          }
+        },
+        {
           "VariantGetPayload": {
             "src": 1,
             "variant_id": {
@@ -189,7 +224,23 @@
         {
           "StoreLocal": {
             "local": 3,
-            "value": 5
+            "value": 10
+          }
+        },
+        {
+          "LoadLocal": {
+            "local": 3
+          }
+        },
+        {
+          "LoadLocal": {
+            "local": 3
+          }
+        },
+        {
+          "Mul": {
+            "lhs": 12,
+            "rhs": 13
           }
         }
       ],
@@ -207,7 +258,15 @@
         "F64",
         "Unit",
         "F64",
-        "Unit"
+        "F64",
+        "F64",
+        "F64",
+        "F64",
+        "F64",
+        "Unit",
+        "F64",
+        "F64",
+        "F64"
       ]
     },
     {
