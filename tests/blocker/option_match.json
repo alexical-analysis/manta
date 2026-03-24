@@ -84,7 +84,10 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [],
+          "instructions": [
+            1,
+            2
+          ],
           "terminator": {
             "Branch": {
               "cond": 0,
@@ -113,8 +116,24 @@
         }
       ],
       "entry_block": 1,
-      "instructions": [],
-      "value_types": []
+      "instructions": [
+        {
+          "LoadLocal": {
+            "local": 2
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 0
+            }
+          }
+        }
+      ],
+      "value_types": [
+        "I32",
+        "I32"
+      ]
     },
     {
       "name": 1,

@@ -4,6 +4,7 @@ use std::collections::BTreeMap;
 
 use builder::FunctionBuilder;
 
+use crate::ast::{BinaryOp, VarDecl};
 use crate::hir::{self, Node, NodeID, PatternNode};
 use crate::mir::{
     BlockId, ConstValue, Global, GlobalId, MirFunction, MirModule, SwitchArm, TagSize, Terminator,
@@ -764,6 +765,25 @@ impl<'a> Blocker<'a> {
                             *global_id,
                             global.type_spec.clone(),
                         )
+                    }
+                }
+            }
+            Node::Binary {
+                left,
+                operator,
+                right,
+            } => {
+                let lhs = self.block_expression(left, block_id);
+                let rhs = self.block_expression(right, block_id);
+
+                match operator {
+                    BinaryOp::Add => self.fn_builder.emit_add(block_id, lhs, rhs),
+                    BinaryOp::Subtract => self.fn_builder.emit_sub(block_id, lhs, rhs),
+                    BinaryOp::Multiply => self.fn_builder.emit_mul(block_id, lhs, rhs),
+                    BinaryOp::Divide => self.fn_builder.emit_div(block_id, lhs, rhs),
+                    _ => {
+                        eprintln!("TODO: not all binary operators are implemented yet");
+                        ValueId::nil()
                     }
                 }
             }
