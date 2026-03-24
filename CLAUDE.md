@@ -38,7 +38,7 @@ Source → Lexer → Parser → AST → Noder → HIR → Typer → Blocker → 
 **Stages:**
 - **Lexer** (`src/parser/lexer.rs`): Tokenizes source into `Token`/`TokenKind`.
 - **Parser** (`src/parser.rs`, `src/parser/`): Recursive descent with parselets for expressions. Produces an `AST` (enums `Decl`, `Expr`, `Stmt`, `Pattern`).
-- **Noder** (`src/noder.rs`): Lowers AST → HIR (`NodeTree`). Each construct becomes a `Node` enum variant identified by `NodeID`.
+- **Noder** (`src/noder.rs`): Lowers AST → HIR (`NodeTree`). Each construct becomes a `Node` enum variant identified by `NodeID`. Importantly, the Noder performs identifier resolution: every use of a named identifier is assigned the **same `NodeID` as its declaration**. This means `NodeID` serves as the resolved symbol identity — no separate resolution pass is needed in later stages. Code in the Blocker and beyond can treat an identifier's `NodeID` as a direct key into `local_map` or other declaration-keyed tables.
 - **Typer** (`src/noder/typer.rs`): Type checks and infers types over the `NodeTree`, populating a `type_map` side table (`NodeID → TypeSpec`).
 - **Blocker** (`src/blocker.rs`): Lowers HIR → MIR, building a control-flow graph of `BasicBlock`s with SSA-like `ValueId`s.
 
