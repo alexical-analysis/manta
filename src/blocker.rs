@@ -2,6 +2,7 @@ mod builder;
 
 use builder::FunctionBuilder;
 
+use crate::ast::VarDecl;
 use crate::hir::{self, Node, NodeID, PatternNode};
 use crate::mir::{
     BlockId, ConstValue, MirFunction, MirModule, SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
@@ -19,7 +20,7 @@ pub struct Blocker<'a> {
 impl<'a> Blocker<'a> {
     pub fn new(node_tree: &'a NodeTree) -> Self {
         // create the init function builder to start
-        let fn_builder = FunctionBuilder::new(str_store::INIT, vec![], TypeSpec::Unit);
+        let fn_builder = FunctionBuilder::new(str_store::INIT, TypeSpec::Unit);
         Blocker {
             node_tree,
             fn_builder,
@@ -65,56 +66,40 @@ impl<'a> Blocker<'a> {
                 params,
                 body,
             } => {
-                let name = self
-                    .node_tree
-                    .get_node(ident)
-                    .and_then(|n| {
-                        if let Node::Identifier { name, .. } = n {
-                            Some(*name)
-                        } else {
-                            None
-                        }
-                    })
-                    .expect("function decl missing identifier");
-
-                let params: Vec<StrID> = params
-                    .iter()
-                    .map(|node_id| {
-                        let node = self
-                            .node_tree
-                            .get_node(*node_id)
-                            .expect("failed to find param node");
-
-                        let node_id = if let Node::VarDecl { ident } = node {
-                            ident
-                        } else {
-                            panic!("param must be a var decl but was a {:?}", node)
-                        };
-
-                        let node = self
-                            .node_tree
-                            .get_node(*node_id)
-                            .expect("failed to find param identifier");
-
-                        if let Node::Identifier { name, .. } = node {
-                            *name
-                        } else {
-                            panic!("param mut be an identifier but was a {:?}", node)
-                        }
-                    })
-                    .collect();
-
+                let name = self.get_ident_name(ident);
                 let return_type = match self.node_tree.get_type(node_id) {
                     Some(ts) => lower_type_spec(ts),
                     None => panic!("missing type for function decl"),
                 };
 
-                self.fn_builder = FunctionBuilder::new(name, params, return_type);
+                let mut fn_builder = FunctionBuilder::new(name, return_type);
+                for param in params {
+                    let param = self
+                        .node_tree
+                        .get_node(param)
+                        .expect("missing node for param");
+
+                    let ident = match param {
+                        Node::VarDecl { ident } => ident,
+                        _ => panic!("param was not a VarDecl"),
+                    };
+
+                    let name = self.get_ident_name(*ident);
+
+                    let ts = match self.node_tree.get_type(*ident) {
+                        Some(ts) => lower_type_spec(ts),
+                        None => panic!("missing type for function param"),
+                    };
+
+                    fn_builder.add_param(*ident, name, ts);
+                }
+
+                self.fn_builder = fn_builder;
+
                 let block_id = self.fn_builder.add_block();
                 self.block_statement(body, block_id);
 
                 let mir_function = self.fn_builder.build_mir_function();
-
                 Some(mir_function)
             }
             _ => None,
@@ -291,6 +276,18 @@ impl<'a> Blocker<'a> {
                     .set_terminator(block_id, Terminator::Return { value: ret });
 
                 None
+            }
+            Node::VarDecl { ident } => {
+                let name = self.get_ident_name(ident);
+                let ts = self
+                    .node_tree
+                    .get_type(ident)
+                    .expect("missing type for identifier");
+                let ts = lower_type_spec(ts);
+
+                self.fn_builder.get_local(ident, name, ts);
+
+                Some(block_id)
             }
             _ => {
                 // TODO: remove me once all the nodes have been covered.
@@ -718,6 +715,7 @@ impl<'a> Blocker<'a> {
                 self.fn_builder
                     .emit_const(block_id, ts, ConstValue::ConstString(s))
             }
+            Node::Identifier { .. } => self.fn_builder.emit_load_local(block_id, node_id),
             _ => {
                 // TODO: implement this
                 ValueId::nil()
@@ -889,8 +887,6 @@ mod tests {
             )*
         };
     }
-
-    // ── Const expression tests ────────────────────────────────────────────────
 
     test_blocker_function!(
         test_blocker_const_int {

@@ -300,7 +300,7 @@ impl BasicBlock {
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct MirFunction {
     pub name: StrID,
-    pub params: Vec<StrID>,
+    pub params: Vec<LocalId>,
     pub type_spec: TypeSpec,
     pub local_map: BTreeMap<NodeID, LocalId>,
     pub locals: Vec<Local>,      // indexed by LocalId
@@ -314,51 +314,6 @@ pub struct MirFunction {
     /// Result type for each instruction, parallel to `instructions`. Instructions that don't
     /// produce a meaningful value use TypeSpec::Unit.
     pub value_types: Vec<TypeSpec>,
-}
-
-impl MirFunction {
-    pub fn new(name: StrID, params: Vec<StrID>, type_spec: TypeSpec, entry_block: BlockId) -> Self {
-        MirFunction {
-            name,
-            params,
-            type_spec,
-            local_map: BTreeMap::new(),
-            locals: vec![],
-            blocks: vec![],
-            entry_block,
-            instructions: vec![],
-            value_types: vec![],
-        }
-    }
-
-    /// Gets a local by NodeID
-    pub fn get_local(&self, id: LocalId) -> Option<&Local> {
-        self.locals.get(id.as_idx())
-    }
-
-    /// Gets a block by BlockId.
-    pub fn get_block(&self, id: BlockId) -> Option<&BasicBlock> {
-        if id.is_nil() {
-            return None;
-        }
-        self.blocks.get((id.as_u32() - 1) as usize)
-    }
-
-    /// Gets an instruction by ValueId.
-    pub fn get_instruction(&self, id: ValueId) -> Option<&Instruction> {
-        if id.is_nil() {
-            return None;
-        }
-        self.instructions.get(id.as_u32() as usize - 1)
-    }
-
-    /// Gets the result type for a ValueId.
-    pub fn get_value_type(&self, id: ValueId) -> Option<&TypeSpec> {
-        if id.is_nil() {
-            return None;
-        }
-        self.value_types.get(id.as_u32() as usize - 1)
-    }
 }
 
 /// A collection of MIR functions (represents the entire program at the MIR level).

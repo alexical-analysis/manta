@@ -24,11 +24,18 @@
     {
       "name": 8,
       "params": [
-        9
+        1
       ],
       "type_spec": "Unit",
-      "local_map": {},
-      "locals": [],
+      "local_map": {
+        "0": 1
+      },
+      "locals": [
+        {
+          "type_spec": "String",
+          "name": 9
+        }
+      ],
       "blocks": [
         {
           "block_args": [],
@@ -47,8 +54,8 @@
     {
       "name": 17,
       "params": [
-        18,
-        20
+        1,
+        2
       ],
       "type_spec": {
         "Enum": {
@@ -59,8 +66,20 @@
           ]
         }
       },
-      "local_map": {},
-      "locals": [],
+      "local_map": {
+        "8": 1,
+        "10": 2
+      },
+      "locals": [
+        {
+          "type_spec": "I32",
+          "name": 18
+        },
+        {
+          "type_spec": "I32",
+          "name": 20
+        }
+      ],
       "blocks": [
         {
           "block_args": [],
@@ -101,9 +120,22 @@
       "params": [],
       "type_spec": "Unit",
       "local_map": {
-        "30": 1
+        "27": 1,
+        "30": 2
       },
       "locals": [
+        {
+          "type_spec": {
+            "Enum": {
+              "tag_size": "U8",
+              "variants": [
+                "I32",
+                null
+              ]
+            }
+          },
+          "name": 28
+        },
         {
           "type_spec": "I32",
           "name": 33
@@ -111,15 +143,14 @@
       ],
       "blocks": [
         {
-          "block_args": [
-            0
-          ],
+          "block_args": [],
           "instructions": [
-            1
+            1,
+            2
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 1,
+              "discriminant": 2,
               "default": 2,
               "arms": [
                 {
@@ -149,11 +180,11 @@
         },
         {
           "block_args": [
-            0
+            1
           ],
           "instructions": [
-            2,
-            3
+            3,
+            4
           ],
           "terminator": {
             "Jump": {
@@ -174,13 +205,18 @@
       "entry_block": 1,
       "instructions": [
         {
+          "LoadLocal": {
+            "local": 1
+          }
+        },
+        {
           "VariantGetTag": {
-            "src": 0
+            "src": 1
           }
         },
         {
           "VariantGetPayload": {
-            "src": 0,
+            "src": 1,
             "variant_id": {
               "ConstUInt": 0
             }
@@ -188,12 +224,21 @@
         },
         {
           "StoreLocal": {
-            "local": 1,
-            "value": 2
+            "local": 2,
+            "value": 3
           }
         }
       ],
       "value_types": [
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "I32",
+              null
+            ]
+          }
+        },
         "U8",
         "I32",
         "Unit"
