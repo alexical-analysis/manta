@@ -240,9 +240,14 @@ pub enum ConstValue {
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum Instruction {
     /// const ty, value -> ValueId (implicit: instruction's own id)
-    Const { value: ConstValue },
+    Const {
+        value: ConstValue,
+    },
     /// unary op, value -> ValueId
-    UnaryOp { op: UnaryOp, operand: ValueId },
+    UnaryOp {
+        op: UnaryOp,
+        operand: ValueId,
+    },
     /// binary op, lhs, rhs -> ValueId
     BinaryOp {
         op: BinaryOp,
@@ -250,13 +255,23 @@ pub enum Instruction {
         rhs: ValueId,
     },
     /// load_local(LocalId) -> ValueId
-    LoadLocal { local: LocalId },
+    LoadLocal {
+        local: LocalId,
+    },
     /// store_local(LocalId, ValueId) — produces Unit
-    StoreLocal { local: LocalId, value: ValueId },
+    StoreLocal {
+        local: LocalId,
+        value: ValueId,
+    },
     /// load_global(globalId) -> ValueId
-    LoadGlobal { global: GlobalId },
+    LoadGlobal {
+        global: GlobalId,
+    },
     /// store_global(GlobalId, ValueId) — produces Unit
-    StoreGlobal { global: GlobalId, value: ValueId },
+    StoreGlobal {
+        global: GlobalId,
+        value: ValueId,
+    },
     /// call(func, args...) -> ValueId
     Call {
         func: StrID, // Function name or identifier
@@ -277,28 +292,142 @@ pub enum Instruction {
     },
     /// variant_get_tag(src: ValueId) -> ValueId
     /// Extracts the discriminant tag from an enum value as an integer.
-    VariantGetTag { src: ValueId },
+    VariantGetTag {
+        src: ValueId,
+    },
 
     /// move(dst_local, src_value) — produces Unit
-    Move { dst: LocalId, src: ValueId },
+    Move {
+        dst: LocalId,
+        src: ValueId,
+    },
     /// copy(dst_local, src_value) — produces Unit
-    Copy { dst: LocalId, src: ValueId },
+    Copy {
+        dst: LocalId,
+        src: ValueId,
+    },
     /// drop_local(LocalId) — produces Unit
-    DropLocal { local: LocalId },
+    DropLocal {
+        local: LocalId,
+    },
     /// declare_local(LocalId) — produces Unit (declares a local as uninitialized)
-    DeclareLocal { local: LocalId },
+    DeclareLocal {
+        local: LocalId,
+    },
     /// set_initialized(LocalId) — produces Unit
-    SetInitialized { local: LocalId },
+    SetInitialized {
+        local: LocalId,
+    },
     /// add two expressions - produces the same type as its args
-    Add { lhs: ValueId, rhs: ValueId },
+    Add {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
     /// subtracts two expressions - produces the same type as its args
-    Sub { lhs: ValueId, rhs: ValueId },
+    Sub {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
     /// multiplies two expressions - produces the same type as its args
-    Mul { lhs: ValueId, rhs: ValueId },
+    Mul {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
     /// does signed division of two expressions - produces the same type as its args
-    SDiv { lhs: ValueId, rhs: ValueId },
+    SDiv {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
     /// does unsigned division of two expressions - produces the same type as its args
-    UDiv { lhs: ValueId, rhs: ValueId },
+    UDiv {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
+    /// does signed modulus of two expressions - produces the same type as its args
+    SMod {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
+    /// does unsigned modulus of two expressions - produces the same type as its args
+    UMod {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
+    /// checks if two expressions are equal - produces a boolean
+    Equal {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
+    /// checks if two expressions are not equal - produces a boolean
+    NotEqual {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
+    /// checks if one expressions is less than the other - produces a boolean
+    SLessThan {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
+    /// checks if one expressions is less than the other - produces a boolean
+    ULessThan {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
+    /// checks if one expressions is less than or equal to the other - produces a boolean
+    SLessThanEqual {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
+    /// checks if one expressions is less than or equal to the other - produces a boolean
+    ULessThanEqual {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
+    /// checks if one expressions is greater than the other - produces a boolean
+    SGreaterThan {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
+    /// checks if one expressions is greater than the other - produces a boolean
+    UGreaterThan {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
+    /// checks if one expressions is greater than or equal to the other - produces a boolean
+    SGreaterThanEqual {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
+    /// checks if one expressions is greater than or equal to the other - produces a boolean
+    UGreaterThanEqual {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
+    /// checks if at least on of two expressions is true - produces a boolean
+    LogicalOr {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
+    /// checks if two expressions are both true - produces a boolean
+    LogicalAnd {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
+    // does a bitwise AND between the two expressions - produces the same type as it's args
+    BitwiseAnd {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
+    // does a bitwise OR between the two expressions - produces the same type as it's args
+    BitwiseOr {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
+    // does a bitwise XOR between the two expressions - produces the same type as it's args
+    BitwiseXOr {
+        lhs: ValueId,
+        rhs: ValueId,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
