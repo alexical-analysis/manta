@@ -243,17 +243,6 @@ pub enum Instruction {
     Const {
         value: ConstValue,
     },
-    /// unary op, value -> ValueId
-    UnaryOp {
-        op: UnaryOp,
-        operand: ValueId,
-    },
-    /// binary op, lhs, rhs -> ValueId
-    BinaryOp {
-        op: BinaryOp,
-        lhs: ValueId,
-        rhs: ValueId,
-    },
     /// load_local(LocalId) -> ValueId
     LoadLocal {
         local: LocalId,
@@ -271,6 +260,23 @@ pub enum Instruction {
     StoreGlobal {
         global: GlobalId,
         value: ValueId,
+    },
+    /// load a value from a pointer into a value
+    LoadPtr {
+        ptr: ValueId,
+    },
+    // Store a value into a pointers memory address
+    StorePtr {
+        ptr: ValueId,
+        value: ValueId,
+    },
+    /// LocalAddr gets the address of a local
+    LocalAddr {
+        local: LocalId,
+    },
+    /// GlobalAddr gets the address of a global
+    GlobalAddr {
+        global: GlobalId,
     },
     /// call(func, args...) -> ValueId
     Call {
@@ -427,6 +433,14 @@ pub enum Instruction {
     BitwiseXOr {
         lhs: ValueId,
         rhs: ValueId,
+    },
+    /// inverts the boolean value - produces a boolean value
+    BoolNot {
+        op: ValueId,
+    },
+    /// negates the given expression - produces the same type as it's operand
+    Negate {
+        op: ValueId,
     },
 }
 
