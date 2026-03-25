@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, HashSet};
 
 use crate::hir::NodeID;
 use crate::mir::{
-    BasicBlock, BlockId, ConstValue, GlobalId, Instruction, Local, LocalId, MirFunction, TagSize,
-    Terminator, TypeSpec, ValueId,
+    BasicBlock, BlockId, ConstValue, Global, GlobalId, Instruction, Local, LocalId, MirFunction,
+    TagSize, Terminator, TypeSpec, ValueId,
 };
 use crate::str_store::StrID;
 
@@ -79,12 +79,14 @@ impl BlockBuilder {
 fn instruction_inputs(inst: &Instruction) -> Vec<ValueId> {
     match inst {
         Instruction::Const { .. } => vec![],
-        Instruction::UnaryOp { operand, .. } => vec![*operand],
-        Instruction::BinaryOp { lhs, rhs, .. } => vec![*lhs, *rhs],
         Instruction::LoadLocal { .. } => vec![],
         Instruction::StoreLocal { value, .. } => vec![*value],
         Instruction::LoadGlobal { .. } => vec![],
         Instruction::StoreGlobal { value, .. } => vec![*value],
+        Instruction::LoadPtr { ptr } => vec![*ptr],
+        Instruction::StorePtr { ptr, value } => vec![*ptr, *value],
+        Instruction::LocalAddr { .. } => vec![],
+        Instruction::GlobalAddr { .. } => vec![],
         Instruction::Call { args, .. } => args.clone(),
         Instruction::CallTry { args, .. } => args.clone(),
         Instruction::VariantGetPayload { src, .. } => vec![*src],
@@ -116,6 +118,8 @@ fn instruction_inputs(inst: &Instruction) -> Vec<ValueId> {
         Instruction::BitwiseAnd { lhs, rhs } => vec![*lhs, *rhs],
         Instruction::BitwiseOr { lhs, rhs } => vec![*lhs, *rhs],
         Instruction::BitwiseXOr { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::BoolNot { op } => vec![*op],
+        Instruction::Negate { op } => vec![*op],
     }
 }
 
@@ -466,6 +470,60 @@ impl FunctionBuilder {
                 lhs: left,
                 rhs: right,
             },
+        )
+    }
+
+    pub fn emit_bool_not(&mut self, block_id: BlockId, value: ValueId) -> ValueId {
+        self.add_instruction(block_id, TypeSpec::Bool, Instruction::BoolNot { op: value })
+    }
+
+    pub fn emit_negate(&mut self, block_id: BlockId, value: ValueId) -> ValueId {
+        let ts = self
+            .value_types
+            .get(value.as_idx())
+            .expect("missing type for given value id");
+
+        self.add_instruction(block_id, ts.clone(), Instruction::Negate { op: value })
+    }
+
+    pub fn emit_load_ptr(&mut self, block_id: BlockId, ptr: ValueId) -> ValueId {
+        let ts = self
+            .value_types
+            .get(ptr.as_idx())
+            .expect("missing local")
+            .clone();
+
+        match ts {
+            TypeSpec::Ptr(ts) => self.add_instruction(block_id, *ts, Instruction::LoadPtr { ptr }),
+            _ => panic!("invalid pointer type"),
+        }
+    }
+
+    pub fn emit_local_addr(&mut self, block_id: BlockId, local: LocalId) -> ValueId {
+        let ts = self
+            .locals
+            .get(local.as_idx())
+            .expect("missing local")
+            .type_spec
+            .clone();
+
+        self.add_instruction(
+            block_id,
+            TypeSpec::Ptr(Box::new(ts)),
+            Instruction::LocalAddr { local },
+        )
+    }
+
+    pub fn emit_global_addr(
+        &mut self,
+        block_id: BlockId,
+        global_id: GlobalId,
+        global: &Global,
+    ) -> ValueId {
+        self.add_instruction(
+            block_id,
+            TypeSpec::Ptr(Box::new(global.type_spec.clone())),
+            Instruction::GlobalAddr { global: global_id },
         )
     }
 

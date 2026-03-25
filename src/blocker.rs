@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use builder::FunctionBuilder;
 
-use crate::ast::BinaryOp;
+use crate::ast::{BinaryOp, UnaryOp};
 use crate::hir::{self, Node, NodeID, PatternNode};
 use crate::mir::{
     BlockId, ConstValue, Global, GlobalId, MirFunction, MirModule, SwitchArm, TagSize, Terminator,
@@ -208,7 +208,7 @@ impl<'a> Blocker<'a> {
             } => {
                 // the condition needs to be computed in the previous block, expressions can trigger
                 // control flow so this should never create a new block
-                let expr_value = self.block_expression(condition, block_id);
+                let expr_value = self.block_expression(block_id, condition);
 
                 let true_block_id = self.fn_builder.add_block();
                 let merge_block_id = self.fn_builder.add_block();
@@ -296,7 +296,7 @@ impl<'a> Blocker<'a> {
             }
             Node::Return { value } => {
                 let ret = if let Some(v) = value {
-                    let ret = self.block_expression(v, block_id);
+                    let ret = self.block_expression(block_id, v);
                     Some(ret)
                 } else {
                     None
@@ -333,7 +333,7 @@ impl<'a> Blocker<'a> {
 
     fn block_int_match(&mut self, block_id: BlockId, target: NodeID, arms: Vec<NodeID>) -> BlockId {
         let merge_block = self.fn_builder.add_block();
-        let discriminant = self.block_expression(target, block_id);
+        let discriminant = self.block_expression(block_id, target);
 
         let mut match_arms = vec![];
         let mut default_arm = None;
@@ -441,7 +441,7 @@ impl<'a> Blocker<'a> {
         arms: Vec<NodeID>,
     ) -> BlockId {
         let merge_block = self.fn_builder.add_block();
-        let target_id = self.block_expression(target, block_id);
+        let target_id = self.block_expression(block_id, target);
 
         let target_ts = self
             .node_tree
@@ -581,7 +581,7 @@ impl<'a> Blocker<'a> {
         arms: Vec<NodeID>,
     ) -> BlockId {
         let merge_block = self.fn_builder.add_block();
-        let target_id = self.block_expression(target, block_id);
+        let target_id = self.block_expression(block_id, target);
 
         let target_ts = self
             .node_tree
@@ -710,7 +710,7 @@ impl<'a> Blocker<'a> {
         merge_block
     }
 
-    fn block_expression(&mut self, node_id: NodeID, block_id: BlockId) -> ValueId {
+    fn block_expression(&mut self, block_id: BlockId, node_id: NodeID) -> ValueId {
         if self.fn_builder.is_block_closed(block_id) {
             // if the block is closed just skip all the remaining instructions as they are no longer
             // reachable, trying to adding them would cause a panic
@@ -773,8 +773,8 @@ impl<'a> Blocker<'a> {
                 operator,
                 right,
             } => {
-                let lhs = self.block_expression(left, block_id);
-                let rhs = self.block_expression(right, block_id);
+                let lhs = self.block_expression(block_id, left);
+                let rhs = self.block_expression(block_id, right);
 
                 match operator {
                     BinaryOp::Add => self.fn_builder.emit_add(block_id, lhs, rhs),
@@ -797,6 +797,43 @@ impl<'a> Blocker<'a> {
                     BinaryOp::BitwiseAnd => self.fn_builder.emit_bitwise_and(block_id, lhs, rhs),
                     BinaryOp::BitwiseOr => self.fn_builder.emit_bitwise_or(block_id, lhs, rhs),
                     BinaryOp::BitwiseXor => self.fn_builder.emit_bitwise_xor(block_id, lhs, rhs),
+                }
+            }
+            Node::Unary { operator, operand } => {
+                match operator {
+                    UnaryOp::Not => {
+                        let value = self.block_expression(block_id, operand);
+                        self.fn_builder.emit_bool_not(block_id, value)
+                    }
+                    UnaryOp::Negate => {
+                        let value = self.block_expression(block_id, operand);
+                        self.fn_builder.emit_negate(block_id, value)
+                    }
+                    UnaryOp::Positive => self.block_expression(block_id, operand),
+                    UnaryOp::Dereference => {
+                        let value = self.block_expression(block_id, operand);
+                        self.fn_builder.emit_load_ptr(block_id, value)
+                    }
+                    UnaryOp::AddressOf => {
+                        // need to check if this is a local first, if not then it's a global
+                        match self.fn_builder.find_local(operand) {
+                            Some(local) => self.fn_builder.emit_local_addr(block_id, local),
+                            None => {
+                                let global_id = self
+                                    .global_map
+                                    .get(&operand)
+                                    .expect("value is not a local and not a global either");
+
+                                let global = self
+                                    .globals
+                                    .get(global_id.as_idx())
+                                    .expect("failed to find global from global map");
+
+                                self.fn_builder
+                                    .emit_global_addr(block_id, *global_id, global)
+                            }
+                        }
+                    }
                 }
             }
             _ => {
