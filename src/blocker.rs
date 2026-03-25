@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use builder::FunctionBuilder;
 
-use crate::ast::{BinaryOp, VarDecl};
+use crate::ast::BinaryOp;
 use crate::hir::{self, Node, NodeID, PatternNode};
 use crate::mir::{
     BlockId, ConstValue, Global, GlobalId, MirFunction, MirModule, SwitchArm, TagSize, Terminator,
@@ -781,10 +781,22 @@ impl<'a> Blocker<'a> {
                     BinaryOp::Subtract => self.fn_builder.emit_sub(block_id, lhs, rhs),
                     BinaryOp::Multiply => self.fn_builder.emit_mul(block_id, lhs, rhs),
                     BinaryOp::Divide => self.fn_builder.emit_div(block_id, lhs, rhs),
-                    _ => {
-                        eprintln!("TODO: not all binary operators are implemented yet");
-                        ValueId::nil()
+                    BinaryOp::Modulo => self.fn_builder.emit_mod(block_id, lhs, rhs),
+                    BinaryOp::Equal => self.fn_builder.emit_equal(block_id, lhs, rhs),
+                    BinaryOp::NotEqual => self.fn_builder.emit_not_equal(block_id, lhs, rhs),
+                    BinaryOp::LessThan => self.fn_builder.emit_less_than(block_id, lhs, rhs),
+                    BinaryOp::LessThanOrEqual => {
+                        self.fn_builder.emit_less_or_equal(block_id, lhs, rhs)
                     }
+                    BinaryOp::GreaterThan => self.fn_builder.emit_greater_than(block_id, lhs, rhs),
+                    BinaryOp::GreaterThanOrEqual => {
+                        self.fn_builder.emit_greater_or_equal(block_id, lhs, rhs)
+                    }
+                    BinaryOp::LogicalAnd => self.fn_builder.emit_logical_and(block_id, lhs, rhs),
+                    BinaryOp::LogicalOr => self.fn_builder.emit_logical_or(block_id, lhs, rhs),
+                    BinaryOp::BitwiseAnd => self.fn_builder.emit_bitwise_and(block_id, lhs, rhs),
+                    BinaryOp::BitwiseOr => self.fn_builder.emit_bitwise_or(block_id, lhs, rhs),
+                    BinaryOp::BitwiseXor => self.fn_builder.emit_bitwise_xor(block_id, lhs, rhs),
                 }
             }
             _ => {

@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, HashSet};
 
 use crate::hir::NodeID;
 use crate::mir::{
-    BasicBlock, BlockId, ConstValue, Global, GlobalId, Instruction, Local, LocalId, MirFunction,
-    TagSize, Terminator, TypeSpec, ValueId,
+    BasicBlock, BlockId, ConstValue, GlobalId, Instruction, Local, LocalId, MirFunction, TagSize,
+    Terminator, TypeSpec, ValueId,
 };
 use crate::str_store::StrID;
 
@@ -99,6 +99,23 @@ fn instruction_inputs(inst: &Instruction) -> Vec<ValueId> {
         Instruction::Mul { lhs, rhs } => vec![*lhs, *rhs],
         Instruction::SDiv { lhs, rhs } => vec![*lhs, *rhs],
         Instruction::UDiv { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::SMod { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::UMod { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::Equal { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::NotEqual { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::SLessThan { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::ULessThan { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::SLessThanEqual { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::ULessThanEqual { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::SGreaterThan { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::UGreaterThan { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::SGreaterThanEqual { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::UGreaterThanEqual { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::LogicalAnd { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::LogicalOr { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::BitwiseAnd { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::BitwiseOr { lhs, rhs } => vec![*lhs, *rhs],
+        Instruction::BitwiseXOr { lhs, rhs } => vec![*lhs, *rhs],
     }
 }
 
@@ -223,6 +240,233 @@ impl FunctionBuilder {
         };
 
         self.add_instruction(block_id, ts.clone(), inst)
+    }
+
+    pub fn emit_mod(&mut self, block_id: BlockId, left: ValueId, right: ValueId) -> ValueId {
+        let ts = self
+            .value_types
+            .get(left.as_idx())
+            .expect("missing type for given value id");
+
+        let inst = if is_signed_type(ts) {
+            Instruction::SMod {
+                lhs: left,
+                rhs: right,
+            }
+        } else {
+            Instruction::UMod {
+                lhs: left,
+                rhs: right,
+            }
+        };
+
+        self.add_instruction(block_id, ts.clone(), inst)
+    }
+
+    pub fn emit_equal(&mut self, block_id: BlockId, left: ValueId, right: ValueId) -> ValueId {
+        self.add_instruction(
+            block_id,
+            TypeSpec::Bool,
+            Instruction::Equal {
+                lhs: left,
+                rhs: right,
+            },
+        )
+    }
+
+    pub fn emit_not_equal(&mut self, block_id: BlockId, left: ValueId, right: ValueId) -> ValueId {
+        self.add_instruction(
+            block_id,
+            TypeSpec::Bool,
+            Instruction::NotEqual {
+                lhs: left,
+                rhs: right,
+            },
+        )
+    }
+
+    pub fn emit_less_than(&mut self, block_id: BlockId, left: ValueId, right: ValueId) -> ValueId {
+        let ts = self
+            .value_types
+            .get(left.as_idx())
+            .expect("missing type for given value id");
+
+        let inst = if is_signed_type(ts) {
+            Instruction::SLessThan {
+                lhs: left,
+                rhs: right,
+            }
+        } else {
+            Instruction::ULessThan {
+                lhs: left,
+                rhs: right,
+            }
+        };
+
+        self.add_instruction(block_id, TypeSpec::Bool, inst)
+    }
+
+    pub fn emit_less_or_equal(
+        &mut self,
+        block_id: BlockId,
+        left: ValueId,
+        right: ValueId,
+    ) -> ValueId {
+        let ts = self
+            .value_types
+            .get(left.as_idx())
+            .expect("missing type for given value id");
+
+        let inst = if is_signed_type(ts) {
+            Instruction::SLessThanEqual {
+                lhs: left,
+                rhs: right,
+            }
+        } else {
+            Instruction::ULessThanEqual {
+                lhs: left,
+                rhs: right,
+            }
+        };
+
+        self.add_instruction(block_id, TypeSpec::Bool, inst)
+    }
+
+    pub fn emit_greater_than(
+        &mut self,
+        block_id: BlockId,
+        left: ValueId,
+        right: ValueId,
+    ) -> ValueId {
+        let ts = self
+            .value_types
+            .get(left.as_idx())
+            .expect("missing type for given value id");
+
+        let inst = if is_signed_type(ts) {
+            Instruction::SGreaterThan {
+                lhs: left,
+                rhs: right,
+            }
+        } else {
+            Instruction::UGreaterThan {
+                lhs: left,
+                rhs: right,
+            }
+        };
+
+        self.add_instruction(block_id, TypeSpec::Bool, inst)
+    }
+
+    pub fn emit_greater_or_equal(
+        &mut self,
+        block_id: BlockId,
+        left: ValueId,
+        right: ValueId,
+    ) -> ValueId {
+        let ts = self
+            .value_types
+            .get(left.as_idx())
+            .expect("missing type for given value id");
+
+        let inst = if is_signed_type(ts) {
+            Instruction::SGreaterThanEqual {
+                lhs: left,
+                rhs: right,
+            }
+        } else {
+            Instruction::UGreaterThanEqual {
+                lhs: left,
+                rhs: right,
+            }
+        };
+
+        self.add_instruction(block_id, TypeSpec::Bool, inst)
+    }
+
+    pub fn emit_logical_and(
+        &mut self,
+        block_id: BlockId,
+        left: ValueId,
+        right: ValueId,
+    ) -> ValueId {
+        self.add_instruction(
+            block_id,
+            TypeSpec::Bool,
+            Instruction::LogicalAnd {
+                lhs: left,
+                rhs: right,
+            },
+        )
+    }
+
+    pub fn emit_logical_or(&mut self, block_id: BlockId, left: ValueId, right: ValueId) -> ValueId {
+        self.add_instruction(
+            block_id,
+            TypeSpec::Bool,
+            Instruction::LogicalOr {
+                lhs: left,
+                rhs: right,
+            },
+        )
+    }
+
+    pub fn emit_bitwise_and(
+        &mut self,
+        block_id: BlockId,
+        left: ValueId,
+        right: ValueId,
+    ) -> ValueId {
+        let ts = self
+            .value_types
+            .get(left.as_idx())
+            .expect("missing type for given value id");
+
+        self.add_instruction(
+            block_id,
+            ts.clone(),
+            Instruction::BitwiseAnd {
+                lhs: left,
+                rhs: right,
+            },
+        )
+    }
+
+    pub fn emit_bitwise_or(&mut self, block_id: BlockId, left: ValueId, right: ValueId) -> ValueId {
+        let ts = self
+            .value_types
+            .get(left.as_idx())
+            .expect("missing type for given value id");
+
+        self.add_instruction(
+            block_id,
+            ts.clone(),
+            Instruction::BitwiseOr {
+                lhs: left,
+                rhs: right,
+            },
+        )
+    }
+
+    pub fn emit_bitwise_xor(
+        &mut self,
+        block_id: BlockId,
+        left: ValueId,
+        right: ValueId,
+    ) -> ValueId {
+        let ts = self
+            .value_types
+            .get(left.as_idx())
+            .expect("missing type for given value id");
+
+        self.add_instruction(
+            block_id,
+            ts.clone(),
+            Instruction::BitwiseXOr {
+                lhs: left,
+                rhs: right,
+            },
+        )
     }
 
     pub fn emit_call(

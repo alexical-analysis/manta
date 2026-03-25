@@ -86,11 +86,12 @@
           "block_args": [],
           "instructions": [
             1,
-            2
+            2,
+            3
           ],
           "terminator": {
             "Branch": {
-              "cond": 0,
+              "cond": 3,
               "true_target": 2,
               "false_target": 3
             }
@@ -128,11 +129,18 @@
               "ConstInt": 0
             }
           }
+        },
+        {
+          "Equal": {
+            "lhs": 1,
+            "rhs": 2
+          }
         }
       ],
       "value_types": [
         "I32",
-        "I32"
+        "I32",
+        "Bool"
       ]
     },
     {

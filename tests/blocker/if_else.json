@@ -88,11 +88,12 @@
           "block_args": [],
           "instructions": [
             2,
-            3
+            3,
+            4
           ],
           "terminator": {
             "Branch": {
-              "cond": 0,
+              "cond": 4,
               "true_target": 4,
               "false_target": 6
             }
@@ -153,12 +154,19 @@
               "ConstInt": 10
             }
           }
+        },
+        {
+          "SGreaterThan": {
+            "lhs": 2,
+            "rhs": 3
+          }
         }
       ],
       "value_types": [
         "Bool",
         "I64",
-        "I64"
+        "I64",
+        "Bool"
       ]
     }
   ]
