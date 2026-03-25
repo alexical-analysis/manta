@@ -1,18 +1,21 @@
 mod builder;
 
+use std::collections::BTreeMap;
+
 use builder::FunctionBuilder;
 
-use crate::ast::VarDecl;
 use crate::hir::{self, Node, NodeID, PatternNode};
 use crate::mir::{
-    BlockId, ConstValue, MirFunction, MirModule, SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
+    BlockId, ConstValue, Global, GlobalId, MirFunction, MirModule, SwitchArm, TagSize, Terminator,
+    TypeSpec, ValueId,
 };
 use crate::noder::{NodeTree, typer};
 use crate::str_store::{self, StrID};
 
-/// Lowers a single HIR function's nodes into MIR, holding the shared state needed across all
-/// the recursive block_* calls: a reference to the node tree and the function being built.
+// Blocker lowers an HIR tree in it's entirety into a valid MirModule
 pub struct Blocker<'a> {
+    globals: Vec<Global>, // Indexed by GlobalId
+    global_map: BTreeMap<NodeID, GlobalId>,
     node_tree: &'a NodeTree,
     fn_builder: FunctionBuilder,
 }
@@ -22,12 +25,14 @@ impl<'a> Blocker<'a> {
         // create the init function builder to start
         let fn_builder = FunctionBuilder::new(str_store::INIT, TypeSpec::Unit);
         Blocker {
+            globals: vec![],
+            global_map: BTreeMap::new(),
             node_tree,
             fn_builder,
         }
     }
 
-    pub fn build_module(&mut self) -> MirModule {
+    pub fn build_module(mut self) -> MirModule {
         let mut init_block_id = self.fn_builder.add_block();
 
         for node_id in &self.node_tree.roots {
@@ -50,7 +55,7 @@ impl<'a> Blocker<'a> {
             }
         }
 
-        MirModule::new(init, functions)
+        MirModule::new(self.globals, init, functions)
     }
 
     fn block_function(&mut self, node_id: NodeID) -> Option<MirFunction> {
@@ -134,6 +139,22 @@ impl<'a> Blocker<'a> {
         match node {
             // Function declarations are skipped in the init function
             Node::FunctionDecl { .. } => Some(block_id),
+            Node::TypeDecl { .. } => {
+                // type decls do not need to be represented in the MIR
+                Some(block_id)
+            }
+            Node::VarDecl { ident } => {
+                let name = self.get_ident_name(ident);
+                let ts = self
+                    .node_tree
+                    .get_type(ident)
+                    .expect("missing type for identifier");
+                let ts = lower_type_spec(ts);
+
+                self.add_global(ident, name, ts);
+
+                Some(block_id)
+            }
             Node::Return { .. } => panic!("can not return from the root context"),
             _ => {
                 let block_id = self.block_statement(node_id, block_id);
@@ -143,6 +164,14 @@ impl<'a> Blocker<'a> {
                 }
             }
         }
+    }
+
+    fn add_global(&mut self, node: NodeID, name: StrID, type_spec: TypeSpec) {
+        let global = Global { name, type_spec };
+        self.globals.push(global);
+
+        let global_id = GlobalId::from_usize(self.globals.len());
+        self.global_map.insert(node, global_id);
     }
 
     fn block_statement(&mut self, node_id: NodeID, block_id: BlockId) -> Option<BlockId> {
@@ -715,7 +744,29 @@ impl<'a> Blocker<'a> {
                 self.fn_builder
                     .emit_const(block_id, ts, ConstValue::ConstString(s))
             }
-            Node::Identifier { .. } => self.fn_builder.emit_load_local(block_id, node_id),
+            Node::Identifier { .. } => {
+                // need to check if this is a local first, if not then it's a global
+                match self.fn_builder.find_local(node_id) {
+                    Some(_) => self.fn_builder.emit_load_local(block_id, node_id),
+                    None => {
+                        let global_id = self
+                            .global_map
+                            .get(&node_id)
+                            .expect("value is not a local and not a global either");
+
+                        let global = self
+                            .globals
+                            .get(global_id.as_idx())
+                            .expect("failed to find gloabl");
+
+                        self.fn_builder.emit_load_global(
+                            block_id,
+                            *global_id,
+                            global.type_spec.clone(),
+                        )
+                    }
+                }
+            }
             _ => {
                 // TODO: implement this
                 ValueId::nil()
@@ -879,7 +930,7 @@ mod tests {
                 #[test]
                 fn $case() {
                     let node_tree = $got;
-                    let mut blocker = Blocker::new(&node_tree);
+                    let blocker = Blocker::new(&node_tree);
                     let mir_module = blocker.build_module();
                     assert_eq!(mir_module, $want)
 
@@ -921,6 +972,7 @@ mod tests {
                 },
             },
             want: MirModule {
+                globals: vec![],
                 init: MirFunction {
                     blocks: vec![BasicBlock {
                         block_args: vec![],
@@ -989,6 +1041,7 @@ mod tests {
                 },
             },
             want: MirModule {
+                globals: vec![],
                 init: MirFunction {
                     name: str_store::INIT,
                     params: vec![],
@@ -1057,6 +1110,7 @@ mod tests {
                 },
             },
             want: MirModule {
+                globals: vec![],
                 init: MirFunction {
                     name: str_store::INIT,
                     params: vec![],
@@ -1125,6 +1179,7 @@ mod tests {
                 },
             },
             want: MirModule {
+                globals: vec![],
                 init: MirFunction {
                     name: str_store::INIT,
                     params: vec![],
@@ -1193,6 +1248,7 @@ mod tests {
                 },
             },
             want: MirModule {
+                globals: vec![],
                 init: MirFunction {
                     name: str_store::INIT,
                     params: vec![],
