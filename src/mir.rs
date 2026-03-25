@@ -131,6 +131,50 @@ impl BlockId {
     }
 }
 
+/// A unique identifier for a global variable (storage slot).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize)]
+pub struct GlobalId(u32);
+
+impl GlobalId {
+    /// Creates a GlobalId from a raw u32. Panics if id is 0 (reserved as nil).
+    pub fn from_u32(id: u32) -> Self {
+        assert_ne!(id, 0, "GlobalId(0) is reserved as nil");
+        GlobalId(id)
+    }
+
+    pub fn from_usize(id: usize) -> Self {
+        assert_ne!(id, 0, "GlobalId(0) is reserved as nil");
+        GlobalId(id as u32)
+    }
+
+    /// Returns the raw u32 value.
+    pub fn as_u32(self) -> u32 {
+        self.0
+    }
+
+    /// Return the id as an index instead of an ID
+    pub fn as_idx(self) -> usize {
+        (self.0 - 1) as usize
+    }
+
+    /// Returns the nil GlobalId (0).
+    pub fn nil() -> Self {
+        GlobalId(0)
+    }
+
+    /// Checks if this is the nil GlobalId.
+    pub fn is_nil(self) -> bool {
+        self.0 == 0
+    }
+}
+
+/// Metadata about a global variable.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct Global {
+    pub type_spec: TypeSpec,
+    pub name: StrID,
+}
+
 /// A unique identifier for a local variable (storage slot).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize)]
 pub struct LocalId(u32);
@@ -209,6 +253,10 @@ pub enum Instruction {
     LoadLocal { local: LocalId },
     /// store_local(LocalId, ValueId) — produces Unit
     StoreLocal { local: LocalId, value: ValueId },
+    /// load_global(globalId) -> ValueId
+    LoadGlobal { global: GlobalId },
+    /// store_global(GlobalId, ValueId) — produces Unit
+    StoreGlobal { global: GlobalId, value: ValueId },
     /// call(func, args...) -> ValueId
     Call {
         func: StrID, // Function name or identifier
@@ -319,12 +367,17 @@ pub struct MirFunction {
 /// A collection of MIR functions (represents the entire program at the MIR level).
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct MirModule {
+    pub globals: Vec<Global>,
     pub init: MirFunction,
     pub functions: Vec<MirFunction>,
 }
 
 impl MirModule {
-    pub fn new(init: MirFunction, functions: Vec<MirFunction>) -> Self {
-        MirModule { init, functions }
+    pub fn new(globals: Vec<Global>, init: MirFunction, functions: Vec<MirFunction>) -> Self {
+        MirModule {
+            globals,
+            init,
+            functions,
+        }
     }
 }

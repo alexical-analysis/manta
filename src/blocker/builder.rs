@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, HashSet};
 
 use crate::hir::NodeID;
 use crate::mir::{
-    BasicBlock, BlockId, ConstValue, Instruction, Local, LocalId, MirFunction, TagSize, Terminator,
-    TypeSpec, ValueId,
+    BasicBlock, BlockId, ConstValue, Global, GlobalId, Instruction, Local, LocalId, MirFunction,
+    TagSize, Terminator, TypeSpec, ValueId,
 };
 use crate::str_store::StrID;
 
@@ -83,6 +83,8 @@ fn instruction_inputs(inst: &Instruction) -> Vec<ValueId> {
         Instruction::BinaryOp { lhs, rhs, .. } => vec![*lhs, *rhs],
         Instruction::LoadLocal { .. } => vec![],
         Instruction::StoreLocal { value, .. } => vec![*value],
+        Instruction::LoadGlobal { .. } => vec![],
+        Instruction::StoreGlobal { value, .. } => vec![*value],
         Instruction::Call { args, .. } => args.clone(),
         Instruction::CallTry { args, .. } => args.clone(),
         Instruction::VariantGetPayload { src, .. } => vec![*src],
@@ -123,8 +125,8 @@ pub struct FunctionBuilder {
     name: StrID,
     params: Vec<LocalId>,
     type_spec: TypeSpec,
+    locals: Vec<Local>, // Indexed by LocalId
     local_map: BTreeMap<NodeID, LocalId>,
-    locals: Vec<Local>,             // Indexed by LocalId
     blocks: Vec<BlockBuilder>,      // Indexed by BlockId
     instructions: Vec<Instruction>, // Flat instruction array, indexed by ValueId
     value_types: Vec<TypeSpec>,     // Parallel to instructions, indexed by ValueId
@@ -136,8 +138,8 @@ impl FunctionBuilder {
             name,
             type_spec,
             params: vec![],
-            local_map: BTreeMap::new(),
             locals: vec![],
+            local_map: BTreeMap::new(),
             blocks: vec![],
             instructions: vec![],
             value_types: vec![],
@@ -201,6 +203,15 @@ impl FunctionBuilder {
             TypeSpec::Unit,
             Instruction::StoreLocal { local, value },
         );
+    }
+
+    pub fn emit_load_global(
+        &mut self,
+        block: BlockId,
+        global: GlobalId,
+        type_spec: TypeSpec,
+    ) -> ValueId {
+        self.add_instruction(block, type_spec, Instruction::LoadGlobal { global })
     }
 
     pub fn emit_load_local(&mut self, block: BlockId, node: NodeID) -> ValueId {
@@ -269,6 +280,11 @@ impl FunctionBuilder {
         self.local_map.insert(node, local_id);
 
         local_id
+    }
+
+    /// Find the given loacal if it exists
+    pub fn find_local(&self, node: NodeID) -> Option<LocalId> {
+        self.local_map.get(&node).cloned()
     }
 
     fn get_block(&self, block_id: BlockId) -> &BlockBuilder {

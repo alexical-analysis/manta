@@ -1,17 +1,16 @@
 {
+  "globals": [
+    {
+      "type_spec": "F64",
+      "name": 9
+    }
+  ],
   "init": {
     "name": 18446744073709551596,
     "params": [],
     "type_spec": "Unit",
-    "local_map": {
-      "0": 1
-    },
-    "locals": [
-      {
-        "type_spec": "F64",
-        "name": 9
-      }
-    ],
+    "local_map": {},
+    "locals": [],
     "blocks": [
       {
         "block_args": [],
