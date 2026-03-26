@@ -1,6 +1,5 @@
 use std::collections::BTreeMap;
 
-use crate::ast::{BinaryOp, UnaryOp};
 use crate::hir::NodeID;
 use crate::str_store::StrID;
 use serde::Serialize;
@@ -294,15 +293,6 @@ pub enum Instruction {
         local: LocalId,
         value: ValueId,
     },
-    /// load_global(globalId) -> ValueId
-    LoadGlobal {
-        global: GlobalId,
-    },
-    /// store_global(GlobalId, ValueId) — produces Unit
-    StoreGlobal {
-        global: GlobalId,
-        value: ValueId,
-    },
     /// load a value from a pointer into a value
     LoadPtr {
         ptr: ValueId,
@@ -319,6 +309,15 @@ pub enum Instruction {
     /// GlobalAddr gets the address of a global
     GlobalAddr {
         global: GlobalId,
+    },
+    /// Read a value from a place: read(place) -> ValueId
+    Read {
+        place: Place,
+    },
+    /// Write a value to a place: write(place, value) — produces Unit
+    Write {
+        place: Place,
+        value: ValueId,
     },
     /// call(func, args...) -> ValueId
     Call {
