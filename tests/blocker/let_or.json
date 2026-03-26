@@ -287,7 +287,9 @@
           ],
           "instructions": [
             2,
-            3
+            3,
+            4,
+            5
           ],
           "terminator": {
             "Jump": {
@@ -300,11 +302,11 @@
             0
           ],
           "instructions": [
-            5
+            7
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 5,
+              "discriminant": 7,
               "default": 7,
               "arms": [
                 {
@@ -322,8 +324,10 @@
             0
           ],
           "instructions": [
-            6,
-            7
+            8,
+            9,
+            10,
+            11
           ],
           "terminator": {
             "Jump": {
@@ -345,7 +349,7 @@
             0
           ],
           "instructions": [
-            8
+            12
           ],
           "terminator": {
             "Return": {
@@ -358,7 +362,7 @@
             0
           ],
           "instructions": [
-            4
+            6
           ],
           "terminator": {
             "Return": {
@@ -383,14 +387,45 @@
           }
         },
         {
-          "StoreLocal": {
-            "local": 3,
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            },
             "value": 2
           }
         },
         {
-          "StoreLocal": {
-            "local": 4,
+          "Read": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            },
+            "value": 4
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 4
+              },
+              "projections": []
+            },
             "value": 0
           }
         },
@@ -408,14 +443,45 @@
           }
         },
         {
-          "StoreLocal": {
-            "local": 6,
-            "value": 6
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 6
+              },
+              "projections": []
+            },
+            "value": 8
           }
         },
         {
-          "StoreLocal": {
-            "local": 7,
+          "Read": {
+            "place": {
+              "base": {
+                "Local": 6
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 5
+              },
+              "projections": []
+            },
+            "value": 10
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 7
+              },
+              "projections": []
+            },
             "value": 0
           }
         }
@@ -426,8 +492,14 @@
           "Struct": []
         },
         "Unit",
+        {
+          "Struct": []
+        },
+        "Unit",
         "Unit",
         "U8",
+        "String",
+        "Unit",
         "String",
         "Unit",
         "Unit"
@@ -554,7 +626,9 @@
           ],
           "instructions": [
             2,
-            3
+            3,
+            4,
+            5
           ],
           "terminator": {
             "Jump": {
@@ -567,11 +641,11 @@
             0
           ],
           "instructions": [
-            5
+            7
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 5,
+              "discriminant": 7,
               "default": 7,
               "arms": [
                 {
@@ -589,8 +663,10 @@
             0
           ],
           "instructions": [
-            6,
-            7
+            8,
+            9,
+            10,
+            11
           ],
           "terminator": {
             "Jump": {
@@ -612,7 +688,7 @@
             0
           ],
           "instructions": [
-            8
+            12
           ],
           "terminator": {
             "Jump": {
@@ -625,7 +701,7 @@
             0
           ],
           "instructions": [
-            4
+            6
           ],
           "terminator": {
             "Return": {
@@ -650,14 +726,45 @@
           }
         },
         {
-          "StoreLocal": {
-            "local": 2,
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            },
             "value": 2
           }
         },
         {
-          "StoreLocal": {
-            "local": 3,
+          "Read": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            },
+            "value": 4
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            },
             "value": 0
           }
         },
@@ -675,14 +782,45 @@
           }
         },
         {
-          "StoreLocal": {
-            "local": 5,
-            "value": 6
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 5
+              },
+              "projections": []
+            },
+            "value": 8
           }
         },
         {
-          "StoreLocal": {
-            "local": 6,
+          "Read": {
+            "place": {
+              "base": {
+                "Local": 5
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 4
+              },
+              "projections": []
+            },
+            "value": 10
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 6
+              },
+              "projections": []
+            },
             "value": 0
           }
         }
@@ -691,8 +829,12 @@
         "U8",
         "String",
         "Unit",
+        "String",
+        "Unit",
         "Unit",
         "U8",
+        "String",
+        "Unit",
         "String",
         "Unit",
         "Unit"

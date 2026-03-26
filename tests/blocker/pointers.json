@@ -80,7 +80,22 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [],
+          "instructions": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
           "terminator": {
             "Return": {
               "value": null
@@ -89,8 +104,164 @@
         }
       ],
       "entry_block": 1,
-      "instructions": [],
-      "value_types": []
+      "instructions": [
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 42
+            }
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            },
+            "value": 1
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 2701
+            }
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            },
+            "value": 3
+          }
+        },
+        {
+          "AddressOf": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            },
+            "value": 5
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 21
+            }
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": [
+                "Deref"
+              ]
+            },
+            "value": 7
+          }
+        },
+        {
+          "AddressOf": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            },
+            "value": 9
+          }
+        },
+        {
+          "Read": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": [
+                "Deref"
+              ]
+            }
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 37
+            }
+          }
+        },
+        {
+          "SDiv": {
+            "lhs": 11,
+            "rhs": 12
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": [
+                "Deref"
+              ]
+            },
+            "value": 13
+          }
+        }
+      ],
+      "value_types": [
+        "I64",
+        "Unit",
+        "I64",
+        "Unit",
+        {
+          "Ptr": "I64"
+        },
+        "Unit",
+        "I64",
+        "Unit",
+        {
+          "Ptr": "I64"
+        },
+        "Unit",
+        "I64",
+        "I64",
+        "I64",
+        "Unit"
+      ]
     }
   ]
 }

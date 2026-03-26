@@ -188,8 +188,13 @@
       "entry_block": 1,
       "instructions": [
         {
-          "LoadLocal": {
-            "local": 1
+          "Read": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            }
           }
         },
         {
@@ -206,8 +211,13 @@
           }
         },
         {
-          "StoreLocal": {
-            "local": 2,
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            },
             "value": 3
           }
         },
@@ -222,8 +232,13 @@
           }
         },
         {
-          "LoadLocal": {
-            "local": 2
+          "Read": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            }
           }
         },
         {
@@ -233,8 +248,13 @@
           }
         },
         {
-          "LoadLocal": {
-            "local": 2
+          "Read": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            }
           }
         },
         {
@@ -252,19 +272,34 @@
           }
         },
         {
-          "StoreLocal": {
-            "local": 3,
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            },
             "value": 10
           }
         },
         {
-          "LoadLocal": {
-            "local": 3
+          "Read": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            }
           }
         },
         {
-          "LoadLocal": {
-            "local": 3
+          "Read": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            }
           }
         },
         {
@@ -345,8 +380,18 @@
       ],
       "blocks": [
         {
-          "block_args": [],
-          "instructions": [],
+          "block_args": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "instructions": [
+            1,
+            2,
+            3,
+            4
+          ],
           "terminator": {
             "Return": {
               "value": null
@@ -355,8 +400,58 @@
         }
       ],
       "entry_block": 1,
-      "instructions": [],
-      "value_types": []
+      "instructions": [
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            },
+            "value": 0
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            },
+            "value": 0
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            },
+            "value": 0
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 4
+              },
+              "projections": []
+            },
+            "value": 0
+          }
+        }
+      ],
+      "value_types": [
+        "Unit",
+        "Unit",
+        "Unit",
+        "Unit"
+      ]
     }
   ]
 }

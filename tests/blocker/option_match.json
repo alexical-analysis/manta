@@ -119,8 +119,13 @@
       "entry_block": 1,
       "instructions": [
         {
-          "LoadLocal": {
-            "local": 2
+          "Read": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            }
           }
         },
         {
@@ -171,14 +176,17 @@
       ],
       "blocks": [
         {
-          "block_args": [],
+          "block_args": [
+            0
+          ],
           "instructions": [
             1,
-            2
+            2,
+            3
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 2,
+              "discriminant": 3,
               "default": 2,
               "arms": [
                 {
@@ -208,11 +216,11 @@
         },
         {
           "block_args": [
-            1
+            2
           ],
           "instructions": [
-            3,
-            4
+            4,
+            5
           ],
           "terminator": {
             "Jump": {
@@ -233,31 +241,53 @@
       "entry_block": 1,
       "instructions": [
         {
-          "LoadLocal": {
-            "local": 1
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            },
+            "value": 0
+          }
+        },
+        {
+          "Read": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            }
           }
         },
         {
           "VariantGetTag": {
-            "src": 1
+            "src": 2
           }
         },
         {
           "VariantGetPayload": {
-            "src": 1,
+            "src": 2,
             "variant_id": {
               "ConstUInt": 0
             }
           }
         },
         {
-          "StoreLocal": {
-            "local": 2,
-            "value": 3
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            },
+            "value": 4
           }
         }
       ],
       "value_types": [
+        "Unit",
         {
           "Enum": {
             "tag_size": "U8",

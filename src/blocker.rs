@@ -293,7 +293,9 @@ impl<'a> Blocker<'a> {
                 Some(block_id)
             }
             Node::Assign { target, value } => {
-                // TODO:
+                let val = self.block_expression(block_id, value);
+                let place = self.block_lvalue(block_id, target);
+                self.fn_builder.emit_write(block_id, place, val);
                 Some(block_id)
             }
             Node::Return { value } => {
@@ -465,8 +467,11 @@ impl<'a> Blocker<'a> {
                         let ts = lower_type_spec(target_ts);
 
                         let payload_local = self.fn_builder.get_local(p, name, ts);
-                        self.fn_builder
-                            .emit_store_local(arm_block, payload_local, discriminant);
+                        self.fn_builder.emit_write(
+                            arm_block,
+                            Place::local(payload_local),
+                            discriminant,
+                        );
                     }
 
                     let block = self.block_statement(body, arm_block);
@@ -573,9 +578,9 @@ impl<'a> Blocker<'a> {
 
                             let name = self.get_ident_name(p);
                             let payload_local = self.fn_builder.get_local(p, name, ts);
-                            self.fn_builder.emit_store_local(
+                            self.fn_builder.emit_write(
                                 arm_block,
-                                payload_local,
+                                Place::local(payload_local),
                                 payload_value,
                             );
                         }
@@ -605,8 +610,11 @@ impl<'a> Blocker<'a> {
                         let name = self.get_ident_name(p);
                         let ts = lower_type_spec(target_ts);
                         let payload_local = self.fn_builder.get_local(p, name, ts);
-                        self.fn_builder
-                            .emit_store_local(arm_block, payload_local, target_id);
+                        self.fn_builder.emit_write(
+                            arm_block,
+                            Place::local(payload_local),
+                            target_id,
+                        );
                     }
 
                     let block = self.block_statement(body, arm_block);
@@ -709,8 +717,11 @@ impl<'a> Blocker<'a> {
                         // the target type will be UnsafePtr but we need this payload to change the
                         // type into whatever the target match is
                         let payload_local = self.fn_builder.get_local(p, name, ts);
-                        self.fn_builder
-                            .emit_store_local(arm_block, payload_local, target_id);
+                        self.fn_builder.emit_write(
+                            arm_block,
+                            Place::local(payload_local),
+                            target_id,
+                        );
                     }
 
                     let block = self.block_statement(body, arm_block);
@@ -732,8 +743,11 @@ impl<'a> Blocker<'a> {
                         let name = self.get_ident_name(p);
                         let ts = lower_type_spec(target_ts);
                         let payload_local = self.fn_builder.get_local(p, name, ts);
-                        self.fn_builder
-                            .emit_store_local(arm_block, payload_local, target_id);
+                        self.fn_builder.emit_write(
+                            arm_block,
+                            Place::local(payload_local),
+                            target_id,
+                        );
                     }
 
                     let block = self.block_statement(body, arm_block);
@@ -824,27 +838,8 @@ impl<'a> Blocker<'a> {
                     .emit_const(block_id, ts, ConstValue::ConstString(s))
             }
             Node::Identifier { .. } => {
-                // need to check if this is a local first, if not then it's a global
-                match self.fn_builder.find_local(node_id) {
-                    Some(_) => self.fn_builder.emit_load_local(block_id, node_id),
-                    None => {
-                        let global_id = self
-                            .global_map
-                            .get(&node_id)
-                            .expect("value is not a local and not a global either");
-
-                        let global = self
-                            .globals
-                            .get(global_id.as_idx())
-                            .expect("failed to find gloabl");
-
-                        self.fn_builder.emit_read(
-                            block_id,
-                            Place::global(*global_id),
-                            global.type_spec.clone(),
-                        )
-                    }
-                }
+                let place = self.block_lvalue(block_id, node_id);
+                self.fn_builder.emit_read(block_id, place, ts)
             }
             Node::Binary {
                 left,
@@ -888,8 +883,9 @@ impl<'a> Blocker<'a> {
                 }
                 UnaryOp::Positive => self.block_expression(block_id, operand),
                 UnaryOp::Dereference => {
-                    let value = self.block_expression(block_id, operand);
-                    self.fn_builder.emit_load_ptr(block_id, value)
+                    let mut place = self.block_lvalue(block_id, operand);
+                    place.projections.push(Projection::Deref);
+                    self.fn_builder.emit_read(block_id, place, ts)
                 }
                 UnaryOp::AddressOf => {
                     let place = self.block_lvalue(block_id, operand);
