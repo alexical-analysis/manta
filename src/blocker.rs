@@ -163,7 +163,7 @@ impl<'a> Blocker<'a> {
                     .expect("assignment target is not a known global");
                 let val = self.block_expression(block_id, value);
                 self.fn_builder
-                    .emit_write(block_id, Place::global(global_id), val);
+                    .emit_store(block_id, Place::global(global_id), val);
                 Some(block_id)
             }
             _ => panic!("invalid statement in global scope {:?}", node),
@@ -295,7 +295,7 @@ impl<'a> Blocker<'a> {
             Node::Assign { target, value } => {
                 let val = self.block_expression(block_id, value);
                 let place = self.block_lvalue(block_id, target);
-                self.fn_builder.emit_write(block_id, place, val);
+                self.fn_builder.emit_store(block_id, place, val);
                 Some(block_id)
             }
             Node::Return { value } => {
@@ -467,7 +467,7 @@ impl<'a> Blocker<'a> {
                         let ts = lower_type_spec(target_ts);
 
                         let payload_local = self.fn_builder.get_local(p, name, ts);
-                        self.fn_builder.emit_write(
+                        self.fn_builder.emit_store(
                             arm_block,
                             Place::local(payload_local),
                             discriminant,
@@ -578,7 +578,7 @@ impl<'a> Blocker<'a> {
 
                             let name = self.get_ident_name(p);
                             let payload_local = self.fn_builder.get_local(p, name, ts);
-                            self.fn_builder.emit_write(
+                            self.fn_builder.emit_store(
                                 arm_block,
                                 Place::local(payload_local),
                                 payload_value,
@@ -610,7 +610,7 @@ impl<'a> Blocker<'a> {
                         let name = self.get_ident_name(p);
                         let ts = lower_type_spec(target_ts);
                         let payload_local = self.fn_builder.get_local(p, name, ts);
-                        self.fn_builder.emit_write(
+                        self.fn_builder.emit_store(
                             arm_block,
                             Place::local(payload_local),
                             target_id,
@@ -717,7 +717,7 @@ impl<'a> Blocker<'a> {
                         // the target type will be UnsafePtr but we need this payload to change the
                         // type into whatever the target match is
                         let payload_local = self.fn_builder.get_local(p, name, ts);
-                        self.fn_builder.emit_write(
+                        self.fn_builder.emit_store(
                             arm_block,
                             Place::local(payload_local),
                             target_id,
@@ -743,7 +743,7 @@ impl<'a> Blocker<'a> {
                         let name = self.get_ident_name(p);
                         let ts = lower_type_spec(target_ts);
                         let payload_local = self.fn_builder.get_local(p, name, ts);
-                        self.fn_builder.emit_write(
+                        self.fn_builder.emit_store(
                             arm_block,
                             Place::local(payload_local),
                             target_id,
@@ -839,7 +839,7 @@ impl<'a> Blocker<'a> {
             }
             Node::Identifier { .. } => {
                 let place = self.block_lvalue(block_id, node_id);
-                self.fn_builder.emit_read(block_id, place, ts)
+                self.fn_builder.emit_load(block_id, place, ts)
             }
             Node::Binary {
                 left,
@@ -885,7 +885,7 @@ impl<'a> Blocker<'a> {
                 UnaryOp::Dereference => {
                     let mut place = self.block_lvalue(block_id, operand);
                     place.projections.push(Projection::Deref);
-                    self.fn_builder.emit_read(block_id, place, ts)
+                    self.fn_builder.emit_load(block_id, place, ts)
                 }
                 UnaryOp::AddressOf => {
                     let place = self.block_lvalue(block_id, operand);

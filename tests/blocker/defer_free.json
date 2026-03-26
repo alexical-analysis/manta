@@ -427,7 +427,7 @@
           }
         },
         {
-          "Write": {
+          "Store": {
             "place": {
               "base": {
                 "Local": 3
@@ -438,7 +438,7 @@
           }
         },
         {
-          "Read": {
+          "Load": {
             "place": {
               "base": {
                 "Local": 3
@@ -448,7 +448,7 @@
           }
         },
         {
-          "Write": {
+          "Store": {
             "place": {
               "base": {
                 "Local": 2
@@ -459,7 +459,7 @@
           }
         },
         {
-          "Write": {
+          "Store": {
             "place": {
               "base": {
                 "Local": 4
@@ -470,7 +470,7 @@
           }
         },
         {
-          "Write": {
+          "Store": {
             "place": {
               "base": {
                 "Local": 6
@@ -481,7 +481,7 @@
           }
         },
         {
-          "Read": {
+          "Load": {
             "place": {
               "base": {
                 "Local": 6
@@ -491,7 +491,7 @@
           }
         },
         {
-          "Write": {
+          "Store": {
             "place": {
               "base": {
                 "Local": 5
@@ -502,7 +502,7 @@
           }
         },
         {
-          "Write": {
+          "Store": {
             "place": {
               "base": {
                 "Local": 7
@@ -526,7 +526,7 @@
           }
         },
         {
-          "Write": {
+          "Store": {
             "place": {
               "base": {
                 "Local": 9
@@ -537,7 +537,7 @@
           }
         },
         {
-          "Read": {
+          "Load": {
             "place": {
               "base": {
                 "Local": 9
@@ -547,7 +547,7 @@
           }
         },
         {
-          "Write": {
+          "Store": {
             "place": {
               "base": {
                 "Local": 8
@@ -558,7 +558,7 @@
           }
         },
         {
-          "Write": {
+          "Store": {
             "place": {
               "base": {
                 "Local": 10

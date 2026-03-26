@@ -284,12 +284,12 @@ pub enum Instruction {
     Const {
         value: ConstValue,
     },
-    /// Read a value from a place: read(place) -> ValueId
-    Read {
+    /// Load a value from a place: load(place) -> ValueId
+    Load {
         place: Place,
     },
-    /// Write a value to a place: write(place, value) — produces Unit
-    Write {
+    /// Store a value to a place: store(place, value) — produces Unit
+    Store {
         place: Place,
         value: ValueId,
     },
