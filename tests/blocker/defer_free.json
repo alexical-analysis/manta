@@ -288,7 +288,9 @@
           ],
           "instructions": [
             2,
-            3
+            3,
+            4,
+            5
           ],
           "terminator": {
             "Jump": {
@@ -312,7 +314,7 @@
             0
           ],
           "instructions": [
-            6
+            10
           ],
           "terminator": {
             "Jump": {
@@ -325,11 +327,11 @@
             0
           ],
           "instructions": [
-            7
+            11
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 7,
+              "discriminant": 11,
               "default": 10,
               "arms": [
                 {
@@ -347,8 +349,10 @@
             0
           ],
           "instructions": [
-            8,
-            9
+            12,
+            13,
+            14,
+            15
           ],
           "terminator": {
             "Jump": {
@@ -370,7 +374,7 @@
             0
           ],
           "instructions": [
-            10
+            16
           ],
           "terminator": {
             "Return": {
@@ -383,7 +387,9 @@
             0
           ],
           "instructions": [
-            5
+            7,
+            8,
+            9
           ],
           "terminator": {
             "Jump": {
@@ -396,7 +402,7 @@
             0
           ],
           "instructions": [
-            4
+            6
           ],
           "terminator": {
             "Return": {
@@ -421,26 +427,88 @@
           }
         },
         {
-          "StoreLocal": {
-            "local": 3,
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            },
             "value": 2
           }
         },
         {
-          "StoreLocal": {
-            "local": 4,
+          "Read": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            },
+            "value": 4
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 4
+              },
+              "projections": []
+            },
             "value": 0
           }
         },
         {
-          "StoreLocal": {
-            "local": 6,
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 6
+              },
+              "projections": []
+            },
             "value": 0
           }
         },
         {
-          "StoreLocal": {
-            "local": 7,
+          "Read": {
+            "place": {
+              "base": {
+                "Local": 6
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 5
+              },
+              "projections": []
+            },
+            "value": 8
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 7
+              },
+              "projections": []
+            },
             "value": 0
           }
         },
@@ -458,14 +526,45 @@
           }
         },
         {
-          "StoreLocal": {
-            "local": 9,
-            "value": 8
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 9
+              },
+              "projections": []
+            },
+            "value": 12
           }
         },
         {
-          "StoreLocal": {
-            "local": 10,
+          "Read": {
+            "place": {
+              "base": {
+                "Local": 9
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 8
+              },
+              "projections": []
+            },
+            "value": 14
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 10
+              },
+              "projections": []
+            },
             "value": 0
           }
         }
@@ -476,10 +575,22 @@
           "Struct": []
         },
         "Unit",
+        {
+          "Struct": []
+        },
         "Unit",
+        "Unit",
+        "Unit",
+        {
+          "Ptr": {
+            "Slice": "U8"
+          }
+        },
         "Unit",
         "Unit",
         "U8",
+        "U64",
+        "Unit",
         "U64",
         "Unit",
         "Unit"

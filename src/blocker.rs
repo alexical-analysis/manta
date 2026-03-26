@@ -7,8 +7,8 @@ use builder::FunctionBuilder;
 use crate::ast::{BinaryOp, UnaryOp};
 use crate::hir::{self, Node, NodeID, PatternNode};
 use crate::mir::{
-    BlockId, ConstValue, Global, GlobalId, MirFunction, MirModule, SwitchArm, TagSize, Terminator,
-    TypeSpec, ValueId,
+    BlockId, ConstValue, Global, GlobalId, MirFunction, MirModule, Place, PlaceBase, Projection,
+    SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
 };
 use crate::noder::{NodeTree, typer};
 use crate::str_store::{self, StrID};
@@ -157,12 +157,9 @@ impl<'a> Blocker<'a> {
                 Some(block_id)
             }
             Node::Assign { target, value } => {
-                let global_id = *self
-                    .global_map
-                    .get(&target)
-                    .expect("assignment target is not a known global");
                 let val = self.block_expression(block_id, value);
-                self.fn_builder.emit_store_global(block_id, global_id, val);
+                let place = self.block_lvalue(target);
+                self.fn_builder.emit_write(block_id, place, val);
                 Some(block_id)
             }
             _ => panic!("invalid statement in global scope {:?}", node),
@@ -175,6 +172,41 @@ impl<'a> Blocker<'a> {
 
         let global_id = GlobalId::from_usize(self.globals.len());
         self.global_map.insert(node, global_id);
+    }
+
+    /// Compute the Place for an lvalue expression — the storage location the node refers to.
+    /// Does not emit any instructions; projections like Deref are added by the caller.
+    fn block_lvalue(&mut self, node_id: NodeID) -> Place {
+        let node = self
+            .node_tree
+            .get_node(node_id)
+            .expect("missing lvalue node")
+            .clone();
+
+        match node {
+            Node::Identifier { .. } => {
+                let base = match self.fn_builder.find_local(node_id) {
+                    Some(local) => PlaceBase::Local(local),
+                    None => {
+                        let global_id = *self
+                            .global_map
+                            .get(&node_id)
+                            .expect("lvalue is not a local or a global");
+                        PlaceBase::Global(global_id)
+                    }
+                };
+                Place { base, projections: vec![] }
+            }
+            Node::Unary {
+                operator: UnaryOp::Dereference,
+                operand,
+            } => {
+                let mut inner = self.block_lvalue(operand);
+                inner.projections.push(Projection::Deref);
+                inner
+            }
+            _ => panic!("invalid lvalue node: {:?}", node),
+        }
     }
 
     fn block_statement(&mut self, node_id: NodeID, block_id: BlockId) -> Option<BlockId> {
@@ -227,7 +259,9 @@ impl<'a> Blocker<'a> {
                 Some(block_id)
             }
             Node::Assign { target, value } => {
-                // TODO:
+                let val = self.block_expression(block_id, value);
+                let place = self.block_lvalue(target);
+                self.fn_builder.emit_write(block_id, place, val);
                 Some(block_id)
             }
             Node::Return { value } => {
@@ -400,7 +434,7 @@ impl<'a> Blocker<'a> {
 
                         let payload_local = self.fn_builder.get_local(p, name, ts);
                         self.fn_builder
-                            .emit_store_local(arm_block, payload_local, discriminant);
+                            .emit_write(arm_block, Place::local(payload_local), discriminant);
                     }
 
                     let block = self.block_statement(body, arm_block);
@@ -507,11 +541,8 @@ impl<'a> Blocker<'a> {
 
                             let name = self.get_ident_name(p);
                             let payload_local = self.fn_builder.get_local(p, name, ts);
-                            self.fn_builder.emit_store_local(
-                                arm_block,
-                                payload_local,
-                                payload_value,
-                            );
+                            self.fn_builder
+                                .emit_write(arm_block, Place::local(payload_local), payload_value);
                         }
                         None => {
                             // nothing to do because there's no payload to set up into a local
@@ -540,7 +571,7 @@ impl<'a> Blocker<'a> {
                         let ts = lower_type_spec(target_ts);
                         let payload_local = self.fn_builder.get_local(p, name, ts);
                         self.fn_builder
-                            .emit_store_local(arm_block, payload_local, target_id);
+                            .emit_write(arm_block, Place::local(payload_local), target_id);
                     }
 
                     let block = self.block_statement(body, arm_block);
@@ -644,7 +675,7 @@ impl<'a> Blocker<'a> {
                         // type into whatever the target match is
                         let payload_local = self.fn_builder.get_local(p, name, ts);
                         self.fn_builder
-                            .emit_store_local(arm_block, payload_local, target_id);
+                            .emit_write(arm_block, Place::local(payload_local), target_id);
                     }
 
                     let block = self.block_statement(body, arm_block);
@@ -667,7 +698,7 @@ impl<'a> Blocker<'a> {
                         let ts = lower_type_spec(target_ts);
                         let payload_local = self.fn_builder.get_local(p, name, ts);
                         self.fn_builder
-                            .emit_store_local(arm_block, payload_local, target_id);
+                            .emit_write(arm_block, Place::local(payload_local), target_id);
                     }
 
                     let block = self.block_statement(body, arm_block);
@@ -758,27 +789,8 @@ impl<'a> Blocker<'a> {
                     .emit_const(block_id, ts, ConstValue::ConstString(s))
             }
             Node::Identifier { .. } => {
-                // need to check if this is a local first, if not then it's a global
-                match self.fn_builder.find_local(node_id) {
-                    Some(_) => self.fn_builder.emit_load_local(block_id, node_id),
-                    None => {
-                        let global_id = self
-                            .global_map
-                            .get(&node_id)
-                            .expect("value is not a local and not a global either");
-
-                        let global = self
-                            .globals
-                            .get(global_id.as_idx())
-                            .expect("failed to find gloabl");
-
-                        self.fn_builder.emit_load_global(
-                            block_id,
-                            *global_id,
-                            global.type_spec.clone(),
-                        )
-                    }
-                }
+                let place = self.block_lvalue(node_id);
+                self.fn_builder.emit_read(block_id, place, ts)
             }
             Node::Binary {
                 left,
@@ -823,28 +835,13 @@ impl<'a> Blocker<'a> {
                     }
                     UnaryOp::Positive => self.block_expression(block_id, operand),
                     UnaryOp::Dereference => {
-                        let value = self.block_expression(block_id, operand);
-                        self.fn_builder.emit_load_ptr(block_id, value)
+                        let mut place = self.block_lvalue(operand);
+                        place.projections.push(Projection::Deref);
+                        self.fn_builder.emit_read(block_id, place, ts)
                     }
                     UnaryOp::AddressOf => {
-                        // need to check if this is a local first, if not then it's a global
-                        match self.fn_builder.find_local(operand) {
-                            Some(local) => self.fn_builder.emit_local_addr(block_id, local),
-                            None => {
-                                let global_id = self
-                                    .global_map
-                                    .get(&operand)
-                                    .expect("value is not a local and not a global either");
-
-                                let global = self
-                                    .globals
-                                    .get(global_id.as_idx())
-                                    .expect("failed to find global from global map");
-
-                                self.fn_builder
-                                    .emit_global_addr(block_id, *global_id, global)
-                            }
-                        }
+                        let place = self.block_lvalue(operand);
+                        self.fn_builder.emit_address_of(block_id, place, ts)
                     }
                 }
             }

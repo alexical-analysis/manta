@@ -1,6 +1,5 @@
 use std::collections::BTreeMap;
 
-use crate::ast::{BinaryOp, UnaryOp};
 use crate::hir::NodeID;
 use crate::str_store::StrID;
 use serde::Serialize;
@@ -233,6 +232,42 @@ pub enum ConstValue {
     ConstStruct(Vec<ConstValue>),
 }
 
+/// A place identifies a storage location — a base (local or global) plus a chain of projections
+/// that navigate into it. Used as the target of reads, writes, and address-of operations.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct Place {
+    pub base: PlaceBase,
+    pub projections: Vec<Projection>,
+}
+
+impl Place {
+    pub fn local(local: LocalId) -> Self {
+        Place { base: PlaceBase::Local(local), projections: vec![] }
+    }
+
+    pub fn global(global: GlobalId) -> Self {
+        Place { base: PlaceBase::Global(global), projections: vec![] }
+    }
+}
+
+/// The root storage of a place — either a local variable or a global.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub enum PlaceBase {
+    Local(LocalId),
+    Global(GlobalId),
+}
+
+/// A single step navigating into a place.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub enum Projection {
+    /// Dereference a pointer: `*p`
+    Deref,
+    /// Access a struct field by index: `s.field`
+    Field(usize),
+    /// Index into an array or slice: `arr[i]`
+    Index(ValueId),
+}
+
 /// An instruction that produces a value or modifies state.
 /// The result ValueId of each instruction is its position in the function's flat instruction
 /// array (1-indexed). Instructions that don't produce a meaningful value are assigned TypeSpec::Unit
@@ -243,40 +278,18 @@ pub enum Instruction {
     Const {
         value: ConstValue,
     },
-    /// load_local(LocalId) -> ValueId
-    LoadLocal {
-        local: LocalId,
+    /// Read a value from a place: read(place) -> ValueId
+    Read {
+        place: Place,
     },
-    /// store_local(LocalId, ValueId) — produces Unit
-    StoreLocal {
-        local: LocalId,
+    /// Write a value to a place: write(place, value) — produces Unit
+    Write {
+        place: Place,
         value: ValueId,
     },
-    /// load_global(globalId) -> ValueId
-    LoadGlobal {
-        global: GlobalId,
-    },
-    /// store_global(GlobalId, ValueId) — produces Unit
-    StoreGlobal {
-        global: GlobalId,
-        value: ValueId,
-    },
-    /// load a value from a pointer into a value
-    LoadPtr {
-        ptr: ValueId,
-    },
-    // Store a value into a pointers memory address
-    StorePtr {
-        ptr: ValueId,
-        value: ValueId,
-    },
-    /// LocalAddr gets the address of a local
-    LocalAddr {
-        local: LocalId,
-    },
-    /// GlobalAddr gets the address of a global
-    GlobalAddr {
-        global: GlobalId,
+    /// Take the address of a place: address_of(place) -> Ptr(T)
+    AddressOf {
+        place: Place,
     },
     /// call(func, args...) -> ValueId
     Call {

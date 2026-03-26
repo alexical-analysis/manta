@@ -168,7 +168,7 @@
             0
           ],
           "instructions": [
-            3
+            5
           ],
           "terminator": {
             "Jump": {
@@ -178,7 +178,10 @@
         },
         {
           "block_args": [],
-          "instructions": [],
+          "instructions": [
+            6,
+            7
+          ],
           "terminator": {
             "Return": {
               "value": 0
@@ -190,7 +193,9 @@
             0
           ],
           "instructions": [
-            2
+            2,
+            3,
+            4
           ],
           "terminator": {
             "Jump": {
@@ -202,26 +207,88 @@
       "entry_block": 1,
       "instructions": [
         {
-          "LoadLocal": {
-            "local": 1
+          "Read": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            }
           }
         },
         {
-          "StoreLocal": {
-            "local": 3,
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            },
             "value": 0
           }
         },
         {
-          "StoreLocal": {
-            "local": 4,
+          "Read": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            },
+            "value": 3
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 4
+              },
+              "projections": []
+            },
             "value": 0
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 42
+            }
+          }
+        },
+        {
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": [
+                "Deref"
+              ]
+            },
+            "value": 6
           }
         }
       ],
       "value_types": [
         "Bool",
         "Unit",
+        {
+          "Ptr": "I32"
+        },
+        "Unit",
+        "Unit",
+        "I32",
         "Unit"
       ]
     },
@@ -318,8 +385,13 @@
           }
         },
         {
-          "StoreLocal": {
-            "local": 1,
+          "Write": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            },
             "value": 2
           }
         }
