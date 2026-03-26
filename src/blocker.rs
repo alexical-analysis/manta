@@ -904,17 +904,15 @@ impl<'a> Blocker<'a> {
                 // TODO:
                 ValueId::nil()
             }
-            Node::Index { target, index } => {
-                // TODO:
-                ValueId::nil()
+            Node::Index { .. } => {
+                // TODO: slice indexing should be desugared to a core lib call before this point
+                let place = self.block_lvalue(block_id, node_id);
+                self.fn_builder.emit_load(block_id, place, ts)
             }
-            Node::Range { start, end } => {
-                // TODO:
-                ValueId::nil()
-            }
-            Node::FieldAccess { target, field } => {
-                // TODO:
-                ValueId::nil()
+            Node::Range { .. } => todo!("range expressions are not yet supported"),
+            Node::FieldAccess { .. } => {
+                let place = self.block_lvalue(block_id, node_id);
+                self.fn_builder.emit_load(block_id, place, ts)
             }
             Node::MetaType => {
                 // TODO:
