@@ -306,10 +306,6 @@ pub enum Instruction {
     LocalAddr {
         local: LocalId,
     },
-    /// GlobalAddr gets the address of a global
-    GlobalAddr {
-        global: GlobalId,
-    },
     /// Read a value from a place: read(place) -> ValueId
     Read {
         place: Place,
@@ -318,6 +314,10 @@ pub enum Instruction {
     Write {
         place: Place,
         value: ValueId,
+    },
+    /// Take the address of a place: address_of(place) -> Ptr(T)
+    AddressOf {
+        place: Place,
     },
     /// call(func, args...) -> ValueId
     Call {
