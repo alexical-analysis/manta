@@ -581,6 +581,14 @@ impl FunctionBuilder {
         );
     }
 
+    pub fn emit_store_global(&mut self, block: BlockId, global: GlobalId, value: ValueId) {
+        self.add_instruction(
+            block,
+            TypeSpec::Unit,
+            Instruction::StoreGlobal { global, value },
+        );
+    }
+
     pub fn emit_load_global(
         &mut self,
         block: BlockId,
