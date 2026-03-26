@@ -80,7 +80,25 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [],
+          "instructions": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
           "terminator": {
             "Return": {
               "value": null
@@ -89,8 +107,137 @@
         }
       ],
       "entry_block": 1,
-      "instructions": [],
-      "value_types": []
+      "instructions": [
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 42
+            }
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 1,
+            "value": 1
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 2701
+            }
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 2,
+            "value": 3
+          }
+        },
+        {
+          "LocalAddr": {
+            "local": 1
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 3,
+            "value": 5
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 21
+            }
+          }
+        },
+        {
+          "LoadLocal": {
+            "local": 3
+          }
+        },
+        {
+          "StorePtr": {
+            "ptr": 8,
+            "value": 7
+          }
+        },
+        {
+          "LocalAddr": {
+            "local": 2
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 3,
+            "value": 10
+          }
+        },
+        {
+          "LoadLocal": {
+            "local": 3
+          }
+        },
+        {
+          "LoadPtr": {
+            "ptr": 12
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 37
+            }
+          }
+        },
+        {
+          "SDiv": {
+            "lhs": 13,
+            "rhs": 14
+          }
+        },
+        {
+          "LoadLocal": {
+            "local": 3
+          }
+        },
+        {
+          "StorePtr": {
+            "ptr": 16,
+            "value": 15
+          }
+        }
+      ],
+      "value_types": [
+        "I64",
+        "Unit",
+        "I64",
+        "Unit",
+        {
+          "Ptr": "I64"
+        },
+        "Unit",
+        "I64",
+        {
+          "Ptr": "I64"
+        },
+        "Unit",
+        {
+          "Ptr": "I64"
+        },
+        "Unit",
+        {
+          "Ptr": "I64"
+        },
+        "I64",
+        "I64",
+        "I64",
+        {
+          "Ptr": "I64"
+        },
+        "Unit"
+      ]
     }
   ]
 }

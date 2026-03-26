@@ -74,11 +74,13 @@
         {
           "block_args": [],
           "instructions": [
-            1
+            1,
+            2,
+            3
           ],
           "terminator": {
             "Branch": {
-              "cond": 1,
+              "cond": 3,
               "true_target": 2,
               "false_target": 3
             }
@@ -87,13 +89,15 @@
         {
           "block_args": [],
           "instructions": [
-            2,
-            3,
-            4
+            4,
+            5,
+            6,
+            7,
+            8
           ],
           "terminator": {
             "Branch": {
-              "cond": 4,
+              "cond": 8,
               "true_target": 4,
               "false_target": 6
             }
@@ -139,8 +143,34 @@
       "entry_block": 1,
       "instructions": [
         {
+          "Const": {
+            "value": {
+              "ConstBool": true
+            }
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 1,
+            "value": 1
+          }
+        },
+        {
           "LoadLocal": {
             "local": 1
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 9
+            }
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 2,
+            "value": 4
           }
         },
         {
@@ -157,13 +187,17 @@
         },
         {
           "SGreaterThan": {
-            "lhs": 2,
-            "rhs": 3
+            "lhs": 6,
+            "rhs": 7
           }
         }
       ],
       "value_types": [
         "Bool",
+        "Unit",
+        "Bool",
+        "I64",
+        "Unit",
         "I64",
         "I64",
         "Bool"

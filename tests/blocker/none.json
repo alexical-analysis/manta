@@ -168,7 +168,7 @@
             0
           ],
           "instructions": [
-            3
+            5
           ],
           "terminator": {
             "Jump": {
@@ -178,7 +178,11 @@
         },
         {
           "block_args": [],
-          "instructions": [],
+          "instructions": [
+            6,
+            7,
+            8
+          ],
           "terminator": {
             "Return": {
               "value": 0
@@ -190,7 +194,9 @@
             0
           ],
           "instructions": [
-            2
+            2,
+            3,
+            4
           ],
           "terminator": {
             "Jump": {
@@ -213,15 +219,53 @@
           }
         },
         {
+          "LoadLocal": {
+            "local": 3
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 2,
+            "value": 3
+          }
+        },
+        {
           "StoreLocal": {
             "local": 4,
             "value": 0
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 42
+            }
+          }
+        },
+        {
+          "LoadLocal": {
+            "local": 2
+          }
+        },
+        {
+          "StorePtr": {
+            "ptr": 7,
+            "value": 6
           }
         }
       ],
       "value_types": [
         "Bool",
         "Unit",
+        {
+          "Ptr": "I32"
+        },
+        "Unit",
+        "Unit",
+        "I32",
+        {
+          "Ptr": "I32"
+        },
         "Unit"
       ]
     },

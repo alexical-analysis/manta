@@ -227,7 +227,31 @@ impl<'a> Blocker<'a> {
                 Some(block_id)
             }
             Node::Assign { target, value } => {
-                // TODO:
+                let val = self.block_expression(block_id, value);
+                let target_node = self
+                    .node_tree
+                    .get_node(target)
+                    .expect("missing assignment target node")
+                    .clone();
+                match target_node {
+                    Node::Unary {
+                        operator: UnaryOp::Dereference,
+                        operand,
+                    } => {
+                        let ptr = self.block_expression(block_id, operand);
+                        self.fn_builder.emit_store_ptr(block_id, ptr, val);
+                    }
+                    _ => match self.fn_builder.find_local(target) {
+                        Some(local) => self.fn_builder.emit_store_local(block_id, local, val),
+                        None => {
+                            let global_id = *self
+                                .global_map
+                                .get(&target)
+                                .expect("assignment target is not a local or a global");
+                            self.fn_builder.emit_store_global(block_id, global_id, val);
+                        }
+                    },
+                }
                 Some(block_id)
             }
             Node::Return { value } => {

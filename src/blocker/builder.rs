@@ -589,6 +589,10 @@ impl FunctionBuilder {
         );
     }
 
+    pub fn emit_store_ptr(&mut self, block: BlockId, ptr: ValueId, value: ValueId) {
+        self.add_instruction(block, TypeSpec::Unit, Instruction::StorePtr { ptr, value });
+    }
+
     pub fn emit_load_global(
         &mut self,
         block: BlockId,

@@ -335,8 +335,18 @@
       ],
       "blocks": [
         {
-          "block_args": [],
-          "instructions": [],
+          "block_args": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "instructions": [
+            1,
+            2,
+            3,
+            4
+          ],
           "terminator": {
             "Return": {
               "value": null
@@ -345,8 +355,38 @@
         }
       ],
       "entry_block": 1,
-      "instructions": [],
-      "value_types": []
+      "instructions": [
+        {
+          "StoreLocal": {
+            "local": 1,
+            "value": 0
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 2,
+            "value": 0
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 3,
+            "value": 0
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 4,
+            "value": 0
+          }
+        }
+      ],
+      "value_types": [
+        "Unit",
+        "Unit",
+        "Unit",
+        "Unit"
+      ]
     }
   ]
 }

@@ -171,14 +171,17 @@
       ],
       "blocks": [
         {
-          "block_args": [],
+          "block_args": [
+            0
+          ],
           "instructions": [
             1,
-            2
+            2,
+            3
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 2,
+              "discriminant": 3,
               "default": 2,
               "arms": [
                 {
@@ -208,11 +211,11 @@
         },
         {
           "block_args": [
-            1
+            2
           ],
           "instructions": [
-            3,
-            4
+            4,
+            5
           ],
           "terminator": {
             "Jump": {
@@ -233,18 +236,24 @@
       "entry_block": 1,
       "instructions": [
         {
+          "StoreLocal": {
+            "local": 1,
+            "value": 0
+          }
+        },
+        {
           "LoadLocal": {
             "local": 1
           }
         },
         {
           "VariantGetTag": {
-            "src": 1
+            "src": 2
           }
         },
         {
           "VariantGetPayload": {
-            "src": 1,
+            "src": 2,
             "variant_id": {
               "ConstUInt": 0
             }
@@ -253,11 +262,12 @@
         {
           "StoreLocal": {
             "local": 2,
-            "value": 3
+            "value": 4
           }
         }
       ],
       "value_types": [
+        "Unit",
         {
           "Enum": {
             "tag_size": "U8",

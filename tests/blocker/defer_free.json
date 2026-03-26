@@ -288,7 +288,9 @@
           ],
           "instructions": [
             2,
-            3
+            3,
+            4,
+            5
           ],
           "terminator": {
             "Jump": {
@@ -312,7 +314,7 @@
             0
           ],
           "instructions": [
-            6
+            10
           ],
           "terminator": {
             "Jump": {
@@ -325,11 +327,11 @@
             0
           ],
           "instructions": [
-            7
+            11
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 7,
+              "discriminant": 11,
               "default": 10,
               "arms": [
                 {
@@ -347,8 +349,10 @@
             0
           ],
           "instructions": [
-            8,
-            9
+            12,
+            13,
+            14,
+            15
           ],
           "terminator": {
             "Jump": {
@@ -370,7 +374,7 @@
             0
           ],
           "instructions": [
-            10
+            16
           ],
           "terminator": {
             "Return": {
@@ -383,7 +387,9 @@
             0
           ],
           "instructions": [
-            5
+            7,
+            8,
+            9
           ],
           "terminator": {
             "Jump": {
@@ -396,7 +402,7 @@
             0
           ],
           "instructions": [
-            4
+            6
           ],
           "terminator": {
             "Return": {
@@ -427,6 +433,17 @@
           }
         },
         {
+          "LoadLocal": {
+            "local": 3
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 2,
+            "value": 4
+          }
+        },
+        {
           "StoreLocal": {
             "local": 4,
             "value": 0
@@ -436,6 +453,17 @@
           "StoreLocal": {
             "local": 6,
             "value": 0
+          }
+        },
+        {
+          "LoadLocal": {
+            "local": 6
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 5,
+            "value": 8
           }
         },
         {
@@ -460,7 +488,18 @@
         {
           "StoreLocal": {
             "local": 9,
-            "value": 8
+            "value": 12
+          }
+        },
+        {
+          "LoadLocal": {
+            "local": 9
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 8,
+            "value": 14
           }
         },
         {
@@ -476,10 +515,22 @@
           "Struct": []
         },
         "Unit",
+        {
+          "Struct": []
+        },
         "Unit",
+        "Unit",
+        "Unit",
+        {
+          "Ptr": {
+            "Slice": "U8"
+          }
+        },
         "Unit",
         "Unit",
         "U8",
+        "U64",
+        "Unit",
         "U64",
         "Unit",
         "Unit"

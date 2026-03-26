@@ -287,7 +287,9 @@
           ],
           "instructions": [
             2,
-            3
+            3,
+            4,
+            5
           ],
           "terminator": {
             "Jump": {
@@ -300,11 +302,11 @@
             0
           ],
           "instructions": [
-            5
+            7
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 5,
+              "discriminant": 7,
               "default": 7,
               "arms": [
                 {
@@ -322,8 +324,10 @@
             0
           ],
           "instructions": [
-            6,
-            7
+            8,
+            9,
+            10,
+            11
           ],
           "terminator": {
             "Jump": {
@@ -345,7 +349,7 @@
             0
           ],
           "instructions": [
-            8
+            12
           ],
           "terminator": {
             "Return": {
@@ -358,7 +362,7 @@
             0
           ],
           "instructions": [
-            4
+            6
           ],
           "terminator": {
             "Return": {
@@ -389,6 +393,17 @@
           }
         },
         {
+          "LoadLocal": {
+            "local": 3
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 2,
+            "value": 4
+          }
+        },
+        {
           "StoreLocal": {
             "local": 4,
             "value": 0
@@ -410,7 +425,18 @@
         {
           "StoreLocal": {
             "local": 6,
-            "value": 6
+            "value": 8
+          }
+        },
+        {
+          "LoadLocal": {
+            "local": 6
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 5,
+            "value": 10
           }
         },
         {
@@ -426,8 +452,14 @@
           "Struct": []
         },
         "Unit",
+        {
+          "Struct": []
+        },
+        "Unit",
         "Unit",
         "U8",
+        "String",
+        "Unit",
         "String",
         "Unit",
         "Unit"
@@ -554,7 +586,9 @@
           ],
           "instructions": [
             2,
-            3
+            3,
+            4,
+            5
           ],
           "terminator": {
             "Jump": {
@@ -567,11 +601,11 @@
             0
           ],
           "instructions": [
-            5
+            7
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 5,
+              "discriminant": 7,
               "default": 7,
               "arms": [
                 {
@@ -589,8 +623,10 @@
             0
           ],
           "instructions": [
-            6,
-            7
+            8,
+            9,
+            10,
+            11
           ],
           "terminator": {
             "Jump": {
@@ -612,7 +648,7 @@
             0
           ],
           "instructions": [
-            8
+            12
           ],
           "terminator": {
             "Jump": {
@@ -625,7 +661,7 @@
             0
           ],
           "instructions": [
-            4
+            6
           ],
           "terminator": {
             "Return": {
@@ -656,6 +692,17 @@
           }
         },
         {
+          "LoadLocal": {
+            "local": 2
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 1,
+            "value": 4
+          }
+        },
+        {
           "StoreLocal": {
             "local": 3,
             "value": 0
@@ -677,7 +724,18 @@
         {
           "StoreLocal": {
             "local": 5,
-            "value": 6
+            "value": 8
+          }
+        },
+        {
+          "LoadLocal": {
+            "local": 5
+          }
+        },
+        {
+          "StoreLocal": {
+            "local": 4,
+            "value": 10
           }
         },
         {
@@ -691,8 +749,12 @@
         "U8",
         "String",
         "Unit",
+        "String",
+        "Unit",
         "Unit",
         "U8",
+        "String",
+        "Unit",
         "String",
         "Unit",
         "Unit"
