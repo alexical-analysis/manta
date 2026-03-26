@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, HashSet};
 
 use crate::hir::NodeID;
 use crate::mir::{
-    BasicBlock, BlockId, ConstValue, Global, GlobalId, Instruction, Local, LocalId, MirFunction,
-    Place, Projection, TagSize, Terminator, TypeSpec, ValueId,
+    BasicBlock, BlockId, ConstValue, Instruction, Local, LocalId, MirFunction, Place, Projection,
+    TagSize, Terminator, TypeSpec, ValueId,
 };
 use crate::str_store::StrID;
 
@@ -90,8 +90,6 @@ fn place_inputs(place: &Place) -> Vec<ValueId> {
 fn instruction_inputs(inst: &Instruction) -> Vec<ValueId> {
     match inst {
         Instruction::Const { .. } => vec![],
-        Instruction::LoadLocal { .. } => vec![],
-        Instruction::StoreLocal { value, .. } => vec![*value],
         Instruction::Read { place } => place_inputs(place),
         Instruction::Write { place, value } => {
             let mut inputs = place_inputs(place);
@@ -99,9 +97,6 @@ fn instruction_inputs(inst: &Instruction) -> Vec<ValueId> {
             inputs
         }
         Instruction::AddressOf { place } => place_inputs(place),
-        Instruction::LoadPtr { ptr } => vec![*ptr],
-        Instruction::StorePtr { ptr, value } => vec![*ptr, *value],
-        Instruction::LocalAddr { .. } => vec![],
         Instruction::Call { args, .. } => args.clone(),
         Instruction::CallTry { args, .. } => args.clone(),
         Instruction::VariantGetPayload { src, .. } => vec![*src],
@@ -501,34 +496,6 @@ impl FunctionBuilder {
         self.add_instruction(block_id, ts.clone(), Instruction::Negate { op: value })
     }
 
-    pub fn emit_load_ptr(&mut self, block_id: BlockId, ptr: ValueId) -> ValueId {
-        let ts = self
-            .value_types
-            .get(ptr.as_idx())
-            .expect("missing local")
-            .clone();
-
-        match ts {
-            TypeSpec::Ptr(ts) => self.add_instruction(block_id, *ts, Instruction::LoadPtr { ptr }),
-            _ => panic!("invalid pointer type"),
-        }
-    }
-
-    pub fn emit_local_addr(&mut self, block_id: BlockId, local: LocalId) -> ValueId {
-        let ts = self
-            .locals
-            .get(local.as_idx())
-            .expect("missing local")
-            .type_spec
-            .clone();
-
-        self.add_instruction(
-            block_id,
-            TypeSpec::Ptr(Box::new(ts)),
-            Instruction::LocalAddr { local },
-        )
-    }
-
     /// Emit an address-of for a place, producing a pointer of `result_type`.
     pub fn emit_address_of(
         &mut self,
@@ -585,14 +552,6 @@ impl FunctionBuilder {
         )
     }
 
-    pub fn emit_store_local(&mut self, block: BlockId, local: LocalId, value: ValueId) {
-        self.add_instruction(
-            block,
-            TypeSpec::Unit,
-            Instruction::StoreLocal { local, value },
-        );
-    }
-
     /// Emit a read from a place, producing a value of `type_spec`.
     pub fn emit_read(&mut self, block_id: BlockId, place: Place, type_spec: TypeSpec) -> ValueId {
         self.add_instruction(block_id, type_spec, Instruction::Read { place })
@@ -605,23 +564,6 @@ impl FunctionBuilder {
             TypeSpec::Unit,
             Instruction::Write { place, value },
         );
-    }
-
-    pub fn emit_load_local(&mut self, block: BlockId, node: NodeID) -> ValueId {
-        let local = self
-            .local_map
-            .get(&node)
-            .expect("loading from unknown local");
-        let local = *local;
-
-        let ts = self
-            .locals
-            .get(local.as_idx())
-            .expect("missing type for local")
-            .clone()
-            .type_spec;
-
-        self.add_instruction(block, ts, Instruction::LoadLocal { local })
     }
 
     pub fn emit_const(

@@ -284,28 +284,6 @@ pub enum Instruction {
     Const {
         value: ConstValue,
     },
-    /// load_local(LocalId) -> ValueId
-    LoadLocal {
-        local: LocalId,
-    },
-    /// store_local(LocalId, ValueId) — produces Unit
-    StoreLocal {
-        local: LocalId,
-        value: ValueId,
-    },
-    /// load a value from a pointer into a value
-    LoadPtr {
-        ptr: ValueId,
-    },
-    // Store a value into a pointers memory address
-    StorePtr {
-        ptr: ValueId,
-        value: ValueId,
-    },
-    /// LocalAddr gets the address of a local
-    LocalAddr {
-        local: LocalId,
-    },
     /// Read a value from a place: read(place) -> ValueId
     Read {
         place: Place,
