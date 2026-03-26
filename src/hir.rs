@@ -66,8 +66,6 @@ pub enum Node {
         target: NodeID,
         arms: Vec<NodeID>,
     },
-    // TODO: should this be a node or just a type that match contains?
-    // They can't really appear on their own..
     MatchArm {
         pattern: NodeID, // Always a Pattern node
         body: NodeID,    // Always a Block

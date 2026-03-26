@@ -201,6 +201,50 @@ impl<'a> Blocker<'a> {
                 // about at this level
                 None
             }
+            Node::Block { statements } => {
+                let mut current_block = block_id;
+                for stmt in statements {
+                    match self.block_statement(stmt, current_block) {
+                        Some(b) => current_block = b,
+                        None => return None,
+                    }
+                }
+
+                Some(current_block)
+            }
+            Node::VarDecl { ident } => {
+                let name = self.get_ident_name(ident);
+                let ts = self
+                    .node_tree
+                    .get_type(ident)
+                    .expect("missing type for identifier");
+                let ts = lower_type_spec(ts);
+
+                self.fn_builder.get_local(ident, name, ts);
+
+                Some(block_id)
+            }
+            Node::Assign { target, value } => {
+                // TODO:
+                Some(block_id)
+            }
+            Node::Return { value } => {
+                let ret = if let Some(v) = value {
+                    let ret = self.block_expression(block_id, v);
+                    Some(ret)
+                } else {
+                    None
+                };
+
+                self.fn_builder
+                    .set_terminator(block_id, Terminator::Return { value: ret });
+
+                None
+            }
+            Node::Defer { block } => {
+                // TODO:
+                Some(block_id)
+            }
             Node::If {
                 condition,
                 then_block,
@@ -283,51 +327,17 @@ impl<'a> Blocker<'a> {
                     }
                 }
             }
-            Node::Block { statements } => {
-                let mut current_block = block_id;
-                for stmt in statements {
-                    match self.block_statement(stmt, current_block) {
-                        Some(b) => current_block = b,
-                        None => return None,
-                    }
-                }
-
-                Some(current_block)
-            }
-            Node::Return { value } => {
-                let ret = if let Some(v) = value {
-                    let ret = self.block_expression(block_id, v);
-                    Some(ret)
-                } else {
-                    None
-                };
-
-                self.fn_builder
-                    .set_terminator(block_id, Terminator::Return { value: ret });
-
-                None
-            }
-            Node::VarDecl { ident } => {
-                let name = self.get_ident_name(ident);
-                let ts = self
-                    .node_tree
-                    .get_type(ident)
-                    .expect("missing type for identifier");
-                let ts = lower_type_spec(ts);
-
-                self.fn_builder.get_local(ident, name, ts);
-
+            Node::MatchArm { pattern, body } => {
+                // TODO:
                 Some(block_id)
             }
-            _ => {
-                // TODO: remove me once all the nodes have been covered.
-                // for now just return the block
-                eprintln!(
-                    "TODO: skipping {:?} for now and just returning the block_id",
-                    node
-                );
+            Node::Call { .. } => {
+                // Calls are technically expressions but because they can result in side effects they
+                // need to be handled as statements as well
+                self.block_expression(block_id, node_id);
                 Some(block_id)
             }
+            _ => panic!("node is not a valid statement {:?}", node),
         }
     }
 
@@ -836,10 +846,43 @@ impl<'a> Blocker<'a> {
                     }
                 }
             }
-            _ => {
-                // TODO: implement this
+            Node::Call { func, args } => {
+                // TODO:
                 ValueId::nil()
             }
+            Node::EnumConstructor {
+                target,
+                variant,
+                payload,
+            } => {
+                // TODO:
+                ValueId::nil()
+            }
+            Node::Index { target, index } => {
+                // TODO:
+                ValueId::nil()
+            }
+            Node::Range { start, end } => {
+                // TODO:
+                ValueId::nil()
+            }
+            Node::FieldAccess { target, field } => {
+                // TODO:
+                ValueId::nil()
+            }
+            Node::MetaType => {
+                // TODO:
+                ValueId::nil()
+            }
+            Node::Alloc { .. } => {
+                // TODO:
+                ValueId::nil()
+            }
+            Node::Free { .. } => {
+                // TODO:
+                ValueId::nil()
+            }
+            _ => panic!("not a valid expression node"),
         }
     }
 }
@@ -957,7 +1000,7 @@ mod tests {
         let module = parser.parse_module(&mut str_store);
 
         let node_tree = node_module(module);
-        let mut blocker = Blocker::new(&node_tree);
+        let blocker = Blocker::new(&node_tree);
         let mir_module = blocker.build_module();
 
         let json_output = serde_json::to_string_pretty(&mir_module)
