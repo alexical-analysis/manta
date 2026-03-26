@@ -14,7 +14,10 @@
     "blocks": [
       {
         "block_args": [],
-        "instructions": [],
+        "instructions": [
+          1,
+          2
+        ],
         "terminator": {
           "Return": {
             "value": null
@@ -23,8 +26,25 @@
       }
     ],
     "entry_block": 1,
-    "instructions": [],
-    "value_types": []
+    "instructions": [
+      {
+        "Const": {
+          "value": {
+            "ConstFloat": 3.14
+          }
+        }
+      },
+      {
+        "StoreGlobal": {
+          "global": 1,
+          "value": 1
+        }
+      }
+    ],
+    "value_types": [
+      "F64",
+      "Unit"
+    ]
   },
   "functions": [
     {

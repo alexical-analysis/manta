@@ -156,14 +156,16 @@ impl<'a> Blocker<'a> {
 
                 Some(block_id)
             }
-            Node::Return { .. } => panic!("can not return from the root context"),
-            _ => {
-                let block_id = self.block_statement(node_id, block_id);
-                match block_id {
-                    Some(block) => Some(block),
-                    None => panic!("invalid root statement"),
-                }
+            Node::Assign { target, value } => {
+                let global_id = *self
+                    .global_map
+                    .get(&target)
+                    .expect("assignment target is not a known global");
+                let val = self.block_expression(block_id, value);
+                self.fn_builder.emit_store_global(block_id, global_id, val);
+                Some(block_id)
             }
+            _ => panic!("invalid statement in global scope {:?}", node),
         }
     }
 
