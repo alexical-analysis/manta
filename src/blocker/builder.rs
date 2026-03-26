@@ -98,10 +98,10 @@ fn instruction_inputs(inst: &Instruction) -> Vec<ValueId> {
             inputs.push(*value);
             inputs
         }
+        Instruction::AddressOf { place } => place_inputs(place),
         Instruction::LoadPtr { ptr } => vec![*ptr],
         Instruction::StorePtr { ptr, value } => vec![*ptr, *value],
         Instruction::LocalAddr { .. } => vec![],
-        Instruction::GlobalAddr { .. } => vec![],
         Instruction::Call { args, .. } => args.clone(),
         Instruction::CallTry { args, .. } => args.clone(),
         Instruction::VariantGetPayload { src, .. } => vec![*src],
@@ -529,17 +529,14 @@ impl FunctionBuilder {
         )
     }
 
-    pub fn emit_global_addr(
+    /// Emit an address-of for a place, producing a pointer of `result_type`.
+    pub fn emit_address_of(
         &mut self,
         block_id: BlockId,
-        global_id: GlobalId,
-        global: &Global,
+        place: Place,
+        result_type: TypeSpec,
     ) -> ValueId {
-        self.add_instruction(
-            block_id,
-            TypeSpec::Ptr(Box::new(global.type_spec.clone())),
-            Instruction::GlobalAddr { global: global_id },
-        )
+        self.add_instruction(block_id, result_type, Instruction::AddressOf { place })
     }
 
     pub fn emit_call(

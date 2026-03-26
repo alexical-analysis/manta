@@ -877,43 +877,25 @@ impl<'a> Blocker<'a> {
                     BinaryOp::BitwiseXor => self.fn_builder.emit_bitwise_xor(block_id, lhs, rhs),
                 }
             }
-            Node::Unary { operator, operand } => {
-                match operator {
-                    UnaryOp::Not => {
-                        let value = self.block_expression(block_id, operand);
-                        self.fn_builder.emit_bool_not(block_id, value)
-                    }
-                    UnaryOp::Negate => {
-                        let value = self.block_expression(block_id, operand);
-                        self.fn_builder.emit_negate(block_id, value)
-                    }
-                    UnaryOp::Positive => self.block_expression(block_id, operand),
-                    UnaryOp::Dereference => {
-                        let value = self.block_expression(block_id, operand);
-                        self.fn_builder.emit_load_ptr(block_id, value)
-                    }
-                    UnaryOp::AddressOf => {
-                        // need to check if this is a local first, if not then it's a global
-                        match self.fn_builder.find_local(operand) {
-                            Some(local) => self.fn_builder.emit_local_addr(block_id, local),
-                            None => {
-                                let global_id = self
-                                    .global_map
-                                    .get(&operand)
-                                    .expect("value is not a local and not a global either");
-
-                                let global = self
-                                    .globals
-                                    .get(global_id.as_idx())
-                                    .expect("failed to find global from global map");
-
-                                self.fn_builder
-                                    .emit_global_addr(block_id, *global_id, global)
-                            }
-                        }
-                    }
+            Node::Unary { operator, operand } => match operator {
+                UnaryOp::Not => {
+                    let value = self.block_expression(block_id, operand);
+                    self.fn_builder.emit_bool_not(block_id, value)
                 }
-            }
+                UnaryOp::Negate => {
+                    let value = self.block_expression(block_id, operand);
+                    self.fn_builder.emit_negate(block_id, value)
+                }
+                UnaryOp::Positive => self.block_expression(block_id, operand),
+                UnaryOp::Dereference => {
+                    let value = self.block_expression(block_id, operand);
+                    self.fn_builder.emit_load_ptr(block_id, value)
+                }
+                UnaryOp::AddressOf => {
+                    let place = self.block_lvalue(block_id, operand);
+                    self.fn_builder.emit_address_of(block_id, place, ts)
+                }
+            },
             Node::Call { func, args } => {
                 // TODO:
                 ValueId::nil()
