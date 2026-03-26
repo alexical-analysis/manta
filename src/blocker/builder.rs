@@ -90,8 +90,8 @@ fn place_inputs(place: &Place) -> Vec<ValueId> {
 fn instruction_inputs(inst: &Instruction) -> Vec<ValueId> {
     match inst {
         Instruction::Const { .. } => vec![],
-        Instruction::Read { place } => place_inputs(place),
-        Instruction::Write { place, value } => {
+        Instruction::Load { place } => place_inputs(place),
+        Instruction::Store { place, value } => {
             let mut inputs = place_inputs(place);
             inputs.push(*value);
             inputs
@@ -552,17 +552,17 @@ impl FunctionBuilder {
         )
     }
 
-    /// Emit a read from a place, producing a value of `type_spec`.
-    pub fn emit_read(&mut self, block_id: BlockId, place: Place, type_spec: TypeSpec) -> ValueId {
-        self.add_instruction(block_id, type_spec, Instruction::Read { place })
+    /// Emit a load from a place, producing a value of `type_spec`.
+    pub fn emit_load(&mut self, block_id: BlockId, place: Place, type_spec: TypeSpec) -> ValueId {
+        self.add_instruction(block_id, type_spec, Instruction::Load { place })
     }
 
-    /// Emit a write of `value` to a place. Produces Unit.
-    pub fn emit_write(&mut self, block_id: BlockId, place: Place, value: ValueId) {
+    /// Emit a store of `value` to a place. Produces Unit.
+    pub fn emit_store(&mut self, block_id: BlockId, place: Place, value: ValueId) {
         self.add_instruction(
             block_id,
             TypeSpec::Unit,
-            Instruction::Write { place, value },
+            Instruction::Store { place, value },
         );
     }
 

@@ -207,7 +207,7 @@
       "entry_block": 1,
       "instructions": [
         {
-          "Read": {
+          "Load": {
             "place": {
               "base": {
                 "Local": 1
@@ -217,7 +217,7 @@
           }
         },
         {
-          "Write": {
+          "Store": {
             "place": {
               "base": {
                 "Local": 3
@@ -228,7 +228,7 @@
           }
         },
         {
-          "Read": {
+          "Load": {
             "place": {
               "base": {
                 "Local": 3
@@ -238,7 +238,7 @@
           }
         },
         {
-          "Write": {
+          "Store": {
             "place": {
               "base": {
                 "Local": 2
@@ -249,7 +249,7 @@
           }
         },
         {
-          "Write": {
+          "Store": {
             "place": {
               "base": {
                 "Local": 4
@@ -267,7 +267,7 @@
           }
         },
         {
-          "Write": {
+          "Store": {
             "place": {
               "base": {
                 "Local": 2
@@ -385,7 +385,7 @@
           }
         },
         {
-          "Write": {
+          "Store": {
             "place": {
               "base": {
                 "Local": 1
