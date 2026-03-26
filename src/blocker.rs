@@ -893,8 +893,12 @@ impl<'a> Blocker<'a> {
                 }
             },
             Node::Call { func, args } => {
-                // TODO:
-                ValueId::nil()
+                let name = self.get_ident_name(func);
+                let arg_values = args
+                    .iter()
+                    .map(|a| self.block_expression(block_id, *a))
+                    .collect();
+                self.fn_builder.emit_call(block_id, name, arg_values, ts)
             }
             Node::EnumConstructor {
                 target,
