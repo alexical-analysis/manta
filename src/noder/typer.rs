@@ -425,7 +425,7 @@ impl Typer {
                     let arg_type = self.type_expr_node(node_tree, *arg);
                     match match_types(param, &arg_type) {
                         TypeMatch::ExactType => {}
-                        TypeMatch::Inference(_) => node_tree.type_map.set(*arg, param.clone()),
+                        TypeMatch::Inference(ts) => node_tree.type_map.set(*arg, ts),
                         TypeMatch::InferenceFailed => {
                             panic!("failed to infer type for argument")
                         }
