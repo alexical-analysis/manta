@@ -233,6 +233,48 @@ pub enum ConstValue {
     ConstStruct(Vec<ConstValue>),
 }
 
+/// A place identifies a storage location — a base (local or global) plus a chain of projections
+/// that navigate into it. Used as the target of reads, writes, and address-of operations.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct Place {
+    pub base: PlaceBase,
+    pub projections: Vec<Projection>,
+}
+
+impl Place {
+    pub fn local(local: LocalId) -> Self {
+        Place {
+            base: PlaceBase::Local(local),
+            projections: vec![],
+        }
+    }
+
+    pub fn global(global: GlobalId) -> Self {
+        Place {
+            base: PlaceBase::Global(global),
+            projections: vec![],
+        }
+    }
+}
+
+/// The root storage of a place — either a local variable or a global.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub enum PlaceBase {
+    Local(LocalId),
+    Global(GlobalId),
+}
+
+/// A single step navigating into a place.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub enum Projection {
+    /// Dereference a pointer: `*p`
+    Deref,
+    /// Access a struct field by index: `s.field`
+    Field(usize),
+    /// Index into an array or slice: `arr[i]`
+    Index(ValueId),
+}
+
 /// An instruction that produces a value or modifies state.
 /// The result ValueId of each instruction is its position in the function's flat instruction
 /// array (1-indexed). Instructions that don't produce a meaningful value are assigned TypeSpec::Unit

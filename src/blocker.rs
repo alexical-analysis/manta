@@ -7,8 +7,8 @@ use builder::FunctionBuilder;
 use crate::ast::{BinaryOp, UnaryOp};
 use crate::hir::{self, Node, NodeID, PatternNode};
 use crate::mir::{
-    BlockId, ConstValue, Global, GlobalId, MirFunction, MirModule, SwitchArm, TagSize, Terminator,
-    TypeSpec, ValueId,
+    BlockId, ConstValue, Global, GlobalId, MirFunction, MirModule, Place, PlaceBase, Projection,
+    SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
 };
 use crate::noder::{NodeTree, typer};
 use crate::str_store::{self, StrID};
@@ -175,6 +175,71 @@ impl<'a> Blocker<'a> {
 
         let global_id = GlobalId::from_usize(self.globals.len());
         self.global_map.insert(node, global_id);
+    }
+
+    /// Compute the Place for an lvalue expression — the storage location the node refers to.
+    /// Does not emit any instructions; projections like Deref are added by the caller.
+    fn block_lvalue(&mut self, block_id: BlockId, node_id: NodeID) -> Place {
+        let node = self
+            .node_tree
+            .get_node(node_id)
+            .expect("missing lvalue node")
+            .clone();
+
+        match node {
+            Node::Identifier { .. } => {
+                let base = match self.fn_builder.find_local(node_id) {
+                    Some(local) => PlaceBase::Local(local),
+                    None => {
+                        let global_id = *self
+                            .global_map
+                            .get(&node_id)
+                            .expect("lvalue is not a local or a global");
+                        PlaceBase::Global(global_id)
+                    }
+                };
+                Place {
+                    base,
+                    projections: vec![],
+                }
+            }
+            Node::Unary {
+                operator: UnaryOp::Dereference,
+                operand,
+            } => {
+                let mut inner = self.block_lvalue(block_id, operand);
+                inner.projections.push(Projection::Deref);
+                inner
+            }
+            Node::FieldAccess { target, field } => {
+                let mut inner = self.block_lvalue(block_id, target);
+                let ts = self
+                    .node_tree
+                    .get_type(target)
+                    .expect("missing type for field access target");
+
+                let fields = match ts {
+                    hir::TypeSpec::Struct(s) => &s.fields,
+                    _ => panic!("invalid target type for field access"),
+                };
+
+                for (i, f) in fields.iter().enumerate() {
+                    if field == f.name {
+                        inner.projections.push(Projection::Field(i));
+                        return inner;
+                    }
+                }
+
+                panic!("unknown field in struct")
+            }
+            Node::Index { target, index } => {
+                let mut inner = self.block_lvalue(block_id, target);
+                let index = self.block_expression(block_id, index);
+                inner.projections.push(Projection::Index(index));
+                inner
+            }
+            _ => panic!("invalid lvalue node: {:?}", node),
+        }
     }
 
     fn block_statement(&mut self, node_id: NodeID, block_id: BlockId) -> Option<BlockId> {
