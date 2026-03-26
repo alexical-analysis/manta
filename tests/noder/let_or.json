@@ -2768,7 +2768,74 @@
           }
         }
       },
-      "Any",
+      {
+        "Named": {
+          "name": 32,
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 16,
+                  "payload": "String"
+                },
+                {
+                  "name": 30,
+                  "payload": {
+                    "Named": {
+                      "name": 2,
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 16,
+                              "payload": {
+                                "Named": {
+                                  "name": 0,
+                                  "type_spec": {
+                                    "Struct": {
+                                      "fields": []
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "name": 17,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 31,
+                  "payload": {
+                    "Named": {
+                      "name": 17,
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 16,
+                              "payload": "String"
+                            },
+                            {
+                              "name": 17,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
       {
         "Named": {
           "name": 32,

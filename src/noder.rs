@@ -1330,6 +1330,28 @@ mod tests {
             );
         }
 
+        let any_typed: Vec<usize> = (0..total)
+            .filter(|&i| {
+                matches!(
+                    node_tree.type_map.get(NodeID::from_usize(i)),
+                    Some(TypeSpec::Any)
+                        | Some(TypeSpec::IntLiteral(_))
+                        | Some(TypeSpec::FloatLiteral(_))
+                        | Some(TypeSpec::InferredEnumExpr(_))
+                        | Some(TypeSpec::InferredEnumPat(_))
+                )
+            })
+            .collect();
+        if !any_typed.is_empty() {
+            panic!(
+                "{}: {}/{} nodes have an unresolved type that still needs to be inferred. Node IDs: {:?}",
+                file_name,
+                any_typed.len(),
+                total,
+                any_typed,
+            );
+        }
+
         let json_output =
             serde_json::to_string_pretty(&node_tree).expect("Failed to serialize NodeTree to JSON");
 
