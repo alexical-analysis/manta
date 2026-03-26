@@ -162,7 +162,8 @@ impl<'a> Blocker<'a> {
                     .get(&target)
                     .expect("assignment target is not a known global");
                 let val = self.block_expression(block_id, value);
-                self.fn_builder.emit_store_global(block_id, global_id, val);
+                self.fn_builder
+                    .emit_write(block_id, Place::global(global_id), val);
                 Some(block_id)
             }
             _ => panic!("invalid statement in global scope {:?}", node),
@@ -837,9 +838,9 @@ impl<'a> Blocker<'a> {
                             .get(global_id.as_idx())
                             .expect("failed to find gloabl");
 
-                        self.fn_builder.emit_load_global(
+                        self.fn_builder.emit_read(
                             block_id,
-                            *global_id,
+                            Place::global(*global_id),
                             global.type_spec.clone(),
                         )
                     }

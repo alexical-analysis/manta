@@ -35,8 +35,13 @@
         }
       },
       {
-        "StoreGlobal": {
-          "global": 1,
+        "Write": {
+          "place": {
+            "base": {
+              "Global": 1
+            },
+            "projections": []
+          },
           "value": 1
         }
       }
@@ -207,8 +212,13 @@
           }
         },
         {
-          "LoadGlobal": {
-            "global": 1
+          "Read": {
+            "place": {
+              "base": {
+                "Global": 1
+              },
+              "projections": []
+            }
           }
         },
         {

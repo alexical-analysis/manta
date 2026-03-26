@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, HashSet};
 use crate::hir::NodeID;
 use crate::mir::{
     BasicBlock, BlockId, ConstValue, Global, GlobalId, Instruction, Local, LocalId, MirFunction,
-    TagSize, Terminator, TypeSpec, ValueId,
+    Place, Projection, TagSize, Terminator, TypeSpec, ValueId,
 };
 use crate::str_store::StrID;
 
@@ -76,13 +76,28 @@ impl BlockBuilder {
     }
 }
 
+fn place_inputs(place: &Place) -> Vec<ValueId> {
+    place
+        .projections
+        .iter()
+        .filter_map(|p| match p {
+            Projection::Index(v) => Some(*v),
+            _ => None,
+        })
+        .collect()
+}
+
 fn instruction_inputs(inst: &Instruction) -> Vec<ValueId> {
     match inst {
         Instruction::Const { .. } => vec![],
         Instruction::LoadLocal { .. } => vec![],
         Instruction::StoreLocal { value, .. } => vec![*value],
-        Instruction::LoadGlobal { .. } => vec![],
-        Instruction::StoreGlobal { value, .. } => vec![*value],
+        Instruction::Read { place } => place_inputs(place),
+        Instruction::Write { place, value } => {
+            let mut inputs = place_inputs(place);
+            inputs.push(*value);
+            inputs
+        }
         Instruction::LoadPtr { ptr } => vec![*ptr],
         Instruction::StorePtr { ptr, value } => vec![*ptr, *value],
         Instruction::LocalAddr { .. } => vec![],
@@ -581,21 +596,18 @@ impl FunctionBuilder {
         );
     }
 
-    pub fn emit_store_global(&mut self, block: BlockId, global: GlobalId, value: ValueId) {
-        self.add_instruction(
-            block,
-            TypeSpec::Unit,
-            Instruction::StoreGlobal { global, value },
-        );
+    /// Emit a read from a place, producing a value of `type_spec`.
+    pub fn emit_read(&mut self, block_id: BlockId, place: Place, type_spec: TypeSpec) -> ValueId {
+        self.add_instruction(block_id, type_spec, Instruction::Read { place })
     }
 
-    pub fn emit_load_global(
-        &mut self,
-        block: BlockId,
-        global: GlobalId,
-        type_spec: TypeSpec,
-    ) -> ValueId {
-        self.add_instruction(block, type_spec, Instruction::LoadGlobal { global })
+    /// Emit a write of `value` to a place. Produces Unit.
+    pub fn emit_write(&mut self, block_id: BlockId, place: Place, value: ValueId) {
+        self.add_instruction(
+            block_id,
+            TypeSpec::Unit,
+            Instruction::Write { place, value },
+        );
     }
 
     pub fn emit_load_local(&mut self, block: BlockId, node: NodeID) -> ValueId {
