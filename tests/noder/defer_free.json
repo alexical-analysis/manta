@@ -996,22 +996,7 @@
       },
       "String",
       {
-        "Struct": {
-          "fields": [
-            {
-              "name": 18446744073709551600,
-              "type_spec": "UInt64"
-            },
-            {
-              "name": 18446744073709551599,
-              "type_spec": "UInt64"
-            },
-            {
-              "name": 18446744073709551598,
-              "type_spec": "UInt64"
-            }
-          ]
-        }
+        "Slice": "UInt8"
       },
       "UnsafePtr",
       {

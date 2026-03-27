@@ -300,10 +300,13 @@
         },
         {
           "block_args": [],
-          "instructions": [],
+          "instructions": [
+            9,
+            10
+          ],
           "terminator": {
             "Branch": {
-              "cond": 0,
+              "cond": 10,
               "true_target": 6,
               "false_target": 7
             }
@@ -311,12 +314,12 @@
         },
         {
           "block_args": [
-            0
+            10
           ],
           "instructions": [
-            12,
-            13,
-            14
+            14,
+            15,
+            16
           ],
           "terminator": {
             "Jump": {
@@ -327,14 +330,14 @@
         {
           "block_args": [],
           "instructions": [
-            15,
-            16,
             17,
-            18
+            18,
+            19,
+            20
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 18,
+              "discriminant": 20,
               "default": 10,
               "arms": [
                 {
@@ -349,13 +352,13 @@
         },
         {
           "block_args": [
-            17
+            19
           ],
           "instructions": [
-            19,
-            20,
             21,
-            22
+            22,
+            23,
+            24
           ],
           "terminator": {
             "Jump": {
@@ -374,10 +377,10 @@
         },
         {
           "block_args": [
-            17
+            19
           ],
           "instructions": [
-            23
+            25
           ],
           "terminator": {
             "Return": {
@@ -387,12 +390,12 @@
         },
         {
           "block_args": [
-            0
+            10
           ],
           "instructions": [
-            9,
-            10,
-            11
+            11,
+            12,
+            13
           ],
           "terminator": {
             "Jump": {
@@ -491,6 +494,28 @@
           }
         },
         {
+          "Const": {
+            "value": {
+              "ConstStruct": [
+                {
+                  "ConstUInt": 24
+                },
+                {
+                  "ConstUInt": 8
+                },
+                {
+                  "ConstUInt": 0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Alloc": {
+            "meta_type": 9
+          }
+        },
+        {
           "Store": {
             "place": {
               "base": {
@@ -498,7 +523,7 @@
               },
               "projections": []
             },
-            "value": 0
+            "value": 10
           }
         },
         {
@@ -519,7 +544,7 @@
               },
               "projections": []
             },
-            "value": 10
+            "value": 12
           }
         },
         {
@@ -530,7 +555,7 @@
               },
               "projections": []
             },
-            "value": 0
+            "value": 10
           }
         },
         {
@@ -547,7 +572,7 @@
           "Call": {
             "func": 18446744073709551601,
             "args": [
-              13
+              15
             ]
           }
         },
@@ -577,19 +602,19 @@
           "Call": {
             "func": 24,
             "args": [
-              15,
-              16
+              17,
+              18
             ]
           }
         },
         {
           "VariantGetTag": {
-            "src": 17
+            "src": 19
           }
         },
         {
           "VariantGetPayload": {
-            "src": 17,
+            "src": 19,
             "variant_id": {
               "ConstUInt": 0
             }
@@ -603,7 +628,7 @@
               },
               "projections": []
             },
-            "value": 19
+            "value": 21
           }
         },
         {
@@ -624,7 +649,7 @@
               },
               "projections": []
             },
-            "value": 21
+            "value": 23
           }
         },
         {
@@ -635,7 +660,7 @@
               },
               "projections": []
             },
-            "value": 17
+            "value": 19
           }
         }
       ],
@@ -662,6 +687,14 @@
         },
         "Unit",
         "Unit",
+        {
+          "Struct": [
+            "U64",
+            "U64",
+            "U64"
+          ]
+        },
+        "OpaquePtr",
         "Unit",
         {
           "Ptr": {
