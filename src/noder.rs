@@ -1200,32 +1200,10 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
                 }
             }
         }
-        Expr::MetaType(_expr) => {
+        Expr::MetaType(expr) => {
             let node_id = node_tree.add_node(Node::MetaType);
-            node_tree.type_map.add(
-                node_id,
-                // TODO: the meta type should probably live somewhere central since I don't
-                // think this is the only place this will pop up.
-                TypeSpec::Struct(StructType {
-                    fields: vec![
-                        // TODO: These should probably be USize types if I add that...
-                        StructField {
-                            name: str_store::SIZEOF,
-                            type_spec: TypeSpec::UInt64,
-                        },
-                        StructField {
-                            name: str_store::ALIGNOF,
-                            type_spec: TypeSpec::UInt64,
-                        },
-                        // this stores boolean information about the type like if it's a slice
-                        // hash-map or string etc.
-                        StructField {
-                            name: str_store::METAFLAGS,
-                            type_spec: TypeSpec::UInt64,
-                        },
-                    ],
-                }),
-            );
+            let ts = node_type_spec(node_tree, module, &expr.type_spec);
+            node_tree.type_map.add(node_id, ts);
 
             node_id
         }

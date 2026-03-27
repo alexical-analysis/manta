@@ -154,10 +154,13 @@
         },
         {
           "block_args": [],
-          "instructions": [],
+          "instructions": [
+            2,
+            3
+          ],
           "terminator": {
             "Branch": {
-              "cond": 0,
+              "cond": 3,
               "true_target": 5,
               "false_target": 6
             }
@@ -165,12 +168,12 @@
         },
         {
           "block_args": [
-            0
+            3
           ],
           "instructions": [
-            5,
-            6,
-            7
+            7,
+            8,
+            9
           ],
           "terminator": {
             "Jump": {
@@ -181,8 +184,8 @@
         {
           "block_args": [],
           "instructions": [
-            8,
-            9
+            10,
+            11
           ],
           "terminator": {
             "Return": {
@@ -192,12 +195,12 @@
         },
         {
           "block_args": [
-            0
+            3
           ],
           "instructions": [
-            2,
-            3,
-            4
+            4,
+            5,
+            6
           ],
           "terminator": {
             "Jump": {
@@ -219,6 +222,28 @@
           }
         },
         {
+          "Const": {
+            "value": {
+              "ConstStruct": [
+                {
+                  "ConstUInt": 4
+                },
+                {
+                  "ConstUInt": 4
+                },
+                {
+                  "ConstUInt": 0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Alloc": {
+            "meta_type": 2
+          }
+        },
+        {
           "Store": {
             "place": {
               "base": {
@@ -226,7 +251,7 @@
               },
               "projections": []
             },
-            "value": 0
+            "value": 3
           }
         },
         {
@@ -247,7 +272,7 @@
               },
               "projections": []
             },
-            "value": 3
+            "value": 5
           }
         },
         {
@@ -258,7 +283,7 @@
               },
               "projections": []
             },
-            "value": 0
+            "value": 3
           }
         },
         {
@@ -275,7 +300,7 @@
           "Call": {
             "func": 18446744073709551601,
             "args": [
-              6
+              8
             ]
           }
         },
@@ -296,12 +321,20 @@
                 "Deref"
               ]
             },
-            "value": 8
+            "value": 10
           }
         }
       ],
       "value_types": [
         "Bool",
+        {
+          "Struct": [
+            "U64",
+            "U64",
+            "U64"
+          ]
+        },
+        "OpaquePtr",
         "Unit",
         {
           "Ptr": "I32"
