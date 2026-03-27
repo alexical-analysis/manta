@@ -382,15 +382,21 @@
         {
           "block_args": [
             0,
-            0,
-            0,
             0
           ],
           "instructions": [
             1,
             2,
             3,
-            4
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
           ],
           "terminator": {
             "Return": {
@@ -413,6 +419,24 @@
           }
         },
         {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 22,
+            "args": [
+              2
+            ]
+          }
+        },
+        {
           "Store": {
             "place": {
               "base": {
@@ -420,7 +444,25 @@
               },
               "projections": []
             },
-            "value": 0
+            "value": 3
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 13,
+            "args": [
+              5
+            ]
           }
         },
         {
@@ -435,6 +477,24 @@
           }
         },
         {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 22,
+            "args": [
+              8
+            ]
+          }
+        },
+        {
           "Store": {
             "place": {
               "base": {
@@ -442,14 +502,56 @@
               },
               "projections": []
             },
-            "value": 0
+            "value": 9
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 4
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 13,
+            "args": [
+              11
+            ]
           }
         }
       ],
       "value_types": [
         "Unit",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "F64",
+              "F64"
+            ]
+          }
+        },
+        "F64",
+        "Unit",
+        "F64",
         "Unit",
         "Unit",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "F64",
+              "F64"
+            ]
+          }
+        },
+        "F64",
+        "Unit",
+        "F64",
         "Unit"
       ]
     }

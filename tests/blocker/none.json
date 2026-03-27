@@ -168,7 +168,9 @@
             0
           ],
           "instructions": [
-            5
+            5,
+            6,
+            7
           ],
           "terminator": {
             "Jump": {
@@ -179,8 +181,8 @@
         {
           "block_args": [],
           "instructions": [
-            6,
-            7
+            8,
+            9
           ],
           "terminator": {
             "Return": {
@@ -260,6 +262,24 @@
           }
         },
         {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 4
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 18446744073709551601,
+            "args": [
+              6
+            ]
+          }
+        },
+        {
           "Const": {
             "value": {
               "ConstInt": 42
@@ -276,7 +296,7 @@
                 "Deref"
               ]
             },
-            "value": 6
+            "value": 8
           }
         }
       ],
@@ -287,6 +307,8 @@
           "Ptr": "I32"
         },
         "Unit",
+        "Unit",
+        "OpaquePtr",
         "Unit",
         "I32",
         "Unit"
@@ -309,15 +331,15 @@
       ],
       "blocks": [
         {
-          "block_args": [
-            0
-          ],
+          "block_args": [],
           "instructions": [
-            1
+            1,
+            2,
+            3
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 1,
+              "discriminant": 3,
               "default": 2,
               "arms": [
                 {
@@ -338,7 +360,10 @@
         },
         {
           "block_args": [],
-          "instructions": [],
+          "instructions": [
+            8,
+            9
+          ],
           "terminator": {
             "Jump": {
               "target": 2
@@ -347,11 +372,13 @@
         },
         {
           "block_args": [
-            0
+            2
           ],
           "instructions": [
-            2,
-            3
+            4,
+            5,
+            6,
+            7
           ],
           "terminator": {
             "Jump": {
@@ -372,13 +399,28 @@
       "entry_block": 1,
       "instructions": [
         {
+          "Const": {
+            "value": {
+              "ConstBool": false
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 22,
+            "args": [
+              1
+            ]
+          }
+        },
+        {
           "VariantGetTag": {
-            "src": 0
+            "src": 2
           }
         },
         {
           "VariantGetPayload": {
-            "src": 0,
+            "src": 2,
             "variant_id": {
               "ConstUInt": 0
             }
@@ -392,15 +434,67 @@
               },
               "projections": []
             },
-            "value": 2
+            "value": 4
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 9,
+            "args": [
+              6
+            ]
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstString": 36
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 14,
+            "args": [
+              8
+            ]
           }
         }
       ],
       "value_types": [
+        "Bool",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              {
+                "Ptr": "I32"
+              },
+              null,
+              null
+            ]
+          }
+        },
         "U8",
         {
           "Ptr": "I32"
         },
+        "Unit",
+        {
+          "Ptr": "I32"
+        },
+        "Unit",
+        "String",
         "Unit"
       ]
     }
