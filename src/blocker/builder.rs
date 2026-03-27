@@ -130,6 +130,8 @@ fn instruction_inputs(inst: &Instruction) -> Vec<ValueId> {
         Instruction::BitwiseXOr { lhs, rhs } => vec![*lhs, *rhs],
         Instruction::BoolNot { op } => vec![*op],
         Instruction::Negate { op } => vec![*op],
+        Instruction::Alloc { meta_type } => vec![*meta_type],
+        Instruction::Free { ptr } => vec![*ptr],
     }
 }
 
@@ -504,6 +506,18 @@ impl FunctionBuilder {
         result_type: TypeSpec,
     ) -> ValueId {
         self.add_instruction(block_id, result_type, Instruction::AddressOf { place })
+    }
+
+    pub fn emit_alloc(&mut self, block_id: BlockId, meta_type: ValueId) -> ValueId {
+        self.add_instruction(
+            block_id,
+            TypeSpec::OpaquePtr,
+            Instruction::Alloc { meta_type },
+        )
+    }
+
+    pub fn emit_free(&mut self, block_id: BlockId, ptr: ValueId) -> ValueId {
+        self.add_instruction(block_id, TypeSpec::Unit, Instruction::Free { ptr })
     }
 
     pub fn emit_call(

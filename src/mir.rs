@@ -461,6 +461,14 @@ pub enum Instruction {
     Negate {
         op: ValueId,
     },
+    /// alloc(meta_type) -> OpaquePtr — allocates memory described by the meta_type struct value
+    Alloc {
+        meta_type: ValueId,
+    },
+    /// free(ptr) -> Unit — frees memory at the given pointer
+    Free {
+        ptr: ValueId,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]

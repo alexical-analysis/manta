@@ -919,16 +919,24 @@ impl<'a> Blocker<'a> {
                 self.fn_builder.emit_load(block_id, place, ts)
             }
             Node::MetaType => {
-                // TODO:
-                ValueId::nil()
+                // `ts` is the lowered type of the value being allocated (e.g. I32 for @i32).
+                // Produce a const struct { sizeof: u64, alignof: u64, flags: u64 }.
+                let layout = type_layout(&ts, Arch::W64);
+                let meta_value = ConstValue::ConstStruct(vec![
+                    ConstValue::ConstUInt(layout.size),
+                    ConstValue::ConstUInt(layout.align),
+                    ConstValue::ConstUInt(0), // flags reserved for future use
+                ]);
+                let meta_type = TypeSpec::Struct(vec![TypeSpec::U64, TypeSpec::U64, TypeSpec::U64]);
+                self.fn_builder.emit_const(block_id, meta_type, meta_value)
             }
-            Node::Alloc { .. } => {
-                // TODO:
-                ValueId::nil()
+            Node::Alloc { meta_type, .. } => {
+                let meta_val = self.block_expression(block_id, meta_type);
+                self.fn_builder.emit_alloc(block_id, meta_val)
             }
-            Node::Free { .. } => {
-                // TODO:
-                ValueId::nil()
+            Node::Free { expr } => {
+                let ptr = self.block_expression(block_id, expr);
+                self.fn_builder.emit_free(block_id, ptr)
             }
             _ => panic!("not a valid expression node"),
         }
@@ -985,6 +993,131 @@ fn lower_type_spec(hir_ts: &hir::TypeSpec) -> TypeSpec {
             panic!("unresolved type {:?} reached MIR lowering", hir_ts)
         }
     }
+}
+
+/// The size and alignment of a type in bytes, used for computing MetaType struct values
+/// and struct field offsets during MIR lowering.
+#[derive(Clone, Copy)]
+struct Layout {
+    /// The size of the type in bytes.
+    size: u64,
+    /// The required alignment of the type in bytes. Must be a power of 2, or 0 for zero-sized types.
+    align: u64,
+}
+
+/// Arch is used to specify 32-bit vs 64-bit targets
+#[derive(Clone, Copy)]
+enum Arch {
+    W32,
+    W64,
+}
+
+impl Arch {
+    fn ptr_size(self) -> u64 {
+        match self {
+            Arch::W32 => 4,
+            Arch::W64 => 8,
+        }
+    }
+}
+
+/// Returns the layout for a MIR TypeSpec on the given target architecture.
+fn type_layout(ts: &TypeSpec, arch: Arch) -> Layout {
+    // TODO: need to support sizes of less than 1 byte for packed structs
+    let ptr = arch.ptr_size();
+    match ts {
+        TypeSpec::Bool | TypeSpec::I8 | TypeSpec::U8 => Layout { size: 1, align: 1 },
+        TypeSpec::I16 | TypeSpec::U16 => Layout { size: 2, align: 2 },
+        TypeSpec::I32 | TypeSpec::U32 | TypeSpec::F32 => Layout { size: 4, align: 4 },
+        TypeSpec::I64 | TypeSpec::U64 | TypeSpec::F64 => Layout { size: 8, align: 8 },
+        TypeSpec::Ptr(_) | TypeSpec::OpaquePtr => Layout {
+            size: ptr,
+            align: ptr,
+        },
+        // String is a fat pointer: { ptr: *u8, len: usize }
+        TypeSpec::String => Layout {
+            size: ptr * 2,
+            align: ptr,
+        },
+        // Slice is a fat pointer: { ptr: *T, len: usize, cap: usize }
+        TypeSpec::Slice(_) => Layout {
+            size: ptr * 3,
+            align: ptr,
+        },
+        TypeSpec::Unit => Layout { size: 0, align: 0 },
+        TypeSpec::Array { elem, len } => {
+            let elem_layout = type_layout(elem, arch);
+            let stride = align_up(elem_layout);
+            Layout {
+                size: stride * (*len as u64),
+                align: elem_layout.align,
+            }
+        }
+        TypeSpec::Struct(fields) => struct_layout(fields, arch),
+        TypeSpec::Enum { tag_size, variants } => {
+            let tag_bytes = match tag_size {
+                TagSize::U8 => 1u64,
+                TagSize::U16 => 2,
+                TagSize::U32 => 4,
+                TagSize::U64 => 8,
+            };
+            let payload = variants
+                .iter()
+                .filter_map(|v| v.as_ref())
+                .map(|v| type_layout(v, arch))
+                .fold(Layout { size: 0, align: 0 }, |acc, l| Layout {
+                    size: acc.size.max(l.size),
+                    align: acc.align.max(l.align),
+                });
+            let align = payload.align.max(tag_bytes);
+            let size = align_up(Layout {
+                size: tag_bytes + payload.size,
+                align,
+            });
+            Layout { size, align }
+        }
+    }
+}
+
+/// Computes the layout of a struct by walking its fields in order, inserting alignment padding
+/// between fields and after the last field so the struct size is a multiple of its alignment.
+fn struct_layout(fields: &[TypeSpec], arch: Arch) -> Layout {
+    let mut offset = 0u64;
+    let mut align = 1u64;
+    for field in fields {
+        let field_layout = type_layout(field, arch);
+        offset = align_up(Layout {
+            size: offset,
+            align: field_layout.align,
+        });
+        offset += field_layout.size;
+        align = align.max(field_layout.align);
+    }
+    let layout = Layout {
+        size: offset,
+        align,
+    };
+    let size = align_up(layout);
+
+    Layout { size, align }
+}
+
+/// Rounds layout.size up to the nearest multiple of layout.align.
+///
+/// ```
+/// align_up(Layout { size: 1, align: 8 }) == 8   // 1 → next multiple of 8
+/// align_up(Layout { size: 8, align: 8 }) == 8   // already aligned, unchanged
+/// align_up(Layout { size: 9, align: 8 }) == 16  // 9 → next multiple of 8
+/// align_up(Layout { size: 5, align: 4 }) == 8   // 5 → next multiple of 4
+/// align_up(Layout { size: 0, align: 0 }) == 0   // zero-sized type, no-op
+/// ```
+fn align_up(layout: Layout) -> u64 {
+    if layout.align == 0 {
+        return layout.size;
+    }
+    let sum = layout.size + layout.align - 1;
+    let align = layout.align - 1;
+    sum & !align
 }
 
 fn tag_size_for(variant_count: usize) -> TagSize {
