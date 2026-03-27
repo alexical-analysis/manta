@@ -1217,6 +1217,82 @@ mod tests {
 
     include!(concat!(env!("OUT_DIR"), "/generated_blocker_tests.rs"));
 
+    // --- align_up tests ---
+
+    #[test]
+    fn align_up_already_aligned() {
+        assert_eq!(align_up(Layout { size: 8, align: 8 }), 8);
+    }
+
+    #[test]
+    fn align_up_unaligned() {
+        assert_eq!(align_up(Layout { size: 9, align: 8 }), 16);
+    }
+
+    #[test]
+    fn align_up_one_byte_to_four() {
+        assert_eq!(align_up(Layout { size: 1, align: 4 }), 4);
+    }
+
+    #[test]
+    fn align_up_zero_size() {
+        assert_eq!(align_up(Layout { size: 0, align: 8 }), 0);
+    }
+
+    #[test]
+    fn align_up_zero_align_is_noop() {
+        assert_eq!(align_up(Layout { size: 7, align: 0 }), 7);
+    }
+
+    // --- struct_layout tests ---
+
+    #[test]
+    fn struct_layout_empty() {
+        let l = struct_layout(&[], Arch::W64);
+        assert_eq!(l.size, 0);
+        assert_eq!(l.align, 1);
+    }
+
+    #[test]
+    fn struct_layout_single_field() {
+        // Just an i32: size=4, align=4, no padding needed
+        let l = struct_layout(&[TypeSpec::I32], Arch::W64);
+        assert_eq!(l.size, 4);
+        assert_eq!(l.align, 4);
+    }
+
+    #[test]
+    fn struct_layout_padding_between_fields() {
+        // u8 then i32: u8 at 0, pad to 4, i32 at 4 → total 8
+        let l = struct_layout(&[TypeSpec::U8, TypeSpec::I32], Arch::W64);
+        assert_eq!(l.size, 8);
+        assert_eq!(l.align, 4);
+    }
+
+    #[test]
+    fn struct_layout_trailing_padding() {
+        // i32 then u8: i32 at 0, u8 at 4, raw end=5, padded to 8
+        let l = struct_layout(&[TypeSpec::I32, TypeSpec::U8], Arch::W64);
+        assert_eq!(l.size, 8);
+        assert_eq!(l.align, 4);
+    }
+
+    #[test]
+    fn struct_layout_all_same_alignment() {
+        // Three i32s: no padding, size=12, align=4
+        let l = struct_layout(&[TypeSpec::I32, TypeSpec::I32, TypeSpec::I32], Arch::W64);
+        assert_eq!(l.size, 12);
+        assert_eq!(l.align, 4);
+    }
+
+    #[test]
+    fn struct_layout_w32_pointer_size() {
+        // A pointer on W32 is 4 bytes
+        let l = struct_layout(&[TypeSpec::OpaquePtr], Arch::W32);
+        assert_eq!(l.size, 4);
+        assert_eq!(l.align, 4);
+    }
+
     macro_rules! test_blocker_function {
         ( $( $case:ident { got: $got:expr, want: $want:expr, } ),*, ) => {
             $(
