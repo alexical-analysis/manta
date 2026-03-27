@@ -61,7 +61,10 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [],
+          "instructions": [
+            1,
+            2
+          ],
           "terminator": {
             "Return": {
               "value": null
@@ -70,8 +73,27 @@
         }
       ],
       "entry_block": 1,
-      "instructions": [],
-      "value_types": []
+      "instructions": [
+        {
+          "Const": {
+            "value": {
+              "ConstString": 12
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 8,
+            "args": [
+              1
+            ]
+          }
+        }
+      ],
+      "value_types": [
+        "String",
+        "Unit"
+      ]
     }
   ]
 }

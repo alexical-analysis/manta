@@ -260,15 +260,15 @@
       ],
       "blocks": [
         {
-          "block_args": [
-            0
-          ],
+          "block_args": [],
           "instructions": [
-            1
+            1,
+            2,
+            3
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 1,
+              "discriminant": 3,
               "default": 4,
               "arms": [
                 {
@@ -283,13 +283,13 @@
         },
         {
           "block_args": [
-            0
+            2
           ],
           "instructions": [
-            2,
-            3,
             4,
-            5
+            5,
+            6,
+            7
           ],
           "terminator": {
             "Jump": {
@@ -298,15 +298,15 @@
           }
         },
         {
-          "block_args": [
-            0
-          ],
+          "block_args": [],
           "instructions": [
-            7
+            9,
+            10,
+            11
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 7,
+              "discriminant": 11,
               "default": 7,
               "arms": [
                 {
@@ -321,13 +321,13 @@
         },
         {
           "block_args": [
-            0
+            10
           ],
           "instructions": [
-            8,
-            9,
-            10,
-            11
+            12,
+            13,
+            14,
+            15
           ],
           "terminator": {
             "Jump": {
@@ -346,10 +346,10 @@
         },
         {
           "block_args": [
-            0
+            10
           ],
           "instructions": [
-            12
+            16
           ],
           "terminator": {
             "Return": {
@@ -359,10 +359,10 @@
         },
         {
           "block_args": [
-            0
+            2
           ],
           "instructions": [
-            6
+            8
           ],
           "terminator": {
             "Return": {
@@ -374,13 +374,31 @@
       "entry_block": 1,
       "instructions": [
         {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 19,
+            "args": [
+              1
+            ]
+          }
+        },
+        {
           "VariantGetTag": {
-            "src": 0
+            "src": 2
           }
         },
         {
           "VariantGetPayload": {
-            "src": 0,
+            "src": 2,
             "variant_id": {
               "ConstUInt": 0
             }
@@ -394,7 +412,7 @@
               },
               "projections": []
             },
-            "value": 2
+            "value": 4
           }
         },
         {
@@ -415,7 +433,7 @@
               },
               "projections": []
             },
-            "value": 4
+            "value": 6
           }
         },
         {
@@ -426,17 +444,35 @@
               },
               "projections": []
             },
-            "value": 0
+            "value": 2
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 26,
+            "args": [
+              9
+            ]
           }
         },
         {
           "VariantGetTag": {
-            "src": 0
+            "src": 10
           }
         },
         {
           "VariantGetPayload": {
-            "src": 0,
+            "src": 10,
             "variant_id": {
               "ConstUInt": 0
             }
@@ -450,7 +486,7 @@
               },
               "projections": []
             },
-            "value": 8
+            "value": 12
           }
         },
         {
@@ -471,7 +507,7 @@
               },
               "projections": []
             },
-            "value": 10
+            "value": 14
           }
         },
         {
@@ -482,11 +518,23 @@
               },
               "projections": []
             },
-            "value": 0
+            "value": 10
           }
         }
       ],
       "value_types": [
+        "String",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              {
+                "Struct": []
+              },
+              null
+            ]
+          }
+        },
         "U8",
         {
           "Struct": []
@@ -497,6 +545,18 @@
         },
         "Unit",
         "Unit",
+        {
+          "Struct": []
+        },
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "String",
+              null
+            ]
+          }
+        },
         "U8",
         "String",
         "Unit",
@@ -599,15 +659,15 @@
       ],
       "blocks": [
         {
-          "block_args": [
-            0
-          ],
+          "block_args": [],
           "instructions": [
-            1
+            1,
+            2,
+            3
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 1,
+              "discriminant": 3,
               "default": 4,
               "arms": [
                 {
@@ -622,13 +682,13 @@
         },
         {
           "block_args": [
-            0
+            2
           ],
           "instructions": [
-            2,
-            3,
             4,
-            5
+            5,
+            6,
+            7
           ],
           "terminator": {
             "Jump": {
@@ -637,15 +697,17 @@
           }
         },
         {
-          "block_args": [
-            0
-          ],
+          "block_args": [],
           "instructions": [
-            7
+            11,
+            12,
+            13,
+            14,
+            15
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 7,
+              "discriminant": 15,
               "default": 7,
               "arms": [
                 {
@@ -660,13 +722,13 @@
         },
         {
           "block_args": [
-            0
+            14
           ],
           "instructions": [
-            8,
-            9,
-            10,
-            11
+            16,
+            17,
+            18,
+            19
           ],
           "terminator": {
             "Jump": {
@@ -676,7 +738,10 @@
         },
         {
           "block_args": [],
-          "instructions": [],
+          "instructions": [
+            23,
+            24
+          ],
           "terminator": {
             "Return": {
               "value": null
@@ -685,10 +750,12 @@
         },
         {
           "block_args": [
-            0
+            14
           ],
           "instructions": [
-            12
+            20,
+            21,
+            22
           ],
           "terminator": {
             "Jump": {
@@ -698,10 +765,12 @@
         },
         {
           "block_args": [
-            0
+            2
           ],
           "instructions": [
-            6
+            8,
+            9,
+            10
           ],
           "terminator": {
             "Return": {
@@ -713,13 +782,28 @@
       "entry_block": 1,
       "instructions": [
         {
+          "Const": {
+            "value": {
+              "ConstString": 39
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 32,
+            "args": [
+              1
+            ]
+          }
+        },
+        {
           "VariantGetTag": {
-            "src": 0
+            "src": 2
           }
         },
         {
           "VariantGetPayload": {
-            "src": 0,
+            "src": 2,
             "variant_id": {
               "ConstUInt": 0
             }
@@ -733,7 +817,7 @@
               },
               "projections": []
             },
-            "value": 2
+            "value": 4
           }
         },
         {
@@ -754,7 +838,7 @@
               },
               "projections": []
             },
-            "value": 4
+            "value": 6
           }
         },
         {
@@ -765,17 +849,65 @@
               },
               "projections": []
             },
-            "value": 0
+            "value": 2
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstString": 42
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 27,
+            "args": [
+              9
+            ]
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 27,
+            "args": [
+              11
+            ]
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstString": 43
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 32,
+            "args": [
+              13
+            ]
           }
         },
         {
           "VariantGetTag": {
-            "src": 0
+            "src": 14
           }
         },
         {
           "VariantGetPayload": {
-            "src": 0,
+            "src": 14,
             "variant_id": {
               "ConstUInt": 0
             }
@@ -789,7 +921,7 @@
               },
               "projections": []
             },
-            "value": 8
+            "value": 16
           }
         },
         {
@@ -810,7 +942,7 @@
               },
               "projections": []
             },
-            "value": 10
+            "value": 18
           }
         },
         {
@@ -821,22 +953,151 @@
               },
               "projections": []
             },
-            "value": 0
+            "value": 14
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 6
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 18446744073709551601,
+            "args": [
+              21
+            ]
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 4
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 27,
+            "args": [
+              23
+            ]
           }
         }
       ],
       "value_types": [
+        "String",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "String",
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    {
+                      "Struct": []
+                    },
+                    null
+                  ]
+                }
+              },
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    "String",
+                    null
+                  ]
+                }
+              }
+            ]
+          }
+        },
         "U8",
         "String",
         "Unit",
         "String",
         "Unit",
         "Unit",
+        "String",
+        "Unit",
+        "String",
+        "Unit",
+        "String",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "String",
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    {
+                      "Struct": []
+                    },
+                    null
+                  ]
+                }
+              },
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    "String",
+                    null
+                  ]
+                }
+              }
+            ]
+          }
+        },
         "U8",
         "String",
         "Unit",
         "String",
         "Unit",
+        "Unit",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "String",
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    {
+                      "Struct": []
+                    },
+                    null
+                  ]
+                }
+              },
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    "String",
+                    null
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "Unit",
+        "String",
         "Unit"
       ]
     }

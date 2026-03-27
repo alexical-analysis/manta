@@ -261,15 +261,15 @@
       ],
       "blocks": [
         {
-          "block_args": [
-            0
-          ],
+          "block_args": [],
           "instructions": [
-            1
+            1,
+            2,
+            3
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 1,
+              "discriminant": 3,
               "default": 4,
               "arms": [
                 {
@@ -284,13 +284,13 @@
         },
         {
           "block_args": [
-            0
+            2
           ],
           "instructions": [
-            2,
-            3,
             4,
-            5
+            5,
+            6,
+            7
           ],
           "terminator": {
             "Jump": {
@@ -314,7 +314,9 @@
             0
           ],
           "instructions": [
-            10
+            12,
+            13,
+            14
           ],
           "terminator": {
             "Jump": {
@@ -323,15 +325,16 @@
           }
         },
         {
-          "block_args": [
-            0
-          ],
+          "block_args": [],
           "instructions": [
-            11
+            15,
+            16,
+            17,
+            18
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 11,
+              "discriminant": 18,
               "default": 10,
               "arms": [
                 {
@@ -346,13 +349,13 @@
         },
         {
           "block_args": [
-            0
+            17
           ],
           "instructions": [
-            12,
-            13,
-            14,
-            15
+            19,
+            20,
+            21,
+            22
           ],
           "terminator": {
             "Jump": {
@@ -371,10 +374,10 @@
         },
         {
           "block_args": [
-            0
+            17
           ],
           "instructions": [
-            16
+            23
           ],
           "terminator": {
             "Return": {
@@ -387,9 +390,9 @@
             0
           ],
           "instructions": [
-            7,
-            8,
-            9
+            9,
+            10,
+            11
           ],
           "terminator": {
             "Jump": {
@@ -399,10 +402,10 @@
         },
         {
           "block_args": [
-            0
+            2
           ],
           "instructions": [
-            6
+            8
           ],
           "terminator": {
             "Return": {
@@ -414,13 +417,31 @@
       "entry_block": 1,
       "instructions": [
         {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 17,
+            "args": [
+              1
+            ]
+          }
+        },
+        {
           "VariantGetTag": {
-            "src": 0
+            "src": 2
           }
         },
         {
           "VariantGetPayload": {
-            "src": 0,
+            "src": 2,
             "variant_id": {
               "ConstUInt": 0
             }
@@ -434,7 +455,7 @@
               },
               "projections": []
             },
-            "value": 2
+            "value": 4
           }
         },
         {
@@ -455,7 +476,7 @@
               },
               "projections": []
             },
-            "value": 4
+            "value": 6
           }
         },
         {
@@ -466,7 +487,7 @@
               },
               "projections": []
             },
-            "value": 0
+            "value": 2
           }
         },
         {
@@ -498,7 +519,7 @@
               },
               "projections": []
             },
-            "value": 8
+            "value": 10
           }
         },
         {
@@ -513,13 +534,62 @@
           }
         },
         {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 7
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 18446744073709551601,
+            "args": [
+              13
+            ]
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 5
+              },
+              "projections": [
+                "Deref"
+              ]
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 24,
+            "args": [
+              15,
+              16
+            ]
+          }
+        },
+        {
           "VariantGetTag": {
-            "src": 0
+            "src": 17
           }
         },
         {
           "VariantGetPayload": {
-            "src": 0,
+            "src": 17,
             "variant_id": {
               "ConstUInt": 0
             }
@@ -533,7 +603,7 @@
               },
               "projections": []
             },
-            "value": 12
+            "value": 19
           }
         },
         {
@@ -554,7 +624,7 @@
               },
               "projections": []
             },
-            "value": 14
+            "value": 21
           }
         },
         {
@@ -565,11 +635,23 @@
               },
               "projections": []
             },
-            "value": 0
+            "value": 17
           }
         }
       ],
       "value_types": [
+        "String",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              {
+                "Struct": []
+              },
+              null
+            ]
+          }
+        },
         "U8",
         {
           "Struct": []
@@ -588,6 +670,23 @@
         },
         "Unit",
         "Unit",
+        "OpaquePtr",
+        "Unit",
+        {
+          "Struct": []
+        },
+        {
+          "Slice": "U8"
+        },
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "U64",
+              null
+            ]
+          }
+        },
         "U8",
         "U64",
         "Unit",

@@ -94,7 +94,13 @@
             11,
             12,
             13,
-            14
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
           ],
           "terminator": {
             "Return": {
@@ -163,6 +169,26 @@
           }
         },
         {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": [
+                "Deref"
+              ]
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 8,
+            "args": [
+              7
+            ]
+          }
+        },
+        {
           "Const": {
             "value": {
               "ConstInt": 21
@@ -179,7 +205,25 @@
                 "Deref"
               ]
             },
-            "value": 7
+            "value": 9
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 8,
+            "args": [
+              11
+            ]
           }
         },
         {
@@ -200,7 +244,7 @@
               },
               "projections": []
             },
-            "value": 9
+            "value": 13
           }
         },
         {
@@ -224,8 +268,8 @@
         },
         {
           "SDiv": {
-            "lhs": 11,
-            "rhs": 12
+            "lhs": 15,
+            "rhs": 16
           }
         },
         {
@@ -238,7 +282,25 @@
                 "Deref"
               ]
             },
-            "value": 13
+            "value": 17
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 8,
+            "args": [
+              19
+            ]
           }
         }
       ],
@@ -253,12 +315,18 @@
         "Unit",
         "I64",
         "Unit",
+        "I64",
+        "Unit",
+        "I64",
+        "Unit",
         {
           "Ptr": "I64"
         },
         "Unit",
         "I64",
         "I64",
+        "I64",
+        "Unit",
         "I64",
         "Unit"
       ]
