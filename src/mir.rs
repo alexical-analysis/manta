@@ -507,6 +507,8 @@ pub enum Terminator {
     },
     /// Unreachable (for proven-unreachable code)
     Unreachable,
+    /// Panic (for code the exit control-flow with a panic)
+    Panic,
 }
 
 /// A basic block in the control-flow graph.

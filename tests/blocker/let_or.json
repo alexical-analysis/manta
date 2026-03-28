@@ -1,0 +1,1468 @@
+{
+  "globals": [],
+  "init": {
+    "name": 18446744073709551596,
+    "params": [],
+    "return_type": "Unit",
+    "local_map": {},
+    "locals": [],
+    "blocks": [
+      {
+        "block_args": [],
+        "instructions": [],
+        "terminator": {
+          "Return": {
+            "value": null
+          }
+        }
+      }
+    ],
+    "entry_block": 1,
+    "instructions": [],
+    "value_types": []
+  },
+  "functions": [
+    {
+      "name": 19,
+      "params": [
+        1
+      ],
+      "return_type": {
+        "Enum": {
+          "tag_size": "U8",
+          "variants": [
+            {
+              "Struct": []
+            },
+            null
+          ]
+        }
+      },
+      "local_map": {
+        "4": 1
+      },
+      "locals": [
+        {
+          "type_spec": "String",
+          "name": 20
+        }
+      ],
+      "blocks": [
+        {
+          "block_args": [],
+          "instructions": [
+            1
+          ],
+          "terminator": {
+            "Return": {
+              "value": 1
+            }
+          }
+        }
+      ],
+      "entry_block": 1,
+      "instructions": [
+        {
+          "MakeVariant": {
+            "tag": {
+              "ConstUInt": 1
+            },
+            "payload": null
+          }
+        }
+      ],
+      "value_types": [
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              {
+                "Struct": []
+              },
+              null
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": 23,
+      "params": [
+        1
+      ],
+      "return_type": "Unit",
+      "local_map": {
+        "11": 1
+      },
+      "locals": [
+        {
+          "type_spec": {
+            "Struct": []
+          },
+          "name": 24
+        }
+      ],
+      "blocks": [
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Return": {
+              "value": null
+            }
+          }
+        }
+      ],
+      "entry_block": 1,
+      "instructions": [],
+      "value_types": []
+    },
+    {
+      "name": 26,
+      "params": [
+        1
+      ],
+      "return_type": {
+        "Enum": {
+          "tag_size": "U8",
+          "variants": [
+            "String",
+            null
+          ]
+        }
+      },
+      "local_map": {
+        "19": 1
+      },
+      "locals": [
+        {
+          "type_spec": {
+            "Struct": []
+          },
+          "name": 24
+        }
+      ],
+      "blocks": [
+        {
+          "block_args": [],
+          "instructions": [
+            1
+          ],
+          "terminator": {
+            "Return": {
+              "value": 1
+            }
+          }
+        }
+      ],
+      "entry_block": 1,
+      "instructions": [
+        {
+          "MakeVariant": {
+            "tag": {
+              "ConstUInt": 1
+            },
+            "payload": null
+          }
+        }
+      ],
+      "value_types": [
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "String",
+              null
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": 27,
+      "params": [
+        1
+      ],
+      "return_type": "Unit",
+      "local_map": {
+        "26": 1
+      },
+      "locals": [
+        {
+          "type_spec": "String",
+          "name": 28
+        }
+      ],
+      "blocks": [
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Return": {
+              "value": null
+            }
+          }
+        }
+      ],
+      "entry_block": 1,
+      "instructions": [],
+      "value_types": []
+    },
+    {
+      "name": 32,
+      "params": [
+        1
+      ],
+      "return_type": {
+        "Enum": {
+          "tag_size": "U8",
+          "variants": [
+            "String",
+            {
+              "Enum": {
+                "tag_size": "U8",
+                "variants": [
+                  {
+                    "Struct": []
+                  },
+                  null
+                ]
+              }
+            },
+            {
+              "Enum": {
+                "tag_size": "U8",
+                "variants": [
+                  "String",
+                  null
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "local_map": {
+        "34": 1,
+        "37": 3,
+        "39": 2,
+        "44": 4,
+        "55": 6,
+        "57": 5,
+        "62": 7
+      },
+      "locals": [
+        {
+          "type_spec": "String",
+          "name": 20
+        },
+        {
+          "type_spec": {
+            "Struct": []
+          },
+          "name": 24
+        },
+        {
+          "type_spec": {
+            "Struct": []
+          },
+          "name": 24
+        },
+        {
+          "type_spec": {
+            "Enum": {
+              "tag_size": "U8",
+              "variants": [
+                {
+                  "Struct": []
+                },
+                null
+              ]
+            }
+          },
+          "name": 18446744073709551602
+        },
+        {
+          "type_spec": "String",
+          "name": 28
+        },
+        {
+          "type_spec": "String",
+          "name": 28
+        },
+        {
+          "type_spec": {
+            "Enum": {
+              "tag_size": "U8",
+              "variants": [
+                "String",
+                null
+              ]
+            }
+          },
+          "name": 18446744073709551602
+        },
+        {
+          "type_spec": {
+            "Enum": {
+              "tag_size": "U8",
+              "variants": [
+                "String",
+                {
+                  "Enum": {
+                    "tag_size": "U8",
+                    "variants": [
+                      {
+                        "Struct": []
+                      },
+                      null
+                    ]
+                  }
+                },
+                {
+                  "Enum": {
+                    "tag_size": "U8",
+                    "variants": [
+                      "String",
+                      null
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "name": 18446744073709551594
+        }
+      ],
+      "blocks": [
+        {
+          "block_args": [],
+          "instructions": [
+            1,
+            2,
+            3
+          ],
+          "terminator": {
+            "SwitchVariant": {
+              "discriminant": 3,
+              "default": 4,
+              "arms": [
+                {
+                  "target": {
+                    "ConstUInt": 0
+                  },
+                  "jump": 3
+                }
+              ]
+            }
+          }
+        },
+        {
+          "block_args": [
+            2
+          ],
+          "instructions": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 2
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [
+            13,
+            14,
+            15
+          ],
+          "terminator": {
+            "SwitchVariant": {
+              "discriminant": 15,
+              "default": 8,
+              "arms": [
+                {
+                  "target": {
+                    "ConstUInt": 0
+                  },
+                  "jump": 7
+                }
+              ]
+            }
+          }
+        },
+        {
+          "block_args": [
+            14
+          ],
+          "instructions": [
+            16,
+            17,
+            18,
+            19
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 6
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [
+            23,
+            24,
+            28
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 5
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [
+            11,
+            12
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 9
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [
+            25
+          ],
+          "terminator": {
+            "Return": {
+              "value": 25
+            }
+          }
+        },
+        {
+          "block_args": [
+            14
+          ],
+          "instructions": [
+            20,
+            21,
+            22,
+            27
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 5
+            }
+          }
+        },
+        {
+          "block_args": [
+            2
+          ],
+          "instructions": [
+            8,
+            9,
+            10,
+            26
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 5
+            }
+          }
+        }
+      ],
+      "entry_block": 1,
+      "instructions": [
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 19,
+            "args": [
+              1
+            ]
+          }
+        },
+        {
+          "VariantGetTag": {
+            "src": 2
+          }
+        },
+        {
+          "VariantGetPayload": {
+            "src": 2,
+            "variant_id": {
+              "ConstUInt": 0
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            },
+            "value": 4
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            },
+            "value": 6
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 4
+              },
+              "projections": []
+            },
+            "value": 2
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 4
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "MakeVariant": {
+            "tag": {
+              "ConstUInt": 1
+            },
+            "payload": 9
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 23,
+            "args": [
+              11
+            ]
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 26,
+            "args": [
+              13
+            ]
+          }
+        },
+        {
+          "VariantGetTag": {
+            "src": 14
+          }
+        },
+        {
+          "VariantGetPayload": {
+            "src": 14,
+            "variant_id": {
+              "ConstUInt": 0
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 6
+              },
+              "projections": []
+            },
+            "value": 16
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 6
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 5
+              },
+              "projections": []
+            },
+            "value": 18
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 7
+              },
+              "projections": []
+            },
+            "value": 14
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 7
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "MakeVariant": {
+            "tag": {
+              "ConstUInt": 2
+            },
+            "payload": 21
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 5
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "MakeVariant": {
+            "tag": {
+              "ConstUInt": 0
+            },
+            "payload": 23
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 8
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 8
+              },
+              "projections": []
+            },
+            "value": 10
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 8
+              },
+              "projections": []
+            },
+            "value": 22
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 8
+              },
+              "projections": []
+            },
+            "value": 24
+          }
+        }
+      ],
+      "value_types": [
+        "String",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              {
+                "Struct": []
+              },
+              null
+            ]
+          }
+        },
+        "U8",
+        {
+          "Struct": []
+        },
+        "Unit",
+        {
+          "Struct": []
+        },
+        "Unit",
+        "Unit",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              {
+                "Struct": []
+              },
+              null
+            ]
+          }
+        },
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "String",
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    {
+                      "Struct": []
+                    },
+                    null
+                  ]
+                }
+              },
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    "String",
+                    null
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Struct": []
+        },
+        "Unit",
+        {
+          "Struct": []
+        },
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "String",
+              null
+            ]
+          }
+        },
+        "U8",
+        "String",
+        "Unit",
+        "String",
+        "Unit",
+        "Unit",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "String",
+              null
+            ]
+          }
+        },
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "String",
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    {
+                      "Struct": []
+                    },
+                    null
+                  ]
+                }
+              },
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    "String",
+                    null
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "String",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "String",
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    {
+                      "Struct": []
+                    },
+                    null
+                  ]
+                }
+              },
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    "String",
+                    null
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "String",
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    {
+                      "Struct": []
+                    },
+                    null
+                  ]
+                }
+              },
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    "String",
+                    null
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "Unit",
+        "Unit",
+        "Unit"
+      ]
+    },
+    {
+      "name": 1,
+      "params": [],
+      "return_type": "Unit",
+      "local_map": {
+        "76": 2,
+        "78": 1,
+        "83": 3,
+        "94": 5,
+        "96": 4,
+        "102": 6
+      },
+      "locals": [
+        {
+          "type_spec": "String",
+          "name": 38
+        },
+        {
+          "type_spec": "String",
+          "name": 38
+        },
+        {
+          "type_spec": {
+            "Enum": {
+              "tag_size": "U8",
+              "variants": [
+                "String",
+                {
+                  "Enum": {
+                    "tag_size": "U8",
+                    "variants": [
+                      {
+                        "Struct": []
+                      },
+                      null
+                    ]
+                  }
+                },
+                {
+                  "Enum": {
+                    "tag_size": "U8",
+                    "variants": [
+                      "String",
+                      null
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "name": 41
+        },
+        {
+          "type_spec": "String",
+          "name": 38
+        },
+        {
+          "type_spec": "String",
+          "name": 38
+        },
+        {
+          "type_spec": {
+            "Enum": {
+              "tag_size": "U8",
+              "variants": [
+                "String",
+                {
+                  "Enum": {
+                    "tag_size": "U8",
+                    "variants": [
+                      {
+                        "Struct": []
+                      },
+                      null
+                    ]
+                  }
+                },
+                {
+                  "Enum": {
+                    "tag_size": "U8",
+                    "variants": [
+                      "String",
+                      null
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "name": 18446744073709551601
+        }
+      ],
+      "blocks": [
+        {
+          "block_args": [],
+          "instructions": [
+            1,
+            2,
+            3
+          ],
+          "terminator": {
+            "SwitchVariant": {
+              "discriminant": 3,
+              "default": 4,
+              "arms": [
+                {
+                  "target": {
+                    "ConstUInt": 0
+                  },
+                  "jump": 3
+                }
+              ]
+            }
+          }
+        },
+        {
+          "block_args": [
+            2
+          ],
+          "instructions": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 2
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "terminator": {
+            "SwitchVariant": {
+              "discriminant": 15,
+              "default": 7,
+              "arms": [
+                {
+                  "target": {
+                    "ConstUInt": 0
+                  },
+                  "jump": 6
+                }
+              ]
+            }
+          }
+        },
+        {
+          "block_args": [
+            14
+          ],
+          "instructions": [
+            16,
+            17,
+            18,
+            19
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 5
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [
+            23,
+            24
+          ],
+          "terminator": {
+            "Return": {
+              "value": null
+            }
+          }
+        },
+        {
+          "block_args": [
+            14
+          ],
+          "instructions": [
+            20,
+            21,
+            22
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 5
+            }
+          }
+        },
+        {
+          "block_args": [
+            2
+          ],
+          "instructions": [
+            8,
+            9,
+            10
+          ],
+          "terminator": {
+            "Return": {
+              "value": null
+            }
+          }
+        }
+      ],
+      "entry_block": 1,
+      "instructions": [
+        {
+          "Const": {
+            "value": {
+              "ConstString": 39
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 32,
+            "args": [
+              1
+            ]
+          }
+        },
+        {
+          "VariantGetTag": {
+            "src": 2
+          }
+        },
+        {
+          "VariantGetPayload": {
+            "src": 2,
+            "variant_id": {
+              "ConstUInt": 0
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            },
+            "value": 4
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            },
+            "value": 6
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            },
+            "value": 2
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstString": 42
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 27,
+            "args": [
+              9
+            ]
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 27,
+            "args": [
+              11
+            ]
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstString": 43
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 32,
+            "args": [
+              13
+            ]
+          }
+        },
+        {
+          "VariantGetTag": {
+            "src": 14
+          }
+        },
+        {
+          "VariantGetPayload": {
+            "src": 14,
+            "variant_id": {
+              "ConstUInt": 0
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 5
+              },
+              "projections": []
+            },
+            "value": 16
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 5
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 4
+              },
+              "projections": []
+            },
+            "value": 18
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 6
+              },
+              "projections": []
+            },
+            "value": 14
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 6
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 18446744073709551601,
+            "args": [
+              21
+            ]
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 4
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Call": {
+            "func": 27,
+            "args": [
+              23
+            ]
+          }
+        }
+      ],
+      "value_types": [
+        "String",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "String",
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    {
+                      "Struct": []
+                    },
+                    null
+                  ]
+                }
+              },
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    "String",
+                    null
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "U8",
+        "String",
+        "Unit",
+        "String",
+        "Unit",
+        "Unit",
+        "String",
+        "Unit",
+        "String",
+        "Unit",
+        "String",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "String",
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    {
+                      "Struct": []
+                    },
+                    null
+                  ]
+                }
+              },
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    "String",
+                    null
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "U8",
+        "String",
+        "Unit",
+        "String",
+        "Unit",
+        "Unit",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "String",
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    {
+                      "Struct": []
+                    },
+                    null
+                  ]
+                }
+              },
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    "String",
+                    null
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "Unit",
+        "String",
+        "Unit"
+      ]
+    }
+  ]
+}
