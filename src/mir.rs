@@ -537,7 +537,7 @@ impl BasicBlock {
 pub struct MirFunction {
     pub name: StrID,
     pub params: Vec<LocalId>,
-    pub type_spec: TypeSpec,
+    pub return_type: TypeSpec,
     pub local_map: BTreeMap<NodeID, LocalId>,
     pub locals: Vec<Local>,      // indexed by LocalId
     pub blocks: Vec<BasicBlock>, // Indexed by BlockId

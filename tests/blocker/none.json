@@ -3,7 +3,7 @@
   "init": {
     "name": 18446744073709551596,
     "params": [],
-    "type_spec": "Unit",
+    "return_type": "Unit",
     "local_map": {},
     "locals": [],
     "blocks": [
@@ -27,7 +27,7 @@
       "params": [
         1
       ],
-      "type_spec": "Unit",
+      "return_type": "Unit",
       "local_map": {
         "0": 1
       },
@@ -59,7 +59,7 @@
       "params": [
         1
       ],
-      "type_spec": "Unit",
+      "return_type": "Unit",
       "local_map": {
         "6": 1
       },
@@ -89,7 +89,7 @@
       "params": [
         1
       ],
-      "type_spec": {
+      "return_type": {
         "Enum": {
           "tag_size": "U8",
           "variants": [
@@ -407,7 +407,7 @@
     {
       "name": 1,
       "params": [],
-      "type_spec": "Unit",
+      "return_type": "Unit",
       "local_map": {
         "46": 1
       },

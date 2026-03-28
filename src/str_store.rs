@@ -55,6 +55,7 @@ pub const INNERLET: StrID = StrID(usize::MAX - 18);
 
 pub const INIT: StrID = StrID(usize::MAX - 19);
 pub const UNDERSCORE: StrID = StrID(usize::MAX - 20);
+pub const DEFER: StrID = StrID(usize::MAX - 21);
 
 fn constant_str_id(s: &str) -> Option<StrID> {
     match s {
@@ -83,6 +84,7 @@ fn constant_str_id(s: &str) -> Option<StrID> {
         "<wrap>" => Some(WRAP),
         "<inner let>" => Some(INNERLET),
         "<init>" => Some(INIT),
+        "<defer>" => Some(DEFER),
         _ => None,
     }
 }
@@ -114,6 +116,7 @@ fn constant_id_str(id: StrID) -> Option<&'static str> {
         WRAP => Some("<wrap>"),
         INNERLET => Some("<inner let>"),
         INIT => Some("<init>"),
+        DEFER => Some("<defer>"),
 
         // Nil is also not a valid identifier
         NIL => Some("<nil>"),

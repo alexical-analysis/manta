@@ -5,7 +5,7 @@ use crate::mir::{
     BasicBlock, BlockId, ConstValue, Instruction, Local, LocalId, MirFunction, Place, Projection,
     TagSize, Terminator, TypeSpec, ValueId,
 };
-use crate::str_store::StrID;
+use crate::str_store::{self, StrID};
 
 #[derive(Debug, Clone)]
 pub struct BlockBuilder {
@@ -34,6 +34,14 @@ impl BlockBuilder {
         }
 
         self.terminator = Some(term);
+    }
+
+    fn update_terminator(&mut self, term: Terminator) {
+        if self.terminator.is_none() {
+            panic!("terminator was not set, can not update it")
+        }
+
+        self.terminator = Some(term)
     }
 
     fn is_closed(&self) -> bool {
@@ -166,30 +174,32 @@ impl SetStack {
 pub struct FunctionBuilder {
     name: StrID,
     params: Vec<LocalId>,
-    type_spec: TypeSpec,
+    return_type: TypeSpec,
     locals: Vec<Local>, // Indexed by LocalId
     local_map: BTreeMap<NodeID, LocalId>,
-    blocks: Vec<BlockBuilder>,      // Indexed by BlockId
+    blocks: Vec<BlockBuilder>, // Indexed by BlockId
+    defer_blocks: Vec<BlockId>,
     instructions: Vec<Instruction>, // Flat instruction array, indexed by ValueId
     value_types: Vec<TypeSpec>,     // Parallel to instructions, indexed by ValueId
 }
 
 impl FunctionBuilder {
-    pub fn new(name: StrID, type_spec: TypeSpec) -> Self {
+    pub fn new(name: StrID, return_type: TypeSpec) -> Self {
         FunctionBuilder {
             name,
-            type_spec,
+            return_type,
             params: vec![],
             locals: vec![],
             local_map: BTreeMap::new(),
             blocks: vec![],
+            defer_blocks: vec![],
             instructions: vec![],
             value_types: vec![],
         }
     }
 
-    pub fn add_param(&mut self, node: NodeID, name: StrID, type_spec: TypeSpec) {
-        let local = self.get_local(node, name, type_spec);
+    pub fn add_param(&mut self, node: NodeID, name: StrID, return_type: TypeSpec) {
+        let local = self.get_local(node, name, return_type);
         self.params.push(local);
     }
 
@@ -624,11 +634,26 @@ impl FunctionBuilder {
         block.set_terminator(term);
     }
 
+    pub fn update_terminator(&mut self, block_id: BlockId, term: Terminator) {
+        let block = self.get_block_mut(block_id);
+        block.update_terminator(term);
+    }
+
     pub fn add_block(&mut self) -> BlockId {
         let block_builder = BlockBuilder::new();
 
         self.blocks.push(block_builder);
         BlockId::from_u32(self.blocks.len() as u32)
+    }
+
+    pub fn add_defer_block(&mut self) -> BlockId {
+        let block_builder = BlockBuilder::new();
+
+        self.blocks.push(block_builder);
+        let id = BlockId::from_u32(self.blocks.len() as u32);
+        self.defer_blocks.push(id);
+
+        id
     }
 
     /// Return an existing local if one is created for the given node and create a new one otherwise
@@ -644,6 +669,15 @@ impl FunctionBuilder {
         self.local_map.insert(node, local_id);
 
         local_id
+    }
+
+    /// Creates a new local. You must track the local ID yourself as it's not tracked in the locals
+    /// map which ties a local to it's node ID in the HIR
+    pub fn add_local(&mut self, name: StrID, type_spec: TypeSpec) -> LocalId {
+        let local = Local { name, type_spec };
+        self.locals.push(local);
+
+        LocalId::from_usize(self.locals.len())
     }
 
     /// Find the given loacal if it exists
@@ -669,10 +703,14 @@ impl FunctionBuilder {
         self.get_block(block_id).is_closed()
     }
 
-    pub fn build_mir_function(&self) -> MirFunction {
+    pub fn build_mir_function(&mut self) -> MirFunction {
         if self.blocks.is_empty() {
             panic!("function must have an entry block")
         };
+
+        if let Some(id) = self.defer_blocks.pop() {
+            self.build_defer_blocks(id);
+        }
 
         // it's possible for a basic block in the function to be empty if all other blocks
         // terminated without jumping to it. For example if every arm in a match statement
@@ -716,13 +754,132 @@ impl FunctionBuilder {
         MirFunction {
             name: self.name,
             params: self.params.clone(),
-            type_spec: self.type_spec.clone(),
+            return_type: self.return_type.clone(),
             blocks: valid_blocks,
             entry_block: BlockId::from_u32(1),
             local_map: self.local_map.clone(),
             locals: self.locals.clone(),
             instructions: self.instructions.clone(),
             value_types: self.value_types.clone(),
+        }
+    }
+
+    /// update the CFG so that defer blocks are correctly stacked and called in the place of any
+    /// return's or other unwinding operators like panics
+    fn build_defer_blocks(&mut self, first_block: BlockId) {
+        let merge_block = self.add_block();
+        let defer_local = match self.return_type.clone() {
+            TypeSpec::Unit => {
+                self.set_terminator(merge_block, Terminator::Return { value: None });
+                None
+            }
+            ts => {
+                let defer_local = self.add_local(str_store::DEFER, ts.clone());
+                let value = self.emit_load(merge_block, Place::local(defer_local), ts);
+                self.set_terminator(merge_block, Terminator::Return { value: Some(value) });
+                Some(defer_local)
+            }
+        };
+
+        // string all the defer blocks together so that each defer block jumps to the next in LIFO
+        // order
+        let mut block_id = first_block;
+        while let Some(next_block) = self.defer_blocks.pop() {
+            self.update_defer_block(block_id, next_block);
+            block_id = next_block;
+        }
+
+        self.update_defer_block(block_id, merge_block);
+
+        // update all other blocks in the builder so that return instructions instead write to the
+        // defer_local and then jump to the first block
+
+        let mut block_stack = SetStack::new();
+        block_stack.push(BlockId::from_u32(1));
+        while let Some(b) = block_stack.pop() {
+            let block = self.get_block(b);
+            match &block.terminator {
+                Some(Terminator::Return { value }) => match (defer_local, value) {
+                    (Some(local), Some(value)) => {
+                        self.emit_store(b, Place::local(local), *value);
+                        self.update_terminator(
+                            b,
+                            Terminator::Jump {
+                                target: first_block,
+                            },
+                        );
+                    }
+                    (None, Some(_)) => panic!("missing defer_local to write to"),
+                    (Some(_), None) => panic!("missing return value"),
+                    (None, None) => {
+                        self.update_terminator(
+                            b,
+                            Terminator::Jump {
+                                target: first_block,
+                            },
+                        );
+                    }
+                },
+                Some(Terminator::Jump { target }) => block_stack.push(*target),
+                Some(Terminator::Branch {
+                    true_target,
+                    false_target,
+                    ..
+                }) => {
+                    block_stack.push(*true_target);
+                    block_stack.push(*false_target);
+                }
+                Some(Terminator::SwitchVariant { default, arms, .. }) => {
+                    for arm in arms {
+                        block_stack.push(arm.jump);
+                    }
+                    block_stack.push(*default);
+                }
+                Some(Terminator::Unreachable) => {
+                    // TODO: should this be converted to jump into the defer blocks? Is there any
+                    // situation where Unreachable means anything other than panic? We should
+                    // probably have a specific panic type to make this more clear since
+                    // technically unreachable should represent a distinct idea
+                }
+                None => panic!("missing terminator for block"),
+            }
+        }
+    }
+
+    fn update_defer_block(&mut self, block_id: BlockId, next_block: BlockId) {
+        let mut block_stack = SetStack::new();
+        block_stack.push(block_id);
+        while let Some(b) = block_stack.pop() {
+            let block = self.get_block(b);
+            match &block.terminator {
+                Some(Terminator::Return { .. }) => {
+                    panic!("can not return from defer blocks")
+                }
+                Some(Terminator::Jump { target }) => block_stack.push(*target),
+                Some(Terminator::Branch {
+                    true_target,
+                    false_target,
+                    ..
+                }) => {
+                    block_stack.push(*true_target);
+                    block_stack.push(*false_target);
+                }
+                Some(Terminator::SwitchVariant { default, arms, .. }) => {
+                    for arm in arms {
+                        block_stack.push(arm.jump);
+                    }
+                    block_stack.push(*default);
+                }
+                Some(Terminator::Unreachable) => {
+                    eprintln!(
+                        "TODO: this block should panic, stoping execution and stepping into the next branch"
+                    );
+                    self.update_terminator(b, Terminator::Jump { target: next_block });
+                }
+                None => {
+                    self.set_terminator(b, Terminator::Jump { target: next_block });
+                }
+            }
         }
     }
 }
