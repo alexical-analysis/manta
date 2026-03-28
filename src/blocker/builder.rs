@@ -36,12 +36,12 @@ impl BlockBuilder {
         self.terminator = Some(term);
     }
 
-    fn update_terminator(&mut self, term: Terminator) {
+    fn unset_terminator(&mut self) {
         if self.terminator.is_none() {
-            panic!("terminator was not set, can not update it")
+            panic!("terminator was not set, can not unset itit")
         }
 
-        self.terminator = Some(term)
+        self.terminator = None;
     }
 
     fn is_closed(&self) -> bool {
@@ -634,9 +634,9 @@ impl FunctionBuilder {
         block.set_terminator(term);
     }
 
-    pub fn update_terminator(&mut self, block_id: BlockId, term: Terminator) {
+    pub fn unset_terminator(&mut self, block_id: BlockId) {
         let block = self.get_block_mut(block_id);
-        block.update_terminator(term);
+        block.unset_terminator();
     }
 
     pub fn add_block(&mut self) -> BlockId {
@@ -727,6 +727,7 @@ impl FunctionBuilder {
             match block.terminator {
                 Terminator::Return { .. } => {}
                 Terminator::Unreachable => {}
+                Terminator::Panic => {}
                 Terminator::Jump { target } => {
                     block_stack.push(target);
                 }
@@ -801,18 +802,21 @@ impl FunctionBuilder {
             match &block.terminator {
                 Some(Terminator::Return { value }) => match (defer_local, value) {
                     (Some(local), Some(value)) => {
-                        self.emit_store(b, Place::local(local), *value);
-                        self.update_terminator(
+                        let value = *value;
+                        self.unset_terminator(b);
+                        self.emit_store(b, Place::local(local), value);
+                        self.set_terminator(
                             b,
                             Terminator::Jump {
                                 target: first_block,
                             },
                         );
                     }
-                    (None, Some(_)) => panic!("missing defer_local to write to"),
-                    (Some(_), None) => panic!("missing return value"),
+                    (None, Some(_)) => unreachable!("caught by type checking"),
+                    (Some(_), None) => unreachable!("caught by type checking"),
                     (None, None) => {
-                        self.update_terminator(
+                        self.unset_terminator(b);
+                        self.set_terminator(
                             b,
                             Terminator::Jump {
                                 target: first_block,
@@ -835,12 +839,12 @@ impl FunctionBuilder {
                     }
                     block_stack.push(*default);
                 }
-                Some(Terminator::Unreachable) => {
-                    // TODO: should this be converted to jump into the defer blocks? Is there any
-                    // situation where Unreachable means anything other than panic? We should
-                    // probably have a specific panic type to make this more clear since
-                    // technically unreachable should represent a distinct idea
+                Some(Terminator::Panic) => {
+                    eprintln!(
+                        "leaving panics alone for now since we're only supporting defers for normal returns to start"
+                    )
                 }
+                Some(Terminator::Unreachable) => {}
                 None => panic!("missing terminator for block"),
             }
         }
@@ -870,12 +874,12 @@ impl FunctionBuilder {
                     }
                     block_stack.push(*default);
                 }
-                Some(Terminator::Unreachable) => {
+                Some(Terminator::Panic) => {
                     eprintln!(
-                        "TODO: this block should panic, stoping execution and stepping into the next branch"
-                    );
-                    self.update_terminator(b, Terminator::Jump { target: next_block });
+                        "leaving panics alone for now since we're only supporting defers for normal returns to start"
+                    )
                 }
+                Some(Terminator::Unreachable) => {}
                 None => {
                     self.set_terminator(b, Terminator::Jump { target: next_block });
                 }

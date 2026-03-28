@@ -262,8 +262,7 @@ impl<'a> Blocker<'a> {
                 // info so that we panic with a syntax error or something?
                 self.fn_builder
                     .emit_call(block_id, str_store::PANIC, vec![], TypeSpec::Unit);
-                self.fn_builder
-                    .set_terminator(block_id, Terminator::Unreachable);
+                self.fn_builder.set_terminator(block_id, Terminator::Panic);
 
                 // return a None because this block is closed and there's no more blocks that we know
                 // about at this level
@@ -408,6 +407,11 @@ impl<'a> Blocker<'a> {
             Node::Call { .. } => {
                 // Calls are technically expressions but because they can result in side effects they
                 // need to be handled as statements as well
+                self.block_expression(block_id, node_id);
+                Some(block_id)
+            }
+            Node::Free { .. } => {
+                // Same as call
                 self.block_expression(block_id, node_id);
                 Some(block_id)
             }
