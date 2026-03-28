@@ -99,19 +99,26 @@
         },
         {
           "block_args": [],
-          "instructions": [],
+          "instructions": [
+            5,
+            6,
+            7,
+            8
+          ],
           "terminator": {
             "Return": {
-              "value": 0
+              "value": 8
             }
           }
         },
         {
           "block_args": [],
-          "instructions": [],
+          "instructions": [
+            4
+          ],
           "terminator": {
             "Return": {
-              "value": 0
+              "value": 4
             }
           }
         }
@@ -140,12 +147,75 @@
             "lhs": 1,
             "rhs": 2
           }
+        },
+        {
+          "MakeVariant": {
+            "tag": {
+              "ConstUInt": 1
+            },
+            "payload": null
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "SDiv": {
+            "lhs": 5,
+            "rhs": 6
+          }
+        },
+        {
+          "MakeVariant": {
+            "tag": {
+              "ConstUInt": 0
+            },
+            "payload": 7
+          }
         }
       ],
       "value_types": [
         "I32",
         "I32",
-        "Bool"
+        "Bool",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "I32",
+              null
+            ]
+          }
+        },
+        "I32",
+        "I32",
+        "I32",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "I32",
+              null
+            ]
+          }
+        }
       ]
     },
     {

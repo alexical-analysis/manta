@@ -558,7 +558,7 @@ impl<'a> Blocker<'a> {
 
             match pattern {
                 PatternNode::EnumVariant(pat) => {
-                    let variant_id = get_variant_id(target_ts, pat.variant);
+                    let variant_id = get_variant_tag(target_ts, pat.variant);
 
                     let body = *body;
                     match pat.payload {
@@ -901,12 +901,19 @@ impl<'a> Blocker<'a> {
                 self.fn_builder.emit_call(block_id, name, arg_values, ts)
             }
             Node::EnumConstructor {
-                target,
-                variant,
-                payload,
+                variant, payload, ..
             } => {
-                // TODO:
-                ValueId::nil()
+                let ts = self
+                    .node_tree
+                    .get_type(node_id)
+                    .expect("missing type for enum");
+
+                let tag_val = get_variant_tag(ts, variant);
+                let payload_val = payload.map(|n| self.block_expression(block_id, n));
+
+                let ts = lower_type_spec(ts);
+                self.fn_builder
+                    .emit_make_variant(block_id, tag_val, payload_val, ts)
             }
             Node::Index { .. } => {
                 // TODO: slice indexing should be desugared to a core lib call before this point
@@ -1132,7 +1139,7 @@ fn tag_size_for(variant_count: usize) -> TagSize {
     }
 }
 
-fn get_variant_id(type_spec: &hir::TypeSpec, variant_name: StrID) -> ConstValue {
+fn get_variant_tag(type_spec: &hir::TypeSpec, variant_name: StrID) -> ConstValue {
     match typer::resolve_type(type_spec) {
         hir::TypeSpec::Enum(e) => {
             for (i, v) in e.variants.iter().enumerate() {

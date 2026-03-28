@@ -145,10 +145,12 @@
         },
         {
           "block_args": [],
-          "instructions": [],
+          "instructions": [
+            14
+          ],
           "terminator": {
             "Return": {
-              "value": 0
+              "value": 14
             }
           }
         },
@@ -185,11 +187,13 @@
           "block_args": [],
           "instructions": [
             10,
-            11
+            11,
+            12,
+            13
           ],
           "terminator": {
             "Return": {
-              "value": 0
+              "value": 13
             }
           }
         },
@@ -323,6 +327,32 @@
             },
             "value": 10
           }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "MakeVariant": {
+            "tag": {
+              "ConstUInt": 0
+            },
+            "payload": 12
+          }
+        },
+        {
+          "MakeVariant": {
+            "tag": {
+              "ConstUInt": 1
+            },
+            "payload": null
+          }
         }
       ],
       "value_types": [
@@ -344,7 +374,34 @@
         "OpaquePtr",
         "Unit",
         "I32",
-        "Unit"
+        "Unit",
+        {
+          "Ptr": "I32"
+        },
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              {
+                "Ptr": "I32"
+              },
+              null,
+              null
+            ]
+          }
+        },
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              {
+                "Ptr": "I32"
+              },
+              null,
+              null
+            ]
+          }
+        }
       ]
     },
     {
