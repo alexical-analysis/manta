@@ -101,6 +101,10 @@ fn instruction_inputs(inst: &Instruction) -> Vec<ValueId> {
         Instruction::CallTry { args, .. } => args.clone(),
         Instruction::VariantGetPayload { src, .. } => vec![*src],
         Instruction::VariantGetTag { src } => vec![*src],
+        Instruction::MakeVariant { payload, .. } => match payload {
+            Some(p) => vec![*p],
+            None => vec![],
+        },
         Instruction::Move { src, .. } => vec![*src],
         Instruction::Copy { src, .. } => vec![*src],
         Instruction::DropLocal { .. } => vec![],
@@ -564,6 +568,16 @@ impl FunctionBuilder {
                 variant_id,
             },
         )
+    }
+
+    pub fn emit_make_variant(
+        &mut self,
+        block: BlockId,
+        tag: ConstValue,
+        payload: Option<ValueId>,
+        enum_type: TypeSpec,
+    ) -> ValueId {
+        self.add_instruction(block, enum_type, Instruction::MakeVariant { tag, payload })
     }
 
     /// Emit a load from a place, producing a value of `type_spec`.

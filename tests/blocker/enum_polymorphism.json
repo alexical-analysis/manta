@@ -380,10 +380,7 @@
       ],
       "blocks": [
         {
-          "block_args": [
-            0,
-            0
-          ],
+          "block_args": [],
           "instructions": [
             1,
             2,
@@ -396,7 +393,11 @@
             9,
             10,
             11,
-            12
+            12,
+            13,
+            14,
+            15,
+            16
           ],
           "terminator": {
             "Return": {
@@ -408,6 +409,21 @@
       "entry_block": 1,
       "instructions": [
         {
+          "Const": {
+            "value": {
+              "ConstInt": 10
+            }
+          }
+        },
+        {
+          "MakeVariant": {
+            "tag": {
+              "ConstUInt": 1
+            },
+            "payload": 1
+          }
+        },
+        {
           "Store": {
             "place": {
               "base": {
@@ -415,7 +431,7 @@
               },
               "projections": []
             },
-            "value": 0
+            "value": 2
           }
         },
         {
@@ -432,7 +448,7 @@
           "Call": {
             "func": 22,
             "args": [
-              2
+              4
             ]
           }
         },
@@ -444,7 +460,7 @@
               },
               "projections": []
             },
-            "value": 3
+            "value": 5
           }
         },
         {
@@ -461,8 +477,23 @@
           "Call": {
             "func": 13,
             "args": [
-              5
+              7
             ]
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 3
+            }
+          }
+        },
+        {
+          "MakeVariant": {
+            "tag": {
+              "ConstUInt": 0
+            },
+            "payload": 9
           }
         },
         {
@@ -473,7 +504,7 @@
               },
               "projections": []
             },
-            "value": 0
+            "value": 10
           }
         },
         {
@@ -490,7 +521,7 @@
           "Call": {
             "func": 22,
             "args": [
-              8
+              12
             ]
           }
         },
@@ -502,7 +533,7 @@
               },
               "projections": []
             },
-            "value": 9
+            "value": 13
           }
         },
         {
@@ -519,12 +550,22 @@
           "Call": {
             "func": 13,
             "args": [
-              11
+              15
             ]
           }
         }
       ],
       "value_types": [
+        "F64",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "F64",
+              "F64"
+            ]
+          }
+        },
         "Unit",
         {
           "Enum": {
@@ -539,6 +580,16 @@
         "Unit",
         "F64",
         "Unit",
+        "F64",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "F64",
+              "F64"
+            ]
+          }
+        },
         "Unit",
         {
           "Enum": {

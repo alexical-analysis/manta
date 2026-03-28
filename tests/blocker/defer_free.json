@@ -50,17 +50,40 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [],
+          "instructions": [
+            1
+          ],
           "terminator": {
             "Return": {
-              "value": 0
+              "value": 1
             }
           }
         }
       ],
       "entry_block": 1,
-      "instructions": [],
-      "value_types": []
+      "instructions": [
+        {
+          "MakeVariant": {
+            "tag": {
+              "ConstUInt": 1
+            },
+            "payload": null
+          }
+        }
+      ],
+      "value_types": [
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              {
+                "Struct": []
+              },
+              null
+            ]
+          }
+        }
+      ]
     },
     {
       "name": 21,
@@ -130,17 +153,38 @@
       "blocks": [
         {
           "block_args": [],
-          "instructions": [],
+          "instructions": [
+            1
+          ],
           "terminator": {
             "Return": {
-              "value": 0
+              "value": 1
             }
           }
         }
       ],
       "entry_block": 1,
-      "instructions": [],
-      "value_types": []
+      "instructions": [
+        {
+          "MakeVariant": {
+            "tag": {
+              "ConstUInt": 1
+            },
+            "payload": null
+          }
+        }
+      ],
+      "value_types": [
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "U64",
+              null
+            ]
+          }
+        }
+      ]
     },
     {
       "name": 32,
@@ -301,12 +345,12 @@
         {
           "block_args": [],
           "instructions": [
-            9,
-            10
+            11,
+            12
           ],
           "terminator": {
             "Branch": {
-              "cond": 10,
+              "cond": 12,
               "true_target": 6,
               "false_target": 7
             }
@@ -314,12 +358,12 @@
         },
         {
           "block_args": [
-            10
+            12
           ],
           "instructions": [
-            14,
-            15,
-            16
+            16,
+            17,
+            18
           ],
           "terminator": {
             "Jump": {
@@ -330,14 +374,14 @@
         {
           "block_args": [],
           "instructions": [
-            17,
-            18,
             19,
-            20
+            20,
+            21,
+            22
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 20,
+              "discriminant": 22,
               "default": 10,
               "arms": [
                 {
@@ -352,13 +396,13 @@
         },
         {
           "block_args": [
-            19
+            21
           ],
           "instructions": [
-            21,
-            22,
             23,
-            24
+            24,
+            25,
+            26
           ],
           "terminator": {
             "Jump": {
@@ -368,34 +412,38 @@
         },
         {
           "block_args": [],
-          "instructions": [],
+          "instructions": [
+            30
+          ],
           "terminator": {
             "Return": {
-              "value": 0
+              "value": 30
             }
           }
         },
         {
           "block_args": [
-            19
+            21
           ],
           "instructions": [
-            25
+            27,
+            28,
+            29
           ],
           "terminator": {
             "Return": {
-              "value": 0
+              "value": 29
             }
           }
         },
         {
           "block_args": [
-            10
+            12
           ],
           "instructions": [
-            11,
-            12,
-            13
+            13,
+            14,
+            15
           ],
           "terminator": {
             "Jump": {
@@ -408,11 +456,13 @@
             2
           ],
           "instructions": [
-            8
+            8,
+            9,
+            10
           ],
           "terminator": {
             "Return": {
-              "value": 0
+              "value": 10
             }
           }
         }
@@ -494,6 +544,24 @@
           }
         },
         {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 4
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "MakeVariant": {
+            "tag": {
+              "ConstUInt": 1
+            },
+            "payload": 9
+          }
+        },
+        {
           "Const": {
             "value": {
               "ConstStruct": [
@@ -512,7 +580,7 @@
         },
         {
           "Alloc": {
-            "meta_type": 9
+            "meta_type": 11
           }
         },
         {
@@ -523,7 +591,7 @@
               },
               "projections": []
             },
-            "value": 10
+            "value": 12
           }
         },
         {
@@ -544,7 +612,7 @@
               },
               "projections": []
             },
-            "value": 12
+            "value": 14
           }
         },
         {
@@ -555,7 +623,7 @@
               },
               "projections": []
             },
-            "value": 10
+            "value": 12
           }
         },
         {
@@ -572,7 +640,7 @@
           "Call": {
             "func": 18446744073709551601,
             "args": [
-              15
+              17
             ]
           }
         },
@@ -602,19 +670,19 @@
           "Call": {
             "func": 24,
             "args": [
-              17,
-              18
+              19,
+              20
             ]
           }
         },
         {
           "VariantGetTag": {
-            "src": 19
+            "src": 21
           }
         },
         {
           "VariantGetPayload": {
-            "src": 19,
+            "src": 21,
             "variant_id": {
               "ConstUInt": 0
             }
@@ -628,7 +696,7 @@
               },
               "projections": []
             },
-            "value": 21
+            "value": 23
           }
         },
         {
@@ -649,7 +717,7 @@
               },
               "projections": []
             },
-            "value": 23
+            "value": 25
           }
         },
         {
@@ -660,7 +728,33 @@
               },
               "projections": []
             },
-            "value": 19
+            "value": 21
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 10
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "MakeVariant": {
+            "tag": {
+              "ConstUInt": 2
+            },
+            "payload": 28
+          }
+        },
+        {
+          "MakeVariant": {
+            "tag": {
+              "ConstUInt": 0
+            },
+            "payload": null
           }
         }
       ],
@@ -687,6 +781,45 @@
         },
         "Unit",
         "Unit",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              {
+                "Struct": []
+              },
+              null
+            ]
+          }
+        },
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              null,
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    {
+                      "Struct": []
+                    },
+                    null
+                  ]
+                }
+              },
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    "U64",
+                    null
+                  ]
+                }
+              }
+            ]
+          }
+        },
         {
           "Struct": [
             "U64",
@@ -725,7 +858,72 @@
         "Unit",
         "U64",
         "Unit",
-        "Unit"
+        "Unit",
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              "U64",
+              null
+            ]
+          }
+        },
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              null,
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    {
+                      "Struct": []
+                    },
+                    null
+                  ]
+                }
+              },
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    "U64",
+                    null
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Enum": {
+            "tag_size": "U8",
+            "variants": [
+              null,
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    {
+                      "Struct": []
+                    },
+                    null
+                  ]
+                }
+              },
+              {
+                "Enum": {
+                  "tag_size": "U8",
+                  "variants": [
+                    "U64",
+                    null
+                  ]
+                }
+              }
+            ]
+          }
+        }
       ]
     }
   ]

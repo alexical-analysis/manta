@@ -56,6 +56,8 @@ pub enum TypeSpec {
     /// are more than 256 variants
     Enum {
         tag_size: TagSize,
+        // TODO: this is optional because the payload might be missing but really we should just
+        // use a unit type here so we should fix that
         variants: Vec<Option<TypeSpec>>,
     },
 }
@@ -319,6 +321,12 @@ pub enum Instruction {
     /// Extracts the discriminant tag from an enum value as an integer.
     VariantGetTag {
         src: ValueId,
+    },
+
+    /// MakeVariant { tag, payload? } -> ValueId (type: Enum { ... })
+    MakeVariant {
+        tag: ConstValue, // ConstUInt(variant_id)
+        payload: Option<ValueId>,
     },
 
     /// move(dst_local, src_value) — produces Unit
