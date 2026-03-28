@@ -103,7 +103,7 @@ impl<'a> Blocker<'a> {
                 self.fn_builder = fn_builder;
 
                 let block_id = self.fn_builder.add_block();
-                self.block_statement(body, block_id);
+                self.block_statement(block_id, body);
 
                 let mir_function = self.fn_builder.build_mir_function();
                 Some(mir_function)
@@ -243,7 +243,7 @@ impl<'a> Blocker<'a> {
         }
     }
 
-    fn block_statement(&mut self, node_id: NodeID, block_id: BlockId) -> Option<BlockId> {
+    fn block_statement(&mut self, block_id: BlockId, node_id: NodeID) -> Option<BlockId> {
         if self.fn_builder.is_block_closed(block_id) {
             // if the block is closed just skip all the remaining instructions as they are no longer
             // reachable, trying to adding them would cause a panic
@@ -272,7 +272,7 @@ impl<'a> Blocker<'a> {
             Node::Block { statements } => {
                 let mut current_block = block_id;
                 for stmt in statements {
-                    match self.block_statement(stmt, current_block) {
+                    match self.block_statement(current_block, stmt) {
                         Some(b) => current_block = b,
                         None => return None,
                     }
@@ -312,7 +312,11 @@ impl<'a> Blocker<'a> {
                 None
             }
             Node::Defer { block } => {
-                // TODO:
+                let defer_block = self.fn_builder.add_defer_block();
+                self.block_statement(defer_block, block);
+
+                // need to return the original block here because defer blocks are only added to
+                // the CFG graph when we build the final MIR function
                 Some(block_id)
             }
             Node::If {
@@ -327,7 +331,7 @@ impl<'a> Blocker<'a> {
                 let true_block_id = self.fn_builder.add_block();
                 let merge_block_id = self.fn_builder.add_block();
 
-                let block = self.block_statement(then_block, true_block_id);
+                let block = self.block_statement(true_block_id, then_block);
                 if let Some(b) = block {
                     self.fn_builder.set_terminator(
                         b,
@@ -340,7 +344,7 @@ impl<'a> Blocker<'a> {
                 let mut false_block_id = merge_block_id;
                 if let Some(e) = else_block {
                     false_block_id = self.fn_builder.add_block();
-                    let block = self.block_statement(e, false_block_id);
+                    let block = self.block_statement(false_block_id, e);
                     if let Some(b) = block {
                         self.fn_builder.set_terminator(
                             b,
@@ -440,7 +444,7 @@ impl<'a> Blocker<'a> {
                     // Int literal patterns can never have a payload so this is pretty easy
                     let body = *body;
                     let i = *i;
-                    let block = self.block_statement(body, arm_block);
+                    let block = self.block_statement(arm_block, body);
                     if let Some(b) = block {
                         self.fn_builder.set_terminator(
                             b,
@@ -474,7 +478,7 @@ impl<'a> Blocker<'a> {
                         );
                     }
 
-                    let block = self.block_statement(body, arm_block);
+                    let block = self.block_statement(arm_block, body);
                     if let Some(b) = block {
                         self.fn_builder.set_terminator(
                             b,
@@ -589,7 +593,7 @@ impl<'a> Blocker<'a> {
                         }
                     }
 
-                    let block = self.block_statement(body, arm_block);
+                    let block = self.block_statement(arm_block, body);
                     if let Some(b) = block {
                         self.fn_builder.set_terminator(
                             b,
@@ -617,7 +621,7 @@ impl<'a> Blocker<'a> {
                         );
                     }
 
-                    let block = self.block_statement(body, arm_block);
+                    let block = self.block_statement(arm_block, body);
                     if let Some(b) = block {
                         self.fn_builder.set_terminator(
                             b,
@@ -724,7 +728,7 @@ impl<'a> Blocker<'a> {
                         );
                     }
 
-                    let block = self.block_statement(body, arm_block);
+                    let block = self.block_statement(arm_block, body);
                     if let Some(b) = block {
                         self.fn_builder.set_terminator(
                             b,
@@ -750,7 +754,7 @@ impl<'a> Blocker<'a> {
                         );
                     }
 
-                    let block = self.block_statement(body, arm_block);
+                    let block = self.block_statement(arm_block, body);
                     if let Some(b) = block {
                         self.fn_builder.set_terminator(
                             b,
@@ -1361,13 +1365,13 @@ mod tests {
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     params: vec![],
-                    type_spec: TypeSpec::Unit,
+                    return_type: TypeSpec::Unit,
                     value_types: vec![],
                 },
                 functions: vec![MirFunction {
                     name: StrID::from_usize(1),
                     params: vec![],
-                    type_spec: TypeSpec::I32,
+                    return_type: TypeSpec::I32,
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![BasicBlock {
@@ -1421,7 +1425,7 @@ mod tests {
                 init: MirFunction {
                     name: str_store::INIT,
                     params: vec![],
-                    type_spec: TypeSpec::Unit,
+                    return_type: TypeSpec::Unit,
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![BasicBlock {
@@ -1436,7 +1440,7 @@ mod tests {
                 functions: vec![MirFunction {
                     name: StrID::from_usize(1),
                     params: vec![],
-                    type_spec: TypeSpec::Bool,
+                    return_type: TypeSpec::Bool,
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![BasicBlock {
@@ -1490,7 +1494,7 @@ mod tests {
                 init: MirFunction {
                     name: str_store::INIT,
                     params: vec![],
-                    type_spec: TypeSpec::Unit,
+                    return_type: TypeSpec::Unit,
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![BasicBlock {
@@ -1505,7 +1509,7 @@ mod tests {
                 functions: vec![MirFunction {
                     name: StrID::from_usize(1),
                     params: vec![],
-                    type_spec: TypeSpec::Bool,
+                    return_type: TypeSpec::Bool,
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![BasicBlock {
@@ -1559,7 +1563,7 @@ mod tests {
                 init: MirFunction {
                     name: str_store::INIT,
                     params: vec![],
-                    type_spec: TypeSpec::Unit,
+                    return_type: TypeSpec::Unit,
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![BasicBlock {
@@ -1574,7 +1578,7 @@ mod tests {
                 functions: vec![MirFunction {
                     name: StrID::from_usize(1),
                     params: vec![],
-                    type_spec: TypeSpec::F64,
+                    return_type: TypeSpec::F64,
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![BasicBlock {
@@ -1628,7 +1632,7 @@ mod tests {
                 init: MirFunction {
                     name: str_store::INIT,
                     params: vec![],
-                    type_spec: TypeSpec::Unit,
+                    return_type: TypeSpec::Unit,
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![BasicBlock {
@@ -1643,7 +1647,7 @@ mod tests {
                 functions: vec![MirFunction {
                     name: StrID::from_usize(1),
                     params: vec![],
-                    type_spec: TypeSpec::String,
+                    return_type: TypeSpec::String,
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![BasicBlock {
