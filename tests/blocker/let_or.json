@@ -300,37 +300,6 @@
             }
           },
           "name": 18446744073709551602
-        },
-        {
-          "type_spec": {
-            "Enum": {
-              "tag_size": "U8",
-              "variants": [
-                "String",
-                {
-                  "Enum": {
-                    "tag_size": "U8",
-                    "variants": [
-                      {
-                        "Struct": []
-                      },
-                      null
-                    ]
-                  }
-                },
-                {
-                  "Enum": {
-                    "tag_size": "U8",
-                    "variants": [
-                      "String",
-                      null
-                    ]
-                  }
-                }
-              ]
-            }
-          },
-          "name": 18446744073709551594
         }
       ],
       "blocks": [
@@ -414,35 +383,11 @@
           "block_args": [],
           "instructions": [
             23,
-            24,
-            28
-          ],
-          "terminator": {
-            "Jump": {
-              "target": 5
-            }
-          }
-        },
-        {
-          "block_args": [],
-          "instructions": [
-            11,
-            12
-          ],
-          "terminator": {
-            "Jump": {
-              "target": 9
-            }
-          }
-        },
-        {
-          "block_args": [],
-          "instructions": [
-            25
+            24
           ],
           "terminator": {
             "Return": {
-              "value": 25
+              "value": 24
             }
           }
         },
@@ -453,12 +398,11 @@
           "instructions": [
             20,
             21,
-            22,
-            27
+            22
           ],
           "terminator": {
-            "Jump": {
-              "target": 5
+            "Return": {
+              "value": 22
             }
           }
         },
@@ -469,12 +413,11 @@
           "instructions": [
             8,
             9,
-            10,
-            26
+            10
           ],
           "terminator": {
-            "Jump": {
-              "target": 5
+            "Return": {
+              "value": 10
             }
           }
         }
@@ -700,49 +643,6 @@
             },
             "payload": 23
           }
-        },
-        {
-          "Load": {
-            "place": {
-              "base": {
-                "Local": 8
-              },
-              "projections": []
-            }
-          }
-        },
-        {
-          "Store": {
-            "place": {
-              "base": {
-                "Local": 8
-              },
-              "projections": []
-            },
-            "value": 10
-          }
-        },
-        {
-          "Store": {
-            "place": {
-              "base": {
-                "Local": 8
-              },
-              "projections": []
-            },
-            "value": 22
-          }
-        },
-        {
-          "Store": {
-            "place": {
-              "base": {
-                "Local": 8
-              },
-              "projections": []
-            },
-            "value": 24
-          }
         }
       ],
       "value_types": [
@@ -894,38 +794,7 @@
               }
             ]
           }
-        },
-        {
-          "Enum": {
-            "tag_size": "U8",
-            "variants": [
-              "String",
-              {
-                "Enum": {
-                  "tag_size": "U8",
-                  "variants": [
-                    {
-                      "Struct": []
-                    },
-                    null
-                  ]
-                }
-              },
-              {
-                "Enum": {
-                  "tag_size": "U8",
-                  "variants": [
-                    "String",
-                    null
-                  ]
-                }
-              }
-            ]
-          }
-        },
-        "Unit",
-        "Unit",
-        "Unit"
+        }
       ]
     },
     {

@@ -269,6 +269,8 @@ impl<'a> Blocker<'a> {
                 None
             }
             Node::Block { statements } => {
+                self.fn_builder.open_scope(block_id);
+
                 let mut current_block = block_id;
                 for stmt in statements {
                     match self.block_statement(current_block, stmt) {
@@ -277,7 +279,9 @@ impl<'a> Blocker<'a> {
                     }
                 }
 
-                Some(current_block)
+                let merge_block = self.fn_builder.close_scope(current_block);
+
+                Some(merge_block)
             }
             Node::VarDecl { ident } => {
                 let name = self.get_ident_name(ident);
@@ -1437,7 +1441,7 @@ mod tests {
                         instructions: vec![],
                         terminator: Terminator::Return { value: None },
                     }],
-                    entry_block: BlockId::from_u32(1),
+                    entry_block: BlockId::entry_block(),
                     instructions: vec![],
                     value_types: vec![],
                 },
@@ -1454,7 +1458,7 @@ mod tests {
                             value: Some(ValueId::from_usize(1))
                         },
                     }],
-                    entry_block: BlockId::from_u32(1),
+                    entry_block: BlockId::entry_block(),
                     instructions: vec![Instruction::Const {
                         value: ConstValue::ConstBool(true)
                     }],
@@ -1506,7 +1510,7 @@ mod tests {
                         instructions: vec![],
                         terminator: Terminator::Return { value: None },
                     }],
-                    entry_block: BlockId::from_u32(1),
+                    entry_block: BlockId::entry_block(),
                     instructions: vec![],
                     value_types: vec![],
                 },
@@ -1523,7 +1527,7 @@ mod tests {
                             value: Some(ValueId::from_usize(1))
                         },
                     }],
-                    entry_block: BlockId::from_u32(1),
+                    entry_block: BlockId::entry_block(),
                     instructions: vec![Instruction::Const {
                         value: ConstValue::ConstBool(false)
                     }],
@@ -1575,7 +1579,7 @@ mod tests {
                         instructions: vec![],
                         terminator: Terminator::Return { value: None },
                     }],
-                    entry_block: BlockId::from_u32(1),
+                    entry_block: BlockId::entry_block(),
                     instructions: vec![],
                     value_types: vec![],
                 },
@@ -1592,7 +1596,7 @@ mod tests {
                             value: Some(ValueId::from_usize(1))
                         },
                     }],
-                    entry_block: BlockId::from_u32(1),
+                    entry_block: BlockId::entry_block(),
                     instructions: vec![Instruction::Const {
                         value: ConstValue::ConstFloat(3.45)
                     }],
@@ -1644,7 +1648,7 @@ mod tests {
                         instructions: vec![],
                         terminator: Terminator::Return { value: None },
                     }],
-                    entry_block: BlockId::from_u32(1),
+                    entry_block: BlockId::entry_block(),
                     instructions: vec![],
                     value_types: vec![],
                 },
@@ -1661,7 +1665,7 @@ mod tests {
                             value: Some(ValueId::from_usize(1))
                         },
                     }],
-                    entry_block: BlockId::from_u32(1),
+                    entry_block: BlockId::entry_block(),
                     instructions: vec![Instruction::Const {
                         value: ConstValue::ConstString(StrID::from_usize(99))
                     }],

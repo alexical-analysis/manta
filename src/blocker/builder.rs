@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, HashSet};
 use crate::hir::NodeID;
 use crate::mir::{
     BasicBlock, BlockId, ConstValue, Instruction, Local, LocalId, MirFunction, Place, Projection,
-    TagSize, Terminator, TypeSpec, ValueId,
+    SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
 };
 use crate::str_store::{self, StrID};
 
@@ -171,6 +171,21 @@ impl SetStack {
     }
 }
 
+#[derive(Clone)]
+struct Scope {
+    block: BlockId,
+    defer_blocks: Vec<BlockId>,
+}
+
+impl Scope {
+    fn new(id: BlockId) -> Self {
+        return Scope {
+            block: id,
+            defer_blocks: vec![],
+        };
+    }
+}
+
 pub struct FunctionBuilder {
     name: StrID,
     params: Vec<LocalId>,
@@ -178,7 +193,7 @@ pub struct FunctionBuilder {
     locals: Vec<Local>, // Indexed by LocalId
     local_map: BTreeMap<NodeID, LocalId>,
     blocks: Vec<BlockBuilder>, // Indexed by BlockId
-    defer_blocks: Vec<BlockId>,
+    scope: Vec<Scope>,
     instructions: Vec<Instruction>, // Flat instruction array, indexed by ValueId
     value_types: Vec<TypeSpec>,     // Parallel to instructions, indexed by ValueId
 }
@@ -192,7 +207,7 @@ impl FunctionBuilder {
             locals: vec![],
             local_map: BTreeMap::new(),
             blocks: vec![],
-            defer_blocks: vec![],
+            scope: vec![],
             instructions: vec![],
             value_types: vec![],
         }
@@ -646,14 +661,33 @@ impl FunctionBuilder {
         BlockId::from_u32(self.blocks.len() as u32)
     }
 
+    pub fn open_scope(&mut self, scope_block: BlockId) {
+        self.scope.push(Scope::new(scope_block))
+    }
+
     pub fn add_defer_block(&mut self) -> BlockId {
         let block_builder = BlockBuilder::new();
 
         self.blocks.push(block_builder);
         let id = BlockId::from_u32(self.blocks.len() as u32);
-        self.defer_blocks.push(id);
+        match self.scope.last_mut() {
+            Some(scope) => scope.defer_blocks.push(id),
+            None => panic!("not inside a scope"),
+        }
 
         id
+    }
+
+    pub fn close_scope(&mut self, block_id: BlockId) -> BlockId {
+        let mut scope = match self.scope.pop() {
+            Some(scope) => scope.clone(),
+            None => panic!("can not close scope, not inside a scope"),
+        };
+
+        match scope.defer_blocks.pop() {
+            Some(id) => self.build_defer_blocks(&mut scope, id),
+            None => block_id,
+        }
     }
 
     /// Return an existing local if one is created for the given node and create a new one otherwise
@@ -708,9 +742,9 @@ impl FunctionBuilder {
             panic!("function must have an entry block")
         };
 
-        if let Some(id) = self.defer_blocks.pop() {
-            self.build_defer_blocks(id);
-        }
+        // if let Some(id) = self.defer_blocks.pop() {
+        //     self.build_defer_blocks(id);
+        // }
 
         // it's possible for a basic block in the function to be empty if all other blocks
         // terminated without jumping to it. For example if every arm in a match statement
@@ -767,36 +801,45 @@ impl FunctionBuilder {
 
     /// update the CFG so that defer blocks are correctly stacked and called in the place of any
     /// return's or other unwinding operators like panics
-    fn build_defer_blocks(&mut self, first_block: BlockId) {
-        let merge_block = self.add_block();
-        let defer_local = match self.return_type.clone() {
-            TypeSpec::Unit => {
-                self.set_terminator(merge_block, Terminator::Return { value: None });
-                None
-            }
-            ts => {
-                let defer_local = self.add_local(str_store::DEFER, ts.clone());
-                let value = self.emit_load(merge_block, Place::local(defer_local), ts);
-                self.set_terminator(merge_block, Terminator::Return { value: Some(value) });
-                Some(defer_local)
-            }
-        };
-
+    fn build_defer_blocks(&mut self, scope: &mut Scope, first_block: BlockId) -> BlockId {
         // string all the defer blocks together so that each defer block jumps to the next in LIFO
         // order
         let mut block_id = first_block;
-        while let Some(next_block) = self.defer_blocks.pop() {
+        while let Some(next_block) = scope.defer_blocks.pop() {
             self.update_defer_block(block_id, next_block);
             block_id = next_block;
         }
 
+        let return_block = self.add_block();
+        let defer_local = match self.return_type.clone() {
+            TypeSpec::Unit => {
+                self.set_terminator(return_block, Terminator::Return { value: None });
+                None
+            }
+            ts => {
+                let defer_local = self.add_local(str_store::DEFER, ts.clone());
+                let value = self.emit_load(return_block, Place::local(defer_local), ts);
+                self.set_terminator(return_block, Terminator::Return { value: Some(value) });
+                Some(defer_local)
+            }
+        };
+        let return_defer = self.clone_defer_stack(first_block);
+        self.update_defer_block(return_defer, return_block);
+
+        let panic_block = self.add_block();
+        self.set_terminator(panic_block, Terminator::Panic);
+
+        let panic_defer = self.clone_defer_stack(first_block);
+        self.update_defer_block(panic_defer, panic_block);
+
+        let merge_block = self.add_block();
         self.update_defer_block(block_id, merge_block);
 
         // update all other blocks in the builder so that return instructions instead write to the
         // defer_local and then jump to the first block
 
         let mut block_stack = SetStack::new();
-        block_stack.push(BlockId::from_u32(1));
+        block_stack.push(scope.block);
         while let Some(b) = block_stack.pop() {
             let block = self.get_block(b);
             match &block.terminator {
@@ -808,7 +851,7 @@ impl FunctionBuilder {
                         self.set_terminator(
                             b,
                             Terminator::Jump {
-                                target: first_block,
+                                target: return_defer,
                             },
                         );
                     }
@@ -819,7 +862,7 @@ impl FunctionBuilder {
                         self.set_terminator(
                             b,
                             Terminator::Jump {
-                                target: first_block,
+                                target: return_defer,
                             },
                         );
                     }
@@ -840,14 +883,25 @@ impl FunctionBuilder {
                     block_stack.push(*default);
                 }
                 Some(Terminator::Panic) => {
-                    eprintln!(
-                        "leaving panics alone for now since we're only supporting defers for normal returns to start"
-                    )
+                    self.unset_terminator(b);
+                    self.set_terminator(
+                        b,
+                        Terminator::Jump {
+                            target: panic_defer,
+                        },
+                    );
                 }
                 Some(Terminator::Unreachable) => {}
-                None => panic!("missing terminator for block"),
+                None => self.set_terminator(
+                    b,
+                    Terminator::Jump {
+                        target: first_block,
+                    },
+                ),
             }
         }
+
+        merge_block
     }
 
     fn update_defer_block(&mut self, block_id: BlockId, next_block: BlockId) {
@@ -885,6 +939,207 @@ impl FunctionBuilder {
                 }
             }
         }
+    }
+
+    fn clone_defer_stack(&mut self, entry: BlockId) -> BlockId {
+        // Walk the chain and collect all block IDs
+        let mut chain_blocks: Vec<BlockId> = vec![];
+        let mut visited: HashSet<BlockId> = HashSet::new();
+        let mut stack = vec![entry];
+        while let Some(b) = stack.pop() {
+            if !visited.insert(b) {
+                continue;
+            }
+            chain_blocks.push(b);
+            let block = self.get_block(b).clone();
+            match &block.terminator {
+                Some(Terminator::Jump { target }) => stack.push(*target),
+                Some(Terminator::Branch {
+                    true_target,
+                    false_target,
+                    ..
+                }) => {
+                    stack.push(*true_target);
+                    stack.push(*false_target);
+                }
+                Some(Terminator::SwitchVariant { default, arms, .. }) => {
+                    stack.push(*default);
+                    for arm in arms {
+                        stack.push(arm.jump);
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        // Allocate new empty blocks and build old→new block mapping
+        let mut block_map: BTreeMap<BlockId, BlockId> = BTreeMap::new();
+        for &old_id in &chain_blocks {
+            block_map.insert(old_id, self.add_block());
+        }
+
+        // Re-emit instructions and remap terminators
+        let mut value_map: BTreeMap<ValueId, ValueId> = BTreeMap::new();
+        for &old_block_id in &chain_blocks {
+            let new_block_id = block_map[&old_block_id];
+            let old_block = self.get_block(old_block_id).clone();
+
+            for &old_value_id in &old_block.instructions {
+                let old_inst = self.instructions[old_value_id.as_idx()].clone();
+                let old_type = self.value_types[old_value_id.as_idx()].clone();
+                let new_inst = remap_instruction(old_inst, &value_map);
+                let new_value_id = self.add_instruction(new_block_id, old_type, new_inst);
+                value_map.insert(old_value_id, new_value_id);
+            }
+
+            if let Some(term) = old_block.terminator {
+                let new_term = remap_terminator(term, &block_map, &value_map);
+                self.set_terminator(new_block_id, new_term);
+            }
+        }
+
+        block_map[&entry]
+    }
+}
+
+fn remap_value(v: ValueId, value_map: &BTreeMap<ValueId, ValueId>) -> ValueId {
+    *value_map.get(&v).unwrap_or(&v)
+}
+
+fn remap_place(place: Place, value_map: &BTreeMap<ValueId, ValueId>) -> Place {
+    Place {
+        projections: place
+            .projections
+            .into_iter()
+            .map(|p| match p {
+                Projection::Index(v) => Projection::Index(remap_value(v, value_map)),
+                other => other,
+            })
+            .collect(),
+        ..place
+    }
+}
+
+fn remap_instruction(inst: Instruction, value_map: &BTreeMap<ValueId, ValueId>) -> Instruction {
+    let r = |v| remap_value(v, value_map);
+    match inst {
+        Instruction::Const { .. } => inst,
+        Instruction::Load { place } => Instruction::Load {
+            place: remap_place(place, value_map),
+        },
+        Instruction::Store { place, value } => Instruction::Store {
+            place: remap_place(place, value_map),
+            value: r(value),
+        },
+        Instruction::AddressOf { place } => Instruction::AddressOf {
+            place: remap_place(place, value_map),
+        },
+        Instruction::Call { func, args } => Instruction::Call {
+            func,
+            args: args.into_iter().map(r).collect(),
+        },
+        Instruction::CallTry { func, args, handler } => Instruction::CallTry {
+            func,
+            args: args.into_iter().map(r).collect(),
+            handler,
+        },
+        Instruction::MakeVariant { tag, payload } => Instruction::MakeVariant {
+            tag,
+            payload: payload.map(r),
+        },
+        Instruction::VariantGetTag { src } => Instruction::VariantGetTag { src: r(src) },
+        Instruction::VariantGetPayload { src, variant_id } => Instruction::VariantGetPayload {
+            src: r(src),
+            variant_id,
+        },
+        Instruction::Add { lhs, rhs } => Instruction::Add { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::Sub { lhs, rhs } => Instruction::Sub { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::Mul { lhs, rhs } => Instruction::Mul { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::SDiv { lhs, rhs } => Instruction::SDiv { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::UDiv { lhs, rhs } => Instruction::UDiv { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::SMod { lhs, rhs } => Instruction::SMod { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::UMod { lhs, rhs } => Instruction::UMod { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::Equal { lhs, rhs } => Instruction::Equal { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::NotEqual { lhs, rhs } => Instruction::NotEqual { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::SLessThan { lhs, rhs } => Instruction::SLessThan { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::ULessThan { lhs, rhs } => Instruction::ULessThan { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::SLessThanEqual { lhs, rhs } => {
+            Instruction::SLessThanEqual { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::ULessThanEqual { lhs, rhs } => {
+            Instruction::ULessThanEqual { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::SGreaterThan { lhs, rhs } => {
+            Instruction::SGreaterThan { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::UGreaterThan { lhs, rhs } => {
+            Instruction::UGreaterThan { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::SGreaterThanEqual { lhs, rhs } => {
+            Instruction::SGreaterThanEqual { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::UGreaterThanEqual { lhs, rhs } => {
+            Instruction::UGreaterThanEqual { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::LogicalAnd { lhs, rhs } => {
+            Instruction::LogicalAnd { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::LogicalOr { lhs, rhs } => {
+            Instruction::LogicalOr { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::BitwiseAnd { lhs, rhs } => {
+            Instruction::BitwiseAnd { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::BitwiseOr { lhs, rhs } => {
+            Instruction::BitwiseOr { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::BitwiseXOr { lhs, rhs } => {
+            Instruction::BitwiseXOr { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::BoolNot { op } => Instruction::BoolNot { op: r(op) },
+        Instruction::Negate { op } => Instruction::Negate { op: r(op) },
+        Instruction::Alloc { meta_type } => Instruction::Alloc { meta_type: r(meta_type) },
+        Instruction::Free { ptr } => Instruction::Free { ptr: r(ptr) },
+        Instruction::Move { src, dst } => Instruction::Move { src: r(src), dst },
+        Instruction::Copy { src, dst } => Instruction::Copy { src: r(src), dst },
+        Instruction::DropLocal { .. }
+        | Instruction::DeclareLocal { .. }
+        | Instruction::SetInitialized { .. } => inst,
+    }
+}
+
+fn remap_terminator(
+    term: Terminator,
+    block_map: &BTreeMap<BlockId, BlockId>,
+    value_map: &BTreeMap<ValueId, ValueId>,
+) -> Terminator {
+    let rb = |b: BlockId| *block_map.get(&b).unwrap_or(&b);
+    let rv = |v: ValueId| remap_value(v, value_map);
+    match term {
+        Terminator::Jump { target } => Terminator::Jump { target: rb(target) },
+        Terminator::Branch {
+            cond,
+            true_target,
+            false_target,
+        } => Terminator::Branch {
+            cond: rv(cond),
+            true_target: rb(true_target),
+            false_target: rb(false_target),
+        },
+        Terminator::SwitchVariant {
+            discriminant,
+            default,
+            arms,
+        } => Terminator::SwitchVariant {
+            discriminant: rv(discriminant),
+            default: rb(default),
+            arms: arms
+                .into_iter()
+                .map(|a| SwitchArm { jump: rb(a.jump), ..a })
+                .collect(),
+        },
+        Terminator::Return { value } => Terminator::Return { value: value.map(rv) },
+        other => other,
     }
 }
 
