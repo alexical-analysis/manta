@@ -105,10 +105,20 @@ impl ValueId {
 pub struct BlockId(u32);
 
 impl BlockId {
+    /// Creates a BlockId from a raw usize. Panics if id is 0 (reserved as nil).
+    pub fn from_usize(id: usize) -> Self {
+        assert_ne!(id, 0, "BlockId(0) is reserved as nil");
+        BlockId(id as u32)
+    }
+
     /// Creates a BlockId from a raw u32. Panics if id is 0 (reserved as nil).
     pub fn from_u32(id: u32) -> Self {
         assert_ne!(id, 0, "BlockId(0) is reserved as nil");
         BlockId(id)
+    }
+
+    pub fn entry_block() -> Self {
+        BlockId(1)
     }
 
     /// Returns the raw u32 value.

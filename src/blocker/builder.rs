@@ -171,6 +171,21 @@ impl SetStack {
     }
 }
 
+#[derive(Clone)]
+struct Scope {
+    block: BlockId,
+    defer_blocks: Vec<BlockId>,
+}
+
+impl Scope {
+    fn new(id: BlockId) -> Self {
+        return Scope {
+            block: id,
+            defer_blocks: vec![],
+        };
+    }
+}
+
 pub struct FunctionBuilder {
     name: StrID,
     params: Vec<LocalId>,
@@ -178,7 +193,7 @@ pub struct FunctionBuilder {
     locals: Vec<Local>, // Indexed by LocalId
     local_map: BTreeMap<NodeID, LocalId>,
     blocks: Vec<BlockBuilder>, // Indexed by BlockId
-    defer_blocks: Vec<BlockId>,
+    scope: Vec<Scope>,
     instructions: Vec<Instruction>, // Flat instruction array, indexed by ValueId
     value_types: Vec<TypeSpec>,     // Parallel to instructions, indexed by ValueId
 }
@@ -192,7 +207,7 @@ impl FunctionBuilder {
             locals: vec![],
             local_map: BTreeMap::new(),
             blocks: vec![],
-            defer_blocks: vec![],
+            scope: vec![],
             instructions: vec![],
             value_types: vec![],
         }
@@ -646,14 +661,34 @@ impl FunctionBuilder {
         BlockId::from_u32(self.blocks.len() as u32)
     }
 
+    pub fn open_scope(&mut self) {
+        let id = BlockId::from_usize(self.blocks.len());
+        self.scope.push(Scope::new(id))
+    }
+
     pub fn add_defer_block(&mut self) -> BlockId {
         let block_builder = BlockBuilder::new();
 
         self.blocks.push(block_builder);
         let id = BlockId::from_u32(self.blocks.len() as u32);
-        self.defer_blocks.push(id);
+        match self.scope.last_mut() {
+            Some(scope) => scope.defer_blocks.push(id),
+            None => panic!("not inside a scope"),
+        }
 
         id
+    }
+
+    pub fn close_scope(&mut self, block_id: BlockId) -> BlockId {
+        let mut scope = match self.scope.last_mut() {
+            Some(scope) => scope.clone(),
+            None => panic!("can not close scope, not inside a scope"),
+        };
+
+        match scope.defer_blocks.pop() {
+            Some(id) => self.build_defer_blocks(&mut scope, id),
+            None => block_id,
+        }
     }
 
     /// Return an existing local if one is created for the given node and create a new one otherwise
@@ -708,9 +743,9 @@ impl FunctionBuilder {
             panic!("function must have an entry block")
         };
 
-        if let Some(id) = self.defer_blocks.pop() {
-            self.build_defer_blocks(id);
-        }
+        // if let Some(id) = self.defer_blocks.pop() {
+        //     self.build_defer_blocks(id);
+        // }
 
         // it's possible for a basic block in the function to be empty if all other blocks
         // terminated without jumping to it. For example if every arm in a match statement
@@ -767,7 +802,7 @@ impl FunctionBuilder {
 
     /// update the CFG so that defer blocks are correctly stacked and called in the place of any
     /// return's or other unwinding operators like panics
-    fn build_defer_blocks(&mut self, first_block: BlockId) {
+    fn build_defer_blocks(&mut self, scope: &mut Scope, first_block: BlockId) -> BlockId {
         let merge_block = self.add_block();
         let defer_local = match self.return_type.clone() {
             TypeSpec::Unit => {
@@ -785,7 +820,7 @@ impl FunctionBuilder {
         // string all the defer blocks together so that each defer block jumps to the next in LIFO
         // order
         let mut block_id = first_block;
-        while let Some(next_block) = self.defer_blocks.pop() {
+        while let Some(next_block) = scope.defer_blocks.pop() {
             self.update_defer_block(block_id, next_block);
             block_id = next_block;
         }
@@ -796,7 +831,7 @@ impl FunctionBuilder {
         // defer_local and then jump to the first block
 
         let mut block_stack = SetStack::new();
-        block_stack.push(BlockId::from_u32(1));
+        block_stack.push(scope.block);
         while let Some(b) = block_stack.pop() {
             let block = self.get_block(b);
             match &block.terminator {
@@ -848,6 +883,8 @@ impl FunctionBuilder {
                 None => panic!("missing terminator for block"),
             }
         }
+
+        merge_block
     }
 
     fn update_defer_block(&mut self, block_id: BlockId, next_block: BlockId) {
