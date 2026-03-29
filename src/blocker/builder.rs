@@ -1,9 +1,9 @@
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 use crate::hir::NodeID;
 use crate::mir::{
     BasicBlock, BlockId, ConstValue, Instruction, Local, LocalId, MirFunction, Place, Projection,
-    TagSize, Terminator, TypeSpec, ValueId,
+    SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
 };
 use crate::str_store::{self, StrID};
 
@@ -80,6 +80,403 @@ impl BlockBuilder {
             block_args,
             instructions: self.instructions.clone(),
             terminator: term.clone(),
+        }
+    }
+}
+
+struct CFG {
+    entry: BlockId,
+}
+
+impl CFG {
+    fn new(entry: BlockId) -> Self {
+        CFG { entry }
+    }
+
+    fn clone(&self, fn_builder: &mut FunctionBuilder) -> BlockId {
+        let mut block_map = HashMap::new();
+        self.inner_clone(&mut block_map, fn_builder)
+    }
+
+    fn inner_clone(
+        &self,
+        block_map: &mut HashMap<BlockId, BlockId>,
+        fn_builder: &mut FunctionBuilder,
+    ) -> BlockId {
+        if let Some(b) = block_map.get(&self.entry) {
+            return *b;
+        }
+
+        let clone = fn_builder.clone_block(self.entry);
+        block_map.insert(self.entry, clone);
+
+        let block = fn_builder.get_block(clone);
+        let term = block.terminator.clone();
+
+        match term {
+            Some(Terminator::Jump { target }) => {
+                let cfg = CFG::new(target);
+                let target = cfg.inner_clone(block_map, fn_builder);
+
+                fn_builder.unset_terminator(clone);
+                fn_builder.set_terminator(clone, Terminator::Jump { target })
+            }
+            Some(Terminator::Branch {
+                cond,
+                true_target,
+                false_target,
+            }) => {
+                let cfg = CFG::new(true_target);
+                let true_target = cfg.inner_clone(block_map, fn_builder);
+
+                let cfg = CFG::new(false_target);
+                let false_target = cfg.inner_clone(block_map, fn_builder);
+
+                fn_builder.unset_terminator(clone);
+                fn_builder.set_terminator(
+                    clone,
+                    Terminator::Branch {
+                        cond,
+                        true_target,
+                        false_target,
+                    },
+                );
+            }
+            Some(Terminator::SwitchVariant {
+                discriminant,
+                default,
+                arms,
+            }) => {
+                let cfg = CFG::new(default);
+                let default = cfg.inner_clone(block_map, fn_builder);
+
+                let mut clone_arms = vec![];
+                for arm in arms {
+                    let cfg = CFG::new(arm.jump);
+                    let clone_arm = cfg.inner_clone(block_map, fn_builder);
+                    clone_arms.push(SwitchArm {
+                        target: arm.target,
+                        jump: clone_arm,
+                    })
+                }
+
+                fn_builder.unset_terminator(clone);
+                fn_builder.set_terminator(
+                    clone,
+                    Terminator::SwitchVariant {
+                        discriminant,
+                        default,
+                        arms: clone_arms,
+                    },
+                );
+            }
+            Some(Terminator::Unreachable) => {}
+            Some(Terminator::Panic) => {}
+            Some(Terminator::Return { .. }) => {}
+            None => {}
+        }
+
+        clone
+    }
+
+    // this returns true only if all blocks in the graph terminate correctly
+    fn all_blocks_terminate(&self, fn_builder: &FunctionBuilder) -> bool {
+        let mut visited = HashSet::new();
+        self.inner_all_blocks_terminate(&mut visited, fn_builder)
+    }
+
+    fn inner_all_blocks_terminate(
+        &self,
+        visited: &mut HashSet<BlockId>,
+        fn_builder: &FunctionBuilder,
+    ) -> bool {
+        if visited.contains(&self.entry) {
+            return true;
+        }
+        visited.insert(self.entry);
+
+        let block = fn_builder.get_block(self.entry);
+        match &block.terminator {
+            None => false,
+            Some(Terminator::Branch {
+                true_target,
+                false_target,
+                ..
+            }) => {
+                let cfg = CFG::new(*true_target);
+                if !cfg.inner_all_blocks_terminate(visited, fn_builder) {
+                    return false;
+                }
+
+                let cfg = CFG::new(*false_target);
+                if !cfg.inner_all_blocks_terminate(visited, fn_builder) {
+                    return false;
+                }
+
+                true
+            }
+            Some(Terminator::Jump { target }) => {
+                let cfg = CFG::new(*target);
+                cfg.inner_all_blocks_terminate(visited, fn_builder)
+            }
+            Some(Terminator::SwitchVariant { default, arms, .. }) => {
+                let cfg = CFG::new(*default);
+                if !cfg.inner_all_blocks_terminate(visited, fn_builder) {
+                    return false;
+                }
+
+                for arm in arms {
+                    let cfg = CFG::new(arm.jump);
+                    if !cfg.inner_all_blocks_terminate(visited, fn_builder) {
+                        return false;
+                    }
+                }
+
+                true
+            }
+            Some(Terminator::Unreachable) => true,
+            Some(Terminator::Return { .. }) => true,
+            Some(Terminator::Panic) => true,
+        }
+    }
+
+    /// returns true if any path through the CFG results in a return terminator
+    fn can_return(&self, fn_builder: &FunctionBuilder) -> bool {
+        let mut visited = HashSet::new();
+        self.inner_can_return(&mut visited, fn_builder)
+    }
+
+    fn inner_can_return(
+        &self,
+        visited: &mut HashSet<BlockId>,
+        fn_builder: &FunctionBuilder,
+    ) -> bool {
+        if visited.contains(&self.entry) {
+            return false;
+        }
+        visited.insert(self.entry);
+
+        let block = fn_builder.get_block(self.entry);
+        match &block.terminator {
+            Some(Terminator::Return { .. }) => true,
+            Some(Terminator::Unreachable) => false,
+            Some(Terminator::Panic) => false,
+            Some(Terminator::Branch {
+                true_target,
+                false_target,
+                ..
+            }) => {
+                let cfg = CFG::new(*true_target);
+                if cfg.inner_can_return(visited, fn_builder) {
+                    return true;
+                }
+
+                let cfg = CFG::new(*false_target);
+                if cfg.inner_can_return(visited, fn_builder) {
+                    return true;
+                }
+
+                false
+            }
+            Some(Terminator::Jump { target }) => {
+                let cfg = CFG::new(*target);
+                cfg.inner_can_return(visited, fn_builder)
+            }
+            Some(Terminator::SwitchVariant { default, arms, .. }) => {
+                let cfg = CFG::new(*default);
+                if cfg.inner_can_return(visited, fn_builder) {
+                    return true;
+                }
+
+                for arm in arms {
+                    let cfg = CFG::new(arm.jump);
+                    if cfg.inner_can_return(visited, fn_builder) {
+                        return true;
+                    }
+                }
+
+                false
+            }
+            None => false,
+        }
+    }
+
+    // this function sets all the blocks with missing terminators in the CFG to jump to the
+    // specified block unconditionally
+    fn jump_to(&self, fn_builder: &mut FunctionBuilder, jump_to: BlockId) {
+        let mut visited = HashSet::new();
+        self.inner_jump_to(&mut visited, fn_builder, jump_to);
+    }
+
+    fn inner_jump_to(
+        &self,
+        visited: &mut HashSet<BlockId>,
+        fn_builder: &mut FunctionBuilder,
+        jump_to: BlockId,
+    ) {
+        if visited.contains(&self.entry) {
+            return;
+        }
+        visited.insert(self.entry);
+
+        let block = fn_builder.get_block(self.entry);
+        let term = block.terminator.clone();
+
+        match term {
+            Some(Terminator::Return { .. }) => {}
+            Some(Terminator::Panic) => {}
+            Some(Terminator::Unreachable) => {}
+            Some(Terminator::Jump { target }) => {
+                let cfg = CFG::new(target);
+                cfg.inner_jump_to(visited, fn_builder, jump_to);
+            }
+            Some(Terminator::Branch {
+                true_target,
+                false_target,
+                ..
+            }) => {
+                let cfg = CFG::new(true_target);
+                cfg.inner_jump_to(visited, fn_builder, jump_to);
+
+                let cfg = CFG::new(false_target);
+                cfg.inner_jump_to(visited, fn_builder, jump_to);
+            }
+            Some(Terminator::SwitchVariant { default, arms, .. }) => {
+                let cfg = CFG::new(default);
+                cfg.inner_jump_to(visited, fn_builder, jump_to);
+
+                for arm in arms {
+                    let cfg = CFG::new(arm.jump);
+                    cfg.inner_jump_to(visited, fn_builder, jump_to);
+                }
+            }
+            None => fn_builder.set_terminator(self.entry, Terminator::Jump { target: jump_to }),
+        }
+    }
+
+    // this function sets all the blocks with panic terminators in the CFG to jump to the
+    // specified block unconditionally
+    fn panic_to(&self, fn_builder: &mut FunctionBuilder, panic_to: BlockId) {
+        let mut visited = HashSet::new();
+        self.inner_panic_to(&mut visited, fn_builder, panic_to);
+    }
+
+    fn inner_panic_to(
+        &self,
+        visited: &mut HashSet<BlockId>,
+        fn_builder: &mut FunctionBuilder,
+        panic_to: BlockId,
+    ) {
+        if visited.contains(&self.entry) {
+            return;
+        }
+        visited.insert(self.entry);
+
+        let block = fn_builder.get_block(self.entry);
+        let term = block.terminator.clone();
+
+        match term {
+            Some(Terminator::Return { .. }) => {}
+            Some(Terminator::Panic) => {
+                fn_builder.unset_terminator(self.entry);
+                fn_builder.set_terminator(self.entry, Terminator::Jump { target: panic_to });
+            }
+            Some(Terminator::Unreachable) => {}
+            Some(Terminator::Jump { target }) => {
+                let cfg = CFG::new(target);
+                cfg.inner_panic_to(visited, fn_builder, panic_to);
+            }
+            Some(Terminator::Branch {
+                true_target,
+                false_target,
+                ..
+            }) => {
+                let cfg = CFG::new(true_target);
+                cfg.inner_panic_to(visited, fn_builder, panic_to);
+
+                let cfg = CFG::new(false_target);
+                cfg.inner_panic_to(visited, fn_builder, panic_to);
+            }
+            Some(Terminator::SwitchVariant { default, arms, .. }) => {
+                let cfg = CFG::new(default);
+                cfg.inner_panic_to(visited, fn_builder, panic_to);
+
+                for arm in arms {
+                    let cfg = CFG::new(arm.jump);
+                    cfg.inner_panic_to(visited, fn_builder, panic_to);
+                }
+            }
+            None => {}
+        }
+    }
+
+    // this function sets all the blocks with return terminators in the CFG to jump to the
+    // specified block unconditionally and set a local value for a future return
+    fn return_to(
+        &self,
+        fn_builder: &mut FunctionBuilder,
+        return_to: BlockId,
+        local_id: Option<LocalId>,
+    ) {
+        let mut visited = HashSet::new();
+        self.inner_return_to(&mut visited, fn_builder, return_to, local_id);
+    }
+
+    fn inner_return_to(
+        &self,
+        visited: &mut HashSet<BlockId>,
+        fn_builder: &mut FunctionBuilder,
+        return_to: BlockId,
+        local_id: Option<LocalId>,
+    ) {
+        if visited.contains(&self.entry) {
+            return;
+        }
+        visited.insert(self.entry);
+
+        let block = fn_builder.get_block(self.entry);
+        let term = block.terminator.clone();
+
+        match term {
+            Some(Terminator::Return { value }) => {
+                fn_builder.unset_terminator(self.entry);
+                if let Some(v) = value {
+                    fn_builder.emit_store(
+                        self.entry,
+                        Place::local(local_id.expect("missing local id")),
+                        v,
+                    );
+                }
+
+                fn_builder.set_terminator(self.entry, Terminator::Jump { target: return_to });
+            }
+            Some(Terminator::Panic) => {}
+            Some(Terminator::Unreachable) => {}
+            Some(Terminator::Jump { target }) => {
+                let cfg = CFG::new(target);
+                cfg.inner_return_to(visited, fn_builder, return_to, local_id);
+            }
+            Some(Terminator::Branch {
+                true_target,
+                false_target,
+                ..
+            }) => {
+                let cfg = CFG::new(true_target);
+                cfg.inner_return_to(visited, fn_builder, return_to, local_id);
+
+                let cfg = CFG::new(false_target);
+                cfg.inner_return_to(visited, fn_builder, return_to, local_id);
+            }
+            Some(Terminator::SwitchVariant { default, arms, .. }) => {
+                let cfg = CFG::new(default);
+                cfg.inner_return_to(visited, fn_builder, return_to, local_id);
+
+                for arm in arms {
+                    let cfg = CFG::new(arm.jump);
+                    cfg.inner_return_to(visited, fn_builder, return_to, local_id);
+                }
+            }
+            None => {}
         }
     }
 }
@@ -643,6 +1040,12 @@ impl FunctionBuilder {
         let block_builder = BlockBuilder::new();
 
         self.blocks.push(block_builder);
+        BlockId::from_u32(self.blocks.len() as u32)
+    }
+
+    pub fn clone_block(&mut self, block_id: BlockId) -> BlockId {
+        let clone = self.get_block(block_id).clone();
+        self.blocks.push(clone);
         BlockId::from_u32(self.blocks.len() as u32)
     }
 
