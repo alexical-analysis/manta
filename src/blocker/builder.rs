@@ -1684,4 +1684,225 @@ mod tests {
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(!did_terminate);
     }
+
+    // --- can_return ---
+
+    #[test]
+    fn test_can_return_single_block_returns() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        fb.set_terminator(a, Terminator::Return { value: None });
+
+        let cfg = CFG::new(a);
+        let can_return = cfg.can_return(&fb);
+        assert!(can_return);
+    }
+
+    #[test]
+    fn test_can_return_single_block_unreachable() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        fb.set_terminator(a, Terminator::Unreachable);
+
+        let cfg = CFG::new(a);
+        let can_return = cfg.can_return(&fb);
+        assert!(!can_return);
+    }
+
+    #[test]
+    fn test_can_return_single_block_panic() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        fb.set_terminator(a, Terminator::Panic);
+
+        let cfg = CFG::new(a);
+        let can_return = cfg.can_return(&fb);
+        assert!(!can_return);
+    }
+
+    #[test]
+    fn test_can_return_single_block_no_terminator() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        // no terminator set
+
+        let cfg = CFG::new(a);
+        let can_return = cfg.can_return(&fb);
+        assert!(!can_return);
+    }
+
+    #[test]
+    fn test_can_return_linear_chain_returns() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        fb.set_terminator(a, Terminator::Jump { target: b });
+        fb.set_terminator(b, Terminator::Return { value: None });
+
+        let cfg = CFG::new(a);
+        let can_return = cfg.can_return(&fb);
+        assert!(can_return);
+    }
+
+    #[test]
+    fn test_can_return_linear_chain_no_return() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        fb.set_terminator(a, Terminator::Jump { target: b });
+        fb.set_terminator(b, Terminator::Unreachable);
+
+        let cfg = CFG::new(a);
+        let can_return = cfg.can_return(&fb);
+        assert!(!can_return);
+    }
+
+    // Only one arm needs to return for can_return to be true.
+    #[test]
+    fn test_can_return_branch_one_arm_returns() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let c = fb.add_block();
+        let cond = ValueId::from_u32(1);
+        fb.set_terminator(
+            a,
+            Terminator::Branch {
+                cond,
+                true_target: b,
+                false_target: c,
+            },
+        );
+        fb.set_terminator(b, Terminator::Return { value: None });
+        fb.set_terminator(c, Terminator::Unreachable);
+
+        let cfg = CFG::new(a);
+        let can_return = cfg.can_return(&fb);
+        assert!(can_return);
+    }
+
+    #[test]
+    fn test_can_return_branch_no_arm_returns() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let c = fb.add_block();
+        let cond = ValueId::from_u32(1);
+        fb.set_terminator(
+            a,
+            Terminator::Branch {
+                cond,
+                true_target: b,
+                false_target: c,
+            },
+        );
+        fb.set_terminator(b, Terminator::Unreachable);
+        fb.set_terminator(c, Terminator::Panic);
+
+        let cfg = CFG::new(a);
+        let can_return = cfg.can_return(&fb);
+        assert!(!can_return);
+    }
+
+    #[test]
+    fn test_can_return_switch_one_arm_returns() {
+        let mut fb = test_builder();
+        let entry = fb.add_block();
+        let default = fb.add_block();
+        let arm_block = fb.add_block();
+        let discriminant = ValueId::from_u32(1);
+        fb.set_terminator(
+            entry,
+            Terminator::SwitchVariant {
+                discriminant,
+                default,
+                arms: vec![SwitchArm {
+                    target: ConstValue::ConstUInt(0),
+                    jump: arm_block,
+                }],
+            },
+        );
+        fb.set_terminator(default, Terminator::Unreachable);
+        fb.set_terminator(arm_block, Terminator::Return { value: None });
+
+        let cfg = CFG::new(entry);
+        let can_return = cfg.can_return(&fb);
+        assert!(can_return);
+    }
+
+    #[test]
+    fn test_can_return_switch_no_arm_returns() {
+        let mut fb = test_builder();
+        let entry = fb.add_block();
+        let default = fb.add_block();
+        let arm_block = fb.add_block();
+        let discriminant = ValueId::from_u32(1);
+        fb.set_terminator(
+            entry,
+            Terminator::SwitchVariant {
+                discriminant,
+                default,
+                arms: vec![SwitchArm {
+                    target: ConstValue::ConstUInt(0),
+                    jump: arm_block,
+                }],
+            },
+        );
+        fb.set_terminator(default, Terminator::Unreachable);
+        fb.set_terminator(arm_block, Terminator::Panic);
+
+        let cfg = CFG::new(entry);
+        let can_return = cfg.can_return(&fb);
+        assert!(!can_return);
+    }
+
+    // A cycle where one path through the loop eventually returns.
+    // b loops back to a and also branches to c which returns.
+    #[test]
+    fn test_can_return_cycle_with_return() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let c = fb.add_block();
+        let cond = ValueId::from_u32(1);
+        fb.set_terminator(a, Terminator::Jump { target: b });
+        fb.set_terminator(
+            b,
+            Terminator::Branch {
+                cond,
+                true_target: a,
+                false_target: c,
+            },
+        );
+        fb.set_terminator(c, Terminator::Return { value: None });
+
+        let cfg = CFG::new(a);
+        let can_return = cfg.can_return(&fb);
+        assert!(can_return);
+    }
+
+    // A cycle with no return anywhere — the back-edge is short-circuited by
+    // the visited set and the remaining paths all end in non-return terminators.
+    #[test]
+    fn test_can_return_cycle_without_return() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let c = fb.add_block();
+        let cond = ValueId::from_u32(1);
+        fb.set_terminator(a, Terminator::Jump { target: b });
+        fb.set_terminator(
+            b,
+            Terminator::Branch {
+                cond,
+                true_target: a,
+                false_target: c,
+            },
+        );
+        fb.set_terminator(c, Terminator::Unreachable);
+
+        let cfg = CFG::new(a);
+        let can_return = cfg.can_return(&fb);
+        assert!(!can_return);
+    }
 }
