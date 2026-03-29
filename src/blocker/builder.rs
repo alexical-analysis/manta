@@ -680,7 +680,7 @@ impl FunctionBuilder {
     }
 
     pub fn close_scope(&mut self, block_id: BlockId) -> BlockId {
-        let mut scope = match self.scope.last_mut() {
+        let mut scope = match self.scope.pop() {
             Some(scope) => scope.clone(),
             None => panic!("can not close scope, not inside a scope"),
         };
@@ -803,20 +803,6 @@ impl FunctionBuilder {
     /// update the CFG so that defer blocks are correctly stacked and called in the place of any
     /// return's or other unwinding operators like panics
     fn build_defer_blocks(&mut self, scope: &mut Scope, first_block: BlockId) -> BlockId {
-        let merge_block = self.add_block();
-        let defer_local = match self.return_type.clone() {
-            TypeSpec::Unit => {
-                self.set_terminator(merge_block, Terminator::Return { value: None });
-                None
-            }
-            ts => {
-                let defer_local = self.add_local(str_store::DEFER, ts.clone());
-                let value = self.emit_load(merge_block, Place::local(defer_local), ts);
-                self.set_terminator(merge_block, Terminator::Return { value: Some(value) });
-                Some(defer_local)
-            }
-        };
-
         // string all the defer blocks together so that each defer block jumps to the next in LIFO
         // order
         let mut block_id = first_block;
@@ -824,6 +810,46 @@ impl FunctionBuilder {
             self.update_defer_block(block_id, next_block);
             block_id = next_block;
         }
+
+        let return_block = self.add_block();
+        let defer_local = match self.return_type.clone() {
+            TypeSpec::Unit => {
+                self.set_terminator(return_block, Terminator::Return { value: None });
+                None
+            }
+            ts => {
+                let defer_local = self.add_local(str_store::DEFER, ts.clone());
+                let value = self.emit_load(return_block, Place::local(defer_local), ts);
+                self.set_terminator(return_block, Terminator::Return { value: Some(value) });
+                Some(defer_local)
+            }
+        };
+        let return_defer = self.clone_defer_stack(first_block);
+        self.set_terminator(
+            return_defer,
+            Terminator::Jump {
+                target: return_block,
+            },
+        );
+
+        let panic_block = self.add_block();
+        self.set_terminator(panic_block, Terminator::Panic);
+
+        let panic_defer = self.clone_defer_stack(first_block);
+        self.set_terminator(
+            panic_defer,
+            Terminator::Jump {
+                target: panic_block,
+            },
+        );
+
+        let merge_block = self.add_block();
+        self.set_terminator(
+            first_block,
+            Terminator::Jump {
+                target: merge_block,
+            },
+        );
 
         self.update_defer_block(block_id, merge_block);
 
@@ -875,12 +901,21 @@ impl FunctionBuilder {
                     block_stack.push(*default);
                 }
                 Some(Terminator::Panic) => {
-                    eprintln!(
-                        "leaving panics alone for now since we're only supporting defers for normal returns to start"
-                    )
+                    self.unset_terminator(b);
+                    self.set_terminator(
+                        b,
+                        Terminator::Jump {
+                            target: panic_block,
+                        },
+                    );
                 }
                 Some(Terminator::Unreachable) => {}
-                None => panic!("missing terminator for block"),
+                None => self.set_terminator(
+                    b,
+                    Terminator::Jump {
+                        target: merge_block,
+                    },
+                ),
             }
         }
 
@@ -922,6 +957,27 @@ impl FunctionBuilder {
                 }
             }
         }
+    }
+
+    fn clone_defer_stack(&mut self, block_id: BlockId) -> BlockId {
+        let block = self
+            .blocks
+            .get(block_id.as_idx())
+            .expect("missing defer block")
+            .clone();
+
+        let copy = self.add_block();
+        let copy_block = self
+            .blocks
+            .get_mut(copy.as_idx())
+            .expect("missing copy block");
+        copy_block.instructions = block.instructions;
+        // TODO: this isn't actually correct since we need to jump to the next copy block
+        copy_block.terminator = block.terminator;
+
+        // TODO: actually need to clone the whole stack here
+
+        copy
     }
 }
 
