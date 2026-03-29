@@ -269,18 +269,9 @@ impl<'a> Blocker<'a> {
                 None
             }
             Node::Block { statements } => {
-                // blocks need to have their own set of blocks so we set the block up to jump into
-                // a new black at this point.
-                let mut current_block = self.fn_builder.add_block();
-                self.fn_builder.set_terminator(
-                    block_id,
-                    Terminator::Jump {
-                        target: current_block,
-                    },
-                );
+                self.fn_builder.open_scope(block_id);
 
-                self.fn_builder.open_scope();
-
+                let mut current_block = block_id;
                 for stmt in statements {
                     match self.block_statement(current_block, stmt) {
                         Some(b) => current_block = b,

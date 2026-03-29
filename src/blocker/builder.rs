@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, HashSet};
 use crate::hir::NodeID;
 use crate::mir::{
     BasicBlock, BlockId, ConstValue, Instruction, Local, LocalId, MirFunction, Place, Projection,
-    TagSize, Terminator, TypeSpec, ValueId,
+    SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
 };
 use crate::str_store::{self, StrID};
 
@@ -661,9 +661,8 @@ impl FunctionBuilder {
         BlockId::from_u32(self.blocks.len() as u32)
     }
 
-    pub fn open_scope(&mut self) {
-        let id = BlockId::from_usize(self.blocks.len());
-        self.scope.push(Scope::new(id))
+    pub fn open_scope(&mut self, scope_block: BlockId) {
+        self.scope.push(Scope::new(scope_block))
     }
 
     pub fn add_defer_block(&mut self) -> BlockId {
@@ -825,32 +824,15 @@ impl FunctionBuilder {
             }
         };
         let return_defer = self.clone_defer_stack(first_block);
-        self.set_terminator(
-            return_defer,
-            Terminator::Jump {
-                target: return_block,
-            },
-        );
+        self.update_defer_block(return_defer, return_block);
 
         let panic_block = self.add_block();
         self.set_terminator(panic_block, Terminator::Panic);
 
         let panic_defer = self.clone_defer_stack(first_block);
-        self.set_terminator(
-            panic_defer,
-            Terminator::Jump {
-                target: panic_block,
-            },
-        );
+        self.update_defer_block(panic_defer, panic_block);
 
         let merge_block = self.add_block();
-        self.set_terminator(
-            first_block,
-            Terminator::Jump {
-                target: merge_block,
-            },
-        );
-
         self.update_defer_block(block_id, merge_block);
 
         // update all other blocks in the builder so that return instructions instead write to the
@@ -869,7 +851,7 @@ impl FunctionBuilder {
                         self.set_terminator(
                             b,
                             Terminator::Jump {
-                                target: first_block,
+                                target: return_defer,
                             },
                         );
                     }
@@ -880,7 +862,7 @@ impl FunctionBuilder {
                         self.set_terminator(
                             b,
                             Terminator::Jump {
-                                target: first_block,
+                                target: return_defer,
                             },
                         );
                     }
@@ -905,7 +887,7 @@ impl FunctionBuilder {
                     self.set_terminator(
                         b,
                         Terminator::Jump {
-                            target: panic_block,
+                            target: panic_defer,
                         },
                     );
                 }
@@ -913,7 +895,7 @@ impl FunctionBuilder {
                 None => self.set_terminator(
                     b,
                     Terminator::Jump {
-                        target: merge_block,
+                        target: first_block,
                     },
                 ),
             }
@@ -959,25 +941,205 @@ impl FunctionBuilder {
         }
     }
 
-    fn clone_defer_stack(&mut self, block_id: BlockId) -> BlockId {
-        let block = self
-            .blocks
-            .get(block_id.as_idx())
-            .expect("missing defer block")
-            .clone();
+    fn clone_defer_stack(&mut self, entry: BlockId) -> BlockId {
+        // Walk the chain and collect all block IDs
+        let mut chain_blocks: Vec<BlockId> = vec![];
+        let mut visited: HashSet<BlockId> = HashSet::new();
+        let mut stack = vec![entry];
+        while let Some(b) = stack.pop() {
+            if !visited.insert(b) {
+                continue;
+            }
+            chain_blocks.push(b);
+            let block = self.get_block(b).clone();
+            match &block.terminator {
+                Some(Terminator::Jump { target }) => stack.push(*target),
+                Some(Terminator::Branch {
+                    true_target,
+                    false_target,
+                    ..
+                }) => {
+                    stack.push(*true_target);
+                    stack.push(*false_target);
+                }
+                Some(Terminator::SwitchVariant { default, arms, .. }) => {
+                    stack.push(*default);
+                    for arm in arms {
+                        stack.push(arm.jump);
+                    }
+                }
+                _ => {}
+            }
+        }
 
-        let copy = self.add_block();
-        let copy_block = self
-            .blocks
-            .get_mut(copy.as_idx())
-            .expect("missing copy block");
-        copy_block.instructions = block.instructions;
-        // TODO: this isn't actually correct since we need to jump to the next copy block
-        copy_block.terminator = block.terminator;
+        // Allocate new empty blocks and build old→new block mapping
+        let mut block_map: BTreeMap<BlockId, BlockId> = BTreeMap::new();
+        for &old_id in &chain_blocks {
+            block_map.insert(old_id, self.add_block());
+        }
 
-        // TODO: actually need to clone the whole stack here
+        // Re-emit instructions and remap terminators
+        let mut value_map: BTreeMap<ValueId, ValueId> = BTreeMap::new();
+        for &old_block_id in &chain_blocks {
+            let new_block_id = block_map[&old_block_id];
+            let old_block = self.get_block(old_block_id).clone();
 
-        copy
+            for &old_value_id in &old_block.instructions {
+                let old_inst = self.instructions[old_value_id.as_idx()].clone();
+                let old_type = self.value_types[old_value_id.as_idx()].clone();
+                let new_inst = remap_instruction(old_inst, &value_map);
+                let new_value_id = self.add_instruction(new_block_id, old_type, new_inst);
+                value_map.insert(old_value_id, new_value_id);
+            }
+
+            if let Some(term) = old_block.terminator {
+                let new_term = remap_terminator(term, &block_map, &value_map);
+                self.set_terminator(new_block_id, new_term);
+            }
+        }
+
+        block_map[&entry]
+    }
+}
+
+fn remap_value(v: ValueId, value_map: &BTreeMap<ValueId, ValueId>) -> ValueId {
+    *value_map.get(&v).unwrap_or(&v)
+}
+
+fn remap_place(place: Place, value_map: &BTreeMap<ValueId, ValueId>) -> Place {
+    Place {
+        projections: place
+            .projections
+            .into_iter()
+            .map(|p| match p {
+                Projection::Index(v) => Projection::Index(remap_value(v, value_map)),
+                other => other,
+            })
+            .collect(),
+        ..place
+    }
+}
+
+fn remap_instruction(inst: Instruction, value_map: &BTreeMap<ValueId, ValueId>) -> Instruction {
+    let r = |v| remap_value(v, value_map);
+    match inst {
+        Instruction::Const { .. } => inst,
+        Instruction::Load { place } => Instruction::Load {
+            place: remap_place(place, value_map),
+        },
+        Instruction::Store { place, value } => Instruction::Store {
+            place: remap_place(place, value_map),
+            value: r(value),
+        },
+        Instruction::AddressOf { place } => Instruction::AddressOf {
+            place: remap_place(place, value_map),
+        },
+        Instruction::Call { func, args } => Instruction::Call {
+            func,
+            args: args.into_iter().map(r).collect(),
+        },
+        Instruction::CallTry { func, args, handler } => Instruction::CallTry {
+            func,
+            args: args.into_iter().map(r).collect(),
+            handler,
+        },
+        Instruction::MakeVariant { tag, payload } => Instruction::MakeVariant {
+            tag,
+            payload: payload.map(r),
+        },
+        Instruction::VariantGetTag { src } => Instruction::VariantGetTag { src: r(src) },
+        Instruction::VariantGetPayload { src, variant_id } => Instruction::VariantGetPayload {
+            src: r(src),
+            variant_id,
+        },
+        Instruction::Add { lhs, rhs } => Instruction::Add { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::Sub { lhs, rhs } => Instruction::Sub { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::Mul { lhs, rhs } => Instruction::Mul { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::SDiv { lhs, rhs } => Instruction::SDiv { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::UDiv { lhs, rhs } => Instruction::UDiv { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::SMod { lhs, rhs } => Instruction::SMod { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::UMod { lhs, rhs } => Instruction::UMod { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::Equal { lhs, rhs } => Instruction::Equal { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::NotEqual { lhs, rhs } => Instruction::NotEqual { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::SLessThan { lhs, rhs } => Instruction::SLessThan { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::ULessThan { lhs, rhs } => Instruction::ULessThan { lhs: r(lhs), rhs: r(rhs) },
+        Instruction::SLessThanEqual { lhs, rhs } => {
+            Instruction::SLessThanEqual { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::ULessThanEqual { lhs, rhs } => {
+            Instruction::ULessThanEqual { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::SGreaterThan { lhs, rhs } => {
+            Instruction::SGreaterThan { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::UGreaterThan { lhs, rhs } => {
+            Instruction::UGreaterThan { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::SGreaterThanEqual { lhs, rhs } => {
+            Instruction::SGreaterThanEqual { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::UGreaterThanEqual { lhs, rhs } => {
+            Instruction::UGreaterThanEqual { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::LogicalAnd { lhs, rhs } => {
+            Instruction::LogicalAnd { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::LogicalOr { lhs, rhs } => {
+            Instruction::LogicalOr { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::BitwiseAnd { lhs, rhs } => {
+            Instruction::BitwiseAnd { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::BitwiseOr { lhs, rhs } => {
+            Instruction::BitwiseOr { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::BitwiseXOr { lhs, rhs } => {
+            Instruction::BitwiseXOr { lhs: r(lhs), rhs: r(rhs) }
+        }
+        Instruction::BoolNot { op } => Instruction::BoolNot { op: r(op) },
+        Instruction::Negate { op } => Instruction::Negate { op: r(op) },
+        Instruction::Alloc { meta_type } => Instruction::Alloc { meta_type: r(meta_type) },
+        Instruction::Free { ptr } => Instruction::Free { ptr: r(ptr) },
+        Instruction::Move { src, dst } => Instruction::Move { src: r(src), dst },
+        Instruction::Copy { src, dst } => Instruction::Copy { src: r(src), dst },
+        Instruction::DropLocal { .. }
+        | Instruction::DeclareLocal { .. }
+        | Instruction::SetInitialized { .. } => inst,
+    }
+}
+
+fn remap_terminator(
+    term: Terminator,
+    block_map: &BTreeMap<BlockId, BlockId>,
+    value_map: &BTreeMap<ValueId, ValueId>,
+) -> Terminator {
+    let rb = |b: BlockId| *block_map.get(&b).unwrap_or(&b);
+    let rv = |v: ValueId| remap_value(v, value_map);
+    match term {
+        Terminator::Jump { target } => Terminator::Jump { target: rb(target) },
+        Terminator::Branch {
+            cond,
+            true_target,
+            false_target,
+        } => Terminator::Branch {
+            cond: rv(cond),
+            true_target: rb(true_target),
+            false_target: rb(false_target),
+        },
+        Terminator::SwitchVariant {
+            discriminant,
+            default,
+            arms,
+        } => Terminator::SwitchVariant {
+            discriminant: rv(discriminant),
+            default: rb(default),
+            arms: arms
+                .into_iter()
+                .map(|a| SwitchArm { jump: rb(a.jump), ..a })
+                .collect(),
+        },
+        Terminator::Return { value } => Terminator::Return { value: value.map(rv) },
+        other => other,
     }
 }
 
