@@ -1302,3 +1302,178 @@ fn is_signed_type(ts: &TypeSpec) -> bool {
             | TypeSpec::F64
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::str_store::StrID;
+
+    fn test_builder() -> FunctionBuilder {
+        FunctionBuilder::new(StrID::from_usize(1), TypeSpec::Unit)
+    }
+
+    // A single block with a Return terminator should be cloned to a new block
+    // with a different ID but the same terminator.
+    #[test]
+    fn test_cfg_clone_single_block() {
+        let mut fb = test_builder();
+        let entry = fb.add_block();
+        fb.set_terminator(entry, Terminator::Return { value: None });
+
+        let cloned = CFG::new(entry).clone(&mut fb);
+
+        assert_ne!(entry, cloned);
+        assert_eq!(
+            fb.get_block(cloned).terminator,
+            Some(Terminator::Return { value: None })
+        );
+    }
+
+    // A → B(Return) linear chain: both blocks should be cloned and the cloned
+    // entry should jump to the cloned successor, not the original.
+    #[test]
+    fn test_cfg_clone_linear_chain() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        fb.set_terminator(a, Terminator::Jump { target: b });
+        fb.set_terminator(b, Terminator::Return { value: None });
+
+        let cloned_a = CFG::new(a).clone(&mut fb);
+
+        assert_ne!(a, cloned_a);
+        let cloned_b = match fb.get_block(cloned_a).terminator.clone() {
+            Some(Terminator::Jump { target }) => target,
+            term => panic!("expected Jump, got {:?}", term),
+        };
+        assert_ne!(b, cloned_b);
+        assert_eq!(
+            fb.get_block(cloned_b).terminator,
+            Some(Terminator::Return { value: None })
+        );
+    }
+
+    // A Branch block with two arms: all three blocks should be cloned. The
+    // cloned branch should keep the same cond ValueId (instructions are shared)
+    // but point to the two new arm blocks.
+    #[test]
+    fn test_cfg_clone_branch() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let c = fb.add_block();
+        // Use a placeholder ValueId — instructions are shared across clones so
+        // the cond value doesn't need to be real for this test.
+        let cond = ValueId::from_u32(1);
+        fb.set_terminator(
+            a,
+            Terminator::Branch {
+                cond,
+                true_target: b,
+                false_target: c,
+            },
+        );
+        fb.set_terminator(b, Terminator::Return { value: None });
+        fb.set_terminator(c, Terminator::Return { value: None });
+
+        let cloned_a = CFG::new(a).clone(&mut fb);
+
+        assert_ne!(a, cloned_a);
+        match fb.get_block(cloned_a).terminator.clone() {
+            Some(Terminator::Branch {
+                cond: cloned_cond,
+                true_target: cloned_b,
+                false_target: cloned_c,
+            }) => {
+                assert_eq!(cond, cloned_cond);
+                assert_ne!(b, cloned_b);
+                assert_ne!(c, cloned_c);
+                assert_eq!(
+                    fb.get_block(cloned_b).terminator,
+                    Some(Terminator::Return { value: None })
+                );
+                assert_eq!(
+                    fb.get_block(cloned_c).terminator,
+                    Some(Terminator::Return { value: None })
+                );
+            }
+            term => panic!("expected Branch, got {:?}", term),
+        }
+    }
+
+    // A SwitchVariant with a default block and one arm: all three blocks should
+    // be cloned and the cloned switch should reference the new block IDs.
+    #[test]
+    fn test_cfg_clone_switch_variant() {
+        let mut fb = test_builder();
+        let entry = fb.add_block();
+        let default = fb.add_block();
+        let arm_block = fb.add_block();
+        let discriminant = ValueId::from_u32(1);
+        fb.set_terminator(
+            entry,
+            Terminator::SwitchVariant {
+                discriminant,
+                default,
+                arms: vec![SwitchArm {
+                    target: ConstValue::ConstUInt(0),
+                    jump: arm_block,
+                }],
+            },
+        );
+        fb.set_terminator(default, Terminator::Return { value: None });
+        fb.set_terminator(arm_block, Terminator::Return { value: None });
+
+        let cloned_entry = CFG::new(entry).clone(&mut fb);
+
+        assert_ne!(entry, cloned_entry);
+        match fb.get_block(cloned_entry).terminator.clone() {
+            Some(Terminator::SwitchVariant {
+                discriminant: cloned_disc,
+                default: cloned_default,
+                arms: cloned_arms,
+            }) => {
+                assert_eq!(discriminant, cloned_disc);
+                assert_ne!(default, cloned_default);
+                assert_eq!(cloned_arms.len(), 1);
+                assert_ne!(arm_block, cloned_arms[0].jump);
+                assert_eq!(cloned_arms[0].target, ConstValue::ConstUInt(0));
+                assert_eq!(
+                    fb.get_block(cloned_default).terminator,
+                    Some(Terminator::Return { value: None })
+                );
+                assert_eq!(
+                    fb.get_block(cloned_arms[0].jump).terminator,
+                    Some(Terminator::Return { value: None })
+                );
+            }
+            term => panic!("expected SwitchVariant, got {:?}", term),
+        }
+    }
+
+    // A → B → A cycle: clone must terminate and the back-edge in the clone
+    // should point to the cloned entry, not the original.
+    #[test]
+    fn test_cfg_clone_cycle() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        fb.set_terminator(a, Terminator::Jump { target: b });
+        fb.set_terminator(b, Terminator::Jump { target: a });
+
+        let cloned_a = CFG::new(a).clone(&mut fb);
+
+        assert_ne!(a, cloned_a);
+        let cloned_b = match fb.get_block(cloned_a).terminator.clone() {
+            Some(Terminator::Jump { target }) => target,
+            term => panic!("expected Jump from cloned_a, got {:?}", term),
+        };
+        assert_ne!(b, cloned_b);
+        match fb.get_block(cloned_b).terminator.clone() {
+            Some(Terminator::Jump { target }) => {
+                assert_eq!(target, cloned_a);
+            }
+            term => panic!("expected Jump from cloned_b, got {:?}", term),
+        }
+    }
+}
