@@ -1476,4 +1476,212 @@ mod tests {
             term => panic!("expected Jump from cloned_b, got {:?}", term),
         }
     }
+
+    // --- all_blocks_terminate ---
+
+    #[test]
+    fn test_all_blocks_terminate_single_block_with_terminator() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        fb.set_terminator(a, Terminator::Return { value: None });
+
+        let cfg = CFG::new(a);
+        let did_terminate = cfg.all_blocks_terminate(&fb);
+        assert!(did_terminate);
+    }
+
+    #[test]
+    fn test_all_blocks_terminate_single_block_missing_terminator() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        // no terminator set
+
+        let cfg = CFG::new(a);
+        let did_terminate = cfg.all_blocks_terminate(&fb);
+        assert!(!did_terminate);
+    }
+
+    // Each of the terminal terminator kinds should count as terminated.
+    #[test]
+    fn test_all_blocks_terminate_terminal_kinds() {
+        for term in [
+            Terminator::Return { value: None },
+            Terminator::Unreachable,
+            Terminator::Panic,
+        ] {
+            let mut fb = test_builder();
+            let a = fb.add_block();
+            fb.set_terminator(a, term);
+
+            let cfg = CFG::new(a);
+            let did_terminate = cfg.all_blocks_terminate(&fb);
+            assert!(did_terminate);
+        }
+    }
+
+    #[test]
+    fn test_all_blocks_terminate_linear_chain_all_terminated() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        fb.set_terminator(a, Terminator::Jump { target: b });
+        fb.set_terminator(b, Terminator::Return { value: None });
+
+        let cfg = CFG::new(a);
+        let did_terminate = cfg.all_blocks_terminate(&fb);
+        assert!(did_terminate);
+    }
+
+    #[test]
+    fn test_all_blocks_terminate_linear_chain_missing_terminator() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        fb.set_terminator(a, Terminator::Jump { target: b });
+        // b has no terminator
+
+        let cfg = CFG::new(a);
+        let did_terminate = cfg.all_blocks_terminate(&fb);
+        assert!(!did_terminate);
+    }
+
+    #[test]
+    fn test_all_blocks_terminate_branch_all_terminated() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let c = fb.add_block();
+        let cond = ValueId::from_u32(1);
+        fb.set_terminator(
+            a,
+            Terminator::Branch {
+                cond,
+                true_target: b,
+                false_target: c,
+            },
+        );
+        fb.set_terminator(b, Terminator::Return { value: None });
+        fb.set_terminator(c, Terminator::Return { value: None });
+
+        let cfg = CFG::new(a);
+        let did_terminate = cfg.all_blocks_terminate(&fb);
+        assert!(did_terminate);
+    }
+
+    #[test]
+    fn test_all_blocks_terminate_branch_one_arm_missing() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let c = fb.add_block();
+        let cond = ValueId::from_u32(1);
+        fb.set_terminator(
+            a,
+            Terminator::Branch {
+                cond,
+                true_target: b,
+                false_target: c,
+            },
+        );
+        fb.set_terminator(b, Terminator::Return { value: None });
+        // c has no terminator
+
+        let cfg = CFG::new(a);
+        let did_terminate = cfg.all_blocks_terminate(&fb);
+        assert!(!did_terminate);
+    }
+
+    #[test]
+    fn test_all_blocks_terminate_switch_all_terminated() {
+        let mut fb = test_builder();
+        let entry = fb.add_block();
+        let default = fb.add_block();
+        let arm_block = fb.add_block();
+        let discriminant = ValueId::from_u32(1);
+        fb.set_terminator(
+            entry,
+            Terminator::SwitchVariant {
+                discriminant,
+                default,
+                arms: vec![SwitchArm {
+                    target: ConstValue::ConstUInt(0),
+                    jump: arm_block,
+                }],
+            },
+        );
+        fb.set_terminator(default, Terminator::Return { value: None });
+        fb.set_terminator(arm_block, Terminator::Return { value: None });
+
+        let cfg = CFG::new(entry);
+        let did_terminate = cfg.all_blocks_terminate(&fb);
+        assert!(did_terminate);
+    }
+
+    #[test]
+    fn test_all_blocks_terminate_switch_arm_missing() {
+        let mut fb = test_builder();
+        let entry = fb.add_block();
+        let default = fb.add_block();
+        let arm_block = fb.add_block();
+        let discriminant = ValueId::from_u32(1);
+        fb.set_terminator(
+            entry,
+            Terminator::SwitchVariant {
+                discriminant,
+                default,
+                arms: vec![SwitchArm {
+                    target: ConstValue::ConstUInt(0),
+                    jump: arm_block,
+                }],
+            },
+        );
+        fb.set_terminator(default, Terminator::Return { value: None });
+        // arm_block has no terminator
+
+        let cfg = CFG::new(entry);
+        let did_terminate = cfg.all_blocks_terminate(&fb);
+        assert!(!did_terminate);
+    }
+
+    // A cycle where all blocks have terminators should return true — the
+    // back-edge is short-circuited by the visited set.
+    #[test]
+    fn test_all_blocks_terminate_cycle_all_terminated() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        fb.set_terminator(a, Terminator::Jump { target: b });
+        fb.set_terminator(b, Terminator::Jump { target: a });
+
+        let cfg = CFG::new(a);
+        let did_terminate = cfg.all_blocks_terminate(&fb);
+        assert!(did_terminate);
+    }
+
+    // A cycle where one block is missing its terminator should still return
+    // false. b branches back to a (the cycle) and also forward to c, and c has
+    // no terminator. The visited set handles the back-edge cleanly but the
+    // missing terminator on c must still be caught.
+    #[test]
+    fn test_all_blocks_terminate_cycle_missing_terminator() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let c = fb.add_block();
+        let cond = ValueId::from_u32(1);
+        fb.set_terminator(a, Terminator::Jump { target: b });
+        fb.set_terminator(
+            b,
+            Terminator::Branch {
+                cond,
+                true_target: a,
+                false_target: c,
+            },
+        );
+        // c has no terminator
+
+        let cfg = CFG::new(a);
+        let did_terminate = cfg.all_blocks_terminate(&fb);
+        assert!(!did_terminate);
+    }
 }
