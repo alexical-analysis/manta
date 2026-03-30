@@ -2064,4 +2064,351 @@ mod tests {
         );
         assert_eq!(c_terminator, Some(Terminator::Jump { target }));
     }
+
+    // --- panic_to ---
+
+    // A block with a Panic terminator should have it replaced with a Jump to the target.
+    #[test]
+    fn test_panic_to_single_block_panics() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let target = fb.add_block();
+        fb.set_terminator(target, Terminator::Return { value: None });
+        fb.set_terminator(a, Terminator::Panic);
+
+        let cfg = CFG::new(a);
+        cfg.panic_to(&mut fb, target);
+
+        let a_terminator = fb.get_block(a).terminator.clone();
+        assert_eq!(a_terminator, Some(Terminator::Jump { target }));
+    }
+
+    // Non-Panic terminators should be left unchanged.
+    #[test]
+    fn test_panic_to_leaves_existing_terminators_alone() {
+        for term in [Terminator::Return { value: None }, Terminator::Unreachable] {
+            let mut fb = test_builder();
+            let a = fb.add_block();
+            let target = fb.add_block();
+            fb.set_terminator(target, Terminator::Return { value: None });
+            fb.set_terminator(a, term.clone());
+
+            let cfg = CFG::new(a);
+            cfg.panic_to(&mut fb, target);
+
+            let a_terminator = fb.get_block(a).terminator.clone();
+            assert_eq!(a_terminator, Some(term));
+        }
+    }
+
+    // In a linear chain where the tail panics, only the tail should be replaced.
+    #[test]
+    fn test_panic_to_linear_chain_wires_tail() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let target = fb.add_block();
+        fb.set_terminator(target, Terminator::Return { value: None });
+        fb.set_terminator(a, Terminator::Jump { target: b });
+        fb.set_terminator(b, Terminator::Panic);
+
+        let cfg = CFG::new(a);
+        cfg.panic_to(&mut fb, target);
+
+        let a_terminator = fb.get_block(a).terminator.clone();
+        let b_terminator = fb.get_block(b).terminator.clone();
+        assert_eq!(a_terminator, Some(Terminator::Jump { target: b }));
+        assert_eq!(b_terminator, Some(Terminator::Jump { target }));
+    }
+
+    // Both arms of a branch that panic should be replaced.
+    #[test]
+    fn test_panic_to_branch_wires_both_arms() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let c = fb.add_block();
+        let target = fb.add_block();
+        fb.set_terminator(target, Terminator::Return { value: None });
+        let cond = ValueId::from_u32(1);
+        fb.set_terminator(
+            a,
+            Terminator::Branch {
+                cond,
+                true_target: b,
+                false_target: c,
+            },
+        );
+        fb.set_terminator(b, Terminator::Panic);
+        fb.set_terminator(c, Terminator::Panic);
+
+        let cfg = CFG::new(a);
+        cfg.panic_to(&mut fb, target);
+
+        let b_terminator = fb.get_block(b).terminator.clone();
+        let c_terminator = fb.get_block(c).terminator.clone();
+        assert_eq!(b_terminator, Some(Terminator::Jump { target }));
+        assert_eq!(c_terminator, Some(Terminator::Jump { target }));
+    }
+
+    // Only the arm that panics should be replaced; the other is left alone.
+    #[test]
+    fn test_panic_to_branch_wires_only_panicking_arm() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let c = fb.add_block();
+        let target = fb.add_block();
+        fb.set_terminator(target, Terminator::Return { value: None });
+        let cond = ValueId::from_u32(1);
+        fb.set_terminator(
+            a,
+            Terminator::Branch {
+                cond,
+                true_target: b,
+                false_target: c,
+            },
+        );
+        fb.set_terminator(b, Terminator::Return { value: None });
+        fb.set_terminator(c, Terminator::Panic);
+
+        let cfg = CFG::new(a);
+        cfg.panic_to(&mut fb, target);
+
+        let b_terminator = fb.get_block(b).terminator.clone();
+        let c_terminator = fb.get_block(c).terminator.clone();
+        assert_eq!(b_terminator, Some(Terminator::Return { value: None }));
+        assert_eq!(c_terminator, Some(Terminator::Jump { target }));
+    }
+
+    // In a cycle, the back-edge is short-circuited and the off-loop block that
+    // panics is still replaced correctly.
+    #[test]
+    fn test_panic_to_cycle_wires_off_loop_block() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let c = fb.add_block();
+        let target = fb.add_block();
+        fb.set_terminator(target, Terminator::Return { value: None });
+        let cond = ValueId::from_u32(1);
+        fb.set_terminator(a, Terminator::Jump { target: b });
+        fb.set_terminator(
+            b,
+            Terminator::Branch {
+                cond,
+                true_target: a,
+                false_target: c,
+            },
+        );
+        fb.set_terminator(c, Terminator::Panic);
+
+        let cfg = CFG::new(a);
+        cfg.panic_to(&mut fb, target);
+
+        let a_terminator = fb.get_block(a).terminator.clone();
+        let b_terminator = fb.get_block(b).terminator.clone();
+        let c_terminator = fb.get_block(c).terminator.clone();
+        assert_eq!(a_terminator, Some(Terminator::Jump { target: b }));
+        assert_eq!(
+            b_terminator,
+            Some(Terminator::Branch {
+                cond,
+                true_target: a,
+                false_target: c
+            })
+        );
+        assert_eq!(c_terminator, Some(Terminator::Jump { target }));
+    }
+
+    // --- return_to ---
+
+    // A unit return (no value) should be replaced with a Jump and no store emitted.
+    #[test]
+    fn test_return_to_unit_return_single_block() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let target = fb.add_block();
+        fb.set_terminator(target, Terminator::Unreachable);
+        fb.set_terminator(a, Terminator::Return { value: None });
+
+        let cfg = CFG::new(a);
+        cfg.return_to(&mut fb, target, None);
+
+        let a_terminator = fb.get_block(a).terminator.clone();
+        let a_instructions = fb.get_block(a).instructions.clone();
+        assert_eq!(a_terminator, Some(Terminator::Jump { target }));
+        assert!(a_instructions.is_empty());
+    }
+
+    // A value return should be replaced with a store to the local followed by a Jump.
+    #[test]
+    fn test_return_to_value_return_single_block() {
+        let mut fb = FunctionBuilder::new(StrID::from_usize(1), TypeSpec::I32);
+        let a = fb.add_block();
+        let target = fb.add_block();
+        fb.set_terminator(target, Terminator::Unreachable);
+        let return_val = fb.emit_const(a, TypeSpec::I32, ConstValue::ConstInt(42));
+        let local = fb.add_local(StrID::from_usize(2), TypeSpec::I32);
+        fb.set_terminator(
+            a,
+            Terminator::Return {
+                value: Some(return_val),
+            },
+        );
+
+        let cfg = CFG::new(a);
+        cfg.return_to(&mut fb, target, Some(local));
+
+        let a_terminator = fb.get_block(a).terminator.clone();
+        assert_eq!(a_terminator, Some(Terminator::Jump { target }));
+
+        let store_value_id = *fb.get_block(a).instructions.last().unwrap();
+        let store_instruction = fb.instructions[store_value_id.as_idx()].clone();
+        assert_eq!(
+            store_instruction,
+            Instruction::Store {
+                place: Place::local(local),
+                value: return_val
+            }
+        );
+    }
+
+    // Non-Return terminators should be left unchanged.
+    #[test]
+    fn test_return_to_leaves_non_return_terminators_alone() {
+        for term in [Terminator::Panic, Terminator::Unreachable] {
+            let mut fb = test_builder();
+            let a = fb.add_block();
+            let target = fb.add_block();
+            fb.set_terminator(target, Terminator::Unreachable);
+            fb.set_terminator(a, term.clone());
+
+            let cfg = CFG::new(a);
+            cfg.return_to(&mut fb, target, None);
+
+            let a_terminator = fb.get_block(a).terminator.clone();
+            assert_eq!(a_terminator, Some(term));
+        }
+    }
+
+    // In a linear chain where the tail returns, only the tail should be replaced.
+    #[test]
+    fn test_return_to_linear_chain_wires_tail() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let target = fb.add_block();
+        fb.set_terminator(target, Terminator::Unreachable);
+        fb.set_terminator(a, Terminator::Jump { target: b });
+        fb.set_terminator(b, Terminator::Return { value: None });
+
+        let cfg = CFG::new(a);
+        cfg.return_to(&mut fb, target, None);
+
+        let a_terminator = fb.get_block(a).terminator.clone();
+        let b_terminator = fb.get_block(b).terminator.clone();
+        assert_eq!(a_terminator, Some(Terminator::Jump { target: b }));
+        assert_eq!(b_terminator, Some(Terminator::Jump { target }));
+    }
+
+    // Both arms of a branch that return should be replaced.
+    #[test]
+    fn test_return_to_branch_wires_both_arms() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let c = fb.add_block();
+        let target = fb.add_block();
+        fb.set_terminator(target, Terminator::Unreachable);
+        let cond = ValueId::from_u32(1);
+        fb.set_terminator(
+            a,
+            Terminator::Branch {
+                cond,
+                true_target: b,
+                false_target: c,
+            },
+        );
+        fb.set_terminator(b, Terminator::Return { value: None });
+        fb.set_terminator(c, Terminator::Return { value: None });
+
+        let cfg = CFG::new(a);
+        cfg.return_to(&mut fb, target, None);
+
+        let b_terminator = fb.get_block(b).terminator.clone();
+        let c_terminator = fb.get_block(c).terminator.clone();
+        assert_eq!(b_terminator, Some(Terminator::Jump { target }));
+        assert_eq!(c_terminator, Some(Terminator::Jump { target }));
+    }
+
+    // Only the arm that returns should be replaced; the other is left alone.
+    #[test]
+    fn test_return_to_branch_wires_only_returning_arm() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let c = fb.add_block();
+        let target = fb.add_block();
+        fb.set_terminator(target, Terminator::Unreachable);
+        let cond = ValueId::from_u32(1);
+        fb.set_terminator(
+            a,
+            Terminator::Branch {
+                cond,
+                true_target: b,
+                false_target: c,
+            },
+        );
+        fb.set_terminator(b, Terminator::Panic);
+        fb.set_terminator(c, Terminator::Return { value: None });
+
+        let cfg = CFG::new(a);
+        cfg.return_to(&mut fb, target, None);
+
+        let b_terminator = fb.get_block(b).terminator.clone();
+        let c_terminator = fb.get_block(c).terminator.clone();
+        assert_eq!(b_terminator, Some(Terminator::Panic));
+        assert_eq!(c_terminator, Some(Terminator::Jump { target }));
+    }
+
+    // In a cycle, the back-edge is short-circuited and the off-loop block that
+    // returns is still replaced correctly.
+    #[test]
+    fn test_return_to_cycle_wires_off_loop_block() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let c = fb.add_block();
+        let target = fb.add_block();
+        fb.set_terminator(target, Terminator::Unreachable);
+        let cond = ValueId::from_u32(1);
+        fb.set_terminator(a, Terminator::Jump { target: b });
+        fb.set_terminator(
+            b,
+            Terminator::Branch {
+                cond,
+                true_target: a,
+                false_target: c,
+            },
+        );
+        fb.set_terminator(c, Terminator::Return { value: None });
+
+        let cfg = CFG::new(a);
+        cfg.return_to(&mut fb, target, None);
+
+        let a_terminator = fb.get_block(a).terminator.clone();
+        let b_terminator = fb.get_block(b).terminator.clone();
+        let c_terminator = fb.get_block(c).terminator.clone();
+        assert_eq!(a_terminator, Some(Terminator::Jump { target: b }));
+        assert_eq!(
+            b_terminator,
+            Some(Terminator::Branch {
+                cond,
+                true_target: a,
+                false_target: c
+            })
+        );
+        assert_eq!(c_terminator, Some(Terminator::Jump { target }));
+    }
 }
