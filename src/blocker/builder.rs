@@ -1905,4 +1905,163 @@ mod tests {
         let can_return = cfg.can_return(&fb);
         assert!(!can_return);
     }
+
+    // --- jump_to ---
+
+    // A block with no terminator should have it set to jump to the target.
+    #[test]
+    fn test_jump_to_single_block_no_terminator() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let target = fb.add_block();
+        fb.set_terminator(target, Terminator::Return { value: None });
+
+        let cfg = CFG::new(a);
+        cfg.jump_to(&mut fb, target);
+
+        let a_terminator = fb.get_block(a).terminator.clone();
+        assert_eq!(a_terminator, Some(Terminator::Jump { target }));
+    }
+
+    // Blocks that already have a terminal terminator should be left unchanged.
+    #[test]
+    fn test_jump_to_leaves_existing_terminators_alone() {
+        for term in [
+            Terminator::Return { value: None },
+            Terminator::Unreachable,
+            Terminator::Panic,
+        ] {
+            let mut fb = test_builder();
+            let a = fb.add_block();
+            let target = fb.add_block();
+            fb.set_terminator(target, Terminator::Return { value: None });
+            fb.set_terminator(a, term.clone());
+
+            let cfg = CFG::new(a);
+            cfg.jump_to(&mut fb, target);
+
+            let a_terminator = fb.get_block(a).terminator.clone();
+            assert_eq!(a_terminator, Some(term));
+        }
+    }
+
+    // In a linear chain where the tail has no terminator, only the tail should
+    // be wired up.
+    #[test]
+    fn test_jump_to_linear_chain_wires_tail() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let target = fb.add_block();
+        fb.set_terminator(target, Terminator::Return { value: None });
+        fb.set_terminator(a, Terminator::Jump { target: b });
+        // b has no terminator
+
+        let cfg = CFG::new(a);
+        cfg.jump_to(&mut fb, target);
+
+        let a_terminator = fb.get_block(a).terminator.clone();
+        let b_terminator = fb.get_block(b).terminator.clone();
+        assert_eq!(a_terminator, Some(Terminator::Jump { target: b }));
+        assert_eq!(b_terminator, Some(Terminator::Jump { target }));
+    }
+
+    // Both arms of a branch with no terminators should be wired up.
+    #[test]
+    fn test_jump_to_branch_wires_both_arms() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let c = fb.add_block();
+        let target = fb.add_block();
+        fb.set_terminator(target, Terminator::Return { value: None });
+        let cond = ValueId::from_u32(1);
+        fb.set_terminator(
+            a,
+            Terminator::Branch {
+                cond,
+                true_target: b,
+                false_target: c,
+            },
+        );
+        // b and c have no terminators
+
+        let cfg = CFG::new(a);
+        cfg.jump_to(&mut fb, target);
+
+        let b_terminator = fb.get_block(b).terminator.clone();
+        let c_terminator = fb.get_block(c).terminator.clone();
+        assert_eq!(b_terminator, Some(Terminator::Jump { target }));
+        assert_eq!(c_terminator, Some(Terminator::Jump { target }));
+    }
+
+    // Only the arm without a terminator should be wired up; the other is left alone.
+    #[test]
+    fn test_jump_to_branch_wires_only_missing_arm() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let c = fb.add_block();
+        let target = fb.add_block();
+        fb.set_terminator(target, Terminator::Return { value: None });
+        let cond = ValueId::from_u32(1);
+        fb.set_terminator(
+            a,
+            Terminator::Branch {
+                cond,
+                true_target: b,
+                false_target: c,
+            },
+        );
+        fb.set_terminator(b, Terminator::Return { value: None });
+        // c has no terminator
+
+        let cfg = CFG::new(a);
+        cfg.jump_to(&mut fb, target);
+
+        let b_terminator = fb.get_block(b).terminator.clone();
+        let c_terminator = fb.get_block(c).terminator.clone();
+        assert_eq!(b_terminator, Some(Terminator::Return { value: None }));
+        assert_eq!(c_terminator, Some(Terminator::Jump { target }));
+    }
+
+    // In a cycle, the back-edge is short-circuited by the visited set. The
+    // off-loop block with no terminator should still be wired up correctly.
+    #[test]
+    fn test_jump_to_cycle_wires_off_loop_block() {
+        let mut fb = test_builder();
+        let a = fb.add_block();
+        let b = fb.add_block();
+        let c = fb.add_block();
+        let target = fb.add_block();
+        fb.set_terminator(target, Terminator::Return { value: None });
+        let cond = ValueId::from_u32(1);
+        fb.set_terminator(a, Terminator::Jump { target: b });
+        fb.set_terminator(
+            b,
+            Terminator::Branch {
+                cond,
+                true_target: a,
+                false_target: c,
+            },
+        );
+        // c has no terminator
+
+        let cfg = CFG::new(a);
+        cfg.jump_to(&mut fb, target);
+
+        let a_terminator = fb.get_block(a).terminator.clone();
+        let b_terminator = fb.get_block(b).terminator.clone();
+        let c_terminator = fb.get_block(c).terminator.clone();
+        assert_eq!(a_terminator, Some(Terminator::Jump { target: b }));
+        assert_eq!(
+            b_terminator,
+            Some(Terminator::Branch {
+                cond,
+                true_target: a,
+                false_target: c
+            })
+        );
+        assert_eq!(c_terminator, Some(Terminator::Jump { target }));
+    }
 }
