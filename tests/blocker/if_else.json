@@ -98,8 +98,8 @@
           "terminator": {
             "Branch": {
               "cond": 10,
-              "true_target": 4,
-              "false_target": 6
+              "true_target": 5,
+              "false_target": 8
             }
           }
         },
@@ -111,7 +111,16 @@
           ],
           "terminator": {
             "Jump": {
-              "target": 5
+              "target": 9
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 6
             }
           }
         },
@@ -132,7 +141,16 @@
           ],
           "terminator": {
             "Jump": {
-              "target": 5
+              "target": 7
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 6
             }
           }
         },
@@ -142,6 +160,15 @@
             4,
             5
           ],
+          "terminator": {
+            "Jump": {
+              "target": 4
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
           "terminator": {
             "Jump": {
               "target": 3

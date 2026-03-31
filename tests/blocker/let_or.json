@@ -344,7 +344,7 @@
           "terminator": {
             "SwitchVariant": {
               "discriminant": 3,
-              "default": 4,
+              "default": 5,
               "arms": [
                 {
                   "target": {
@@ -368,6 +368,15 @@
           ],
           "terminator": {
             "Jump": {
+              "target": 4
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
               "target": 2
             }
           }
@@ -382,13 +391,13 @@
           "terminator": {
             "SwitchVariant": {
               "discriminant": 15,
-              "default": 8,
+              "default": 12,
               "arms": [
                 {
                   "target": {
                     "ConstUInt": 0
                   },
-                  "jump": 7
+                  "jump": 10
                 }
               ]
             }
@@ -406,7 +415,16 @@
           ],
           "terminator": {
             "Jump": {
-              "target": 6
+              "target": 11
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 9
             }
           }
         },
@@ -415,11 +433,11 @@
           "instructions": [
             23,
             24,
-            28
+            27
           ],
           "terminator": {
             "Jump": {
-              "target": 5
+              "target": 16
             }
           }
         },
@@ -431,18 +449,27 @@
           ],
           "terminator": {
             "Jump": {
-              "target": 9
+              "target": 17
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 19
             }
           }
         },
         {
           "block_args": [],
           "instructions": [
-            25
+            28
           ],
           "terminator": {
             "Return": {
-              "value": 25
+              "value": 28
             }
           }
         },
@@ -454,11 +481,11 @@
             20,
             21,
             22,
-            27
+            26
           ],
           "terminator": {
             "Jump": {
-              "target": 5
+              "target": 16
             }
           }
         },
@@ -470,11 +497,11 @@
             8,
             9,
             10,
-            26
+            25
           ],
           "terminator": {
             "Jump": {
-              "target": 5
+              "target": 16
             }
           }
         }
@@ -702,16 +729,6 @@
           }
         },
         {
-          "Load": {
-            "place": {
-              "base": {
-                "Local": 8
-              },
-              "projections": []
-            }
-          }
-        },
-        {
           "Store": {
             "place": {
               "base": {
@@ -742,6 +759,16 @@
               "projections": []
             },
             "value": 24
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 8
+              },
+              "projections": []
+            }
           }
         }
       ],
@@ -895,6 +922,9 @@
             ]
           }
         },
+        "Unit",
+        "Unit",
+        "Unit",
         {
           "Enum": {
             "tag_size": "U8",
@@ -922,10 +952,7 @@
               }
             ]
           }
-        },
-        "Unit",
-        "Unit",
-        "Unit"
+        }
       ]
     },
     {
@@ -1031,7 +1058,7 @@
           "terminator": {
             "SwitchVariant": {
               "discriminant": 3,
-              "default": 4,
+              "default": 5,
               "arms": [
                 {
                   "target": {
@@ -1055,6 +1082,15 @@
           ],
           "terminator": {
             "Jump": {
+              "target": 4
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
               "target": 2
             }
           }
@@ -1071,13 +1107,13 @@
           "terminator": {
             "SwitchVariant": {
               "discriminant": 15,
-              "default": 7,
+              "default": 10,
               "arms": [
                 {
                   "target": {
                     "ConstUInt": 0
                   },
-                  "jump": 6
+                  "jump": 8
                 }
               ]
             }
@@ -1095,7 +1131,16 @@
           ],
           "terminator": {
             "Jump": {
-              "target": 5
+              "target": 9
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 7
             }
           }
         },
@@ -1122,7 +1167,16 @@
           ],
           "terminator": {
             "Jump": {
-              "target": 5
+              "target": 11
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 7
             }
           }
         },

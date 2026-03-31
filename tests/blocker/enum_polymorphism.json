@@ -137,7 +137,7 @@
                   "target": {
                     "ConstUInt": 1
                   },
-                  "jump": 4
+                  "jump": 5
                 }
               ]
             }
@@ -176,6 +176,15 @@
           "terminator": {
             "Return": {
               "value": 9
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 7
             }
           }
         },

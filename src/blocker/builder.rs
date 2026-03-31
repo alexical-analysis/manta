@@ -84,12 +84,12 @@ impl BlockBuilder {
     }
 }
 
-struct CFG {
+pub struct CFG {
     entry: BlockId,
 }
 
 impl CFG {
-    fn new(entry: BlockId) -> Self {
+    pub fn new(entry: BlockId) -> Self {
         CFG { entry }
     }
 
@@ -180,7 +180,7 @@ impl CFG {
     }
 
     // this returns true only if all blocks in the graph terminate correctly
-    fn all_blocks_terminate(&self, fn_builder: &FunctionBuilder) -> bool {
+    pub fn all_blocks_terminate(&self, fn_builder: &FunctionBuilder) -> bool {
         let mut visited = HashSet::new();
         self.inner_all_blocks_terminate(&mut visited, fn_builder)
     }
@@ -568,6 +568,11 @@ impl SetStack {
     }
 }
 
+struct Scope {
+    start: BlockId,
+    defer: Vec<BlockId>,
+}
+
 pub struct FunctionBuilder {
     name: StrID,
     params: Vec<LocalId>,
@@ -575,7 +580,7 @@ pub struct FunctionBuilder {
     locals: Vec<Local>, // Indexed by LocalId
     local_map: BTreeMap<NodeID, LocalId>,
     blocks: Vec<BlockBuilder>, // Indexed by BlockId
-    defer_blocks: Vec<BlockId>,
+    scopes: Vec<Scope>,
     instructions: Vec<Instruction>, // Flat instruction array, indexed by ValueId
     value_types: Vec<TypeSpec>,     // Parallel to instructions, indexed by ValueId
 }
@@ -589,10 +594,126 @@ impl FunctionBuilder {
             locals: vec![],
             local_map: BTreeMap::new(),
             blocks: vec![],
-            defer_blocks: vec![],
+            scopes: vec![],
             instructions: vec![],
             value_types: vec![],
         }
+    }
+
+    pub fn open_scope(&mut self, block_id: BlockId) {
+        self.scopes.push(Scope {
+            start: block_id,
+            defer: vec![],
+        })
+    }
+
+    pub fn close_scope(&mut self) -> BlockId {
+        let mut scope = self
+            .scopes
+            .pop()
+            .expect("can not close scope, not currently in a scope");
+
+        let block = CFG::new(scope.start);
+        let triple = match scope.defer.pop() {
+            Some(b) => self.build_defer_triple(b),
+            None => {
+                // If there's no defer block we can just jump from this scope directly into a merge
+                // black and return that block id to continue gathering instructions
+                let b = self.add_block();
+                block.jump_to(self, b);
+                return b;
+            }
+        };
+
+        // String all the defer blocks together, we need three distinct flows depending on how you
+        // enterd the defer block, though a panic, a return statement, or a normal scope close
+        // (i.e. no explicit terminator)
+        let (mut panic_block, mut merge_block, mut return_block) = triple;
+
+        // jump from the original block CFG into the correct defer stack
+        block.panic_to(self, panic_block.entry);
+        block.jump_to(self, merge_block.entry);
+
+        // need to create a local if this function has an expected return value
+        let ret_local = match self.return_type.clone() {
+            TypeSpec::Unit => None,
+            ts => {
+                let local = self.add_local(str_store::DEFER, ts);
+                Some(local)
+            }
+        };
+        block.return_to(self, return_block.entry, ret_local);
+
+        // Now we need to wire up all the remaining defer blocks so they feed into each other
+        // correctly. All blocks should jump into the next block in the sequece depending on the
+        // entry path. The one execption is if any of the defer blocks panic in which case we jump
+        // to the panic defer stack and continue from there. There is no escape from the panic
+        // defer stack since we don't allow recovery from a panic defer as it leads to potentially
+        // undefined return values
+        while let Some(b) = scope.defer.pop() {
+            let triple = self.build_defer_triple(b);
+            let (next_panic_block, next_merge_block, next_return_block) = triple;
+
+            panic_block.jump_to(self, next_panic_block.entry);
+            merge_block.jump_to(self, next_merge_block.entry);
+            return_block.jump_to(self, next_return_block.entry);
+
+            panic_block.panic_to(self, next_panic_block.entry);
+            merge_block.panic_to(self, next_panic_block.entry);
+            return_block.panic_to(self, next_panic_block.entry);
+
+            panic_block = next_panic_block;
+            merge_block = next_merge_block;
+            return_block = next_return_block;
+        }
+
+        // wire the final defer blocks up so they correctly jump back into the flow either
+        // returing, continuing to panic, or mergeing back into an empty merge block
+        let final_panic_block = self.add_block();
+        self.set_terminator(final_panic_block, Terminator::Panic);
+
+        panic_block.jump_to(self, final_panic_block);
+        panic_block.panic_to(self, final_panic_block);
+        merge_block.panic_to(self, final_panic_block);
+        return_block.panic_to(self, final_panic_block);
+
+        let final_return_block = self.add_block();
+        match ret_local {
+            Some(local_id) => {
+                let ts = self.return_type.clone();
+                let value = self.emit_load(final_return_block, Place::local(local_id), ts);
+                self.set_terminator(
+                    final_return_block,
+                    Terminator::Return { value: Some(value) },
+                );
+            }
+            None => {
+                self.set_terminator(final_return_block, Terminator::Return { value: None });
+            }
+        }
+        return_block.jump_to(self, final_return_block);
+
+        let final_merge_block = self.add_block();
+        merge_block.jump_to(self, final_merge_block);
+
+        final_merge_block
+    }
+
+    /// build 3 different CFG, based on b. The inital CFG is not a clone and should be treated as
+    /// the panic block, the remaining 2 CFGs are clones of the first
+    fn build_defer_triple(&mut self, b: BlockId) -> (CFG, CFG, CFG) {
+        let panic_defer = CFG::new(b);
+        if panic_defer.can_return(self) {
+            panic!("can not return from inside defer blocks")
+        }
+
+        let merge_defer = panic_defer.clone(self);
+        let merge_cfg = CFG::new(merge_defer);
+
+        let return_defer = panic_defer.clone(self);
+        let return_cfg = CFG::new(return_defer);
+
+        (panic_defer, merge_cfg, return_cfg)
     }
 
     pub fn add_param(&mut self, node: NodeID, name: StrID, return_type: TypeSpec) {
@@ -1043,20 +1164,24 @@ impl FunctionBuilder {
         BlockId::from_u32(self.blocks.len() as u32)
     }
 
-    pub fn clone_block(&mut self, block_id: BlockId) -> BlockId {
-        let clone = self.get_block(block_id).clone();
-        self.blocks.push(clone);
-        BlockId::from_u32(self.blocks.len() as u32)
-    }
-
     pub fn add_defer_block(&mut self) -> BlockId {
         let block_builder = BlockBuilder::new();
 
         self.blocks.push(block_builder);
         let id = BlockId::from_u32(self.blocks.len() as u32);
-        self.defer_blocks.push(id);
+
+        match self.scopes.last_mut() {
+            Some(scope) => scope.defer.push(id),
+            None => panic!("can not add defer block outside of a scope"),
+        }
 
         id
+    }
+
+    pub fn clone_block(&mut self, block_id: BlockId) -> BlockId {
+        let clone = self.get_block(block_id).clone();
+        self.blocks.push(clone);
+        BlockId::from_u32(self.blocks.len() as u32)
     }
 
     /// Return an existing local if one is created for the given node and create a new one otherwise
@@ -1111,10 +1236,6 @@ impl FunctionBuilder {
             panic!("function must have an entry block")
         };
 
-        if let Some(id) = self.defer_blocks.pop() {
-            self.build_defer_blocks(id);
-        }
-
         // it's possible for a basic block in the function to be empty if all other blocks
         // terminated without jumping to it. For example if every arm in a match statement
         // returns before the end of the function. here we take a quick walk through the
@@ -1165,128 +1286,6 @@ impl FunctionBuilder {
             locals: self.locals.clone(),
             instructions: self.instructions.clone(),
             value_types: self.value_types.clone(),
-        }
-    }
-
-    /// update the CFG so that defer blocks are correctly stacked and called in the place of any
-    /// return's or other unwinding operators like panics
-    fn build_defer_blocks(&mut self, first_block: BlockId) {
-        let merge_block = self.add_block();
-        let defer_local = match self.return_type.clone() {
-            TypeSpec::Unit => {
-                self.set_terminator(merge_block, Terminator::Return { value: None });
-                None
-            }
-            ts => {
-                let defer_local = self.add_local(str_store::DEFER, ts.clone());
-                let value = self.emit_load(merge_block, Place::local(defer_local), ts);
-                self.set_terminator(merge_block, Terminator::Return { value: Some(value) });
-                Some(defer_local)
-            }
-        };
-
-        // string all the defer blocks together so that each defer block jumps to the next in LIFO
-        // order
-        let mut block_id = first_block;
-        while let Some(next_block) = self.defer_blocks.pop() {
-            self.update_defer_block(block_id, next_block);
-            block_id = next_block;
-        }
-
-        self.update_defer_block(block_id, merge_block);
-
-        // update all other blocks in the builder so that return instructions instead write to the
-        // defer_local and then jump to the first block
-
-        let mut block_stack = SetStack::new();
-        block_stack.push(BlockId::from_u32(1));
-        while let Some(b) = block_stack.pop() {
-            let block = self.get_block(b);
-            match &block.terminator {
-                Some(Terminator::Return { value }) => match (defer_local, value) {
-                    (Some(local), Some(value)) => {
-                        let value = *value;
-                        self.unset_terminator(b);
-                        self.emit_store(b, Place::local(local), value);
-                        self.set_terminator(
-                            b,
-                            Terminator::Jump {
-                                target: first_block,
-                            },
-                        );
-                    }
-                    (None, Some(_)) => unreachable!("caught by type checking"),
-                    (Some(_), None) => unreachable!("caught by type checking"),
-                    (None, None) => {
-                        self.unset_terminator(b);
-                        self.set_terminator(
-                            b,
-                            Terminator::Jump {
-                                target: first_block,
-                            },
-                        );
-                    }
-                },
-                Some(Terminator::Jump { target }) => block_stack.push(*target),
-                Some(Terminator::Branch {
-                    true_target,
-                    false_target,
-                    ..
-                }) => {
-                    block_stack.push(*true_target);
-                    block_stack.push(*false_target);
-                }
-                Some(Terminator::SwitchVariant { default, arms, .. }) => {
-                    for arm in arms {
-                        block_stack.push(arm.jump);
-                    }
-                    block_stack.push(*default);
-                }
-                Some(Terminator::Panic) => {
-                    eprintln!(
-                        "leaving panics alone for now since we're only supporting defers for normal returns to start"
-                    )
-                }
-                Some(Terminator::Unreachable) => {}
-                None => panic!("missing terminator for block"),
-            }
-        }
-    }
-
-    fn update_defer_block(&mut self, block_id: BlockId, next_block: BlockId) {
-        let mut block_stack = SetStack::new();
-        block_stack.push(block_id);
-        while let Some(b) = block_stack.pop() {
-            let block = self.get_block(b);
-            match &block.terminator {
-                Some(Terminator::Return { .. }) => {
-                    panic!("can not return from defer blocks")
-                }
-                Some(Terminator::Jump { target }) => block_stack.push(*target),
-                Some(Terminator::Branch {
-                    true_target,
-                    false_target,
-                    ..
-                }) => {
-                    block_stack.push(*true_target);
-                    block_stack.push(*false_target);
-                }
-                Some(Terminator::SwitchVariant { default, arms, .. }) => {
-                    for arm in arms {
-                        block_stack.push(arm.jump);
-                    }
-                    block_stack.push(*default);
-                }
-                Some(Terminator::Panic) => {
-                    eprintln!(
-                        "leaving panics alone for now since we're only supporting defers for normal returns to start"
-                    )
-                }
-                Some(Terminator::Unreachable) => {}
-                None => {
-                    self.set_terminator(b, Terminator::Jump { target: next_block });
-                }
-            }
         }
     }
 }

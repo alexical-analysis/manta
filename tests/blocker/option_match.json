@@ -270,7 +270,7 @@
                   "target": {
                     "ConstUInt": 1
                   },
-                  "jump": 4
+                  "jump": 5
                 }
               ]
             }
@@ -282,6 +282,15 @@
             12,
             13
           ],
+          "terminator": {
+            "Jump": {
+              "target": 6
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
           "terminator": {
             "Jump": {
               "target": 2
@@ -299,6 +308,15 @@
             10,
             11
           ],
+          "terminator": {
+            "Jump": {
+              "target": 4
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
           "terminator": {
             "Jump": {
               "target": 2
