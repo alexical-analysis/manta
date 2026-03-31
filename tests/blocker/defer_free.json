@@ -345,7 +345,7 @@
           "terminator": {
             "SwitchVariant": {
               "discriminant": 3,
-              "default": 4,
+              "default": 5,
               "arms": [
                 {
                   "target": {
@@ -369,6 +369,15 @@
           ],
           "terminator": {
             "Jump": {
+              "target": 4
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
               "target": 2
             }
           }
@@ -382,8 +391,8 @@
           "terminator": {
             "Branch": {
               "cond": 14,
-              "true_target": 7,
-              "false_target": 8
+              "true_target": 10,
+              "false_target": 12
             }
           }
         },
@@ -398,7 +407,16 @@
           ],
           "terminator": {
             "Jump": {
-              "target": 6
+              "target": 13
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 9
             }
           }
         },
@@ -413,13 +431,13 @@
           "terminator": {
             "SwitchVariant": {
               "discriminant": 26,
-              "default": 12,
+              "default": 19,
               "arms": [
                 {
                   "target": {
                     "ConstUInt": 0
                   },
-                  "jump": 11
+                  "jump": 17
                 }
               ]
             }
@@ -437,7 +455,16 @@
           ],
           "terminator": {
             "Jump": {
-              "target": 10
+              "target": 18
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 16
             }
           }
         },
@@ -445,11 +472,11 @@
           "block_args": [],
           "instructions": [
             34,
-            38
+            37
           ],
           "terminator": {
             "Jump": {
-              "target": 9
+              "target": 23
             }
           }
         },
@@ -461,7 +488,16 @@
           ],
           "terminator": {
             "Jump": {
-              "target": 5
+              "target": 24
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 27
             }
           }
         },
@@ -473,18 +509,27 @@
           ],
           "terminator": {
             "Jump": {
-              "target": 13
+              "target": 28
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 30
             }
           }
         },
         {
           "block_args": [],
           "instructions": [
-            35
+            38
           ],
           "terminator": {
             "Return": {
-              "value": 35
+              "value": 38
             }
           }
         },
@@ -496,11 +541,11 @@
             31,
             32,
             33,
-            37
+            36
           ],
           "terminator": {
             "Jump": {
-              "target": 9
+              "target": 23
             }
           }
         },
@@ -515,7 +560,16 @@
           ],
           "terminator": {
             "Jump": {
-              "target": 6
+              "target": 11
+            }
+          }
+        },
+        {
+          "block_args": [],
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 9
             }
           }
         },
@@ -527,11 +581,11 @@
             8,
             9,
             10,
-            36
+            35
           ],
           "terminator": {
             "Jump": {
-              "target": 9
+              "target": 23
             }
           }
         }
@@ -860,16 +914,6 @@
           }
         },
         {
-          "Load": {
-            "place": {
-              "base": {
-                "Local": 11
-              },
-              "projections": []
-            }
-          }
-        },
-        {
           "Store": {
             "place": {
               "base": {
@@ -900,6 +944,16 @@
               "projections": []
             },
             "value": 34
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 11
+              },
+              "projections": []
+            }
           }
         }
       ],
@@ -1079,6 +1133,9 @@
             ]
           }
         },
+        "Unit",
+        "Unit",
+        "Unit",
         {
           "Enum": {
             "tag_size": "U8",
@@ -1106,10 +1163,7 @@
               }
             ]
           }
-        },
-        "Unit",
-        "Unit",
-        "Unit"
+        }
       ]
     }
   ]

@@ -2,7 +2,7 @@ mod builder;
 
 use std::collections::BTreeMap;
 
-use builder::FunctionBuilder;
+use builder::{CFG, FunctionBuilder};
 
 use crate::ast::{BinaryOp, UnaryOp};
 use crate::hir::{self, Node, NodeID, PatternNode};
@@ -269,15 +269,24 @@ impl<'a> Blocker<'a> {
                 None
             }
             Node::Block { statements } => {
+                self.fn_builder.open_scope(block_id);
+
                 let mut current_block = block_id;
                 for stmt in statements {
                     match self.block_statement(current_block, stmt) {
                         Some(b) => current_block = b,
-                        None => return None,
+                        None => break,
                     }
                 }
 
-                Some(current_block)
+                let merge_block = self.fn_builder.close_scope();
+
+                let cfg = CFG::new(block_id);
+                if cfg.all_blocks_terminate(&self.fn_builder) {
+                    None
+                } else {
+                    Some(merge_block)
+                }
             }
             Node::VarDecl { ident } => {
                 let name = self.get_ident_name(ident);
