@@ -281,7 +281,7 @@ impl<'a> Blocker<'a> {
 
                 let merge_block = self.fn_builder.close_scope();
 
-                let cfg = CFG::new(block_id);
+                let cfg = CFG::new(&mut self.fn_builder, block_id);
                 if cfg.all_blocks_terminate(&self.fn_builder) {
                     None
                 } else {

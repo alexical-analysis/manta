@@ -86,327 +86,163 @@ impl BlockBuilder {
 
 pub struct CFG {
     entry: BlockId,
+    blocks: Vec<BlockId>,
 }
 
 impl CFG {
-    pub fn new(entry: BlockId) -> Self {
-        CFG { entry }
+    pub fn new(fn_builder: &mut FunctionBuilder, entry: BlockId) -> Self {
+        let blocks = Self::visit_all_blocks(fn_builder, entry);
+        CFG { entry, blocks }
     }
 
-    fn clone(&self, fn_builder: &mut FunctionBuilder) -> BlockId {
-        let mut block_map = HashMap::new();
-        self.inner_clone(&mut block_map, fn_builder)
-    }
+    fn visit_all_blocks(fn_builder: &mut FunctionBuilder, entry: BlockId) -> Vec<BlockId> {
+        let mut visited = vec![];
+        let mut stack = SetStack::new();
+        stack.push(entry);
+        while let Some(b) = stack.pop() {
+            visited.push(b);
 
-    fn inner_clone(
-        &self,
-        block_map: &mut HashMap<BlockId, BlockId>,
-        fn_builder: &mut FunctionBuilder,
-    ) -> BlockId {
-        if let Some(b) = block_map.get(&self.entry) {
-            return *b;
+            let block = fn_builder.get_block(b);
+            match &block.terminator {
+                Some(Terminator::Jump { target }) => stack.push(*target),
+                Some(Terminator::Branch {
+                    true_target,
+                    false_target,
+                    ..
+                }) => {
+                    stack.push(*true_target);
+                    stack.push(*false_target);
+                }
+                Some(Terminator::SwitchVariant { default, arms, .. }) => {
+                    stack.push(*default);
+                    for arm in arms {
+                        stack.push(arm.jump)
+                    }
+                }
+                Some(Terminator::Unreachable) => {}
+                Some(Terminator::Panic) => {}
+                Some(Terminator::Return { .. }) => {}
+                None => {}
+            }
         }
 
-        let clone = fn_builder.clone_block(self.entry);
-        block_map.insert(self.entry, clone);
+        visited
+    }
 
-        let block = fn_builder.get_block(clone);
-        let term = block.terminator.clone();
+    /// Clone copies all blocks in a CFG and re-wires the full graph so the new blocks correctly
+    /// point to each other. The instructions and values will be identical between the original and
+    /// cloned blocks
+    fn clone(&self, fn_builder: &mut FunctionBuilder) -> BlockId {
+        let block_map: HashMap<BlockId, BlockId> = self
+            .blocks
+            .iter()
+            .map(|&id| (id, fn_builder.clone_block(id)))
+            .collect();
 
+        for (&old_id, &new_id) in &block_map {
+            let term = fn_builder.get_block(old_id).terminator.clone();
+            if let Some(t) = Self::remap_terminator(term, &block_map) {
+                fn_builder.unset_terminator(new_id);
+                fn_builder.set_terminator(new_id, t);
+            }
+        }
+
+        block_map[&self.entry]
+    }
+
+    fn remap_terminator(
+        term: Option<Terminator>,
+        block_map: &HashMap<BlockId, BlockId>,
+    ) -> Option<Terminator> {
         match term {
             Some(Terminator::Jump { target }) => {
-                let cfg = CFG::new(target);
-                let target = cfg.inner_clone(block_map, fn_builder);
-
-                fn_builder.unset_terminator(clone);
-                fn_builder.set_terminator(clone, Terminator::Jump { target })
+                let target = block_map[&target];
+                Some(Terminator::Jump { target })
             }
             Some(Terminator::Branch {
                 cond,
                 true_target,
                 false_target,
             }) => {
-                let cfg = CFG::new(true_target);
-                let true_target = cfg.inner_clone(block_map, fn_builder);
+                let true_target = block_map[&true_target];
+                let false_target = block_map[&false_target];
 
-                let cfg = CFG::new(false_target);
-                let false_target = cfg.inner_clone(block_map, fn_builder);
-
-                fn_builder.unset_terminator(clone);
-                fn_builder.set_terminator(
-                    clone,
-                    Terminator::Branch {
-                        cond,
-                        true_target,
-                        false_target,
-                    },
-                );
+                Some(Terminator::Branch {
+                    cond,
+                    true_target,
+                    false_target,
+                })
             }
             Some(Terminator::SwitchVariant {
                 discriminant,
                 default,
                 arms,
             }) => {
-                let cfg = CFG::new(default);
-                let default = cfg.inner_clone(block_map, fn_builder);
-
-                let mut clone_arms = vec![];
+                let mut new_arms = vec![];
                 for arm in arms {
-                    let cfg = CFG::new(arm.jump);
-                    let clone_arm = cfg.inner_clone(block_map, fn_builder);
-                    clone_arms.push(SwitchArm {
+                    let jump = block_map[&arm.jump];
+                    new_arms.push(SwitchArm {
                         target: arm.target,
-                        jump: clone_arm,
+                        jump,
                     })
                 }
 
-                fn_builder.unset_terminator(clone);
-                fn_builder.set_terminator(
-                    clone,
-                    Terminator::SwitchVariant {
-                        discriminant,
-                        default,
-                        arms: clone_arms,
-                    },
-                );
+                let default = block_map[&default];
+                Some(Terminator::SwitchVariant {
+                    discriminant,
+                    default,
+                    arms: new_arms,
+                })
             }
-            Some(Terminator::Unreachable) => {}
-            Some(Terminator::Panic) => {}
-            Some(Terminator::Return { .. }) => {}
-            None => {}
+            Some(Terminator::Unreachable) => None,
+            Some(Terminator::Panic) => None,
+            Some(Terminator::Return { .. }) => None,
+            None => None,
         }
-
-        clone
     }
 
     // this returns true only if all blocks in the graph terminate correctly
     pub fn all_blocks_terminate(&self, fn_builder: &FunctionBuilder) -> bool {
-        let mut visited = HashSet::new();
-        self.inner_all_blocks_terminate(&mut visited, fn_builder)
-    }
-
-    fn inner_all_blocks_terminate(
-        &self,
-        visited: &mut HashSet<BlockId>,
-        fn_builder: &FunctionBuilder,
-    ) -> bool {
-        if visited.contains(&self.entry) {
-            return true;
+        for block_id in &self.blocks {
+            if !fn_builder.is_block_closed(*block_id) {
+                return false;
+            }
         }
-        visited.insert(self.entry);
 
-        let block = fn_builder.get_block(self.entry);
-        match &block.terminator {
-            None => false,
-            Some(Terminator::Branch {
-                true_target,
-                false_target,
-                ..
-            }) => {
-                let cfg = CFG::new(*true_target);
-                if !cfg.inner_all_blocks_terminate(visited, fn_builder) {
-                    return false;
-                }
-
-                let cfg = CFG::new(*false_target);
-                if !cfg.inner_all_blocks_terminate(visited, fn_builder) {
-                    return false;
-                }
-
-                true
-            }
-            Some(Terminator::Jump { target }) => {
-                let cfg = CFG::new(*target);
-                cfg.inner_all_blocks_terminate(visited, fn_builder)
-            }
-            Some(Terminator::SwitchVariant { default, arms, .. }) => {
-                let cfg = CFG::new(*default);
-                if !cfg.inner_all_blocks_terminate(visited, fn_builder) {
-                    return false;
-                }
-
-                for arm in arms {
-                    let cfg = CFG::new(arm.jump);
-                    if !cfg.inner_all_blocks_terminate(visited, fn_builder) {
-                        return false;
-                    }
-                }
-
-                true
-            }
-            Some(Terminator::Unreachable) => true,
-            Some(Terminator::Return { .. }) => true,
-            Some(Terminator::Panic) => true,
-        }
+        true
     }
 
     /// returns true if any path through the CFG results in a return terminator
     fn can_return(&self, fn_builder: &FunctionBuilder) -> bool {
-        let mut visited = HashSet::new();
-        self.inner_can_return(&mut visited, fn_builder)
-    }
-
-    fn inner_can_return(
-        &self,
-        visited: &mut HashSet<BlockId>,
-        fn_builder: &FunctionBuilder,
-    ) -> bool {
-        if visited.contains(&self.entry) {
-            return false;
+        for block_id in &self.blocks {
+            let block = fn_builder.get_block(*block_id);
+            if matches!(block.terminator, Some(Terminator::Return { .. })) {
+                return true;
+            }
         }
-        visited.insert(self.entry);
 
-        let block = fn_builder.get_block(self.entry);
-        match &block.terminator {
-            Some(Terminator::Return { .. }) => true,
-            Some(Terminator::Unreachable) => false,
-            Some(Terminator::Panic) => false,
-            Some(Terminator::Branch {
-                true_target,
-                false_target,
-                ..
-            }) => {
-                let cfg = CFG::new(*true_target);
-                if cfg.inner_can_return(visited, fn_builder) {
-                    return true;
-                }
-
-                let cfg = CFG::new(*false_target);
-                if cfg.inner_can_return(visited, fn_builder) {
-                    return true;
-                }
-
-                false
-            }
-            Some(Terminator::Jump { target }) => {
-                let cfg = CFG::new(*target);
-                cfg.inner_can_return(visited, fn_builder)
-            }
-            Some(Terminator::SwitchVariant { default, arms, .. }) => {
-                let cfg = CFG::new(*default);
-                if cfg.inner_can_return(visited, fn_builder) {
-                    return true;
-                }
-
-                for arm in arms {
-                    let cfg = CFG::new(arm.jump);
-                    if cfg.inner_can_return(visited, fn_builder) {
-                        return true;
-                    }
-                }
-
-                false
-            }
-            None => false,
-        }
+        false
     }
 
     // this function sets all the blocks with missing terminators in the CFG to jump to the
     // specified block unconditionally
     fn jump_to(&self, fn_builder: &mut FunctionBuilder, jump_to: BlockId) {
-        let mut visited = HashSet::new();
-        self.inner_jump_to(&mut visited, fn_builder, jump_to);
-    }
-
-    fn inner_jump_to(
-        &self,
-        visited: &mut HashSet<BlockId>,
-        fn_builder: &mut FunctionBuilder,
-        jump_to: BlockId,
-    ) {
-        if visited.contains(&self.entry) {
-            return;
-        }
-        visited.insert(self.entry);
-
-        let block = fn_builder.get_block(self.entry);
-        let term = block.terminator.clone();
-
-        match term {
-            Some(Terminator::Return { .. }) => {}
-            Some(Terminator::Panic) => {}
-            Some(Terminator::Unreachable) => {}
-            Some(Terminator::Jump { target }) => {
-                let cfg = CFG::new(target);
-                cfg.inner_jump_to(visited, fn_builder, jump_to);
+        for block_id in &self.blocks {
+            let block = fn_builder.get_block_mut(*block_id);
+            if block.terminator.is_none() {
+                block.terminator = Some(Terminator::Jump { target: jump_to })
             }
-            Some(Terminator::Branch {
-                true_target,
-                false_target,
-                ..
-            }) => {
-                let cfg = CFG::new(true_target);
-                cfg.inner_jump_to(visited, fn_builder, jump_to);
-
-                let cfg = CFG::new(false_target);
-                cfg.inner_jump_to(visited, fn_builder, jump_to);
-            }
-            Some(Terminator::SwitchVariant { default, arms, .. }) => {
-                let cfg = CFG::new(default);
-                cfg.inner_jump_to(visited, fn_builder, jump_to);
-
-                for arm in arms {
-                    let cfg = CFG::new(arm.jump);
-                    cfg.inner_jump_to(visited, fn_builder, jump_to);
-                }
-            }
-            None => fn_builder.set_terminator(self.entry, Terminator::Jump { target: jump_to }),
         }
     }
 
     // this function sets all the blocks with panic terminators in the CFG to jump to the
     // specified block unconditionally
     fn panic_to(&self, fn_builder: &mut FunctionBuilder, panic_to: BlockId) {
-        let mut visited = HashSet::new();
-        self.inner_panic_to(&mut visited, fn_builder, panic_to);
-    }
-
-    fn inner_panic_to(
-        &self,
-        visited: &mut HashSet<BlockId>,
-        fn_builder: &mut FunctionBuilder,
-        panic_to: BlockId,
-    ) {
-        if visited.contains(&self.entry) {
-            return;
-        }
-        visited.insert(self.entry);
-
-        let block = fn_builder.get_block(self.entry);
-        let term = block.terminator.clone();
-
-        match term {
-            Some(Terminator::Return { .. }) => {}
-            Some(Terminator::Panic) => {
-                fn_builder.unset_terminator(self.entry);
-                fn_builder.set_terminator(self.entry, Terminator::Jump { target: panic_to });
+        for block_id in &self.blocks {
+            let block = fn_builder.get_block_mut(*block_id);
+            if matches!(block.terminator, Some(Terminator::Panic)) {
+                block.terminator = Some(Terminator::Jump { target: panic_to })
             }
-            Some(Terminator::Unreachable) => {}
-            Some(Terminator::Jump { target }) => {
-                let cfg = CFG::new(target);
-                cfg.inner_panic_to(visited, fn_builder, panic_to);
-            }
-            Some(Terminator::Branch {
-                true_target,
-                false_target,
-                ..
-            }) => {
-                let cfg = CFG::new(true_target);
-                cfg.inner_panic_to(visited, fn_builder, panic_to);
-
-                let cfg = CFG::new(false_target);
-                cfg.inner_panic_to(visited, fn_builder, panic_to);
-            }
-            Some(Terminator::SwitchVariant { default, arms, .. }) => {
-                let cfg = CFG::new(default);
-                cfg.inner_panic_to(visited, fn_builder, panic_to);
-
-                for arm in arms {
-                    let cfg = CFG::new(arm.jump);
-                    cfg.inner_panic_to(visited, fn_builder, panic_to);
-                }
-            }
-            None => {}
         }
     }
 
@@ -418,65 +254,21 @@ impl CFG {
         return_to: BlockId,
         local_id: Option<LocalId>,
     ) {
-        let mut visited = HashSet::new();
-        self.inner_return_to(&mut visited, fn_builder, return_to, local_id);
-    }
+        for block_id in &self.blocks {
+            let block = fn_builder.get_block_mut(*block_id);
 
-    fn inner_return_to(
-        &self,
-        visited: &mut HashSet<BlockId>,
-        fn_builder: &mut FunctionBuilder,
-        return_to: BlockId,
-        local_id: Option<LocalId>,
-    ) {
-        if visited.contains(&self.entry) {
-            return;
-        }
-        visited.insert(self.entry);
+            let value = match block.terminator.clone() {
+                Some(Terminator::Return { value }) => value,
+                _ => continue,
+            };
 
-        let block = fn_builder.get_block(self.entry);
-        let term = block.terminator.clone();
+            fn_builder.unset_terminator(*block_id);
 
-        match term {
-            Some(Terminator::Return { value }) => {
-                fn_builder.unset_terminator(self.entry);
-                if let Some(v) = value {
-                    fn_builder.emit_store(
-                        self.entry,
-                        Place::local(local_id.expect("missing local id")),
-                        v,
-                    );
-                }
-
-                fn_builder.set_terminator(self.entry, Terminator::Jump { target: return_to });
+            if let Some(local_id) = local_id {
+                fn_builder.emit_store(*block_id, Place::local(local_id), value.unwrap())
             }
-            Some(Terminator::Panic) => {}
-            Some(Terminator::Unreachable) => {}
-            Some(Terminator::Jump { target }) => {
-                let cfg = CFG::new(target);
-                cfg.inner_return_to(visited, fn_builder, return_to, local_id);
-            }
-            Some(Terminator::Branch {
-                true_target,
-                false_target,
-                ..
-            }) => {
-                let cfg = CFG::new(true_target);
-                cfg.inner_return_to(visited, fn_builder, return_to, local_id);
 
-                let cfg = CFG::new(false_target);
-                cfg.inner_return_to(visited, fn_builder, return_to, local_id);
-            }
-            Some(Terminator::SwitchVariant { default, arms, .. }) => {
-                let cfg = CFG::new(default);
-                cfg.inner_return_to(visited, fn_builder, return_to, local_id);
-
-                for arm in arms {
-                    let cfg = CFG::new(arm.jump);
-                    cfg.inner_return_to(visited, fn_builder, return_to, local_id);
-                }
-            }
-            None => {}
+            fn_builder.set_terminator(*block_id, Terminator::Jump { target: return_to });
         }
     }
 }
@@ -613,7 +405,7 @@ impl FunctionBuilder {
             .pop()
             .expect("can not close scope, not currently in a scope");
 
-        let block = CFG::new(scope.start);
+        let block = CFG::new(self, scope.start);
         let triple = match scope.defer.pop() {
             Some(b) => self.build_defer_triple(b),
             None => {
@@ -631,8 +423,8 @@ impl FunctionBuilder {
         let (mut panic_block, mut merge_block, mut return_block) = triple;
 
         // jump from the original block CFG into the correct defer stack
-        block.panic_to(self, panic_block.entry);
         block.jump_to(self, merge_block.entry);
+        block.panic_to(self, panic_block.entry);
 
         // need to create a local if this function has an expected return value
         let ret_local = match self.return_type.clone() {
@@ -702,16 +494,16 @@ impl FunctionBuilder {
     /// build 3 different CFG, based on b. The inital CFG is not a clone and should be treated as
     /// the panic block, the remaining 2 CFGs are clones of the first
     fn build_defer_triple(&mut self, b: BlockId) -> (CFG, CFG, CFG) {
-        let panic_defer = CFG::new(b);
+        let panic_defer = CFG::new(self, b);
         if panic_defer.can_return(self) {
             panic!("can not return from inside defer blocks")
         }
 
         let merge_defer = panic_defer.clone(self);
-        let merge_cfg = CFG::new(merge_defer);
+        let merge_cfg = CFG::new(self, merge_defer);
 
         let return_defer = panic_defer.clone(self);
-        let return_cfg = CFG::new(return_defer);
+        let return_cfg = CFG::new(self, return_defer);
 
         (panic_defer, merge_cfg, return_cfg)
     }
@@ -1164,6 +956,12 @@ impl FunctionBuilder {
         BlockId::from_u32(self.blocks.len() as u32)
     }
 
+    pub fn clone_block(&mut self, block_id: BlockId) -> BlockId {
+        let clone = self.get_block(block_id).clone();
+        self.blocks.push(clone);
+        BlockId::from_u32(self.blocks.len() as u32)
+    }
+
     pub fn add_defer_block(&mut self) -> BlockId {
         let block_builder = BlockBuilder::new();
 
@@ -1176,12 +974,6 @@ impl FunctionBuilder {
         }
 
         id
-    }
-
-    pub fn clone_block(&mut self, block_id: BlockId) -> BlockId {
-        let clone = self.get_block(block_id).clone();
-        self.blocks.push(clone);
-        BlockId::from_u32(self.blocks.len() as u32)
     }
 
     /// Return an existing local if one is created for the given node and create a new one otherwise
@@ -1319,7 +1111,7 @@ mod tests {
         let entry = fb.add_block();
         fb.set_terminator(entry, Terminator::Return { value: None });
 
-        let cloned = CFG::new(entry).clone(&mut fb);
+        let cloned = CFG::new(&mut fb, entry).clone(&mut fb);
 
         assert_ne!(entry, cloned);
         assert_eq!(
@@ -1338,7 +1130,7 @@ mod tests {
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(b, Terminator::Return { value: None });
 
-        let cloned_a = CFG::new(a).clone(&mut fb);
+        let cloned_a = CFG::new(&mut fb, a).clone(&mut fb);
 
         assert_ne!(a, cloned_a);
         let cloned_b = match fb.get_block(cloned_a).terminator.clone() {
@@ -1375,7 +1167,7 @@ mod tests {
         fb.set_terminator(b, Terminator::Return { value: None });
         fb.set_terminator(c, Terminator::Return { value: None });
 
-        let cloned_a = CFG::new(a).clone(&mut fb);
+        let cloned_a = CFG::new(&mut fb, a).clone(&mut fb);
 
         assert_ne!(a, cloned_a);
         match fb.get_block(cloned_a).terminator.clone() {
@@ -1423,7 +1215,7 @@ mod tests {
         fb.set_terminator(default, Terminator::Return { value: None });
         fb.set_terminator(arm_block, Terminator::Return { value: None });
 
-        let cloned_entry = CFG::new(entry).clone(&mut fb);
+        let cloned_entry = CFG::new(&mut fb, entry).clone(&mut fb);
 
         assert_ne!(entry, cloned_entry);
         match fb.get_block(cloned_entry).terminator.clone() {
@@ -1460,7 +1252,7 @@ mod tests {
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(b, Terminator::Jump { target: a });
 
-        let cloned_a = CFG::new(a).clone(&mut fb);
+        let cloned_a = CFG::new(&mut fb, a).clone(&mut fb);
 
         assert_ne!(a, cloned_a);
         let cloned_b = match fb.get_block(cloned_a).terminator.clone() {
@@ -1484,7 +1276,7 @@ mod tests {
         let a = fb.add_block();
         fb.set_terminator(a, Terminator::Return { value: None });
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(did_terminate);
     }
@@ -1495,7 +1287,7 @@ mod tests {
         let a = fb.add_block();
         // no terminator set
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(!did_terminate);
     }
@@ -1512,7 +1304,7 @@ mod tests {
             let a = fb.add_block();
             fb.set_terminator(a, term);
 
-            let cfg = CFG::new(a);
+            let cfg = CFG::new(&mut fb, a);
             let did_terminate = cfg.all_blocks_terminate(&fb);
             assert!(did_terminate);
         }
@@ -1526,7 +1318,7 @@ mod tests {
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(b, Terminator::Return { value: None });
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(did_terminate);
     }
@@ -1539,7 +1331,7 @@ mod tests {
         fb.set_terminator(a, Terminator::Jump { target: b });
         // b has no terminator
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(!did_terminate);
     }
@@ -1562,7 +1354,7 @@ mod tests {
         fb.set_terminator(b, Terminator::Return { value: None });
         fb.set_terminator(c, Terminator::Return { value: None });
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(did_terminate);
     }
@@ -1585,7 +1377,7 @@ mod tests {
         fb.set_terminator(b, Terminator::Return { value: None });
         // c has no terminator
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(!did_terminate);
     }
@@ -1611,7 +1403,7 @@ mod tests {
         fb.set_terminator(default, Terminator::Return { value: None });
         fb.set_terminator(arm_block, Terminator::Return { value: None });
 
-        let cfg = CFG::new(entry);
+        let cfg = CFG::new(&mut fb, entry);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(did_terminate);
     }
@@ -1637,7 +1429,7 @@ mod tests {
         fb.set_terminator(default, Terminator::Return { value: None });
         // arm_block has no terminator
 
-        let cfg = CFG::new(entry);
+        let cfg = CFG::new(&mut fb, entry);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(!did_terminate);
     }
@@ -1652,7 +1444,7 @@ mod tests {
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(b, Terminator::Jump { target: a });
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(did_terminate);
     }
@@ -1679,7 +1471,7 @@ mod tests {
         );
         // c has no terminator
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(!did_terminate);
     }
@@ -1692,7 +1484,7 @@ mod tests {
         let a = fb.add_block();
         fb.set_terminator(a, Terminator::Return { value: None });
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(can_return);
     }
@@ -1703,7 +1495,7 @@ mod tests {
         let a = fb.add_block();
         fb.set_terminator(a, Terminator::Unreachable);
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(!can_return);
     }
@@ -1714,7 +1506,7 @@ mod tests {
         let a = fb.add_block();
         fb.set_terminator(a, Terminator::Panic);
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(!can_return);
     }
@@ -1725,7 +1517,7 @@ mod tests {
         let a = fb.add_block();
         // no terminator set
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(!can_return);
     }
@@ -1738,7 +1530,7 @@ mod tests {
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(b, Terminator::Return { value: None });
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(can_return);
     }
@@ -1751,7 +1543,7 @@ mod tests {
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(b, Terminator::Unreachable);
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(!can_return);
     }
@@ -1775,7 +1567,7 @@ mod tests {
         fb.set_terminator(b, Terminator::Return { value: None });
         fb.set_terminator(c, Terminator::Unreachable);
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(can_return);
     }
@@ -1798,7 +1590,7 @@ mod tests {
         fb.set_terminator(b, Terminator::Unreachable);
         fb.set_terminator(c, Terminator::Panic);
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(!can_return);
     }
@@ -1824,7 +1616,7 @@ mod tests {
         fb.set_terminator(default, Terminator::Unreachable);
         fb.set_terminator(arm_block, Terminator::Return { value: None });
 
-        let cfg = CFG::new(entry);
+        let cfg = CFG::new(&mut fb, entry);
         let can_return = cfg.can_return(&fb);
         assert!(can_return);
     }
@@ -1850,7 +1642,7 @@ mod tests {
         fb.set_terminator(default, Terminator::Unreachable);
         fb.set_terminator(arm_block, Terminator::Panic);
 
-        let cfg = CFG::new(entry);
+        let cfg = CFG::new(&mut fb, entry);
         let can_return = cfg.can_return(&fb);
         assert!(!can_return);
     }
@@ -1875,7 +1667,7 @@ mod tests {
         );
         fb.set_terminator(c, Terminator::Return { value: None });
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(can_return);
     }
@@ -1900,7 +1692,7 @@ mod tests {
         );
         fb.set_terminator(c, Terminator::Unreachable);
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(!can_return);
     }
@@ -1915,7 +1707,7 @@ mod tests {
         let target = fb.add_block();
         fb.set_terminator(target, Terminator::Return { value: None });
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         cfg.jump_to(&mut fb, target);
 
         let a_terminator = fb.get_block(a).terminator.clone();
@@ -1936,7 +1728,7 @@ mod tests {
             fb.set_terminator(target, Terminator::Return { value: None });
             fb.set_terminator(a, term.clone());
 
-            let cfg = CFG::new(a);
+            let cfg = CFG::new(&mut fb, a);
             cfg.jump_to(&mut fb, target);
 
             let a_terminator = fb.get_block(a).terminator.clone();
@@ -1956,7 +1748,7 @@ mod tests {
         fb.set_terminator(a, Terminator::Jump { target: b });
         // b has no terminator
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         cfg.jump_to(&mut fb, target);
 
         let a_terminator = fb.get_block(a).terminator.clone();
@@ -1985,7 +1777,7 @@ mod tests {
         );
         // b and c have no terminators
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         cfg.jump_to(&mut fb, target);
 
         let b_terminator = fb.get_block(b).terminator.clone();
@@ -2015,7 +1807,7 @@ mod tests {
         fb.set_terminator(b, Terminator::Return { value: None });
         // c has no terminator
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         cfg.jump_to(&mut fb, target);
 
         let b_terminator = fb.get_block(b).terminator.clone();
@@ -2046,7 +1838,7 @@ mod tests {
         );
         // c has no terminator
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         cfg.jump_to(&mut fb, target);
 
         let a_terminator = fb.get_block(a).terminator.clone();
@@ -2075,7 +1867,7 @@ mod tests {
         fb.set_terminator(target, Terminator::Return { value: None });
         fb.set_terminator(a, Terminator::Panic);
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         cfg.panic_to(&mut fb, target);
 
         let a_terminator = fb.get_block(a).terminator.clone();
@@ -2092,7 +1884,7 @@ mod tests {
             fb.set_terminator(target, Terminator::Return { value: None });
             fb.set_terminator(a, term.clone());
 
-            let cfg = CFG::new(a);
+            let cfg = CFG::new(&mut fb, a);
             cfg.panic_to(&mut fb, target);
 
             let a_terminator = fb.get_block(a).terminator.clone();
@@ -2111,7 +1903,7 @@ mod tests {
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(b, Terminator::Panic);
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         cfg.panic_to(&mut fb, target);
 
         let a_terminator = fb.get_block(a).terminator.clone();
@@ -2141,7 +1933,7 @@ mod tests {
         fb.set_terminator(b, Terminator::Panic);
         fb.set_terminator(c, Terminator::Panic);
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         cfg.panic_to(&mut fb, target);
 
         let b_terminator = fb.get_block(b).terminator.clone();
@@ -2171,7 +1963,7 @@ mod tests {
         fb.set_terminator(b, Terminator::Return { value: None });
         fb.set_terminator(c, Terminator::Panic);
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         cfg.panic_to(&mut fb, target);
 
         let b_terminator = fb.get_block(b).terminator.clone();
@@ -2202,7 +1994,7 @@ mod tests {
         );
         fb.set_terminator(c, Terminator::Panic);
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         cfg.panic_to(&mut fb, target);
 
         let a_terminator = fb.get_block(a).terminator.clone();
@@ -2231,7 +2023,7 @@ mod tests {
         fb.set_terminator(target, Terminator::Unreachable);
         fb.set_terminator(a, Terminator::Return { value: None });
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         cfg.return_to(&mut fb, target, None);
 
         let a_terminator = fb.get_block(a).terminator.clone();
@@ -2256,7 +2048,7 @@ mod tests {
             },
         );
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         cfg.return_to(&mut fb, target, Some(local));
 
         let a_terminator = fb.get_block(a).terminator.clone();
@@ -2283,7 +2075,7 @@ mod tests {
             fb.set_terminator(target, Terminator::Unreachable);
             fb.set_terminator(a, term.clone());
 
-            let cfg = CFG::new(a);
+            let cfg = CFG::new(&mut fb, a);
             cfg.return_to(&mut fb, target, None);
 
             let a_terminator = fb.get_block(a).terminator.clone();
@@ -2302,7 +2094,7 @@ mod tests {
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(b, Terminator::Return { value: None });
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         cfg.return_to(&mut fb, target, None);
 
         let a_terminator = fb.get_block(a).terminator.clone();
@@ -2332,7 +2124,7 @@ mod tests {
         fb.set_terminator(b, Terminator::Return { value: None });
         fb.set_terminator(c, Terminator::Return { value: None });
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         cfg.return_to(&mut fb, target, None);
 
         let b_terminator = fb.get_block(b).terminator.clone();
@@ -2362,7 +2154,7 @@ mod tests {
         fb.set_terminator(b, Terminator::Panic);
         fb.set_terminator(c, Terminator::Return { value: None });
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         cfg.return_to(&mut fb, target, None);
 
         let b_terminator = fb.get_block(b).terminator.clone();
@@ -2393,7 +2185,7 @@ mod tests {
         );
         fb.set_terminator(c, Terminator::Return { value: None });
 
-        let cfg = CFG::new(a);
+        let cfg = CFG::new(&mut fb, a);
         cfg.return_to(&mut fb, target, None);
 
         let a_terminator = fb.get_block(a).terminator.clone();
