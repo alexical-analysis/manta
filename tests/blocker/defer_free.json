@@ -472,7 +472,7 @@
           "block_args": [],
           "instructions": [
             34,
-            37
+            35
           ],
           "terminator": {
             "Jump": {
@@ -581,7 +581,7 @@
             8,
             9,
             10,
-            35
+            37
           ],
           "terminator": {
             "Jump": {
@@ -921,7 +921,7 @@
               },
               "projections": []
             },
-            "value": 10
+            "value": 34
           }
         },
         {
@@ -943,7 +943,7 @@
               },
               "projections": []
             },
-            "value": 34
+            "value": 10
           }
         },
         {

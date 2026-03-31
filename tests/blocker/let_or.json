@@ -433,7 +433,7 @@
           "instructions": [
             23,
             24,
-            27
+            25
           ],
           "terminator": {
             "Jump": {
@@ -497,7 +497,7 @@
             8,
             9,
             10,
-            25
+            27
           ],
           "terminator": {
             "Jump": {
@@ -736,7 +736,7 @@
               },
               "projections": []
             },
-            "value": 10
+            "value": 24
           }
         },
         {
@@ -758,7 +758,7 @@
               },
               "projections": []
             },
-            "value": 24
+            "value": 10
           }
         },
         {
