@@ -409,10 +409,7 @@ impl<'a> Blocker<'a> {
                     }
                 }
             }
-            Node::MatchArm { pattern, body } => {
-                // TODO:
-                Some(block_id)
-            }
+            Node::MatchArm { .. } => panic!("out of place match arm"),
             Node::Call { .. } => {
                 // Calls are technically expressions but because they can result in side effects they
                 // need to be handled as statements as well
