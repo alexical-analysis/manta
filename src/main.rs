@@ -8,6 +8,7 @@ mod parser;
 mod str_store;
 
 use clap::{Parser, Subcommand};
+use inkwell::context::Context;
 use std::error::Error;
 use std::path::PathBuf;
 
@@ -75,9 +76,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                 workspace, out_dir, args, cli.verbose
             );
 
-            // TODO: actually compile stuff here
-            let tmp_compiler = Compiler::new("mod main".to_string());
-            tmp_compiler.compile();
+            let compiler = Compiler::new("mod main".to_string());
+            // TODO: uncomment any line below to run the reference tests
+            // compiler.compile();
+            // compiler.compile_example();
+            // compiler.compile_hello_world();
+            compiler.compile_for_loop();
         }
         Commands::Check {} => {
             println!(
