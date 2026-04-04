@@ -13,7 +13,6 @@
     "locals": [],
     "blocks": [
       {
-        "block_args": [],
         "instructions": [
           1,
           2
@@ -69,7 +68,6 @@
       ],
       "blocks": [
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Return": {
@@ -117,7 +115,6 @@
       ],
       "blocks": [
         {
-          "block_args": [],
           "instructions": [
             1,
             2
@@ -144,9 +141,6 @@
           }
         },
         {
-          "block_args": [
-            1
-          ],
           "instructions": [
             10,
             11,
@@ -161,9 +155,6 @@
           }
         },
         {
-          "block_args": [
-            1
-          ],
           "instructions": [
             3,
             4,
@@ -180,7 +171,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Jump": {
@@ -189,7 +179,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [],
           "terminator": "Unreachable"
         }
@@ -389,7 +378,6 @@
       ],
       "blocks": [
         {
-          "block_args": [],
           "instructions": [
             1,
             2,

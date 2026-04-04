@@ -1365,7 +1365,6 @@ mod tests {
                 globals: vec![],
                 init: MirFunction {
                     blocks: vec![BasicBlock {
-                        block_args: vec![],
                         instructions: vec![],
                         terminator: Terminator::Return { value: None },
                     }],
@@ -1385,7 +1384,6 @@ mod tests {
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![BasicBlock {
-                        block_args: vec![],
                         instructions: vec![ValueId::from_usize(1)],
                         terminator: Terminator::Return {
                             value: Some(ValueId::from_usize(1)),
@@ -1439,7 +1437,6 @@ mod tests {
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![BasicBlock {
-                        block_args: vec![],
                         instructions: vec![],
                         terminator: Terminator::Return { value: None },
                     }],
@@ -1454,7 +1451,6 @@ mod tests {
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![BasicBlock {
-                        block_args: vec![],
                         instructions: vec![ValueId::from_usize(1)],
                         terminator: Terminator::Return {
                             value: Some(ValueId::from_usize(1))
@@ -1508,7 +1504,6 @@ mod tests {
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![BasicBlock {
-                        block_args: vec![],
                         instructions: vec![],
                         terminator: Terminator::Return { value: None },
                     }],
@@ -1523,7 +1518,6 @@ mod tests {
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![BasicBlock {
-                        block_args: vec![],
                         instructions: vec![ValueId::from_usize(1)],
                         terminator: Terminator::Return {
                             value: Some(ValueId::from_usize(1))
@@ -1577,7 +1571,6 @@ mod tests {
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![BasicBlock {
-                        block_args: vec![],
                         instructions: vec![],
                         terminator: Terminator::Return { value: None },
                     }],
@@ -1592,7 +1585,6 @@ mod tests {
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![BasicBlock {
-                        block_args: vec![],
                         instructions: vec![ValueId::from_usize(1)],
                         terminator: Terminator::Return {
                             value: Some(ValueId::from_usize(1))
@@ -1646,7 +1638,6 @@ mod tests {
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![BasicBlock {
-                        block_args: vec![],
                         instructions: vec![],
                         terminator: Terminator::Return { value: None },
                     }],
@@ -1661,7 +1652,6 @@ mod tests {
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![BasicBlock {
-                        block_args: vec![],
                         instructions: vec![ValueId::from_usize(1)],
                         terminator: Terminator::Return {
                             value: Some(ValueId::from_usize(1))

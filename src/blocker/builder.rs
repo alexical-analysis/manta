@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use crate::hir::NodeID;
 use crate::mir::{
-    BasicBlock, BlockId, ConstValue, Instruction, Local, LocalId, MirFunction, Place, Projection,
-    SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
+    BasicBlock, BlockId, ConstValue, Instruction, Local, LocalId, MirFunction, Place, SwitchArm,
+    TagSize, Terminator, TypeSpec, ValueId,
 };
 use crate::str_store::{self, StrID};
 
@@ -48,7 +48,7 @@ impl BlockBuilder {
         self.terminator.is_some()
     }
 
-    fn to_basic_block(&self, all_instructions: &[Instruction]) -> BasicBlock {
+    fn to_basic_block(&self) -> BasicBlock {
         let term = match &self.terminator {
             Some(term) => term,
             None => {
@@ -59,25 +59,7 @@ impl BlockBuilder {
             }
         };
 
-        // All values defined in this block — any referenced value not in this set is a block arg.
-        // note that because we do this before checking for block arguments which means there are
-        // cases where values get used before they are defined. This means when building
-        // instructions we must be careful to ensure we always create values BEFORE they are used
-        // or they should not be created at all
-        let created_values: HashSet<ValueId> = self.instructions.iter().cloned().collect();
-        let mut block_args = vec![];
-
-        for &id in &self.instructions {
-            let inst = &all_instructions[id.as_idx()];
-            for input in instruction_inputs(inst) {
-                if !created_values.contains(&input) {
-                    block_args.push(input);
-                }
-            }
-        }
-
         BasicBlock {
-            block_args,
             instructions: self.instructions.clone(),
             terminator: term.clone(),
         }
@@ -270,69 +252,6 @@ impl CFG {
 
             fn_builder.set_terminator(*block_id, Terminator::Jump { target: return_to });
         }
-    }
-}
-
-fn place_inputs(place: &Place) -> Vec<ValueId> {
-    place
-        .projections
-        .iter()
-        .filter_map(|p| match p {
-            Projection::Index(v) => Some(*v),
-            _ => None,
-        })
-        .collect()
-}
-
-fn instruction_inputs(inst: &Instruction) -> Vec<ValueId> {
-    match inst {
-        Instruction::Const { .. } => vec![],
-        Instruction::Load { place } => place_inputs(place),
-        Instruction::Store { place, value } => {
-            let mut inputs = place_inputs(place);
-            inputs.push(*value);
-            inputs
-        }
-        Instruction::AddressOf { place } => place_inputs(place),
-        Instruction::Call { args, .. } => args.clone(),
-        Instruction::CallTry { args, .. } => args.clone(),
-        Instruction::VariantGetPayload { src, .. } => vec![*src],
-        Instruction::VariantGetTag { src } => vec![*src],
-        Instruction::MakeVariant { payload, .. } => match payload {
-            Some(p) => vec![*p],
-            None => vec![],
-        },
-        Instruction::Move { src, .. } => vec![*src],
-        Instruction::Copy { src, .. } => vec![*src],
-        Instruction::DropLocal { .. } => vec![],
-        Instruction::DeclareLocal { .. } => vec![],
-        Instruction::SetInitialized { .. } => vec![],
-        Instruction::Add { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::Sub { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::Mul { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::SDiv { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::UDiv { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::SMod { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::UMod { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::Equal { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::NotEqual { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::SLessThan { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::ULessThan { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::SLessThanEqual { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::ULessThanEqual { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::SGreaterThan { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::UGreaterThan { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::SGreaterThanEqual { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::UGreaterThanEqual { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::LogicalAnd { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::LogicalOr { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::BitwiseAnd { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::BitwiseOr { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::BitwiseXOr { lhs, rhs } => vec![*lhs, *rhs],
-        Instruction::BoolNot { op } => vec![*op],
-        Instruction::Negate { op } => vec![*op],
-        Instruction::Alloc { meta_type } => vec![*meta_type],
-        Instruction::Free { ptr } => vec![*ptr],
     }
 }
 
@@ -1038,7 +957,7 @@ impl FunctionBuilder {
         block_stack.push(BlockId::from_u32(1));
         while let Some(b) = block_stack.pop() {
             let block_builder = self.blocks[b.as_idx()].clone();
-            let block = block_builder.to_basic_block(&self.instructions);
+            let block = block_builder.to_basic_block();
 
             match block.terminator {
                 Terminator::Return { .. } => {}

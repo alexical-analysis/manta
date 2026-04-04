@@ -8,7 +8,6 @@
     "locals": [],
     "blocks": [
       {
-        "block_args": [],
         "instructions": [],
         "terminator": {
           "Return": {
@@ -39,7 +38,6 @@
       ],
       "blocks": [
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Return": {
@@ -72,7 +70,6 @@
       ],
       "blocks": [
         {
-          "block_args": [],
           "instructions": [
             1,
             2,
@@ -87,7 +84,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [
             6,
             7,
@@ -104,7 +100,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [
             13,
             14
@@ -116,7 +111,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Jump": {
@@ -125,7 +119,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Return": {
@@ -134,7 +127,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [
             11,
             12
@@ -146,7 +138,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Jump": {
@@ -155,7 +146,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [
             4,
             5
@@ -167,7 +157,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Jump": {
