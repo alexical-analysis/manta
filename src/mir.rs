@@ -515,19 +515,13 @@ pub enum Terminator {
 /// `instructions` holds ValueIds that index into the owning MirFunction's flat instruction array.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct BasicBlock {
-    pub block_args: Vec<ValueId>,
     pub instructions: Vec<ValueId>,
     pub terminator: Terminator,
 }
 
 impl BasicBlock {
-    pub fn new(
-        block_args: Vec<ValueId>,
-        instructions: Vec<ValueId>,
-        terminator: Terminator,
-    ) -> Self {
+    pub fn new(instructions: Vec<ValueId>, terminator: Terminator) -> Self {
         BasicBlock {
-            block_args,
             instructions,
             terminator,
         }

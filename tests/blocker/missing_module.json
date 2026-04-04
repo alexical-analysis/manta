@@ -8,7 +8,6 @@
     "locals": [],
     "blocks": [
       {
-        "block_args": [],
         "instructions": [],
         "terminator": {
           "Return": {
@@ -39,7 +38,6 @@
       ],
       "blocks": [
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Return": {
@@ -60,7 +58,6 @@
       "locals": [],
       "blocks": [
         {
-          "block_args": [],
           "instructions": [
             1,
             2

@@ -8,7 +8,6 @@
     "locals": [],
     "blocks": [
       {
-        "block_args": [],
         "instructions": [],
         "terminator": {
           "Return": {
@@ -41,7 +40,6 @@
       ],
       "blocks": [
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Return": {
@@ -71,7 +69,6 @@
       ],
       "blocks": [
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Return": {
@@ -131,7 +128,6 @@
       ],
       "blocks": [
         {
-          "block_args": [],
           "instructions": [
             1
           ],
@@ -144,7 +140,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [
             14
           ],
@@ -155,7 +150,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [
             2,
             3
@@ -169,9 +163,6 @@
           }
         },
         {
-          "block_args": [
-            3
-          ],
           "instructions": [
             7,
             8,
@@ -184,7 +175,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Jump": {
@@ -193,7 +183,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [
             10,
             11,
@@ -207,9 +196,6 @@
           }
         },
         {
-          "block_args": [
-            3
-          ],
           "instructions": [
             4,
             5,
@@ -222,7 +208,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Jump": {
@@ -439,7 +424,6 @@
       ],
       "blocks": [
         {
-          "block_args": [],
           "instructions": [
             1,
             2,
@@ -467,7 +451,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [
             8,
             9
@@ -479,7 +462,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Jump": {
@@ -488,9 +470,6 @@
           }
         },
         {
-          "block_args": [
-            2
-          ],
           "instructions": [
             4,
             5,
@@ -504,7 +483,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Jump": {
@@ -513,7 +491,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Return": {

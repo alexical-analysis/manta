@@ -8,7 +8,6 @@
     "locals": [],
     "blocks": [
       {
-        "block_args": [],
         "instructions": [],
         "terminator": {
           "Return": {
@@ -49,7 +48,6 @@
       ],
       "blocks": [
         {
-          "block_args": [],
           "instructions": [
             1
           ],
@@ -104,7 +102,6 @@
       ],
       "blocks": [
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Return": {
@@ -152,7 +149,6 @@
       ],
       "blocks": [
         {
-          "block_args": [],
           "instructions": [
             1
           ],
@@ -336,7 +332,6 @@
       ],
       "blocks": [
         {
-          "block_args": [],
           "instructions": [
             1,
             2,
@@ -358,9 +353,6 @@
           }
         },
         {
-          "block_args": [
-            2
-          ],
           "instructions": [
             4,
             5,
@@ -374,7 +366,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Jump": {
@@ -383,7 +374,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [
             13,
             14
@@ -397,9 +387,6 @@
           }
         },
         {
-          "block_args": [
-            14
-          ],
           "instructions": [
             18,
             19,
@@ -412,7 +399,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Jump": {
@@ -421,7 +407,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [
             23,
             24,
@@ -444,9 +429,6 @@
           }
         },
         {
-          "block_args": [
-            25
-          ],
           "instructions": [
             27,
             28,
@@ -460,7 +442,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Jump": {
@@ -469,7 +450,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [
             34,
             35
@@ -481,7 +461,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [
             21,
             22
@@ -493,7 +472,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Jump": {
@@ -502,7 +480,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [
             11,
             12
@@ -514,7 +491,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Jump": {
@@ -523,7 +499,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [
             38
           ],
@@ -534,9 +509,6 @@
           }
         },
         {
-          "block_args": [
-            25
-          ],
           "instructions": [
             31,
             32,
@@ -550,9 +522,6 @@
           }
         },
         {
-          "block_args": [
-            14
-          ],
           "instructions": [
             15,
             16,
@@ -565,7 +534,6 @@
           }
         },
         {
-          "block_args": [],
           "instructions": [],
           "terminator": {
             "Jump": {
@@ -574,9 +542,6 @@
           }
         },
         {
-          "block_args": [
-            2
-          ],
           "instructions": [
             8,
             9,
