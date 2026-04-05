@@ -1,14 +1,14 @@
 use std::collections::BTreeMap;
 
-use crate::mir::{BasicBlock, GlobalId, MirFunction, MirModule, TypeSpec};
+use crate::mir::{BasicBlock, GlobalId, Local, LocalId, MirFunction, MirModule, TypeSpec};
 use crate::str_store::StrStore;
 
 use inkwell::AddressSpace;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::module::Module;
-use inkwell::types::{BasicType, BasicTypeEnum};
-use inkwell::values::GlobalValue;
+use inkwell::types::{BasicMetadataTypeEnum, BasicType, BasicTypeEnum};
+use inkwell::values::{GlobalValue, PointerValue};
 
 pub struct Codegen<'ctx, 'str> {
     str_store: &'str StrStore,
@@ -56,9 +56,94 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         llvm_module
     }
 
-    fn gen_function(&self, module: &Module, builder: &Builder, function: MirFunction) {}
+    fn gen_function(&self, module: &Module<'ctx>, builder: &Builder, function: MirFunction) {
+        let function_name = self
+            .str_store
+            .get_string(function.name)
+            .expect("failed to get function name");
 
-    fn gen_block(&self, module: &Module, builder: &Builder, block: BasicBlock) {}
+        let return_type = self.gen_type_spec(&function.return_type);
+        let mut param_types: Vec<BasicMetadataTypeEnum> = vec![];
+        for param in &function.params {
+            let local_type = &function
+                .locals
+                .get(param.as_idx())
+                .expect("missing local for param")
+                .type_spec;
+
+            let param_type = self
+                .gen_type_spec(local_type)
+                .expect("can not have paramater of unit type");
+
+            param_types.push(param_type.into());
+        }
+
+        let func_type = match return_type {
+            Some(ts) => ts.fn_type(&param_types, false),
+            None => self.context.void_type().fn_type(&param_types, false),
+        };
+
+        let func = module.add_function(function_name.as_str(), func_type, None);
+
+        let entry_block = function.entry_block;
+        let block = function
+            .blocks
+            .get(entry_block.as_idx())
+            .expect("failed to get entry block");
+
+        // build the entry block
+        let entry_block = self.context.append_basic_block(func, "entry");
+        builder.position_at_end(entry_block);
+        let locals = self.gen_locals(builder, &function.get_locals());
+        self.gen_block(module, builder, &locals, block);
+
+        for (block_id, block) in function.get_blocks() {
+            if function.entry_block == block_id {
+                continue;
+            }
+
+            let basic_block = self
+                .context
+                .append_basic_block(func, block_id.to_string().as_str());
+            builder.position_at_end(basic_block);
+            self.gen_block(module, builder, &locals, block);
+        }
+    }
+
+    fn gen_locals(
+        &self,
+        builder: &Builder<'ctx>,
+        locals: &[(LocalId, &Local)],
+    ) -> BTreeMap<LocalId, PointerValue<'ctx>> {
+        let mut local_map = BTreeMap::new();
+
+        for (local_id, local) in locals {
+            let type_name = self
+                .str_store
+                .get_string(local.name)
+                .expect("missing local name");
+            let type_spec = self
+                .gen_type_spec(&local.type_spec)
+                .expect("can not have a local with unit type");
+
+            let local_value = builder
+                .build_alloca(type_spec, type_name.as_str())
+                .expect("failed to alloca local");
+
+            local_map.insert(*local_id, local_value);
+        }
+
+        local_map
+    }
+
+    fn gen_block(
+        &self,
+        module: &Module,
+        builder: &Builder,
+        locals: &BTreeMap<LocalId, PointerValue<'ctx>>,
+        block: &BasicBlock,
+    ) {
+    }
 
     fn gen_type_spec(&self, type_spec: &TypeSpec) -> Option<BasicTypeEnum<'ctx>> {
         if matches!(type_spec, TypeSpec::Unit) {

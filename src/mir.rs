@@ -131,6 +131,10 @@ impl BlockId {
     pub fn is_nil(self) -> bool {
         self.0 == 0
     }
+
+    pub fn to_string(self) -> String {
+        format!("Block_{:?}", self.0)
+    }
 }
 
 /// A unique identifier for a global variable (storage slot).
@@ -547,6 +551,28 @@ pub struct MirFunction {
     /// Result type for each instruction, parallel to `instructions`. Instructions that don't
     /// produce a meaningful value use TypeSpec::Unit.
     pub value_types: Vec<TypeSpec>,
+}
+
+impl MirFunction {
+    pub fn get_locals(&self) -> Vec<(LocalId, &Local)> {
+        let mut locals = vec![];
+        for (i, local) in self.locals.iter().enumerate() {
+            let local_id = LocalId::from_usize(i);
+            locals.push((local_id, local))
+        }
+
+        locals
+    }
+
+    pub fn get_blocks(&self) -> Vec<(BlockId, &BasicBlock)> {
+        let mut blocks = vec![];
+        for (i, block) in self.blocks.iter().enumerate() {
+            let block_id = BlockId::from_u32(i as u32);
+            blocks.push((block_id, block))
+        }
+
+        blocks
+    }
 }
 
 /// A collection of MIR functions (represents the entire program at the MIR level).
