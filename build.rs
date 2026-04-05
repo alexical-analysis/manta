@@ -68,6 +68,7 @@ fn main() -> std::io::Result<()> {
     let noder_tests = write_tests_for_files(&files, "noder");
     let lexer_tests = write_tests_for_files(&files, "lexer");
     let blocker_tests = write_tests_for_files(&files, "blocker");
+    let codegen_tests = write_tests_for_files(&files, "codegen");
 
     let mut p = File::create(out_path.join("generated_parser_tests.rs"))?;
     p.write_all(parser_tests.as_bytes())?;
@@ -80,6 +81,9 @@ fn main() -> std::io::Result<()> {
 
     let mut b = File::create(out_path.join("generated_blocker_tests.rs"))?;
     b.write_all(blocker_tests.as_bytes())?;
+
+    let mut c = File::create(out_path.join("generated_codegen_tests.rs"))?;
+    c.write_all(codegen_tests.as_bytes())?;
 
     Ok(())
 }

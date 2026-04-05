@@ -557,7 +557,7 @@ impl MirFunction {
     pub fn get_locals(&self) -> Vec<(LocalId, &Local)> {
         let mut locals = vec![];
         for (i, local) in self.locals.iter().enumerate() {
-            let local_id = LocalId::from_usize(i);
+            let local_id = LocalId::from_usize(i + 1);
             locals.push((local_id, local))
         }
 
@@ -567,7 +567,7 @@ impl MirFunction {
     pub fn get_blocks(&self) -> Vec<(BlockId, &BasicBlock)> {
         let mut blocks = vec![];
         for (i, block) in self.blocks.iter().enumerate() {
-            let block_id = BlockId::from_u32(i as u32);
+            let block_id = BlockId::from_u32((i + 1) as u32);
             blocks.push((block_id, block))
         }
 
@@ -595,7 +595,7 @@ impl MirModule {
     pub fn get_globals(&self) -> Vec<(GlobalId, &Global)> {
         let mut globals = vec![];
         for (i, global) in self.globals.iter().enumerate() {
-            let global_id = GlobalId::from_usize(i);
+            let global_id = GlobalId::from_usize(i + 1);
             globals.push((global_id, global))
         }
 

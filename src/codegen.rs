@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 
-use crate::mir::{BasicBlock, GlobalId, Local, LocalId, MirFunction, MirModule, TypeSpec};
+use crate::blocker::{self, Arch};
+use crate::mir::{BasicBlock, GlobalId, Local, LocalId, MirFunction, MirModule, TagSize, TypeSpec};
 use crate::str_store::StrStore;
 
 use inkwell::AddressSpace;
@@ -183,9 +184,124 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     .collect();
                 self.context.struct_type(&field_types, false).into()
             }
-            _ => todo!("not yet supported"),
+            TypeSpec::String => {
+                let len_type = self.context.i64_type();
+                let ptr_type = self.context.ptr_type(AddressSpace::default());
+                self.context
+                    .struct_type(&[len_type.into(), ptr_type.into()], false)
+                    .into()
+            }
+            TypeSpec::Enum { tag_size, variants } => {
+                let tag_type = match tag_size {
+                    TagSize::U8 => self.context.i8_type(),
+                    TagSize::U16 => self.context.i16_type(),
+                    TagSize::U32 => self.context.i32_type(),
+                    TagSize::U64 => self.context.i64_type(),
+                };
+
+                let mut max_size = 0;
+                for payload in variants.iter().flatten() {
+                    // TODO: need to actually respect the target arch width
+                    let layout = blocker::type_layout(payload, Arch::W64);
+                    if layout.size() > max_size {
+                        max_size = layout.size()
+                    }
+                }
+
+                let raw_data_type = self.context.i8_type().array_type(max_size as u32);
+
+                self.context
+                    .struct_type(&[tag_type.into(), raw_data_type.into()], false)
+                    .into()
+            }
+            TypeSpec::Slice(_) => self
+                .context
+                .struct_type(
+                    &[
+                        self.context.i64_type().into(),
+                        self.context.i64_type().into(),
+                        self.context.ptr_type(AddressSpace::default()).into(),
+                    ],
+                    false,
+                )
+                .into(),
+            ts => todo!("failed to gen type for type spec: {:?}", ts),
         };
 
         Some(ts)
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use inkwell::context::Context;
+    use pretty_assertions::assert_eq;
+    use std::fs;
+    use std::path::Path;
+
+    use crate::blocker::Blocker;
+    use crate::noder::node_module;
+    use crate::parser::Parser;
+    use crate::str_store::StrStore;
+
+    fn assert_file_path_eq(path: &Path, codegen_dir: &Path) {
+        let ext = path.extension().expect("Failed to get file extension");
+        if ext != "manta" {
+            return;
+        }
+
+        let file_name = path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("unknown");
+
+        let source = match fs::read_to_string(path) {
+            Ok(s) => s,
+            Err(_) => panic!("Failed to read {}", path.display()),
+        };
+
+        let mut str_store = StrStore::new();
+        let parser = Parser::new(source);
+        let module = parser.parse_module(&mut str_store);
+
+        let node_tree = node_module(module);
+        let blocker = Blocker::new(&node_tree);
+        let mir_module = blocker.build_module();
+
+        let context = Context::create();
+        let mut codegen = Codegen::new(&str_store, &context, file_name.to_string());
+        let llvm_module = codegen.gen_module(mir_module);
+
+        let ll_output = llvm_module.print_to_string().to_string();
+
+        let codegen_file = codegen_dir.join(format!("{}.ll", file_name));
+
+        if codegen_file.exists() {
+            let expected_ll = match fs::read_to_string(&codegen_file) {
+                Ok(s) => s,
+                Err(_) => panic!("Failed to read {}", codegen_file.display()),
+            };
+
+            assert_eq!(
+                ll_output, expected_ll,
+                "Codegen output mismatch for {}",
+                file_name
+            );
+        } else {
+            fs::create_dir_all(codegen_dir).expect("Failed to create codegen test directory");
+
+            match fs::write(&codegen_file, &ll_output) {
+                Ok(_) => (),
+                Err(_) => panic!("Failed to write codegen output to {:?}", codegen_file),
+            };
+
+            panic!(
+                "Generated new codegen output file: {:?}. Please verify its correctness.",
+                codegen_file
+            );
+        }
+    }
+
+    include!(concat!(env!("OUT_DIR"), "/generated_codegen_tests.rs"));
 }
