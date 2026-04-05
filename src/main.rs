@@ -1,5 +1,6 @@
 mod ast;
 mod blocker;
+mod codegen;
 mod compiler;
 mod hir;
 mod mir;
@@ -8,7 +9,6 @@ mod parser;
 mod str_store;
 
 use clap::{Parser, Subcommand};
-use inkwell::context::Context;
 use std::error::Error;
 use std::path::PathBuf;
 
