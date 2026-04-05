@@ -3,31 +3,42 @@ source_filename = "if_else"
 
 define void @"<init>"() {
 entry:
+  ret void
 }
 
 define void @fmt_println({ i64, ptr } %0) {
 entry:
   %s = alloca { i64, ptr }, align 8
+  ret void
 }
 
 define void @main() {
 entry:
   %check_this = alloca i1, align 1
   %nine = alloca i64, align 8
+  br i64 0, label %Block_2, label %Block_3
 
-Block_2:                                          ; No predecessors!
+Block_2:                                          ; preds = %entry
+  br label %Block_4
 
-Block_3:                                          ; No predecessors!
+Block_3:                                          ; preds = %Block_4, %entry
+  br i64 0, label %Block_5, label %Block_8
 
-Block_4:                                          ; No predecessors!
+Block_4:                                          ; preds = %Block_2
+  br label %Block_3
 
-Block_5:                                          ; No predecessors!
+Block_5:                                          ; preds = %Block_3
+  br label %Block_7
 
-Block_6:                                          ; No predecessors!
+Block_6:                                          ; preds = %Block_9, %Block_7
+  ret void
 
-Block_7:                                          ; No predecessors!
+Block_7:                                          ; preds = %Block_5
+  br label %Block_6
 
-Block_8:                                          ; No predecessors!
+Block_8:                                          ; preds = %Block_3
+  br label %Block_9
 
-Block_9:                                          ; No predecessors!
+Block_9:                                          ; preds = %Block_8
+  br label %Block_6
 }
