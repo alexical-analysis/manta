@@ -1,10 +1,13 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
 use crate::blocker::{self, Arch};
-use crate::mir::{BasicBlock, GlobalId, Local, LocalId, MirFunction, MirModule, TagSize, TypeSpec};
+use crate::mir::{
+    self, BlockId, GlobalId, Local, LocalId, MirFunction, MirModule, TagSize, TypeSpec,
+};
 use crate::str_store::StrStore;
 
 use inkwell::AddressSpace;
+use inkwell::basic_block::BasicBlock;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::module::Module;
@@ -84,36 +87,52 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             None => self.context.void_type().fn_type(&param_types, false),
         };
 
-        let func = module.add_function(function_name.as_str(), func_type, None);
+        let func_value = module.add_function(function_name.as_str(), func_type, None);
 
-        let entry_block = function.entry_block;
-        let block = function.get_block(entry_block);
+        // pre-gen all the blocks
+        let mut block_map = HashMap::new();
+        let mut entry_block = None;
+        for (block_id, block) in function.get_blocks() {
+            let basic_block;
+            if block_id == function.entry_block {
+                basic_block = self.context.append_basic_block(func_value, "entry");
+                entry_block = Some(block);
+            } else {
+                basic_block = self
+                    .context
+                    .append_basic_block(func_value, &block_id.to_string());
+            }
+
+            block_map.insert(block_id, basic_block);
+        }
 
         // build the entry block
-        let entry_block = self.context.append_basic_block(func, "entry");
-        builder.position_at_end(entry_block);
-        let locals = self.gen_locals(builder, &function.get_locals());
-        self.gen_block(module, builder, &locals, block);
+        let block = block_map
+            .get(&function.entry_block)
+            .expect("failed to get inkwell entry block");
+        builder.position_at_end(*block);
+
+        let local_map = self.gen_local_map(builder, &function.get_locals());
+        let entry_block = entry_block.expect("failed to find mir entry block");
+        self.gen_block(module, builder, &block_map, &local_map, entry_block);
 
         for (block_id, block) in function.get_blocks() {
             if function.entry_block == block_id {
                 continue;
             }
 
-            let basic_block = self
-                .context
-                .append_basic_block(func, block_id.to_string().as_str());
-            builder.position_at_end(basic_block);
-            self.gen_block(module, builder, &locals, block);
+            let basic_block = block_map.get(&block_id).expect("failed to get basic block");
+            builder.position_at_end(*basic_block);
+            self.gen_block(module, builder, &block_map, &local_map, block);
         }
     }
 
-    fn gen_locals(
+    fn gen_local_map(
         &self,
         builder: &Builder<'ctx>,
         locals: &[(LocalId, &Local)],
-    ) -> BTreeMap<LocalId, PointerValue<'ctx>> {
-        let mut local_map = BTreeMap::new();
+    ) -> HashMap<LocalId, PointerValue<'ctx>> {
+        let mut local_map = HashMap::new();
 
         for (local_id, local) in locals {
             let type_name = self
@@ -138,8 +157,9 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         &self,
         module: &Module,
         builder: &Builder,
-        locals: &BTreeMap<LocalId, PointerValue<'ctx>>,
-        block: &BasicBlock,
+        block_map: &HashMap<BlockId, BasicBlock>,
+        local_map: &HashMap<LocalId, PointerValue<'ctx>>,
+        block: &mir::BasicBlock,
     ) {
     }
 
