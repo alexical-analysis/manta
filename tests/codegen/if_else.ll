@@ -16,13 +16,13 @@ define void @main() {
 entry:
   %check_this = alloca i1, align 1
   %nine = alloca i64, align 8
-  br i64 0, label %Block_2, label %Block_3
+  br i1 false, label %Block_2, label %Block_3
 
 Block_2:                                          ; preds = %entry
   br label %Block_4
 
 Block_3:                                          ; preds = %Block_4, %entry
-  br i64 0, label %Block_5, label %Block_8
+  br i1 false, label %Block_5, label %Block_8
 
 Block_4:                                          ; preds = %Block_2
   br label %Block_3

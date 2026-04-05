@@ -9,6 +9,7 @@ entry:
 define { i8, [0 x i8] } @os_open({ i64, ptr } %0) {
 entry:
   %path = alloca { i64, ptr }, align 8
+  unreachable
 }
 
 define void @os_close({} %0) {
@@ -20,6 +21,7 @@ entry:
 define { i8, [16 x i8] } @io_read_to_string({} %0) {
 entry:
   %f = alloca {}, align 8
+  unreachable
 }
 
 define void @fmt_println({ i64, ptr } %0) {
@@ -75,6 +77,7 @@ Block_17:                                         ; preds = %Block_16
   br label %Block_19
 
 Block_19:                                         ; preds = %Block_17
+  unreachable
 }
 
 define void @main() {

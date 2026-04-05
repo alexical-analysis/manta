@@ -9,6 +9,7 @@ entry:
 define { i8, [0 x i8] } @os_open({ i64, ptr } %0) {
 entry:
   %path = alloca { i64, ptr }, align 8
+  unreachable
 }
 
 define void @os_close({} %0) {
@@ -21,6 +22,7 @@ define { i8, [8 x i8] } @os_write({} %0, { i64, i64, ptr } %1) {
 entry:
   %f = alloca {}, align 8
   %buf = alloca { i64, i64, ptr }, align 8
+  unreachable
 }
 
 define { i8, [16 x i8] } @write_and_cleanup({ i64, ptr } %0) {
@@ -41,7 +43,7 @@ entry:
   ]
 
 Block_2:                                          ; preds = %Block_4
-  br i64 0, label %Block_10, label %Block_12
+  br i1 false, label %Block_10, label %Block_12
 
 Block_3:                                          ; preds = %entry
   br label %Block_4
@@ -94,4 +96,5 @@ Block_28:                                         ; preds = %Block_27
   br label %Block_30
 
 Block_30:                                         ; preds = %Block_28
+  unreachable
 }

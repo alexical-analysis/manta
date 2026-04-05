@@ -25,8 +25,10 @@ entry:
   ]
 
 Block_3:                                          ; preds = %entry
+  unreachable
 
 Block_5:                                          ; preds = %entry
+  unreachable
 
 Block_7:                                          ; preds = %entry
   unreachable
