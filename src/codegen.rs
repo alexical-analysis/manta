@@ -2,7 +2,8 @@ use std::collections::{BTreeMap, HashMap};
 
 use crate::blocker::{self, Arch};
 use crate::mir::{
-    self, BlockId, GlobalId, Local, LocalId, MirFunction, MirModule, TagSize, TypeSpec,
+    self, BlockId, ConstValue, GlobalId, Instruction, Local, LocalId, MirFunction, MirModule,
+    TagSize, Terminator, TypeSpec, ValueId,
 };
 use crate::str_store::StrStore;
 
@@ -12,7 +13,7 @@ use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::module::Module;
 use inkwell::types::{BasicMetadataTypeEnum, BasicType, BasicTypeEnum};
-use inkwell::values::{GlobalValue, PointerValue};
+use inkwell::values::{BasicValue, BasicValueEnum, GlobalValue, PointerValue};
 
 pub struct Codegen<'ctx, 'str> {
     str_store: &'str StrStore,
@@ -114,7 +115,14 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
 
         let local_map = self.gen_local_map(builder, &function.get_locals());
         let entry_block = entry_block.expect("failed to find mir entry block");
-        self.gen_block(module, builder, &block_map, &local_map, entry_block);
+        self.gen_block(
+            module,
+            builder,
+            &block_map,
+            &local_map,
+            &function,
+            entry_block,
+        );
 
         for (block_id, block) in function.get_blocks() {
             if function.entry_block == block_id {
@@ -123,7 +131,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
 
             let basic_block = block_map.get(&block_id).expect("failed to get basic block");
             builder.position_at_end(*basic_block);
-            self.gen_block(module, builder, &block_map, &local_map, block);
+            self.gen_block(module, builder, &block_map, &local_map, &function, block);
         }
     }
 
@@ -153,14 +161,149 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         local_map
     }
 
+    // TODO: we're getting a lot of params here (6), that probably means we should try to bundle
+    // some of these together and expose only the functionality that we need to simplify the code
     fn gen_block(
         &self,
         module: &Module,
-        builder: &Builder,
+        builder: &Builder<'ctx>,
         block_map: &HashMap<BlockId, BasicBlock>,
         local_map: &HashMap<LocalId, PointerValue<'ctx>>,
+        function: &MirFunction,
         block: &mir::BasicBlock,
     ) {
+        let mut value_map: HashMap<ValueId, BasicValueEnum<'ctx>> = HashMap::new();
+        // TODO: should this be in a gen_inst function instead of having this all be in a loop like
+        // this?
+        for value_id in &block.instructions {
+            let inst = function
+                .instructions
+                .get(value_id.as_idx())
+                .expect("failed to get instruction for block");
+
+            match inst {
+                Instruction::Const { value } => {
+                    let value = self.gen_const(value);
+                    value_map.insert(*value_id, value);
+                }
+                _ => {
+                    eprintln!(
+                        "TODO: not all instructions are supported yet, skipping for now {:?}",
+                        inst
+                    );
+                }
+            }
+        }
+
+        match &block.terminator {
+            Terminator::Return { value } => {
+                // TODO: I can probably move to .map instead of doing the match like this
+                match value {
+                    Some(v) => {
+                        let value = value_map.get(v);
+                        let value: Option<&dyn BasicValue<'ctx>> = match value {
+                            Some(v) => Some(v),
+                            None => {
+                                eprintln!(
+                                    "not all values are being calculated yet, skipping for now"
+                                );
+                                return;
+                            }
+                        };
+                        builder.build_return(value).expect("failed to build return");
+                    }
+                    None => {
+                        builder.build_return(None).expect("failed to build return");
+                    }
+                };
+            }
+            Terminator::Jump { target } => {
+                let dest = block_map.get(target).expect(
+                    format!("failed to get target block from block map {:?}", target).as_str(),
+                );
+                builder
+                    .build_unconditional_branch(*dest)
+                    .expect("failed to build unconditinoal branch");
+            }
+            Terminator::Branch {
+                cond,
+                true_target,
+                false_target,
+            } => {
+                let cond = value_map.get(cond);
+                let cond = match cond {
+                    Some(v) => v.into_int_value(),
+                    None => {
+                        eprintln!(
+                            "TODO: not all values are supported yet, returning const 0 for now"
+                        );
+                        self.context.i64_type().const_zero()
+                    }
+                };
+                let then_block = block_map
+                    .get(true_target)
+                    .expect("failed to find true target in block map");
+                let else_block = block_map
+                    .get(false_target)
+                    .expect("failed to find false target in block map");
+                builder
+                    .build_conditional_branch(cond, *then_block, *else_block)
+                    .expect("failed to build conditional branch");
+            }
+            Terminator::SwitchVariant {
+                discriminant,
+                default,
+                arms,
+            } => {
+                let value = value_map.get(discriminant);
+                let value = match value {
+                    Some(v) => v.into_int_value(),
+                    None => {
+                        eprintln!("TODO: not all values are computed yet, using const 0 for now");
+                        self.context.i64_type().const_zero()
+                    }
+                };
+                let else_block = block_map
+                    .get(default)
+                    .expect("failed to find default block in block map");
+                let mut cases = vec![];
+                for arm in arms {
+                    let target = self.gen_const(&arm.target).into_int_value();
+                    let basic_block = block_map
+                        .get(&arm.jump)
+                        .expect("failed to get switch target from block map");
+                    cases.push((target, *basic_block))
+                }
+
+                builder
+                    .build_switch(value, *else_block, &cases)
+                    .expect("failed to build switch");
+            }
+            Terminator::Unreachable => {
+                builder
+                    .build_unreachable()
+                    .expect("failed to build unreachable");
+            }
+            Terminator::Panic => {
+                builder.build_unreachable().expect("failed to build panic");
+            }
+        };
+    }
+
+    fn gen_const(&self, const_value: &ConstValue) -> BasicValueEnum<'ctx> {
+        match const_value {
+            ConstValue::ConstInt(i) => {
+                let value = self.context.i64_type().const_int(*i as u64, false);
+                value.into()
+            }
+            _ => {
+                eprintln!(
+                    "TODO: not all constants are supported yet emitting const 0 for now {:?}",
+                    const_value
+                );
+                self.context.i64_type().const_zero().into()
+            }
+        }
     }
 
     fn gen_type_spec(&self, type_spec: &TypeSpec) -> Option<BasicTypeEnum<'ctx>> {
