@@ -20,6 +20,7 @@ pub enum TypeSpec {
     I16,
     I32,
     I64,
+    // TODO: do we need unsigned types? We already encode signedness in ops
     U8,
     U16,
     U32,
@@ -563,5 +564,15 @@ impl MirModule {
             init,
             functions,
         }
+    }
+
+    pub fn get_globals(&self) -> Vec<(GlobalId, &Global)> {
+        let mut globals = vec![];
+        for (i, global) in self.globals.iter().enumerate() {
+            let global_id = GlobalId::from_usize(i);
+            globals.push((global_id, global))
+        }
+
+        globals
     }
 }
