@@ -36,27 +36,27 @@ entry:
   %"<wrap>3" = alloca { i8, [16 x i8] }, align 8
   %"<defer>" = alloca { i8, [24 x i8] }, align 8
 
-Block_2:                                          ; No predecessors!
-
 Block_3:                                          ; No predecessors!
 
 Block_4:                                          ; No predecessors!
 
-Block_5:                                          ; No predecessors!
-
-Block_6:                                          ; No predecessors!
-
-Block_7:                                          ; No predecessors!
-
-Block_8:                                          ; No predecessors!
-
-Block_9:                                          ; No predecessors!
+Block_2:                                          ; No predecessors!
 
 Block_10:                                         ; No predecessors!
 
 Block_11:                                         ; No predecessors!
 
+Block_9:                                          ; No predecessors!
+
+Block_16:                                         ; No predecessors!
+
+Block_17:                                         ; No predecessors!
+
+Block_19:                                         ; No predecessors!
+
 Block_12:                                         ; No predecessors!
+
+Block_5:                                          ; No predecessors!
 }
 
 define void @main() {
@@ -68,21 +68,21 @@ entry:
   %content3 = alloca { i64, ptr }, align 8
   %panic = alloca { i8, [24 x i8] }, align 8
 
-Block_2:                                          ; No predecessors!
-
 Block_3:                                          ; No predecessors!
 
 Block_4:                                          ; No predecessors!
 
-Block_5:                                          ; No predecessors!
-
-Block_6:                                          ; No predecessors!
-
-Block_7:                                          ; No predecessors!
+Block_2:                                          ; No predecessors!
 
 Block_8:                                          ; No predecessors!
 
 Block_9:                                          ; No predecessors!
 
+Block_7:                                          ; No predecessors!
+
 Block_10:                                         ; No predecessors!
+
+Block_11:                                         ; No predecessors!
+
+Block_5:                                          ; No predecessors!
 }

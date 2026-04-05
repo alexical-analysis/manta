@@ -15,9 +15,9 @@ entry:
   %a = alloca i32, align 4
   %b = alloca i32, align 4
 
-Block_2:                                          ; No predecessors!
-
 Block_3:                                          ; No predecessors!
+
+Block_2:                                          ; No predecessors!
 }
 
 define void @main() {
@@ -25,13 +25,13 @@ entry:
   %r = alloca { i8, [4 x i8] }, align 8
   %v = alloca i32, align 4
 
-Block_2:                                          ; No predecessors!
+Block_5:                                          ; No predecessors!
+
+Block_6:                                          ; No predecessors!
 
 Block_3:                                          ; No predecessors!
 
 Block_4:                                          ; No predecessors!
 
-Block_5:                                          ; No predecessors!
-
-Block_6:                                          ; No predecessors!
+Block_2:                                          ; No predecessors!
 }

@@ -15,19 +15,19 @@ entry:
   %check_this = alloca i1, align 1
   %nine = alloca i64, align 8
 
-Block_2:                                          ; No predecessors!
-
 Block_3:                                          ; No predecessors!
-
-Block_4:                                          ; No predecessors!
-
-Block_5:                                          ; No predecessors!
-
-Block_6:                                          ; No predecessors!
-
-Block_7:                                          ; No predecessors!
 
 Block_8:                                          ; No predecessors!
 
 Block_9:                                          ; No predecessors!
+
+Block_6:                                          ; No predecessors!
+
+Block_5:                                          ; No predecessors!
+
+Block_7:                                          ; No predecessors!
+
+Block_2:                                          ; No predecessors!
+
+Block_4:                                          ; No predecessors!
 }

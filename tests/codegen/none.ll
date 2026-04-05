@@ -22,32 +22,32 @@ entry:
   %p1 = alloca ptr, align 8
   %panic = alloca ptr, align 8
 
+Block_3:                                          ; No predecessors!
+
 Block_2:                                          ; No predecessors!
 
-Block_3:                                          ; No predecessors!
+Block_7:                                          ; No predecessors!
+
+Block_8:                                          ; No predecessors!
 
 Block_4:                                          ; No predecessors!
 
 Block_5:                                          ; No predecessors!
 
 Block_6:                                          ; No predecessors!
-
-Block_7:                                          ; No predecessors!
-
-Block_8:                                          ; No predecessors!
 }
 
 define void @main() {
 entry:
   %p = alloca ptr, align 8
 
-Block_2:                                          ; No predecessors!
+Block_5:                                          ; No predecessors!
+
+Block_6:                                          ; No predecessors!
 
 Block_3:                                          ; No predecessors!
 
 Block_4:                                          ; No predecessors!
 
-Block_5:                                          ; No predecessors!
-
-Block_6:                                          ; No predecessors!
+Block_2:                                          ; No predecessors!
 }

@@ -51,12 +51,7 @@ impl BlockBuilder {
     fn to_basic_block(&self) -> BasicBlock {
         let term = match &self.terminator {
             Some(term) => term,
-            None => {
-                eprintln!(
-                    "TODO: basic block must have a terminator setting to unreachable for now"
-                );
-                &Terminator::Unreachable
-            }
+            None => panic!("blocks without terminators are not valid"),
         };
 
         BasicBlock {

@@ -44,6 +44,10 @@
               "value": null
             }
           }
+        },
+        {
+          "instructions": [],
+          "terminator": "Unreachable"
         }
       ],
       "entry_block": 1,
@@ -96,6 +100,16 @@
         },
         {
           "instructions": [
+            4
+          ],
+          "terminator": {
+            "Return": {
+              "value": 4
+            }
+          }
+        },
+        {
+          "instructions": [
             5,
             6,
             7,
@@ -108,14 +122,12 @@
           }
         },
         {
-          "instructions": [
-            4
-          ],
-          "terminator": {
-            "Return": {
-              "value": 4
-            }
-          }
+          "instructions": [],
+          "terminator": "Unreachable"
+        },
+        {
+          "instructions": [],
+          "terminator": "Unreachable"
         }
       ],
       "entry_block": 1,
@@ -271,21 +283,10 @@
           }
         },
         {
-          "instructions": [
-            12,
-            13
-          ],
-          "terminator": {
-            "Jump": {
-              "target": 6
-            }
-          }
-        },
-        {
           "instructions": [],
           "terminator": {
-            "Jump": {
-              "target": 2
+            "Return": {
+              "value": null
             }
           }
         },
@@ -312,12 +313,27 @@
           }
         },
         {
-          "instructions": [],
+          "instructions": [
+            12,
+            13
+          ],
           "terminator": {
-            "Return": {
-              "value": null
+            "Jump": {
+              "target": 6
             }
           }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 2
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": "Unreachable"
         }
       ],
       "entry_block": 1,

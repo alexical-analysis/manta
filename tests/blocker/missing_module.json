@@ -44,6 +44,10 @@
               "value": null
             }
           }
+        },
+        {
+          "instructions": [],
+          "terminator": "Unreachable"
         }
       ],
       "entry_block": 1,
@@ -67,6 +71,10 @@
               "value": null
             }
           }
+        },
+        {
+          "instructions": [],
+          "terminator": "Unreachable"
         }
       ],
       "entry_block": 1,

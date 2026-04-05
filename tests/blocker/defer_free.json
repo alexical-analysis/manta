@@ -56,6 +56,10 @@
               "value": 1
             }
           }
+        },
+        {
+          "instructions": [],
+          "terminator": "Unreachable"
         }
       ],
       "entry_block": 1,
@@ -108,6 +112,10 @@
               "value": null
             }
           }
+        },
+        {
+          "instructions": [],
+          "terminator": "Unreachable"
         }
       ],
       "entry_block": 1,
@@ -157,6 +165,10 @@
               "value": 1
             }
           }
+        },
+        {
+          "instructions": [],
+          "terminator": "Unreachable"
         }
       ],
       "entry_block": 1,
@@ -354,6 +366,19 @@
         },
         {
           "instructions": [
+            13,
+            14
+          ],
+          "terminator": {
+            "Branch": {
+              "cond": 14,
+              "true_target": 10,
+              "false_target": 12
+            }
+          }
+        },
+        {
+          "instructions": [
             4,
             5,
             6,
@@ -375,26 +400,29 @@
         },
         {
           "instructions": [
-            13,
-            14
+            8,
+            9,
+            10,
+            37
           ],
           "terminator": {
-            "Branch": {
-              "cond": 14,
-              "true_target": 10,
-              "false_target": 12
+            "Jump": {
+              "target": 23
             }
           }
         },
         {
+          "instructions": [],
+          "terminator": "Unreachable"
+        },
+        {
           "instructions": [
-            18,
-            19,
-            20
+            11,
+            12
           ],
           "terminator": {
             "Jump": {
-              "target": 13
+              "target": 8
             }
           }
         },
@@ -402,7 +430,7 @@
           "instructions": [],
           "terminator": {
             "Jump": {
-              "target": 9
+              "target": 29
             }
           }
         },
@@ -430,6 +458,76 @@
         },
         {
           "instructions": [
+            15,
+            16,
+            17
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 11
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 9
+            }
+          }
+        },
+        {
+          "instructions": [
+            18,
+            19,
+            20
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 13
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 9
+            }
+          }
+        },
+        {
+          "instructions": [
+            21,
+            22
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 15
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 7
+            }
+          }
+        },
+        {
+          "instructions": [
+            34,
+            35
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 23
+            }
+          }
+        },
+        {
+          "instructions": [
             27,
             28,
             29,
@@ -451,12 +549,37 @@
         },
         {
           "instructions": [
-            34,
-            35
+            31,
+            32,
+            33,
+            36
           ],
           "terminator": {
             "Jump": {
               "target": 23
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": "Unreachable"
+        },
+        {
+          "instructions": [
+            21,
+            22
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 22
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 25
             }
           }
         },
@@ -486,6 +609,25 @@
           ],
           "terminator": {
             "Jump": {
+              "target": 26
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 31
+            }
+          }
+        },
+        {
+          "instructions": [
+            11,
+            12
+          ],
+          "terminator": {
+            "Jump": {
               "target": 28
             }
           }
@@ -499,6 +641,10 @@
           }
         },
         {
+          "instructions": [],
+          "terminator": "Panic"
+        },
+        {
           "instructions": [
             38
           ],
@@ -509,50 +655,8 @@
           }
         },
         {
-          "instructions": [
-            31,
-            32,
-            33,
-            36
-          ],
-          "terminator": {
-            "Jump": {
-              "target": 23
-            }
-          }
-        },
-        {
-          "instructions": [
-            15,
-            16,
-            17
-          ],
-          "terminator": {
-            "Jump": {
-              "target": 11
-            }
-          }
-        },
-        {
           "instructions": [],
-          "terminator": {
-            "Jump": {
-              "target": 9
-            }
-          }
-        },
-        {
-          "instructions": [
-            8,
-            9,
-            10,
-            37
-          ],
-          "terminator": {
-            "Jump": {
-              "target": 23
-            }
-          }
+          "terminator": "Unreachable"
         }
       ],
       "entry_block": 1,

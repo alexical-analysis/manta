@@ -74,6 +74,10 @@
               "value": null
             }
           }
+        },
+        {
+          "instructions": [],
+          "terminator": "Unreachable"
         }
       ],
       "entry_block": 1,
@@ -141,16 +145,10 @@
           }
         },
         {
-          "instructions": [
-            10,
-            11,
-            12,
-            13,
-            14
-          ],
+          "instructions": [],
           "terminator": {
-            "Return": {
-              "value": 14
+            "Jump": {
+              "target": 7
             }
           }
         },
@@ -172,11 +170,25 @@
         },
         {
           "instructions": [],
+          "terminator": "Unreachable"
+        },
+        {
+          "instructions": [
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
           "terminator": {
-            "Jump": {
-              "target": 7
+            "Return": {
+              "value": 14
             }
           }
+        },
+        {
+          "instructions": [],
+          "terminator": "Unreachable"
         },
         {
           "instructions": [],
@@ -401,6 +413,10 @@
               "value": null
             }
           }
+        },
+        {
+          "instructions": [],
+          "terminator": "Unreachable"
         }
       ],
       "entry_block": 1,
