@@ -44,7 +44,8 @@
               "value": null
             }
           }
-        }
+        },
+        null
       ],
       "entry_block": 1,
       "instructions": [],
@@ -67,7 +68,8 @@
               "value": null
             }
           }
-        }
+        },
+        null
       ],
       "entry_block": 1,
       "instructions": [

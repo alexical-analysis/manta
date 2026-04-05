@@ -540,8 +540,8 @@ pub struct MirFunction {
     pub params: Vec<LocalId>,
     pub return_type: TypeSpec,
     pub local_map: BTreeMap<NodeID, LocalId>,
-    pub locals: Vec<Local>,      // indexed by LocalId
-    pub blocks: Vec<BasicBlock>, // Indexed by BlockId
+    pub locals: Vec<Local>,              // indexed by LocalId
+    pub blocks: Vec<Option<BasicBlock>>, // Indexed by BlockId
     // TODO: do I even need this? Right now the BasicBlocks all live inside the function. Does it
     // make sense to have all the basic blocks live together than then only have the functions
     // index into that larger store? My current implementation always set's this to 1
@@ -564,11 +564,21 @@ impl MirFunction {
         locals
     }
 
+    pub fn get_block(&self, block_id: BlockId) -> &BasicBlock {
+        match self.blocks.get(block_id.as_idx()) {
+            Some(Some(b)) => b,
+            _ => panic!("failed to find block with block_id {:?}", block_id),
+        }
+    }
+
+    /// get a vector of all reachable blocks
     pub fn get_blocks(&self) -> Vec<(BlockId, &BasicBlock)> {
         let mut blocks = vec![];
         for (i, block) in self.blocks.iter().enumerate() {
-            let block_id = BlockId::from_u32((i + 1) as u32);
-            blocks.push((block_id, block))
+            if let Some(block) = block {
+                let block_id = BlockId::from_u32((i + 1) as u32);
+                blocks.push((block_id, block))
+            }
         }
 
         blocks

@@ -51,12 +51,7 @@ impl BlockBuilder {
     fn to_basic_block(&self) -> BasicBlock {
         let term = match &self.terminator {
             Some(term) => term,
-            None => {
-                eprintln!(
-                    "TODO: basic block must have a terminator setting to unreachable for now"
-                );
-                &Terminator::Unreachable
-            }
+            None => panic!("blocks must have a valid terminator"),
         };
 
         BasicBlock {
@@ -947,11 +942,10 @@ impl FunctionBuilder {
             panic!("function must have an entry block")
         };
 
-        // it's possible for a basic block in the function to be empty if all other blocks
-        // terminated without jumping to it. For example if every arm in a match statement
-        // returns before the end of the function. here we take a quick walk through the
-        // blocks and cull any that are not referenced by any other blocks in the function
-        let mut valid_blocks = vec![];
+        // it's possible for a block to be unreachable after building and unreachable blocks
+        // may not be fully valid. We travers the graph in DFS order here to visit all reachable
+        // blocks to get a vector where reachable bocks are Some and unreachable blocks are None
+        let mut valid_blocks = vec![None; self.blocks.len()];
 
         let mut block_stack = SetStack::new();
         block_stack.push(BlockId::from_u32(1));
@@ -984,7 +978,7 @@ impl FunctionBuilder {
                 }
             }
 
-            valid_blocks.push(block);
+            valid_blocks[b.as_idx()] = Some(block);
         }
 
         MirFunction {
