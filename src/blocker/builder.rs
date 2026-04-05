@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use crate::hir::NodeID;
 use crate::mir::{
-    BasicBlock, BlockId, ConstValue, Instruction, Local, LocalId, MirFunction, Place, SwitchArm,
-    TagSize, Terminator, TypeSpec, ValueId,
+    BasicBlock, BlockId, ConstValue, Instruction, Local, LocalId, MirFunction, Place, SetStack,
+    SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
 };
 use crate::str_store::{self, StrID};
 
@@ -252,30 +252,6 @@ impl CFG {
 
             fn_builder.set_terminator(*block_id, Terminator::Jump { target: return_to });
         }
-    }
-}
-
-struct SetStack {
-    queue: Vec<BlockId>,
-    set: HashSet<BlockId>,
-}
-
-impl SetStack {
-    fn new() -> Self {
-        SetStack {
-            queue: vec![],
-            set: HashSet::new(),
-        }
-    }
-
-    fn push(&mut self, block_id: BlockId) {
-        if self.set.insert(block_id) {
-            self.queue.push(block_id)
-        }
-    }
-
-    fn pop(&mut self) -> Option<BlockId> {
-        self.queue.pop()
     }
 }
 
@@ -947,51 +923,13 @@ impl FunctionBuilder {
             panic!("function must have an entry block")
         };
 
-        // it's possible for a basic block in the function to be empty if all other blocks
-        // terminated without jumping to it. For example if every arm in a match statement
-        // returns before the end of the function. here we take a quick walk through the
-        // blocks and cull any that are not referenced by any other blocks in the function
-        let mut valid_blocks = vec![];
-
-        let mut block_stack = SetStack::new();
-        block_stack.push(BlockId::from_u32(1));
-        while let Some(b) = block_stack.pop() {
-            let block_builder = self.blocks[b.as_idx()].clone();
-            let block = block_builder.to_basic_block();
-
-            match block.terminator {
-                Terminator::Return { .. } => {}
-                Terminator::Unreachable => {}
-                Terminator::Panic => {}
-                Terminator::Jump { target } => {
-                    block_stack.push(target);
-                }
-                Terminator::Branch {
-                    true_target,
-                    false_target,
-                    ..
-                } => {
-                    block_stack.push(true_target);
-                    block_stack.push(false_target);
-                }
-                Terminator::SwitchVariant {
-                    default, ref arms, ..
-                } => {
-                    block_stack.push(default);
-                    for arm in arms {
-                        block_stack.push(arm.jump);
-                    }
-                }
-            }
-
-            valid_blocks.push(block);
-        }
+        let blocks = self.blocks.iter().map(|b| b.to_basic_block()).collect();
 
         MirFunction {
             name: self.name,
             params: self.params.clone(),
             return_type: self.return_type.clone(),
-            blocks: valid_blocks,
+            blocks,
             entry_block: BlockId::from_u32(1),
             local_map: self.local_map.clone(),
             locals: self.locals.clone(),

@@ -1,4 +1,6 @@
-use std::collections::BTreeMap;
+use std::cmp;
+use std::collections::{BTreeMap, HashSet};
+use std::hash::Hash;
 
 use crate::hir::NodeID;
 use crate::str_store::StrID;
@@ -533,6 +535,30 @@ impl BasicBlock {
     }
 }
 
+pub struct SetStack<T: Hash + cmp::Eq + Copy> {
+    queue: Vec<T>,
+    set: HashSet<T>,
+}
+
+impl<T: Hash + cmp::Eq + Copy> SetStack<T> {
+    pub fn new() -> Self {
+        SetStack {
+            queue: vec![],
+            set: HashSet::new(),
+        }
+    }
+
+    pub fn push(&mut self, block_id: T) {
+        if self.set.insert(block_id) {
+            self.queue.push(block_id)
+        }
+    }
+
+    pub fn pop(&mut self) -> Option<T> {
+        self.queue.pop()
+    }
+}
+
 /// A function in MIR form.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct MirFunction {
@@ -565,13 +591,46 @@ impl MirFunction {
     }
 
     pub fn get_blocks(&self) -> Vec<(BlockId, &BasicBlock)> {
-        let mut blocks = vec![];
-        for (i, block) in self.blocks.iter().enumerate() {
-            let block_id = BlockId::from_u32((i + 1) as u32);
-            blocks.push((block_id, block))
+        // only return the list of blocks that are actually reachable
+        let mut valid_blocks = vec![];
+
+        let mut block_stack = SetStack::new();
+        block_stack.push(self.entry_block);
+        while let Some(block_id) = block_stack.pop() {
+            let block = self
+                .blocks
+                .get(block_id.as_idx())
+                .expect("failed to find block");
+
+            match block.terminator {
+                Terminator::Return { .. } => {}
+                Terminator::Unreachable => {}
+                Terminator::Panic => {}
+                Terminator::Jump { target } => {
+                    block_stack.push(target);
+                }
+                Terminator::Branch {
+                    true_target,
+                    false_target,
+                    ..
+                } => {
+                    block_stack.push(true_target);
+                    block_stack.push(false_target);
+                }
+                Terminator::SwitchVariant {
+                    default, ref arms, ..
+                } => {
+                    block_stack.push(default);
+                    for arm in arms {
+                        block_stack.push(arm.jump);
+                    }
+                }
+            }
+
+            valid_blocks.push((block_id, block));
         }
 
-        blocks
+        valid_blocks
     }
 }
 
