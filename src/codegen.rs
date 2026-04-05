@@ -87,10 +87,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         let func = module.add_function(function_name.as_str(), func_type, None);
 
         let entry_block = function.entry_block;
-        let block = function
-            .blocks
-            .get(entry_block.as_idx())
-            .expect("failed to get entry block");
+        let block = function.get_block(entry_block);
 
         // build the entry block
         let entry_block = self.context.append_basic_block(func, "entry");

@@ -513,9 +513,12 @@ impl<'a> Blocker<'a> {
             Some(d) => d,
             None => {
                 eprintln!(
-                    "TODO: currently we don't always insist that pattern matching is exaustive"
+                    "TODO: currently we assume that if there's is no default_arm, pattern matching is exaustive"
                 );
-                merge_block
+                let unreachable_block = self.fn_builder.add_block();
+                self.fn_builder
+                    .set_terminator(unreachable_block, Terminator::Unreachable);
+                unreachable_block
             }
         };
 
@@ -656,9 +659,12 @@ impl<'a> Blocker<'a> {
             Some(d) => d,
             None => {
                 eprintln!(
-                    "TODO: currently we don't always insist that pattern matching is exaustive"
+                    "TODO: currently we assume that if there's is no default_arm, pattern matching is exaustive"
                 );
-                merge_block
+                let unreachable_block = self.fn_builder.add_block();
+                self.fn_builder
+                    .set_terminator(unreachable_block, Terminator::Unreachable);
+                unreachable_block
             }
         };
 
@@ -1374,10 +1380,10 @@ mod tests {
             want: MirModule {
                 globals: vec![],
                 init: MirFunction {
-                    blocks: vec![BasicBlock {
+                    blocks: vec![Some(BasicBlock {
                         instructions: vec![],
                         terminator: Terminator::Return { value: None },
-                    }],
+                    })],
                     entry_block: BlockId::from_u32(1),
                     instructions: vec![],
                     name: str_store::INIT,
@@ -1393,12 +1399,15 @@ mod tests {
                     return_type: TypeSpec::I32,
                     local_map: BTreeMap::new(),
                     locals: vec![],
-                    blocks: vec![BasicBlock {
-                        instructions: vec![ValueId::from_usize(1)],
-                        terminator: Terminator::Return {
-                            value: Some(ValueId::from_usize(1)),
-                        },
-                    },],
+                    blocks: vec![
+                        Some(BasicBlock {
+                            instructions: vec![ValueId::from_usize(1)],
+                            terminator: Terminator::Return {
+                                value: Some(ValueId::from_usize(1)),
+                            },
+                        }),
+                        None
+                    ],
                     entry_block: BlockId::from_u32(1),
                     instructions: vec![Instruction::Const {
                         value: ConstValue::ConstInt(42),
@@ -1446,10 +1455,10 @@ mod tests {
                     return_type: TypeSpec::Unit,
                     local_map: BTreeMap::new(),
                     locals: vec![],
-                    blocks: vec![BasicBlock {
+                    blocks: vec![Some(BasicBlock {
                         instructions: vec![],
                         terminator: Terminator::Return { value: None },
-                    }],
+                    }),],
                     entry_block: BlockId::from_u32(1),
                     instructions: vec![],
                     value_types: vec![],
@@ -1460,12 +1469,15 @@ mod tests {
                     return_type: TypeSpec::Bool,
                     local_map: BTreeMap::new(),
                     locals: vec![],
-                    blocks: vec![BasicBlock {
-                        instructions: vec![ValueId::from_usize(1)],
-                        terminator: Terminator::Return {
-                            value: Some(ValueId::from_usize(1))
-                        },
-                    }],
+                    blocks: vec![
+                        Some(BasicBlock {
+                            instructions: vec![ValueId::from_usize(1)],
+                            terminator: Terminator::Return {
+                                value: Some(ValueId::from_usize(1))
+                            },
+                        }),
+                        None
+                    ],
                     entry_block: BlockId::from_u32(1),
                     instructions: vec![Instruction::Const {
                         value: ConstValue::ConstBool(true)
@@ -1513,10 +1525,10 @@ mod tests {
                     return_type: TypeSpec::Unit,
                     local_map: BTreeMap::new(),
                     locals: vec![],
-                    blocks: vec![BasicBlock {
+                    blocks: vec![Some(BasicBlock {
                         instructions: vec![],
                         terminator: Terminator::Return { value: None },
-                    }],
+                    })],
                     entry_block: BlockId::from_u32(1),
                     instructions: vec![],
                     value_types: vec![],
@@ -1527,12 +1539,15 @@ mod tests {
                     return_type: TypeSpec::Bool,
                     local_map: BTreeMap::new(),
                     locals: vec![],
-                    blocks: vec![BasicBlock {
-                        instructions: vec![ValueId::from_usize(1)],
-                        terminator: Terminator::Return {
-                            value: Some(ValueId::from_usize(1))
-                        },
-                    }],
+                    blocks: vec![
+                        Some(BasicBlock {
+                            instructions: vec![ValueId::from_usize(1)],
+                            terminator: Terminator::Return {
+                                value: Some(ValueId::from_usize(1))
+                            },
+                        }),
+                        None
+                    ],
                     entry_block: BlockId::from_u32(1),
                     instructions: vec![Instruction::Const {
                         value: ConstValue::ConstBool(false)
@@ -1580,10 +1595,10 @@ mod tests {
                     return_type: TypeSpec::Unit,
                     local_map: BTreeMap::new(),
                     locals: vec![],
-                    blocks: vec![BasicBlock {
+                    blocks: vec![Some(BasicBlock {
                         instructions: vec![],
                         terminator: Terminator::Return { value: None },
-                    }],
+                    })],
                     entry_block: BlockId::from_u32(1),
                     instructions: vec![],
                     value_types: vec![],
@@ -1594,12 +1609,15 @@ mod tests {
                     return_type: TypeSpec::F64,
                     local_map: BTreeMap::new(),
                     locals: vec![],
-                    blocks: vec![BasicBlock {
-                        instructions: vec![ValueId::from_usize(1)],
-                        terminator: Terminator::Return {
-                            value: Some(ValueId::from_usize(1))
-                        },
-                    }],
+                    blocks: vec![
+                        Some(BasicBlock {
+                            instructions: vec![ValueId::from_usize(1)],
+                            terminator: Terminator::Return {
+                                value: Some(ValueId::from_usize(1))
+                            },
+                        }),
+                        None
+                    ],
                     entry_block: BlockId::from_u32(1),
                     instructions: vec![Instruction::Const {
                         value: ConstValue::ConstFloat(3.45)
@@ -1647,10 +1665,10 @@ mod tests {
                     return_type: TypeSpec::Unit,
                     local_map: BTreeMap::new(),
                     locals: vec![],
-                    blocks: vec![BasicBlock {
+                    blocks: vec![Some(BasicBlock {
                         instructions: vec![],
                         terminator: Terminator::Return { value: None },
-                    }],
+                    })],
                     entry_block: BlockId::from_u32(1),
                     instructions: vec![],
                     value_types: vec![],
@@ -1661,12 +1679,15 @@ mod tests {
                     return_type: TypeSpec::String,
                     local_map: BTreeMap::new(),
                     locals: vec![],
-                    blocks: vec![BasicBlock {
-                        instructions: vec![ValueId::from_usize(1)],
-                        terminator: Terminator::Return {
-                            value: Some(ValueId::from_usize(1))
-                        },
-                    }],
+                    blocks: vec![
+                        Some(BasicBlock {
+                            instructions: vec![ValueId::from_usize(1)],
+                            terminator: Terminator::Return {
+                                value: Some(ValueId::from_usize(1))
+                            },
+                        }),
+                        None
+                    ],
                     entry_block: BlockId::from_u32(1),
                     instructions: vec![Instruction::Const {
                         value: ConstValue::ConstString(StrID::from_usize(99))

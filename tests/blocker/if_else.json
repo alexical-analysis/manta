@@ -44,7 +44,8 @@
               "value": null
             }
           }
-        }
+        },
+        null
       ],
       "entry_block": 1,
       "instructions": [],
@@ -85,6 +86,17 @@
         },
         {
           "instructions": [
+            4,
+            5
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 4
+            }
+          }
+        },
+        {
+          "instructions": [
             6,
             7,
             8,
@@ -96,6 +108,41 @@
               "cond": 10,
               "true_target": 5,
               "false_target": 8
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 3
+            }
+          }
+        },
+        {
+          "instructions": [
+            11,
+            12
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 7
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Return": {
+              "value": null
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 6
             }
           }
         },
@@ -118,52 +165,7 @@
             }
           }
         },
-        {
-          "instructions": [],
-          "terminator": {
-            "Return": {
-              "value": null
-            }
-          }
-        },
-        {
-          "instructions": [
-            11,
-            12
-          ],
-          "terminator": {
-            "Jump": {
-              "target": 7
-            }
-          }
-        },
-        {
-          "instructions": [],
-          "terminator": {
-            "Jump": {
-              "target": 6
-            }
-          }
-        },
-        {
-          "instructions": [
-            4,
-            5
-          ],
-          "terminator": {
-            "Jump": {
-              "target": 4
-            }
-          }
-        },
-        {
-          "instructions": [],
-          "terminator": {
-            "Jump": {
-              "target": 3
-            }
-          }
-        }
+        null
       ],
       "entry_block": 1,
       "instructions": [

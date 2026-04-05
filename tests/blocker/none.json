@@ -46,7 +46,8 @@
               "value": null
             }
           }
-        }
+        },
+        null
       ],
       "entry_block": 1,
       "instructions": [],
@@ -75,7 +76,8 @@
               "value": null
             }
           }
-        }
+        },
+        null
       ],
       "entry_block": 1,
       "instructions": [],
@@ -141,16 +143,6 @@
         },
         {
           "instructions": [
-            14
-          ],
-          "terminator": {
-            "Return": {
-              "value": 14
-            }
-          }
-        },
-        {
-          "instructions": [
             2,
             3
           ],
@@ -164,21 +156,11 @@
         },
         {
           "instructions": [
-            7,
-            8,
-            9
+            14
           ],
           "terminator": {
-            "Jump": {
-              "target": 8
-            }
-          }
-        },
-        {
-          "instructions": [],
-          "terminator": {
-            "Jump": {
-              "target": 4
+            "Return": {
+              "value": 14
             }
           }
         },
@@ -214,7 +196,29 @@
               "target": 4
             }
           }
-        }
+        },
+        {
+          "instructions": [
+            7,
+            8,
+            9
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 8
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 4
+            }
+          }
+        },
+        null,
+        null
       ],
       "entry_block": 1,
       "instructions": [
@@ -432,7 +436,7 @@
           "terminator": {
             "SwitchVariant": {
               "discriminant": 3,
-              "default": 2,
+              "default": 7,
               "arms": [
                 {
                   "target": {
@@ -451,21 +455,10 @@
           }
         },
         {
-          "instructions": [
-            8,
-            9
-          ],
-          "terminator": {
-            "Jump": {
-              "target": 6
-            }
-          }
-        },
-        {
           "instructions": [],
           "terminator": {
-            "Jump": {
-              "target": 2
+            "Return": {
+              "value": null
             }
           }
         },
@@ -491,13 +484,29 @@
           }
         },
         {
-          "instructions": [],
+          "instructions": [
+            8,
+            9
+          ],
           "terminator": {
-            "Return": {
-              "value": null
+            "Jump": {
+              "target": 6
             }
           }
-        }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 2
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": "Unreachable"
+        },
+        null
       ],
       "entry_block": 1,
       "instructions": [
