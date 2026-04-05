@@ -1019,16 +1019,26 @@ fn lower_type_spec(hir_ts: &hir::TypeSpec) -> TypeSpec {
 /// The size and alignment of a type in bytes, used for computing MetaType struct values
 /// and struct field offsets during MIR lowering.
 #[derive(Clone, Copy)]
-struct Layout {
+pub struct Layout {
     /// The size of the type in bytes.
     size: u64,
     /// The required alignment of the type in bytes. Must be a power of 2, or 0 for zero-sized types.
     align: u64,
 }
 
+impl Layout {
+    pub fn size(&self) -> u64 {
+        self.size
+    }
+
+    pub fn align(&self) -> u64 {
+        self.align
+    }
+}
+
 /// Arch is used to specify 32-bit vs 64-bit targets
 #[derive(Clone, Copy)]
-enum Arch {
+pub enum Arch {
     W32,
     W64,
 }
@@ -1043,7 +1053,7 @@ impl Arch {
 }
 
 /// Returns the layout for a MIR TypeSpec on the given target architecture.
-fn type_layout(ts: &TypeSpec, arch: Arch) -> Layout {
+pub fn type_layout(ts: &TypeSpec, arch: Arch) -> Layout {
     // TODO: need to support sizes of less than 1 byte for packed structs
     let ptr = arch.ptr_size();
     match ts {
