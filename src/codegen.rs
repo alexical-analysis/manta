@@ -207,6 +207,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                                 eprintln!(
                                     "not all values are being calculated yet, skipping for now"
                                 );
+                                builder.build_unreachable().expect("failed to build return");
                                 return;
                             }
                         };
@@ -218,9 +219,9 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 };
             }
             Terminator::Jump { target } => {
-                let dest = block_map.get(target).expect(
-                    format!("failed to get target block from block map {:?}", target).as_str(),
-                );
+                let dest = block_map
+                    .get(target)
+                    .expect("failed to get target block from block map");
                 builder
                     .build_unconditional_branch(*dest)
                     .expect("failed to build unconditinoal branch");
@@ -237,7 +238,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                         eprintln!(
                             "TODO: not all values are supported yet, returning const 0 for now"
                         );
-                        self.context.i64_type().const_zero()
+                        self.context.bool_type().const_zero()
                     }
                 };
                 let then_block = block_map

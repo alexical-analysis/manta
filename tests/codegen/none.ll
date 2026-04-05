@@ -24,14 +24,16 @@ entry:
   %p = alloca ptr, align 8
   %p1 = alloca ptr, align 8
   %panic = alloca ptr, align 8
-  br i64 0, label %Block_2, label %Block_3
+  br i1 false, label %Block_2, label %Block_3
 
 Block_2:                                          ; preds = %entry
-  br i64 0, label %Block_5, label %Block_7
+  br i1 false, label %Block_5, label %Block_7
 
 Block_3:                                          ; preds = %entry
+  unreachable
 
 Block_4:                                          ; preds = %Block_8, %Block_6
+  unreachable
 
 Block_5:                                          ; preds = %Block_2
   br label %Block_6

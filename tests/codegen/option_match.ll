@@ -16,11 +16,13 @@ define { i8, [4 x i8] } @div(i32 %0, i32 %1) {
 entry:
   %a = alloca i32, align 4
   %b = alloca i32, align 4
-  br i64 0, label %Block_2, label %Block_3
+  br i1 false, label %Block_2, label %Block_3
 
 Block_2:                                          ; preds = %entry
+  unreachable
 
 Block_3:                                          ; preds = %entry
+  unreachable
 }
 
 define void @main() {
