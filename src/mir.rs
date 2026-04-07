@@ -230,12 +230,15 @@ pub struct Local {
 /// directly to the MIR but I've added them now just in case
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum ConstValue {
-    ConstString(StrID),
     ConstInt(i64),
     ConstUInt(u64),
     ConstFloat(f64),
     ConstBool(bool),
     ConstArray(Vec<ConstValue>),
+    // TODO: this is really just an artifact caused by the fact that I'm not fully supporting
+    // structs yet. Once I can build structs in the MIR instructions I can get rid of both of
+    // these. For now though, they're in use so I'm going to keep them around
+    ConstString(StrID),
     ConstStruct(Vec<ConstValue>),
 }
 
@@ -582,6 +585,12 @@ impl MirFunction {
         }
 
         blocks
+    }
+
+    pub fn get_value_type(&self, value_id: ValueId) -> &TypeSpec {
+        self.value_types
+            .get(value_id.as_idx())
+            .expect("failed to get value type")
     }
 }
 

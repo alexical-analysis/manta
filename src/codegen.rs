@@ -183,7 +183,8 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
 
             match inst {
                 Instruction::Const { value } => {
-                    let value = self.gen_const(value);
+                    let ts = function.get_value_type(*value_id);
+                    let value = self.gen_const(value, ts);
                     value_map.insert(*value_id, value);
                 }
                 _ => {
@@ -267,9 +268,14 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 let else_block = block_map
                     .get(default)
                     .expect("failed to find default block in block map");
+
+                let discriminant_type = function.get_value_type(*discriminant);
+
                 let mut cases = vec![];
                 for arm in arms {
-                    let target = self.gen_const(&arm.target).into_int_value();
+                    let target = self
+                        .gen_const(&arm.target, discriminant_type)
+                        .into_int_value();
                     let basic_block = block_map
                         .get(&arm.jump)
                         .expect("failed to get switch target from block map");
@@ -291,11 +297,87 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         };
     }
 
-    fn gen_const(&self, const_value: &ConstValue) -> BasicValueEnum<'ctx> {
-        match const_value {
-            ConstValue::ConstInt(i) => {
+    fn gen_const(&self, const_value: &ConstValue, type_spec: &TypeSpec) -> BasicValueEnum<'ctx> {
+        match (const_value, type_spec) {
+            (ConstValue::ConstInt(i), TypeSpec::I8) => {
+                let value = self.context.i8_type().const_int(*i as u64, false);
+                value.into()
+            }
+            (ConstValue::ConstInt(i), TypeSpec::I16) => {
+                let value = self.context.i16_type().const_int(*i as u64, false);
+                value.into()
+            }
+            (ConstValue::ConstInt(i), TypeSpec::I32) => {
+                let value = self.context.i32_type().const_int(*i as u64, false);
+                value.into()
+            }
+            (ConstValue::ConstInt(i), TypeSpec::I64) => {
                 let value = self.context.i64_type().const_int(*i as u64, false);
                 value.into()
+            }
+            (ConstValue::ConstUInt(i), TypeSpec::U8) => {
+                let value = self.context.i8_type().const_int(*i, false);
+                value.into()
+            }
+            (ConstValue::ConstUInt(i), TypeSpec::U16) => {
+                let value = self.context.i16_type().const_int(*i, false);
+                value.into()
+            }
+            (ConstValue::ConstUInt(i), TypeSpec::U32) => {
+                let value = self.context.i32_type().const_int(*i, false);
+                value.into()
+            }
+            (ConstValue::ConstUInt(i), TypeSpec::U64) => {
+                let value = self.context.i64_type().const_int(*i, false);
+                value.into()
+            }
+            (ConstValue::ConstFloat(f), TypeSpec::F32) => {
+                let value = self.context.f32_type().const_float(*f);
+                value.into()
+            }
+            (ConstValue::ConstFloat(f), TypeSpec::F64) => {
+                let value = self.context.f64_type().const_float(*f);
+                value.into()
+            }
+            (ConstValue::ConstBool(b), TypeSpec::Bool) => {
+                let value = match b {
+                    true => self.context.bool_type().const_int(1, false),
+                    false => self.context.bool_type().const_zero(),
+                };
+                value.into()
+            }
+            (ConstValue::ConstArray(values), TypeSpec::Array { elem, .. }) => {
+                let mut basic_values = vec![];
+                for value in values {
+                    let const_value = self.gen_const(value, elem);
+                    basic_values.push(const_value);
+                }
+
+                let gen_type = self
+                    .gen_type_spec(elem)
+                    .expect("can not have const array of unit type");
+
+                match gen_type {
+                    BasicTypeEnum::ArrayType(gen_type) => {
+                        let values: Vec<_> =
+                            basic_values.iter().map(|v| v.into_array_value()).collect();
+                        let value = gen_type.const_array(&values);
+                        value.into()
+                    }
+                    BasicTypeEnum::FloatType(gen_type) => {
+                        let values: Vec<_> =
+                            basic_values.iter().map(|v| v.into_float_value()).collect();
+                        let value = gen_type.const_array(&values);
+                        value.into()
+                    }
+                    BasicTypeEnum::IntType(gen_type) => {
+                        let values: Vec<_> =
+                            basic_values.iter().map(|v| v.into_int_value()).collect();
+                        let value = gen_type.const_array(&values);
+                        value.into()
+                    }
+                    _ => todo!("TODO: not all array types are supported yet"),
+                }
             }
             _ => {
                 eprintln!(

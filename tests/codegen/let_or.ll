@@ -41,12 +41,12 @@ entry:
   %"<wrap>3" = alloca { i8, [16 x i8] }, align 8
   %"<defer>" = alloca { i8, [24 x i8] }, align 8
   switch i64 0, label %Block_5 [
-    i64 0, label %Block_3
+    i8 0, label %Block_3
   ]
 
 Block_2:                                          ; preds = %Block_4
   switch i64 0, label %Block_12 [
-    i64 0, label %Block_10
+    i8 0, label %Block_10
   ]
 
 Block_3:                                          ; preds = %entry
@@ -89,12 +89,12 @@ entry:
   %content3 = alloca { i64, ptr }, align 8
   %panic = alloca { i8, [24 x i8] }, align 8
   switch i64 0, label %Block_5 [
-    i64 0, label %Block_3
+    i8 0, label %Block_3
   ]
 
 Block_2:                                          ; preds = %Block_4
   switch i64 0, label %Block_10 [
-    i64 0, label %Block_8
+    i8 0, label %Block_8
   ]
 
 Block_3:                                          ; preds = %entry

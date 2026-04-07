@@ -52,8 +52,8 @@ define void @main() {
 entry:
   %p = alloca ptr, align 8
   switch i64 0, label %Block_7 [
-    i64 0, label %Block_3
-    i64 0, label %Block_5
+    i8 0, label %Block_3
+    i8 1, label %Block_5
   ]
 
 Block_2:                                          ; preds = %Block_6, %Block_4

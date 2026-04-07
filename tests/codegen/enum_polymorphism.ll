@@ -20,8 +20,8 @@ entry:
   %r = alloca double, align 8
   %s1 = alloca double, align 8
   switch i64 0, label %Block_7 [
-    i64 0, label %Block_3
-    i64 0, label %Block_5
+    i8 0, label %Block_3
+    i8 1, label %Block_5
   ]
 
 Block_3:                                          ; preds = %entry
