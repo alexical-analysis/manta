@@ -400,6 +400,161 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 }
                 _ => panic!("unsupported arguments for addition"),
             },
+            Instruction::SDiv { lhs, rhs } => match type_spec {
+                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = match lhs {
+                        Some(lhs) => lhs.into_int_value(),
+                        None => return None,
+                    };
+
+                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = match rhs {
+                        Some(rhs) => rhs.into_int_value(),
+                        None => return None,
+                    };
+
+                    let value = builder
+                        .build_int_signed_div(lhs, rhs, "sdiv")
+                        .expect("failed to build i8_add");
+
+                    Some(value.into())
+                }
+                TypeSpec::F32 | TypeSpec::F64 => {
+                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = match lhs {
+                        Some(lhs) => lhs.into_float_value(),
+                        None => return None,
+                    };
+
+                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = match rhs {
+                        Some(rhs) => rhs.into_float_value(),
+                        None => return None,
+                    };
+
+                    let value = builder
+                        .build_float_div(lhs, rhs, "fdiv")
+                        .expect("failed to build i8_add");
+
+                    Some(value.into())
+                }
+                _ => panic!("unsupported arguments for signed division"),
+            },
+            Instruction::UDiv { lhs, rhs } => match type_spec {
+                TypeSpec::U8 | TypeSpec::U16 | TypeSpec::U32 | TypeSpec::U64 => {
+                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = match lhs {
+                        Some(lhs) => lhs.into_int_value(),
+                        None => return None,
+                    };
+
+                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = match rhs {
+                        Some(rhs) => rhs.into_int_value(),
+                        None => return None,
+                    };
+
+                    let value = builder
+                        .build_int_unsigned_div(lhs, rhs, "udiv")
+                        .expect("failed to build i8_add");
+
+                    Some(value.into())
+                }
+                _ => panic!("unsupported arguments for unsigned division"),
+            },
+            Instruction::Mul { lhs, rhs } => match type_spec {
+                TypeSpec::I8
+                | TypeSpec::I16
+                | TypeSpec::I32
+                | TypeSpec::I64
+                | TypeSpec::U8
+                | TypeSpec::U16
+                | TypeSpec::U32
+                | TypeSpec::U64 => {
+                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = match lhs {
+                        Some(lhs) => lhs.into_int_value(),
+                        None => return None,
+                    };
+
+                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = match rhs {
+                        Some(rhs) => rhs.into_int_value(),
+                        None => return None,
+                    };
+
+                    let value = builder
+                        .build_int_mul(lhs, rhs, "imul")
+                        .expect("failed to build imul");
+
+                    Some(value.into())
+                }
+                TypeSpec::F32 | TypeSpec::F64 => {
+                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = match lhs {
+                        Some(lhs) => lhs.into_float_value(),
+                        None => return None,
+                    };
+
+                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = match rhs {
+                        Some(rhs) => rhs.into_float_value(),
+                        None => return None,
+                    };
+
+                    let value = builder
+                        .build_float_mul(lhs, rhs, "fmul")
+                        .expect("failed to build fmul");
+
+                    Some(value.into())
+                }
+                _ => panic!("unsupported arguments for multiplication"),
+            },
+            Instruction::SMod { lhs, rhs } => match type_spec {
+                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = match lhs {
+                        Some(lhs) => lhs.into_int_value(),
+                        None => return None,
+                    };
+
+                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = match rhs {
+                        Some(rhs) => rhs.into_int_value(),
+                        None => return None,
+                    };
+
+                    let value = builder
+                        .build_int_signed_rem(lhs, rhs, "smod")
+                        .expect("failed to build i8_add");
+
+                    Some(value.into())
+                }
+                _ => panic!("unsupported arguments for signed modulous"),
+            },
+            Instruction::UMod { lhs, rhs } => match type_spec {
+                TypeSpec::U8 | TypeSpec::U16 | TypeSpec::U32 | TypeSpec::U64 => {
+                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = match lhs {
+                        Some(lhs) => lhs.into_int_value(),
+                        None => return None,
+                    };
+
+                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = match rhs {
+                        Some(rhs) => rhs.into_int_value(),
+                        None => return None,
+                    };
+
+                    let value = builder
+                        .build_int_unsigned_rem(lhs, rhs, "umod")
+                        .expect("failed to build i8_add");
+
+                    Some(value.into())
+                }
+                _ => panic!("unsupported arguments for unsigned modulous"),
+            },
             _ => None,
         }
     }
