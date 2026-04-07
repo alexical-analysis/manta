@@ -1,0 +1,288 @@
+{
+  "name": 1,
+  "using_modules": [],
+  "errors": [],
+  "decls": [
+    {
+      "Mod": {
+        "name": 1
+      }
+    },
+    {
+      "Function": {
+        "id": 38,
+        "name": 1,
+        "params": [],
+        "body": {
+          "id": 52,
+          "statements": [
+            {
+              "Let": {
+                "pattern": {
+                  "Identifier": {
+                    "id": 91,
+                    "name": 8
+                  }
+                },
+                "value": {
+                  "IntLiteral": 10
+                },
+                "except": "None"
+              }
+            },
+            {
+              "Let": {
+                "pattern": {
+                  "Identifier": {
+                    "id": 104,
+                    "name": 11
+                  }
+                },
+                "value": {
+                  "IntLiteral": 20
+                },
+                "except": "None"
+              }
+            },
+            {
+              "Let": {
+                "pattern": {
+                  "Identifier": {
+                    "id": 117,
+                    "name": 13
+                  }
+                },
+                "value": {
+                  "IntLiteral": 5
+                },
+                "except": "None"
+              }
+            },
+            {
+              "Return": {
+                "value": {
+                  "Binary": {
+                    "left": {
+                      "Binary": {
+                        "left": {
+                          "Identifier": {
+                            "id": 133,
+                            "module": null,
+                            "name": 8
+                          }
+                        },
+                        "operator": "Add",
+                        "right": {
+                          "Identifier": {
+                            "id": 137,
+                            "module": null,
+                            "name": 11
+                          }
+                        }
+                      }
+                    },
+                    "operator": "Subtract",
+                    "right": {
+                      "Identifier": {
+                        "id": 141,
+                        "module": null,
+                        "name": 13
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "function_type": {
+          "params": [],
+          "return_type": "Int64"
+        }
+      }
+    }
+  ],
+  "sym_table": {
+    "scopes": [
+      {
+        "parent": null,
+        "bindings": [
+          {
+            "id": 0,
+            "name": 18446744073709551614,
+            "binding_type": {
+              "TypeDecl": "UInt8"
+            },
+            "used": true
+          },
+          {
+            "id": 1,
+            "name": 18446744073709551613,
+            "binding_type": {
+              "TypeDecl": "UInt16"
+            },
+            "used": true
+          },
+          {
+            "id": 2,
+            "name": 18446744073709551612,
+            "binding_type": {
+              "TypeDecl": "UInt32"
+            },
+            "used": true
+          },
+          {
+            "id": 3,
+            "name": 18446744073709551611,
+            "binding_type": {
+              "TypeDecl": "UInt64"
+            },
+            "used": true
+          },
+          {
+            "id": 4,
+            "name": 18446744073709551610,
+            "binding_type": {
+              "TypeDecl": "Int8"
+            },
+            "used": true
+          },
+          {
+            "id": 5,
+            "name": 18446744073709551609,
+            "binding_type": {
+              "TypeDecl": "Int16"
+            },
+            "used": true
+          },
+          {
+            "id": 6,
+            "name": 18446744073709551608,
+            "binding_type": {
+              "TypeDecl": "Int32"
+            },
+            "used": true
+          },
+          {
+            "id": 7,
+            "name": 18446744073709551607,
+            "binding_type": {
+              "TypeDecl": "Int64"
+            },
+            "used": true
+          },
+          {
+            "id": 8,
+            "name": 18446744073709551606,
+            "binding_type": {
+              "TypeDecl": "Float32"
+            },
+            "used": true
+          },
+          {
+            "id": 9,
+            "name": 18446744073709551605,
+            "binding_type": {
+              "TypeDecl": "Float64"
+            },
+            "used": true
+          },
+          {
+            "id": 10,
+            "name": 18446744073709551603,
+            "binding_type": {
+              "TypeDecl": "Bool"
+            },
+            "used": true
+          },
+          {
+            "id": 11,
+            "name": 18446744073709551604,
+            "binding_type": {
+              "TypeDecl": "String"
+            },
+            "used": true
+          },
+          {
+            "id": 12,
+            "name": 1,
+            "binding_type": {
+              "FuncDecl": {
+                "Function": {
+                  "params": [],
+                  "return_type": "Int64"
+                }
+              }
+            },
+            "used": false
+          }
+        ]
+      },
+      {
+        "parent": 0,
+        "bindings": []
+      },
+      {
+        "parent": 1,
+        "bindings": [
+          {
+            "id": 13,
+            "name": 8,
+            "binding_type": "ValueDecl",
+            "used": true
+          },
+          {
+            "id": 14,
+            "name": 11,
+            "binding_type": "ValueDecl",
+            "used": true
+          },
+          {
+            "id": 15,
+            "name": 13,
+            "binding_type": "ValueDecl",
+            "used": true
+          }
+        ]
+      }
+    ],
+    "current_scope": 0,
+    "scope_map": {
+      "38": {
+        "scope_id": 1,
+        "scope_depth": 0
+      },
+      "52": {
+        "scope_id": 2,
+        "scope_depth": 0
+      },
+      "91": {
+        "scope_id": 2,
+        "scope_depth": 1
+      },
+      "104": {
+        "scope_id": 2,
+        "scope_depth": 2
+      },
+      "117": {
+        "scope_id": 2,
+        "scope_depth": 3
+      },
+      "133": {
+        "scope_id": 2,
+        "scope_depth": 3
+      },
+      "137": {
+        "scope_id": 2,
+        "scope_depth": 3
+      },
+      "141": {
+        "scope_id": 2,
+        "scope_depth": 3
+      }
+    },
+    "id_tracker": {
+      "id": 16
+    }
+  }
+}

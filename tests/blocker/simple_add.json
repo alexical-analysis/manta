@@ -1,0 +1,184 @@
+{
+  "globals": [],
+  "init": {
+    "name": 18446744073709551596,
+    "params": [],
+    "return_type": "Unit",
+    "local_map": {},
+    "locals": [],
+    "blocks": [
+      {
+        "instructions": [],
+        "terminator": {
+          "Return": {
+            "value": null
+          }
+        }
+      }
+    ],
+    "entry_block": 1,
+    "instructions": [],
+    "value_types": []
+  },
+  "functions": [
+    {
+      "name": 1,
+      "params": [],
+      "return_type": "I64",
+      "local_map": {
+        "1": 1,
+        "5": 2,
+        "9": 3
+      },
+      "locals": [
+        {
+          "type_spec": "I64",
+          "name": 8
+        },
+        {
+          "type_spec": "I64",
+          "name": 11
+        },
+        {
+          "type_spec": "I64",
+          "name": 13
+        }
+      ],
+      "blocks": [
+        {
+          "instructions": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11
+          ],
+          "terminator": {
+            "Return": {
+              "value": 11
+            }
+          }
+        },
+        null
+      ],
+      "entry_block": 1,
+      "instructions": [
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 10
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            },
+            "value": 1
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 20
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            },
+            "value": 3
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 5
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            },
+            "value": 5
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Add": {
+            "lhs": 7,
+            "rhs": 8
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Sub": {
+            "lhs": 9,
+            "rhs": 10
+          }
+        }
+      ],
+      "value_types": [
+        "I64",
+        "Unit",
+        "I64",
+        "Unit",
+        "I64",
+        "Unit",
+        "I64",
+        "I64",
+        "I64",
+        "I64",
+        "I64"
+      ]
+    }
+  ]
+}

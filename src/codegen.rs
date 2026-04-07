@@ -173,27 +173,19 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         block: &mir::BasicBlock,
     ) {
         let mut value_map: HashMap<ValueId, BasicValueEnum<'ctx>> = HashMap::new();
-        // TODO: should this be in a gen_inst function instead of having this all be in a loop like
-        // this?
         for value_id in &block.instructions {
-            let inst = function
-                .instructions
-                .get(value_id.as_idx())
-                .expect("failed to get instruction for block");
-
-            match inst {
-                Instruction::Const { value } => {
-                    let ts = function.get_value_type(*value_id);
-                    let value = self.gen_const(value, ts);
+            match self.gen_inst(builder, function, *value_id) {
+                Some(value) => {
                     value_map.insert(*value_id, value);
                 }
-                _ => {
+                None => {
+                    let inst = function.get_inst(*value_id);
                     eprintln!(
                         "TODO: not all instructions are supported yet, skipping for now {:?}",
                         inst
-                    );
+                    )
                 }
-            }
+            };
         }
 
         match &block.terminator {
@@ -295,6 +287,121 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 builder.build_unreachable().expect("failed to build panic");
             }
         };
+    }
+
+    fn gen_inst(
+        &self,
+        builder: &Builder<'ctx>,
+        function: &MirFunction,
+        value_id: ValueId,
+    ) -> Option<BasicValueEnum<'ctx>> {
+        let inst = function.get_inst(value_id);
+        let type_spec = function.get_value_type(value_id);
+
+        match inst {
+            Instruction::Const { value } => {
+                let value = self.gen_const(value, type_spec);
+                Some(value)
+            }
+            Instruction::Add { lhs, rhs } => match type_spec {
+                TypeSpec::I8
+                | TypeSpec::I16
+                | TypeSpec::I32
+                | TypeSpec::I64
+                | TypeSpec::U8
+                | TypeSpec::U16
+                | TypeSpec::U32
+                | TypeSpec::U64 => {
+                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = match lhs {
+                        Some(lhs) => lhs.into_int_value(),
+                        None => return None,
+                    };
+
+                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = match rhs {
+                        Some(rhs) => rhs.into_int_value(),
+                        None => return None,
+                    };
+
+                    let value = builder
+                        .build_int_add(lhs, rhs, "iadd")
+                        .expect("failed to build i8_add");
+
+                    Some(value.into())
+                }
+                TypeSpec::F32 | TypeSpec::F64 => {
+                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = match lhs {
+                        Some(lhs) => lhs.into_float_value(),
+                        None => return None,
+                    };
+
+                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = match rhs {
+                        Some(rhs) => rhs.into_float_value(),
+                        None => return None,
+                    };
+
+                    let value = builder
+                        .build_float_add(lhs, rhs, "fadd")
+                        .expect("failed to build i8_add");
+
+                    Some(value.into())
+                }
+                TypeSpec::String => todo!("concatenating strings is not yet supported"),
+                _ => panic!("unsupported arguments for addition"),
+            },
+            Instruction::Sub { lhs, rhs } => match type_spec {
+                TypeSpec::I8
+                | TypeSpec::I16
+                | TypeSpec::I32
+                | TypeSpec::I64
+                | TypeSpec::U8
+                | TypeSpec::U16
+                | TypeSpec::U32
+                | TypeSpec::U64 => {
+                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = match lhs {
+                        Some(lhs) => lhs.into_int_value(),
+                        None => return None,
+                    };
+
+                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = match rhs {
+                        Some(rhs) => rhs.into_int_value(),
+                        None => return None,
+                    };
+
+                    let value = builder
+                        .build_int_sub(lhs, rhs, "isub")
+                        .expect("failed to build i8_add");
+
+                    Some(value.into())
+                }
+                TypeSpec::F32 | TypeSpec::F64 => {
+                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = match lhs {
+                        Some(lhs) => lhs.into_float_value(),
+                        None => return None,
+                    };
+
+                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = match rhs {
+                        Some(rhs) => rhs.into_float_value(),
+                        None => return None,
+                    };
+
+                    let value = builder
+                        .build_float_sub(lhs, rhs, "fsub")
+                        .expect("failed to build i8_add");
+
+                    Some(value.into())
+                }
+                _ => panic!("unsupported arguments for addition"),
+            },
+            _ => None,
+        }
     }
 
     fn gen_const(&self, const_value: &ConstValue, type_spec: &TypeSpec) -> BasicValueEnum<'ctx> {
