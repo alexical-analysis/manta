@@ -592,6 +592,12 @@ impl MirFunction {
             .get(value_id.as_idx())
             .expect("failed to get value type")
     }
+
+    pub fn get_inst(&self, value_id: ValueId) -> &Instruction {
+        self.instructions
+            .get(value_id.as_idx())
+            .expect("failed to find instruction")
+    }
 }
 
 /// A collection of MIR functions (represents the entire program at the MIR level).

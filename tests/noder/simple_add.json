@@ -1,0 +1,178 @@
+{
+  "nodes": [
+    {
+      "IntLiteral": 10
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 8
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 1
+      }
+    },
+    {
+      "Assign": {
+        "target": 1,
+        "value": 0
+      }
+    },
+    {
+      "IntLiteral": 20
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 11
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 5
+      }
+    },
+    {
+      "Assign": {
+        "target": 5,
+        "value": 4
+      }
+    },
+    {
+      "IntLiteral": 5
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 13
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 9
+      }
+    },
+    {
+      "Assign": {
+        "target": 9,
+        "value": 8
+      }
+    },
+    {
+      "Binary": {
+        "left": 1,
+        "operator": "Add",
+        "right": 5
+      }
+    },
+    {
+      "Binary": {
+        "left": 12,
+        "operator": "Subtract",
+        "right": 9
+      }
+    },
+    {
+      "Return": {
+        "value": 13
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          2,
+          3,
+          6,
+          7,
+          10,
+          11,
+          14
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 1
+      }
+    },
+    {
+      "FunctionDecl": {
+        "ident": 16,
+        "params": [],
+        "body": 15
+      }
+    }
+  ],
+  "roots": [
+    17
+  ],
+  "type_map": {
+    "keys": {
+      "0": 5,
+      "1": 6,
+      "2": 3,
+      "3": 4,
+      "4": 9,
+      "5": 10,
+      "6": 7,
+      "7": 8,
+      "8": 13,
+      "9": 14,
+      "10": 11,
+      "11": 12,
+      "12": 16,
+      "13": 17,
+      "14": 15,
+      "15": 2,
+      "16": 0,
+      "17": 1
+    },
+    "values": [
+      {
+        "Function": {
+          "params": [],
+          "return_type": "Int64"
+        }
+      },
+      {
+        "Function": {
+          "params": [],
+          "return_type": "Int64"
+        }
+      },
+      "Unit",
+      "Unit",
+      "Unit",
+      "Int64",
+      "Int64",
+      "Unit",
+      "Unit",
+      "Int64",
+      "Int64",
+      "Unit",
+      "Unit",
+      "Int64",
+      "Int64",
+      "Unit",
+      "Int64",
+      "Int64"
+    ]
+  },
+  "symbol_map": {
+    "keys": {
+      "12": 3,
+      "13": 0,
+      "14": 1,
+      "15": 2
+    },
+    "values": [
+      1,
+      5,
+      9,
+      16
+    ]
+  }
+}
