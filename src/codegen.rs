@@ -716,6 +716,44 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     _ => panic!("unsupported args for unsigned greater than or equal"),
                 }
             }
+            Instruction::LogicalAnd { lhs, rhs } => {
+                let lhs = self.gen_inst(builder, function, *lhs);
+                let lhs = match lhs {
+                    Some(lhs) => lhs.into_int_value(),
+                    None => return None,
+                };
+
+                let rhs = self.gen_inst(builder, function, *rhs);
+                let rhs = match rhs {
+                    Some(rhs) => rhs.into_int_value(),
+                    None => return None,
+                };
+
+                let value = builder
+                    .build_and(lhs, rhs, "and")
+                    .expect("failed to build logical and");
+
+                Some(value.into())
+            }
+            Instruction::LogicalOr { lhs, rhs } => {
+                let lhs = self.gen_inst(builder, function, *lhs);
+                let lhs = match lhs {
+                    Some(lhs) => lhs.into_int_value(),
+                    None => return None,
+                };
+
+                let rhs = self.gen_inst(builder, function, *rhs);
+                let rhs = match rhs {
+                    Some(rhs) => rhs.into_int_value(),
+                    None => return None,
+                };
+
+                let value = builder
+                    .build_or(lhs, rhs, "or")
+                    .expect("failed to build logical or");
+
+                Some(value.into())
+            }
             _ => None,
         }
     }
