@@ -7,13 +7,13 @@ use crate::mir::{
 };
 use crate::str_store::StrStore;
 
-use inkwell::AddressSpace;
 use inkwell::basic_block::BasicBlock;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::module::Module;
 use inkwell::types::{BasicMetadataTypeEnum, BasicType, BasicTypeEnum};
 use inkwell::values::{BasicValue, BasicValueEnum, GlobalValue, PointerValue};
+use inkwell::{AddressSpace, FloatPredicate, IntPredicate};
 
 pub struct Codegen<'ctx, 'str> {
     str_store: &'str StrStore,
@@ -555,8 +555,223 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 }
                 _ => panic!("unsupported arguments for unsigned modulous"),
             },
+            Instruction::Equal { lhs, rhs } => {
+                let type_spec = function.get_value_type(*lhs);
+                match type_spec {
+                    TypeSpec::Bool
+                    | TypeSpec::I8
+                    | TypeSpec::I16
+                    | TypeSpec::I32
+                    | TypeSpec::I64
+                    | TypeSpec::U8
+                    | TypeSpec::U16
+                    | TypeSpec::U32
+                    | TypeSpec::U64 => {
+                        self.gen_int_compare(builder, function, IntPredicate::EQ, *lhs, *rhs)
+                    }
+                    TypeSpec::F32 | TypeSpec::F64 => {
+                        self.gen_float_compare(builder, function, FloatPredicate::OEQ, *lhs, *rhs)
+                    }
+                    TypeSpec::Ptr(_) => todo!("pointer comparison is not yet supported"),
+                    TypeSpec::OpaquePtr => todo!("opaque pointer comparison is not yet supported"),
+                    TypeSpec::Array { .. } => todo!("array comparison is not yet supported"),
+                    TypeSpec::String => todo!(),
+                    TypeSpec::Slice { .. } => todo!(),
+                    TypeSpec::Struct(_) => todo!(),
+                    TypeSpec::Enum { .. } => todo!(),
+                    TypeSpec::Unit => panic!("can not compare unit types"),
+                }
+            }
+            Instruction::NotEqual { lhs, rhs } => {
+                let type_spec = function.get_value_type(*lhs);
+                match type_spec {
+                    TypeSpec::Bool
+                    | TypeSpec::I8
+                    | TypeSpec::I16
+                    | TypeSpec::I32
+                    | TypeSpec::I64
+                    | TypeSpec::U8
+                    | TypeSpec::U16
+                    | TypeSpec::U32
+                    | TypeSpec::U64 => {
+                        self.gen_int_compare(builder, function, IntPredicate::NE, *lhs, *rhs)
+                    }
+                    TypeSpec::F32 | TypeSpec::F64 => {
+                        self.gen_float_compare(builder, function, FloatPredicate::ONE, *lhs, *rhs)
+                    }
+                    TypeSpec::Ptr(_) => todo!("pointer comparison is not yet supported"),
+                    TypeSpec::OpaquePtr => todo!("opaque pointer comparison is not yet supported"),
+                    TypeSpec::Array { .. } => todo!("array comparison is not yet supported"),
+                    TypeSpec::String => todo!(),
+                    TypeSpec::Slice { .. } => todo!(),
+                    TypeSpec::Struct(_) => todo!(),
+                    TypeSpec::Enum { .. } => todo!(),
+                    TypeSpec::Unit => panic!("can not compare unit types"),
+                }
+            }
+            Instruction::SLessThan { lhs, rhs } => {
+                let type_spec = function.get_value_type(*lhs);
+                match type_spec {
+                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                        self.gen_int_compare(builder, function, IntPredicate::SLT, *lhs, *rhs)
+                    }
+                    TypeSpec::F32 | TypeSpec::F64 => {
+                        self.gen_float_compare(builder, function, FloatPredicate::OLT, *lhs, *rhs)
+                    }
+                    _ => panic!("unsupported args for signed less than"),
+                }
+            }
+            Instruction::ULessThan { lhs, rhs } => {
+                let type_spec = function.get_value_type(*lhs);
+                match type_spec {
+                    TypeSpec::Bool
+                    | TypeSpec::U8
+                    | TypeSpec::U16
+                    | TypeSpec::U32
+                    | TypeSpec::U64 => {
+                        self.gen_int_compare(builder, function, IntPredicate::ULT, *lhs, *rhs)
+                    }
+                    _ => panic!("unsupported args for unsigned less than"),
+                }
+            }
+            Instruction::SGreaterThan { lhs, rhs } => {
+                let type_spec = function.get_value_type(*lhs);
+                match type_spec {
+                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                        self.gen_int_compare(builder, function, IntPredicate::SGT, *lhs, *rhs)
+                    }
+                    TypeSpec::F32 | TypeSpec::F64 => {
+                        self.gen_float_compare(builder, function, FloatPredicate::OGT, *lhs, *rhs)
+                    }
+                    _ => {
+                        let lhs = function.get_value_type(*lhs);
+                        let rhs = function.get_value_type(*rhs);
+                        panic!(
+                            "unsupported args for signed greater than ts:{:?} lhs:{:?} rhs:{:?}",
+                            type_spec, lhs, rhs
+                        )
+                    }
+                }
+            }
+            Instruction::UGreaterThan { lhs, rhs } => {
+                let type_spec = function.get_value_type(*lhs);
+                match type_spec {
+                    TypeSpec::Bool
+                    | TypeSpec::U8
+                    | TypeSpec::U16
+                    | TypeSpec::U32
+                    | TypeSpec::U64 => {
+                        self.gen_int_compare(builder, function, IntPredicate::UGT, *lhs, *rhs)
+                    }
+                    _ => panic!("unsupported args for unsigned greater than"),
+                }
+            }
+            Instruction::SLessThanEqual { lhs, rhs } => {
+                let type_spec = function.get_value_type(*lhs);
+                match type_spec {
+                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                        self.gen_int_compare(builder, function, IntPredicate::SLE, *lhs, *rhs)
+                    }
+                    TypeSpec::F32 | TypeSpec::F64 => {
+                        self.gen_float_compare(builder, function, FloatPredicate::OLE, *lhs, *rhs)
+                    }
+                    _ => panic!("unsupported args for signed less than or equal"),
+                }
+            }
+            Instruction::ULessThanEqual { lhs, rhs } => {
+                let type_spec = function.get_value_type(*lhs);
+                match type_spec {
+                    TypeSpec::Bool
+                    | TypeSpec::U8
+                    | TypeSpec::U16
+                    | TypeSpec::U32
+                    | TypeSpec::U64 => {
+                        self.gen_int_compare(builder, function, IntPredicate::ULE, *lhs, *rhs)
+                    }
+                    _ => panic!("unsupported args for unsigned less than or equal"),
+                }
+            }
+            Instruction::SGreaterThanEqual { lhs, rhs } => {
+                let type_spec = function.get_value_type(*lhs);
+                match type_spec {
+                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                        self.gen_int_compare(builder, function, IntPredicate::SGE, *lhs, *rhs)
+                    }
+                    TypeSpec::F32 | TypeSpec::F64 => {
+                        self.gen_float_compare(builder, function, FloatPredicate::OGE, *lhs, *rhs)
+                    }
+                    _ => panic!("unsupported args for signed greater than or equal"),
+                }
+            }
+            Instruction::UGreaterThanEqual { lhs, rhs } => {
+                let type_spec = function.get_value_type(*lhs);
+                match type_spec {
+                    TypeSpec::Bool
+                    | TypeSpec::U8
+                    | TypeSpec::U16
+                    | TypeSpec::U32
+                    | TypeSpec::U64 => {
+                        self.gen_int_compare(builder, function, IntPredicate::UGE, *lhs, *rhs)
+                    }
+                    _ => panic!("unsupported args for unsigned greater than or equal"),
+                }
+            }
             _ => None,
         }
+    }
+
+    fn gen_int_compare(
+        &self,
+        builder: &Builder<'ctx>,
+        function: &MirFunction,
+        op: IntPredicate,
+        lhs: ValueId,
+        rhs: ValueId,
+    ) -> Option<BasicValueEnum<'ctx>> {
+        let lhs = self.gen_inst(builder, function, lhs);
+        let lhs = match lhs {
+            Some(lhs) => lhs.into_int_value(),
+            None => return None,
+        };
+
+        let rhs = self.gen_inst(builder, function, rhs);
+        let rhs = match rhs {
+            Some(rhs) => rhs.into_int_value(),
+            None => return None,
+        };
+
+        let value = builder
+            .build_int_compare(op, lhs, rhs, "fneq")
+            .expect("failed to build i8_add");
+
+        Some(value.into())
+    }
+
+    fn gen_float_compare(
+        &self,
+        builder: &Builder<'ctx>,
+        function: &MirFunction,
+        op: FloatPredicate,
+        lhs: ValueId,
+        rhs: ValueId,
+    ) -> Option<BasicValueEnum<'ctx>> {
+        let lhs = self.gen_inst(builder, function, lhs);
+        let lhs = match lhs {
+            Some(lhs) => lhs.into_float_value(),
+            None => return None,
+        };
+
+        let rhs = self.gen_inst(builder, function, rhs);
+        let rhs = match rhs {
+            Some(rhs) => rhs.into_float_value(),
+            None => return None,
+        };
+
+        let value = builder
+            .build_float_compare(op, lhs, rhs, "fneq")
+            .expect("failed to build i8_add");
+
+        Some(value.into())
     }
 
     fn gen_const(&self, const_value: &ConstValue, type_spec: &TypeSpec) -> BasicValueEnum<'ctx> {
