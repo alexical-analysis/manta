@@ -19,21 +19,16 @@ entry:
   %p = alloca ptr, align 8
   store i64 42, ptr %i, align 8
   store i64 2701, ptr %j, align 8
-  %deref = load ptr, ptr %p, align 8
-  %load = load i64, ptr %deref, align 8
-  %deref1 = load ptr, ptr %p, align 8
-  store i64 21, ptr %deref1, align 8
-  %load2 = load i64, ptr %i, align 8
-  %deref3 = load ptr, ptr %p, align 8
-  %load4 = load i64, ptr %deref3, align 8
-  %deref5 = load ptr, ptr %p, align 8
-  %load6 = load i64, ptr %deref5, align 8
-  %sdiv = sdiv i64 %load6, 37
-  %deref7 = load ptr, ptr %p, align 8
-  %deref8 = load ptr, ptr %p, align 8
-  %load9 = load i64, ptr %deref8, align 8
-  %sdiv10 = sdiv i64 %load9, 37
-  store i64 %sdiv10, ptr %deref7, align 8
-  %load11 = load i64, ptr %j, align 8
+  %load = load ptr, ptr %p, align 8
+  %load1 = load i64, ptr %load, align 8
+  %load2 = load ptr, ptr %p, align 8
+  store i64 21, ptr %load2, align 8
+  %load3 = load i64, ptr %i, align 8
+  %load4 = load ptr, ptr %p, align 8
+  %load5 = load i64, ptr %load4, align 8
+  %sdiv = sdiv i64 %load5, 37
+  %load6 = load ptr, ptr %p, align 8
+  store i64 %sdiv, ptr %load6, align 8
+  %load7 = load i64, ptr %j, align 8
   ret void
 }

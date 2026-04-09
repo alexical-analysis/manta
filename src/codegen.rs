@@ -1,19 +1,20 @@
-use std::collections::{BTreeMap, HashMap};
+mod builder;
 
-use inkwell::basic_block::BasicBlock;
-use inkwell::builder::Builder;
+use std::collections::BTreeMap;
+
 use inkwell::context::Context;
 use inkwell::module::Module;
-use inkwell::types::{BasicMetadataTypeEnum, BasicType, BasicTypeEnum};
-use inkwell::values::{AsValueRef, BasicValue, BasicValueEnum, GlobalValue, PointerValue};
+use inkwell::types::{BasicType, BasicTypeEnum};
+use inkwell::values::{BasicValueEnum, GlobalValue, PointerValue};
 use inkwell::{AddressSpace, FloatPredicate, IntPredicate};
 
 use crate::blocker::{self, Arch};
 use crate::mir::{
-    self, BlockId, ConstValue, GlobalId, Instruction, Local, LocalId, MirFunction, MirModule,
-    Place, PlaceBase, Projection, TagSize, Terminator, TypeSpec, ValueId,
+    self, ConstValue, GlobalId, Instruction, MirModule, Place, PlaceBase, Projection, TagSize,
+    Terminator, TypeSpec, ValueId,
 };
 use crate::str_store::StrStore;
+use builder::FuncBuilder;
 
 pub struct Codegen<'ctx, 'str> {
     str_store: &'str StrStore,
@@ -61,258 +62,86 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             );
         }
 
-        // add the init function
-        self.gen_function(&llvm_module, &builder, module.init);
+        // code gen the init function
+        let mut func_builder = FuncBuilder::new(
+            &self.context,
+            &llvm_module,
+            &builder,
+            &module.init,
+            self.str_store,
+        );
+        self.gen_function(&mut func_builder);
 
-        // add the rest of the functions
+        // code gen the remaining functions
         for function in module.functions {
-            self.gen_function(&llvm_module, &builder, function);
+            let mut func_builder = FuncBuilder::new(
+                &self.context,
+                &llvm_module,
+                &builder,
+                &function,
+                self.str_store,
+            );
+            self.gen_function(&mut func_builder);
         }
+
+        // TODO: validate the module
+        // llvm_module.verify().expect("module is not valid");
+
+        // TODO: optimize the module
 
         llvm_module
     }
 
-    fn gen_function(&self, module: &Module<'ctx>, builder: &Builder, function: MirFunction) {
-        let function_name = self
-            .str_store
-            .get_string(function.name)
-            .expect("failed to get function name");
-
-        let return_type = self.gen_type_spec(&function.return_type);
-        let mut param_types: Vec<BasicMetadataTypeEnum> = vec![];
-        for param in &function.params {
-            let local_type = &function
-                .locals
-                .get(param.as_idx())
-                .expect("missing local for param")
-                .type_spec;
-
-            let param_type = self
-                .gen_type_spec(local_type)
-                .expect("can not have paramater of unit type");
-
-            param_types.push(param_type.into());
+    fn gen_function<'a>(&self, func_builder: &mut FuncBuilder<'ctx, 'a>) {
+        for block in func_builder.get_blocks() {
+            self.gen_block(func_builder, block)
         }
-
-        let func_type = match return_type {
-            Some(ts) => ts.fn_type(&param_types, false),
-            None => self.context.void_type().fn_type(&param_types, false),
-        };
-
-        let func_value = module.add_function(function_name.as_str(), func_type, None);
-
-        // pre-gen all the blocks
-        let mut block_map = HashMap::new();
-        let mut entry_block = None;
-        for (block_id, block) in function.get_blocks() {
-            let basic_block;
-            if block_id == function.entry_block {
-                basic_block = self.context.append_basic_block(func_value, "entry");
-                entry_block = Some(block);
-            } else {
-                basic_block = self
-                    .context
-                    .append_basic_block(func_value, &block_id.to_string());
-            }
-
-            block_map.insert(block_id, basic_block);
-        }
-
-        // build the entry block
-        let block = block_map
-            .get(&function.entry_block)
-            .expect("failed to get inkwell entry block");
-        builder.position_at_end(*block);
-
-        let local_map = self.gen_local_map(builder, &function.get_locals());
-        let entry_block = entry_block.expect("failed to find mir entry block");
-        self.gen_block(
-            module,
-            builder,
-            &block_map,
-            &local_map,
-            &function,
-            entry_block,
-        );
-
-        for (block_id, block) in function.get_blocks() {
-            if function.entry_block == block_id {
-                continue;
-            }
-
-            let basic_block = block_map.get(&block_id).expect("failed to get basic block");
-            builder.position_at_end(*basic_block);
-            self.gen_block(module, builder, &block_map, &local_map, &function, block);
-        }
-    }
-
-    fn gen_local_map(
-        &self,
-        builder: &Builder<'ctx>,
-        locals: &[(LocalId, &Local)],
-    ) -> HashMap<LocalId, PointerValue<'ctx>> {
-        let mut local_map = HashMap::new();
-
-        for (local_id, local) in locals {
-            let type_name = self
-                .str_store
-                .get_string(local.name)
-                .expect("missing local name");
-            let type_spec = self
-                .gen_type_spec(&local.type_spec)
-                .expect("can not have a local with unit type");
-
-            let local_value = builder
-                .build_alloca(type_spec, type_name.as_str())
-                .expect("failed to alloca local");
-
-            local_map.insert(*local_id, local_value);
-        }
-
-        local_map
     }
 
     // TODO: we're getting a lot of params here (6), that probably means we should try to bundle
     // some of these together and expose only the functionality that we need to simplify the code
-    fn gen_block(
-        &self,
-        module: &Module,
-        builder: &Builder<'ctx>,
-        block_map: &HashMap<BlockId, BasicBlock>,
-        local_map: &HashMap<LocalId, PointerValue<'ctx>>,
-        function: &MirFunction,
-        block: &mir::BasicBlock,
-    ) {
-        let mut value_map: HashMap<ValueId, BasicValueEnum<'ctx>> = HashMap::new();
+    fn gen_block<'a>(&self, func_builder: &mut FuncBuilder<'ctx, 'a>, block: &mir::BasicBlock) {
         for value_id in &block.instructions {
-            match self.gen_inst(builder, local_map, function, *value_id) {
-                Some(value) => {
-                    value_map.insert(*value_id, value);
-                }
+            match self.gen_inst(func_builder, *value_id) {
+                Some(v) => func_builder.insert_value(*value_id, v),
                 None => {
-                    let inst = function.get_inst(*value_id);
-                    eprintln!(
-                        "TODO: not all instructions are supported yet, skipping for now {:?}",
-                        inst
-                    )
+                    eprintln!("TODO: not all instructions are supported")
                 }
-            };
+            }
         }
 
         match &block.terminator {
-            Terminator::Return { value } => {
-                // TODO: I can probably move to .map instead of doing the match like this
-                match value {
-                    Some(v) => {
-                        let value = value_map.get(v);
-                        let value: Option<&dyn BasicValue<'ctx>> = match value {
-                            Some(v) => Some(v),
-                            None => {
-                                eprintln!(
-                                    "not all values are being calculated yet, skipping for now"
-                                );
-                                builder.build_unreachable().expect("failed to build return");
-                                return;
-                            }
-                        };
-                        builder.build_return(value).expect("failed to build return");
-                    }
-                    None => {
-                        builder.build_return(None).expect("failed to build return");
-                    }
-                };
-            }
-            Terminator::Jump { target } => {
-                let dest = block_map
-                    .get(target)
-                    .expect("failed to get target block from block map");
-                builder
-                    .build_unconditional_branch(*dest)
-                    .expect("failed to build unconditinoal branch");
-            }
+            Terminator::Return { value } => match value {
+                Some(v) => func_builder.build_value_return(v),
+                None => func_builder.build_void_return(),
+            },
+            Terminator::Jump { target } => func_builder.build_unconditional_branch(target),
             Terminator::Branch {
                 cond,
                 true_target,
                 false_target,
-            } => {
-                let cond = value_map.get(cond);
-                let cond = match cond {
-                    Some(v) => v.into_int_value(),
-                    None => {
-                        eprintln!(
-                            "TODO: not all values are supported yet, returning const 0 for now"
-                        );
-                        self.context.bool_type().const_zero()
-                    }
-                };
-                let then_block = block_map
-                    .get(true_target)
-                    .expect("failed to find true target in block map");
-                let else_block = block_map
-                    .get(false_target)
-                    .expect("failed to find false target in block map");
-                builder
-                    .build_conditional_branch(cond, *then_block, *else_block)
-                    .expect("failed to build conditional branch");
-            }
+            } => func_builder.build_conditional_branch(cond, true_target, false_target),
             Terminator::SwitchVariant {
                 discriminant,
                 default,
                 arms,
-            } => {
-                let value = value_map.get(discriminant);
-                let value = match value {
-                    Some(v) => v.into_int_value(),
-                    None => {
-                        eprintln!("TODO: not all values are computed yet, using const 0 for now");
-                        self.context.i64_type().const_zero()
-                    }
-                };
-                let else_block = block_map
-                    .get(default)
-                    .expect("failed to find default block in block map");
-
-                let discriminant_type = function.get_value_type(*discriminant);
-
-                let mut cases = vec![];
-                for arm in arms {
-                    let target = self
-                        .gen_const(&arm.target, discriminant_type)
-                        .into_int_value();
-                    let basic_block = block_map
-                        .get(&arm.jump)
-                        .expect("failed to get switch target from block map");
-                    cases.push((target, *basic_block))
-                }
-
-                builder
-                    .build_switch(value, *else_block, &cases)
-                    .expect("failed to build switch");
-            }
-            Terminator::Unreachable => {
-                builder
-                    .build_unreachable()
-                    .expect("failed to build unreachable");
-            }
-            Terminator::Panic => {
-                builder.build_unreachable().expect("failed to build panic");
-            }
+            } => func_builder.build_switch(discriminant, default, arms),
+            Terminator::Unreachable => func_builder.build_unreachable(),
+            Terminator::Panic => func_builder.build_unreachable(),
         };
     }
 
-    fn gen_inst(
+    fn gen_inst<'a>(
         &self,
-        builder: &Builder<'ctx>,
-        local_map: &HashMap<LocalId, PointerValue<'ctx>>,
-        function: &MirFunction,
+        func_builder: &mut FuncBuilder<'ctx, 'a>,
         value_id: ValueId,
     ) -> Option<BasicValueEnum<'ctx>> {
-        let inst = function.get_inst(value_id);
-        let type_spec = function.get_value_type(value_id);
+        let inst = func_builder.get_inst(value_id).clone();
+        let type_spec = func_builder.get_value_type(value_id);
 
         match inst {
             Instruction::Const { value } => {
-                let value = self.gen_const(value, type_spec);
+                let value = self.gen_const(&value, type_spec);
                 Some(value)
             }
             Instruction::Add { lhs, rhs } => match type_spec {
@@ -324,42 +153,48 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 | TypeSpec::U16
                 | TypeSpec::U32
                 | TypeSpec::U64 => {
-                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
+                    let lhs = func_builder.get_llvm_value(lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_int_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
+                    let rhs = func_builder.get_llvm_value(rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_int_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let value = builder
-                        .build_int_add(lhs, rhs, "iadd")
-                        .expect("failed to build i8_add");
-
-                    Some(value.into())
+                    let value = func_builder.build_int_add(lhs, rhs);
+                    Some(value)
                 }
                 TypeSpec::F32 | TypeSpec::F64 => {
-                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
+                    let lhs = func_builder.get_llvm_value(lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_float_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
+                    let rhs = func_builder.get_llvm_value(rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_float_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let value = builder
-                        .build_float_add(lhs, rhs, "fadd")
-                        .expect("failed to build i8_add");
-
-                    Some(value.into())
+                    let value = func_builder.build_float_add(lhs, rhs);
+                    Some(value)
                 }
                 TypeSpec::String => todo!("concatenating strings is not yet supported"),
                 _ => panic!("unsupported arguments for addition"),
@@ -373,105 +208,120 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 | TypeSpec::U16
                 | TypeSpec::U32
                 | TypeSpec::U64 => {
-                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
+                    let lhs = func_builder.get_llvm_value(lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_int_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
+                    let rhs = func_builder.get_llvm_value(rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_int_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let value = builder
-                        .build_int_sub(lhs, rhs, "isub")
-                        .expect("failed to build i8_add");
-
-                    Some(value.into())
+                    let value = func_builder.build_int_sub(lhs, rhs);
+                    Some(value)
                 }
                 TypeSpec::F32 | TypeSpec::F64 => {
-                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
+                    let lhs = func_builder.get_llvm_value(lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_float_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
+                    let rhs = func_builder.get_llvm_value(rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_float_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let value = builder
-                        .build_float_sub(lhs, rhs, "fsub")
-                        .expect("failed to build i8_add");
-
-                    Some(value.into())
+                    let value = func_builder.build_float_sub(lhs, rhs);
+                    Some(value)
                 }
                 _ => panic!("unsupported arguments for addition"),
             },
             Instruction::SDiv { lhs, rhs } => match type_spec {
                 TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
-                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
+                    let lhs = func_builder.get_llvm_value(lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_int_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
+                    let rhs = func_builder.get_llvm_value(rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_int_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let value = builder
-                        .build_int_signed_div(lhs, rhs, "sdiv")
-                        .expect("failed to build i8_add");
-
-                    Some(value.into())
+                    let value = func_builder.build_int_signed_div(lhs, rhs);
+                    Some(value)
                 }
                 TypeSpec::F32 | TypeSpec::F64 => {
-                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
+                    let lhs = func_builder.get_llvm_value(lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_float_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
+                    let rhs = func_builder.get_llvm_value(rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_float_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let value = builder
-                        .build_float_div(lhs, rhs, "fdiv")
-                        .expect("failed to build i8_add");
-
-                    Some(value.into())
+                    let value = func_builder.build_float_div(lhs, rhs);
+                    Some(value)
                 }
                 _ => panic!("unsupported arguments for signed division"),
             },
             Instruction::UDiv { lhs, rhs } => match type_spec {
                 TypeSpec::U8 | TypeSpec::U16 | TypeSpec::U32 | TypeSpec::U64 => {
-                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
+                    let lhs = func_builder.get_llvm_value(lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_int_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
+                    let rhs = func_builder.get_llvm_value(rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_int_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let value = builder
-                        .build_int_unsigned_div(lhs, rhs, "udiv")
-                        .expect("failed to build i8_add");
-
-                    Some(value.into())
+                    let value = func_builder.build_int_unsigned_div(lhs, rhs);
+                    Some(value)
                 }
                 _ => panic!("unsupported arguments for unsigned division"),
             },
@@ -484,91 +334,103 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 | TypeSpec::U16
                 | TypeSpec::U32
                 | TypeSpec::U64 => {
-                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
+                    let lhs = func_builder.get_llvm_value(lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_int_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
+                    let rhs = func_builder.get_llvm_value(rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_int_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let value = builder
-                        .build_int_mul(lhs, rhs, "imul")
-                        .expect("failed to build imul");
-
-                    Some(value.into())
+                    let value = func_builder.build_int_mul(lhs, rhs);
+                    Some(value)
                 }
                 TypeSpec::F32 | TypeSpec::F64 => {
-                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
+                    let lhs = func_builder.get_llvm_value(lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_float_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
+                    let rhs = func_builder.get_llvm_value(rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_float_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let value = builder
-                        .build_float_mul(lhs, rhs, "fmul")
-                        .expect("failed to build fmul");
-
-                    Some(value.into())
+                    let value = func_builder.build_float_mul(lhs, rhs);
+                    Some(value)
                 }
                 _ => panic!("unsupported arguments for multiplication"),
             },
             Instruction::SMod { lhs, rhs } => match type_spec {
                 TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
-                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
+                    let lhs = func_builder.get_llvm_value(lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_int_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
+                    let rhs = func_builder.get_llvm_value(rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_int_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let value = builder
-                        .build_int_signed_rem(lhs, rhs, "smod")
-                        .expect("failed to build i8_add");
-
-                    Some(value.into())
+                    let value = func_builder.build_int_signed_rem(lhs, rhs);
+                    Some(value)
                 }
                 _ => panic!("unsupported arguments for signed modulous"),
             },
             Instruction::UMod { lhs, rhs } => match type_spec {
                 TypeSpec::U8 | TypeSpec::U16 | TypeSpec::U32 | TypeSpec::U64 => {
-                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
+                    let lhs = func_builder.get_llvm_value(lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_int_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
+                    let rhs = func_builder.get_llvm_value(rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_int_value(),
-                        None => return None,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
                     };
 
-                    let value = builder
-                        .build_int_unsigned_rem(lhs, rhs, "umod")
-                        .expect("failed to build i8_add");
-
-                    Some(value.into())
+                    let value = func_builder.build_int_unsigned_rem(lhs, rhs);
+                    Some(value)
                 }
                 _ => panic!("unsupported arguments for unsigned modulous"),
             },
             Instruction::Equal { lhs, rhs } => {
-                let type_spec = function.get_value_type(*lhs);
+                let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
                     TypeSpec::Bool
                     | TypeSpec::I8
@@ -578,22 +440,12 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     | TypeSpec::U8
                     | TypeSpec::U16
                     | TypeSpec::U32
-                    | TypeSpec::U64 => self.gen_int_compare(
-                        builder,
-                        local_map,
-                        function,
-                        IntPredicate::EQ,
-                        *lhs,
-                        *rhs,
-                    ),
-                    TypeSpec::F32 | TypeSpec::F64 => self.gen_float_compare(
-                        builder,
-                        local_map,
-                        function,
-                        FloatPredicate::OEQ,
-                        *lhs,
-                        *rhs,
-                    ),
+                    | TypeSpec::U64 => {
+                        self.gen_int_compare(func_builder, IntPredicate::EQ, lhs, rhs)
+                    }
+                    TypeSpec::F32 | TypeSpec::F64 => {
+                        self.gen_float_compare(func_builder, FloatPredicate::OEQ, lhs, rhs)
+                    }
                     TypeSpec::Ptr(_) => todo!("pointer comparison is not yet supported"),
                     TypeSpec::OpaquePtr => todo!("opaque pointer comparison is not yet supported"),
                     TypeSpec::Array { .. } => todo!("array comparison is not yet supported"),
@@ -605,7 +457,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 }
             }
             Instruction::NotEqual { lhs, rhs } => {
-                let type_spec = function.get_value_type(*lhs);
+                let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
                     TypeSpec::Bool
                     | TypeSpec::I8
@@ -615,22 +467,12 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     | TypeSpec::U8
                     | TypeSpec::U16
                     | TypeSpec::U32
-                    | TypeSpec::U64 => self.gen_int_compare(
-                        builder,
-                        local_map,
-                        function,
-                        IntPredicate::NE,
-                        *lhs,
-                        *rhs,
-                    ),
-                    TypeSpec::F32 | TypeSpec::F64 => self.gen_float_compare(
-                        builder,
-                        local_map,
-                        function,
-                        FloatPredicate::ONE,
-                        *lhs,
-                        *rhs,
-                    ),
+                    | TypeSpec::U64 => {
+                        self.gen_int_compare(func_builder, IntPredicate::NE, lhs, rhs)
+                    }
+                    TypeSpec::F32 | TypeSpec::F64 => {
+                        self.gen_float_compare(func_builder, FloatPredicate::ONE, lhs, rhs)
+                    }
                     TypeSpec::Ptr(_) => todo!("pointer comparison is not yet supported"),
                     TypeSpec::OpaquePtr => todo!("opaque pointer comparison is not yet supported"),
                     TypeSpec::Array { .. } => todo!("array comparison is not yet supported"),
@@ -642,69 +484,42 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 }
             }
             Instruction::SLessThan { lhs, rhs } => {
-                let type_spec = function.get_value_type(*lhs);
+                let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
-                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => self
-                        .gen_int_compare(
-                            builder,
-                            local_map,
-                            function,
-                            IntPredicate::SLT,
-                            *lhs,
-                            *rhs,
-                        ),
-                    TypeSpec::F32 | TypeSpec::F64 => self.gen_float_compare(
-                        builder,
-                        local_map,
-                        function,
-                        FloatPredicate::OLT,
-                        *lhs,
-                        *rhs,
-                    ),
+                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                        self.gen_int_compare(func_builder, IntPredicate::SLT, lhs, rhs)
+                    }
+                    TypeSpec::F32 | TypeSpec::F64 => {
+                        self.gen_float_compare(func_builder, FloatPredicate::OLT, lhs, rhs)
+                    }
                     _ => panic!("unsupported args for signed less than"),
                 }
             }
             Instruction::ULessThan { lhs, rhs } => {
-                let type_spec = function.get_value_type(*lhs);
+                let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
                     TypeSpec::Bool
                     | TypeSpec::U8
                     | TypeSpec::U16
                     | TypeSpec::U32
-                    | TypeSpec::U64 => self.gen_int_compare(
-                        builder,
-                        local_map,
-                        function,
-                        IntPredicate::ULT,
-                        *lhs,
-                        *rhs,
-                    ),
+                    | TypeSpec::U64 => {
+                        self.gen_int_compare(func_builder, IntPredicate::ULT, lhs, rhs)
+                    }
                     _ => panic!("unsupported args for unsigned less than"),
                 }
             }
             Instruction::SGreaterThan { lhs, rhs } => {
-                let type_spec = function.get_value_type(*lhs);
+                let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
-                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => self
-                        .gen_int_compare(
-                            builder,
-                            local_map,
-                            function,
-                            IntPredicate::SGT,
-                            *lhs,
-                            *rhs,
-                        ),
-                    TypeSpec::F32 | TypeSpec::F64 => self.gen_float_compare(
-                        builder,
-                        local_map,
-                        function,
-                        FloatPredicate::OGT,
-                        *lhs,
-                        *rhs,
-                    ),
+                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                        self.gen_int_compare(func_builder, IntPredicate::SGT, lhs, rhs)
+                    }
+                    TypeSpec::F32 | TypeSpec::F64 => {
+                        self.gen_float_compare(func_builder, FloatPredicate::OGT, lhs, rhs)
+                    }
                     _ => {
-                        let lhs = function.get_value_type(*lhs);
-                        let rhs = function.get_value_type(*rhs);
+                        let lhs = func_builder.get_value_type(lhs);
+                        let rhs = func_builder.get_value_type(rhs);
                         panic!(
                             "unsupported args for signed greater than ts:{:?} lhs:{:?} rhs:{:?}",
                             type_spec, lhs, rhs
@@ -713,156 +528,118 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 }
             }
             Instruction::UGreaterThan { lhs, rhs } => {
-                let type_spec = function.get_value_type(*lhs);
+                let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
                     TypeSpec::Bool
                     | TypeSpec::U8
                     | TypeSpec::U16
                     | TypeSpec::U32
-                    | TypeSpec::U64 => self.gen_int_compare(
-                        builder,
-                        local_map,
-                        function,
-                        IntPredicate::UGT,
-                        *lhs,
-                        *rhs,
-                    ),
+                    | TypeSpec::U64 => {
+                        self.gen_int_compare(func_builder, IntPredicate::UGT, lhs, rhs)
+                    }
                     _ => panic!("unsupported args for unsigned greater than"),
                 }
             }
             Instruction::SLessThanEqual { lhs, rhs } => {
-                let type_spec = function.get_value_type(*lhs);
+                let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
-                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => self
-                        .gen_int_compare(
-                            builder,
-                            local_map,
-                            function,
-                            IntPredicate::SLE,
-                            *lhs,
-                            *rhs,
-                        ),
-                    TypeSpec::F32 | TypeSpec::F64 => self.gen_float_compare(
-                        builder,
-                        local_map,
-                        function,
-                        FloatPredicate::OLE,
-                        *lhs,
-                        *rhs,
-                    ),
+                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                        self.gen_int_compare(func_builder, IntPredicate::SLE, lhs, rhs)
+                    }
+                    TypeSpec::F32 | TypeSpec::F64 => {
+                        self.gen_float_compare(func_builder, FloatPredicate::OLE, lhs, rhs)
+                    }
                     _ => panic!("unsupported args for signed less than or equal"),
                 }
             }
             Instruction::ULessThanEqual { lhs, rhs } => {
-                let type_spec = function.get_value_type(*lhs);
+                let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
                     TypeSpec::Bool
                     | TypeSpec::U8
                     | TypeSpec::U16
                     | TypeSpec::U32
-                    | TypeSpec::U64 => self.gen_int_compare(
-                        builder,
-                        local_map,
-                        function,
-                        IntPredicate::ULE,
-                        *lhs,
-                        *rhs,
-                    ),
+                    | TypeSpec::U64 => {
+                        self.gen_int_compare(func_builder, IntPredicate::ULE, lhs, rhs)
+                    }
                     _ => panic!("unsupported args for unsigned less than or equal"),
                 }
             }
             Instruction::SGreaterThanEqual { lhs, rhs } => {
-                let type_spec = function.get_value_type(*lhs);
+                let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
-                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => self
-                        .gen_int_compare(
-                            builder,
-                            local_map,
-                            function,
-                            IntPredicate::SGE,
-                            *lhs,
-                            *rhs,
-                        ),
-                    TypeSpec::F32 | TypeSpec::F64 => self.gen_float_compare(
-                        builder,
-                        local_map,
-                        function,
-                        FloatPredicate::OGE,
-                        *lhs,
-                        *rhs,
-                    ),
+                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                        self.gen_int_compare(func_builder, IntPredicate::SGE, lhs, rhs)
+                    }
+                    TypeSpec::F32 | TypeSpec::F64 => {
+                        self.gen_float_compare(func_builder, FloatPredicate::OGE, lhs, rhs)
+                    }
                     _ => panic!("unsupported args for signed greater than or equal"),
                 }
             }
             Instruction::UGreaterThanEqual { lhs, rhs } => {
-                let type_spec = function.get_value_type(*lhs);
+                let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
                     TypeSpec::Bool
                     | TypeSpec::U8
                     | TypeSpec::U16
                     | TypeSpec::U32
-                    | TypeSpec::U64 => self.gen_int_compare(
-                        builder,
-                        local_map,
-                        function,
-                        IntPredicate::UGE,
-                        *lhs,
-                        *rhs,
-                    ),
+                    | TypeSpec::U64 => {
+                        self.gen_int_compare(func_builder, IntPredicate::UGE, lhs, rhs)
+                    }
                     _ => panic!("unsupported args for unsigned greater than or equal"),
                 }
             }
             Instruction::LogicalAnd { lhs, rhs } => {
-                let lhs = self.gen_inst(builder, local_map, function, *lhs);
+                let lhs = func_builder.get_llvm_value(lhs);
                 let lhs = match lhs {
                     Some(lhs) => lhs.into_int_value(),
-                    None => return None,
+                    None => {
+                        eprintln!("TODO: not all instructions are supported yet");
+                        return None;
+                    }
                 };
 
-                let rhs = self.gen_inst(builder, local_map, function, *rhs);
+                let rhs = func_builder.get_llvm_value(rhs);
                 let rhs = match rhs {
                     Some(rhs) => rhs.into_int_value(),
-                    None => return None,
+                    None => {
+                        eprintln!("TODO: not all instructions are supported yet");
+                        return None;
+                    }
                 };
 
-                let value = builder
-                    .build_and(lhs, rhs, "and")
-                    .expect("failed to build logical and");
-
-                Some(value.into())
+                let value = func_builder.build_and(lhs, rhs);
+                Some(value)
             }
             Instruction::LogicalOr { lhs, rhs } => {
-                let lhs = self.gen_inst(builder, local_map, function, *lhs);
+                let lhs = func_builder.get_llvm_value(lhs);
                 let lhs = match lhs {
                     Some(lhs) => lhs.into_int_value(),
-                    None => return None,
+                    None => {
+                        eprintln!("TODO: not all instructions are supported yet");
+                        return None;
+                    }
                 };
 
-                let rhs = self.gen_inst(builder, local_map, function, *rhs);
+                let rhs = func_builder.get_llvm_value(rhs);
                 let rhs = match rhs {
                     Some(rhs) => rhs.into_int_value(),
-                    None => return None,
+                    None => {
+                        eprintln!("TODO: not all instructions are supported yet");
+                        return None;
+                    }
                 };
 
-                let value = builder
-                    .build_or(lhs, rhs, "or")
-                    .expect("failed to build logical or");
-
-                Some(value.into())
+                let value = func_builder.build_or(lhs, rhs);
+                Some(value)
             }
             Instruction::Load { place } => {
                 let (ptr, current_type) = match place.base {
                     PlaceBase::Local(local_id) => {
-                        let ptr = local_map.get(&local_id).expect("failed to find local");
-                        let local = function.get_local(local_id);
-                        self.gen_place_ptr(
-                            builder,
-                            local_map,
-                            function,
-                            place,
-                            *ptr,
-                            &local.type_spec,
-                        )
+                        let ptr = func_builder.get_local_ptr(local_id).clone();
+                        let local_type_spec = func_builder.get_local_type_spec(local_id).clone();
+                        self.gen_place_ptr(func_builder, place, ptr, local_type_spec)
                     }
                     PlaceBase::Global(global_id) => {
                         let global_data = self
@@ -870,48 +647,19 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                             .get(&global_id)
                             .expect("failed to find global");
                         let ptr = global_data.global_value.as_pointer_value();
-                        self.gen_place_ptr(
-                            builder,
-                            local_map,
-                            function,
-                            place,
-                            ptr,
-                            &global_data.type_spec,
-                        )
+                        self.gen_place_ptr(func_builder, place, ptr, global_data.type_spec.clone())
                     }
                 };
 
-                let pointee_ty = self
-                    .gen_type_spec(current_type)
-                    .expect("can not load unit type");
-                let load = builder
-                    .build_load(pointee_ty, ptr, "load")
-                    .expect("failed to build load");
-
-                // there's currently a bug where i64/u64 loads don't have the correct alignment. We
-                // explicitly set the alignment here to compensate
-                if matches!(current_type, TypeSpec::I64 | TypeSpec::U64 | TypeSpec::F64) {
-                    load.as_instruction_value()
-                        .expect("failed to get load instruction")
-                        .set_alignment(8)
-                        .expect("failed to set 8 widht aligment");
-                }
-
+                let load = func_builder.build_load(&current_type, ptr);
                 Some(load)
             }
             Instruction::Store { place, value } => {
                 let (ptr, current_type) = match place.base {
                     PlaceBase::Local(local_id) => {
-                        let ptr = local_map.get(&local_id).expect("failed to find local");
-                        let local = function.get_local(local_id);
-                        self.gen_place_ptr(
-                            builder,
-                            local_map,
-                            function,
-                            place,
-                            *ptr,
-                            &local.type_spec,
-                        )
+                        let ptr = func_builder.get_local_ptr(local_id);
+                        let local_type_spec = func_builder.get_local_type_spec(local_id).clone();
+                        self.gen_place_ptr(func_builder, place, *ptr, local_type_spec)
                     }
                     PlaceBase::Global(global_id) => {
                         let global_data = self
@@ -919,18 +667,11 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                             .get(&global_id)
                             .expect("failed to find global");
                         let ptr = global_data.global_value.as_pointer_value();
-                        self.gen_place_ptr(
-                            builder,
-                            local_map,
-                            function,
-                            place,
-                            ptr,
-                            &global_data.type_spec,
-                        )
+                        self.gen_place_ptr(func_builder, place, ptr, global_data.type_spec.clone())
                     }
                 };
 
-                let value = self.gen_inst(builder, local_map, function, *value);
+                let value = func_builder.get_llvm_value(value);
                 let value = match value {
                     Some(v) => v,
                     None => {
@@ -940,89 +681,60 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                         return None;
                     }
                 };
-                let store = builder
-                    .build_store(ptr, value)
-                    .expect("failed to build store");
 
-                if matches!(current_type, TypeSpec::I64 | TypeSpec::U64 | TypeSpec::F64) {
-                    store
-                        .set_alignment(8)
-                        .expect("failed to set 8 widht aligment");
-                }
-
+                func_builder.build_store(&current_type, ptr, *value);
                 None
             }
             _ => None,
         }
     }
 
-    fn gen_place_ptr<'ts>(
+    fn gen_place_ptr<'a>(
         &self,
-        builder: &Builder<'ctx>,
-        local_map: &HashMap<LocalId, PointerValue<'ctx>>,
-        function: &MirFunction,
-        place: &Place,
+        func_builder: &mut FuncBuilder<'ctx, 'a>,
+        place: Place,
         ptr: PointerValue<'ctx>,
-        type_spec: &'ts TypeSpec,
-    ) -> (PointerValue<'ctx>, &'ts TypeSpec) {
+        type_spec: TypeSpec,
+    ) -> (PointerValue<'ctx>, TypeSpec) {
         let mut ptr = ptr;
         let mut current_type = type_spec;
         for proj in &place.projections {
             match proj {
                 Projection::Deref => {
-                    let pointee_ty = self
-                        .gen_type_spec(current_type)
-                        .expect("can not have pointer to unit type");
+                    ptr = func_builder
+                        .build_load(&current_type, ptr)
+                        .into_pointer_value();
 
                     current_type = match current_type {
-                        TypeSpec::Ptr(ts) => ts,
+                        TypeSpec::Ptr(ts) => *ts,
                         _ => panic!("can not dereference non-pointer type"),
                     };
-
-                    ptr = builder
-                        .build_load(pointee_ty, ptr, "deref")
-                        .expect("failed to build dereference")
-                        .into_pointer_value();
                 }
                 Projection::Field(field) => {
-                    let pointee_ty = self
-                        .gen_type_spec(current_type)
-                        .expect("can not have pointer to unit type");
+                    ptr = func_builder.build_struct_gep(&current_type, ptr, *field);
 
                     current_type = match current_type {
-                        TypeSpec::Struct(ts) => &ts[*field],
+                        TypeSpec::Struct(ts) => ts[*field].clone(),
                         _ => panic!("can not access field on non-struct type"),
                     };
-
-                    ptr = builder
-                        .build_struct_gep(pointee_ty, ptr, *field as u32, "struct_access")
-                        .expect("failed to build struct access");
                 }
                 Projection::Index(idx) => {
-                    let pointee_ty = self
-                        .gen_type_spec(current_type)
-                        .expect("can not have pointer to unit type");
-
-                    current_type = match current_type {
-                        // TODO: need to add a check here using len to ensure that
-                        // access is not out of bound and panic if it is
-                        TypeSpec::Array { elem, .. } => elem,
-                        _ => panic!("can not index array type"),
-                    };
-
-                    let idx_value = self
-                        .gen_inst(builder, local_map, function, *idx)
-                        .expect("missing index instruction");
+                    let idx_value = func_builder
+                        .get_llvm_value(*idx)
+                        .expect("missing index value");
                     let idx_value = idx_value.into_int_value();
 
                     // use zero to dereference the local ptr first and then index
                     // into the array memory
                     let zero = self.context.i64_type().const_zero();
-                    unsafe {
-                        ptr = builder
-                            .build_gep(pointee_ty, ptr, &[zero, idx_value], "index")
-                            .expect("failed to build index gep")
-                    }
+                    ptr = func_builder.build_gep(&current_type, ptr, &[zero, idx_value]);
+
+                    current_type = match current_type {
+                        // TODO: need to add a check here using len to ensure that
+                        // access is not out of bound and panic if it is
+                        TypeSpec::Array { elem, .. } => *elem,
+                        _ => panic!("can not index array type"),
+                    };
                 }
             }
         }
@@ -1030,60 +742,62 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         (ptr, current_type)
     }
 
-    fn gen_int_compare(
+    fn gen_int_compare<'a>(
         &self,
-        builder: &Builder<'ctx>,
-        local_map: &HashMap<LocalId, PointerValue<'ctx>>,
-        function: &MirFunction,
+        func_builder: &mut FuncBuilder<'ctx, 'a>,
         op: IntPredicate,
         lhs: ValueId,
         rhs: ValueId,
     ) -> Option<BasicValueEnum<'ctx>> {
-        let lhs = self.gen_inst(builder, local_map, function, lhs);
+        let lhs = func_builder.get_llvm_value(lhs);
         let lhs = match lhs {
             Some(lhs) => lhs.into_int_value(),
-            None => return None,
+            None => {
+                eprintln!("TODO: not all instructions are supported");
+                return None;
+            }
         };
 
-        let rhs = self.gen_inst(builder, local_map, function, rhs);
+        let rhs = func_builder.get_llvm_value(rhs);
         let rhs = match rhs {
             Some(rhs) => rhs.into_int_value(),
-            None => return None,
+            None => {
+                eprintln!("TODO: not all instructions are supported");
+                return None;
+            }
         };
 
-        let value = builder
-            .build_int_compare(op, lhs, rhs, "fneq")
-            .expect("failed to build i8_add");
-
-        Some(value.into())
+        let value = func_builder.build_int_compare(op, lhs, rhs);
+        Some(value)
     }
 
-    fn gen_float_compare(
+    fn gen_float_compare<'a>(
         &self,
-        builder: &Builder<'ctx>,
-        local_map: &HashMap<LocalId, PointerValue<'ctx>>,
-        function: &MirFunction,
+        func_builder: &mut FuncBuilder<'ctx, 'a>,
         op: FloatPredicate,
         lhs: ValueId,
         rhs: ValueId,
     ) -> Option<BasicValueEnum<'ctx>> {
-        let lhs = self.gen_inst(builder, local_map, function, lhs);
+        let lhs = func_builder.get_llvm_value(lhs);
         let lhs = match lhs {
             Some(lhs) => lhs.into_float_value(),
-            None => return None,
+            None => {
+                eprintln!("TODO: not all instructions are supported");
+                return None;
+            }
         };
 
-        let rhs = self.gen_inst(builder, local_map, function, rhs);
+        let rhs = func_builder.get_llvm_value(rhs);
         let rhs = match rhs {
             Some(rhs) => rhs.into_float_value(),
-            None => return None,
+            None => {
+                eprintln!("TODO: not all instructions are supported");
+                return None;
+            }
         };
 
-        let value = builder
-            .build_float_compare(op, lhs, rhs, "fneq")
-            .expect("failed to build i8_add");
-
-        Some(value.into())
+        let value = func_builder.build_float_compare(op, lhs, rhs);
+        Some(value)
     }
 
     fn gen_const(&self, const_value: &ConstValue, type_spec: &TypeSpec) -> BasicValueEnum<'ctx> {

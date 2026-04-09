@@ -21,35 +21,27 @@ entry:
   %r = alloca double, align 8
   %s1 = alloca double, align 8
   %load = load { i8, [8 x i8] }, ptr %s, align 1
-  switch i64 0, label %Block_7 [
+  switch i1 false, label %Block_7 [
     i8 0, label %Block_3
     i8 1, label %Block_5
   ]
-
-Block_3:                                          ; preds = %entry
   %load2 = load double, ptr @MATH_PI, align 8
   %load3 = load double, ptr %r, align 8
-  %load4 = load double, ptr @MATH_PI, align 8
-  %load5 = load double, ptr %r, align 8
-  %fmul = fmul double %load4, %load5
-  %load6 = load double, ptr %r, align 8
-  %load7 = load double, ptr @MATH_PI, align 8
-  %load8 = load double, ptr %r, align 8
-  %fmul9 = fmul double %load7, %load8
-  %load10 = load double, ptr %r, align 8
-  %fmul11 = fmul double %fmul9, %load10
-  ret double %fmul11
+  %fmul = fmul double %load2, %load3
+  %load4 = load double, ptr %r, align 8
+  %fmul5 = fmul double %fmul, %load4
+  ret double %fmul5
+  %load6 = load double, ptr %s1, align 8
+  %load7 = load double, ptr %s1, align 8
+  %fmul8 = fmul double %load6, %load7
+  ret double %fmul8
+  unreachable
+
+Block_3:                                          ; preds = %entry
 
 Block_5:                                          ; preds = %entry
-  %load12 = load double, ptr %s1, align 8
-  %load13 = load double, ptr %s1, align 8
-  %load14 = load double, ptr %s1, align 8
-  %load15 = load double, ptr %s1, align 8
-  %fmul16 = fmul double %load14, %load15
-  ret double %fmul16
 
 Block_7:                                          ; preds = %entry
-  unreachable
 }
 
 define void @main() {
