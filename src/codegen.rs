@@ -1,12 +1,5 @@
 use std::collections::{BTreeMap, HashMap};
 
-use crate::blocker::{self, Arch};
-use crate::mir::{
-    self, BlockId, ConstValue, GlobalId, Instruction, Local, LocalId, MirFunction, MirModule,
-    TagSize, Terminator, TypeSpec, ValueId,
-};
-use crate::str_store::StrStore;
-
 use inkwell::basic_block::BasicBlock;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
@@ -15,11 +8,23 @@ use inkwell::types::{BasicMetadataTypeEnum, BasicType, BasicTypeEnum};
 use inkwell::values::{BasicValue, BasicValueEnum, GlobalValue, PointerValue};
 use inkwell::{AddressSpace, FloatPredicate, IntPredicate};
 
+use crate::blocker::{self, Arch};
+use crate::mir::{
+    self, BlockId, ConstValue, GlobalId, Instruction, Local, LocalId, MirFunction, MirModule,
+    Place, PlaceBase, Projection, TagSize, Terminator, TypeSpec, ValueId,
+};
+use crate::str_store::StrStore;
+
 pub struct Codegen<'ctx, 'str> {
     str_store: &'str StrStore,
     context: &'ctx Context,
     module_name: String,
-    global_map: BTreeMap<GlobalId, GlobalValue<'ctx>>,
+    global_map: BTreeMap<GlobalId, GlobalData<'ctx>>,
+}
+
+struct GlobalData<'ctx> {
+    global_value: GlobalValue<'ctx>,
+    type_spec: TypeSpec,
 }
 
 impl<'ctx, 'str> Codegen<'ctx, 'str> {
@@ -47,7 +52,13 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             };
 
             let global_value = llvm_module.add_global(global_type, None, global_name.as_str());
-            self.global_map.insert(global_id, global_value);
+            self.global_map.insert(
+                global_id,
+                GlobalData {
+                    global_value,
+                    type_spec: global.type_spec.clone(),
+                },
+            );
         }
 
         // add the init function
@@ -174,7 +185,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
     ) {
         let mut value_map: HashMap<ValueId, BasicValueEnum<'ctx>> = HashMap::new();
         for value_id in &block.instructions {
-            match self.gen_inst(builder, function, *value_id) {
+            match self.gen_inst(builder, local_map, function, *value_id) {
                 Some(value) => {
                     value_map.insert(*value_id, value);
                 }
@@ -292,6 +303,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
     fn gen_inst(
         &self,
         builder: &Builder<'ctx>,
+        local_map: &HashMap<LocalId, PointerValue<'ctx>>,
         function: &MirFunction,
         value_id: ValueId,
     ) -> Option<BasicValueEnum<'ctx>> {
@@ -312,13 +324,13 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 | TypeSpec::U16
                 | TypeSpec::U32
                 | TypeSpec::U64 => {
-                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_int_value(),
                         None => return None,
                     };
 
-                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_int_value(),
                         None => return None,
@@ -331,13 +343,13 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     Some(value.into())
                 }
                 TypeSpec::F32 | TypeSpec::F64 => {
-                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_float_value(),
                         None => return None,
                     };
 
-                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_float_value(),
                         None => return None,
@@ -361,13 +373,13 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 | TypeSpec::U16
                 | TypeSpec::U32
                 | TypeSpec::U64 => {
-                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_int_value(),
                         None => return None,
                     };
 
-                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_int_value(),
                         None => return None,
@@ -380,13 +392,13 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     Some(value.into())
                 }
                 TypeSpec::F32 | TypeSpec::F64 => {
-                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_float_value(),
                         None => return None,
                     };
 
-                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_float_value(),
                         None => return None,
@@ -402,13 +414,13 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             },
             Instruction::SDiv { lhs, rhs } => match type_spec {
                 TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
-                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_int_value(),
                         None => return None,
                     };
 
-                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_int_value(),
                         None => return None,
@@ -421,13 +433,13 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     Some(value.into())
                 }
                 TypeSpec::F32 | TypeSpec::F64 => {
-                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_float_value(),
                         None => return None,
                     };
 
-                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_float_value(),
                         None => return None,
@@ -443,13 +455,13 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             },
             Instruction::UDiv { lhs, rhs } => match type_spec {
                 TypeSpec::U8 | TypeSpec::U16 | TypeSpec::U32 | TypeSpec::U64 => {
-                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_int_value(),
                         None => return None,
                     };
 
-                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_int_value(),
                         None => return None,
@@ -472,13 +484,13 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 | TypeSpec::U16
                 | TypeSpec::U32
                 | TypeSpec::U64 => {
-                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_int_value(),
                         None => return None,
                     };
 
-                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_int_value(),
                         None => return None,
@@ -491,13 +503,13 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     Some(value.into())
                 }
                 TypeSpec::F32 | TypeSpec::F64 => {
-                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_float_value(),
                         None => return None,
                     };
 
-                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_float_value(),
                         None => return None,
@@ -513,13 +525,13 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             },
             Instruction::SMod { lhs, rhs } => match type_spec {
                 TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
-                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_int_value(),
                         None => return None,
                     };
 
-                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_int_value(),
                         None => return None,
@@ -535,13 +547,13 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             },
             Instruction::UMod { lhs, rhs } => match type_spec {
                 TypeSpec::U8 | TypeSpec::U16 | TypeSpec::U32 | TypeSpec::U64 => {
-                    let lhs = self.gen_inst(builder, function, *lhs);
+                    let lhs = self.gen_inst(builder, local_map, function, *lhs);
                     let lhs = match lhs {
                         Some(lhs) => lhs.into_int_value(),
                         None => return None,
                     };
 
-                    let rhs = self.gen_inst(builder, function, *rhs);
+                    let rhs = self.gen_inst(builder, local_map, function, *rhs);
                     let rhs = match rhs {
                         Some(rhs) => rhs.into_int_value(),
                         None => return None,
@@ -566,12 +578,22 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     | TypeSpec::U8
                     | TypeSpec::U16
                     | TypeSpec::U32
-                    | TypeSpec::U64 => {
-                        self.gen_int_compare(builder, function, IntPredicate::EQ, *lhs, *rhs)
-                    }
-                    TypeSpec::F32 | TypeSpec::F64 => {
-                        self.gen_float_compare(builder, function, FloatPredicate::OEQ, *lhs, *rhs)
-                    }
+                    | TypeSpec::U64 => self.gen_int_compare(
+                        builder,
+                        local_map,
+                        function,
+                        IntPredicate::EQ,
+                        *lhs,
+                        *rhs,
+                    ),
+                    TypeSpec::F32 | TypeSpec::F64 => self.gen_float_compare(
+                        builder,
+                        local_map,
+                        function,
+                        FloatPredicate::OEQ,
+                        *lhs,
+                        *rhs,
+                    ),
                     TypeSpec::Ptr(_) => todo!("pointer comparison is not yet supported"),
                     TypeSpec::OpaquePtr => todo!("opaque pointer comparison is not yet supported"),
                     TypeSpec::Array { .. } => todo!("array comparison is not yet supported"),
@@ -593,12 +615,22 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     | TypeSpec::U8
                     | TypeSpec::U16
                     | TypeSpec::U32
-                    | TypeSpec::U64 => {
-                        self.gen_int_compare(builder, function, IntPredicate::NE, *lhs, *rhs)
-                    }
-                    TypeSpec::F32 | TypeSpec::F64 => {
-                        self.gen_float_compare(builder, function, FloatPredicate::ONE, *lhs, *rhs)
-                    }
+                    | TypeSpec::U64 => self.gen_int_compare(
+                        builder,
+                        local_map,
+                        function,
+                        IntPredicate::NE,
+                        *lhs,
+                        *rhs,
+                    ),
+                    TypeSpec::F32 | TypeSpec::F64 => self.gen_float_compare(
+                        builder,
+                        local_map,
+                        function,
+                        FloatPredicate::ONE,
+                        *lhs,
+                        *rhs,
+                    ),
                     TypeSpec::Ptr(_) => todo!("pointer comparison is not yet supported"),
                     TypeSpec::OpaquePtr => todo!("opaque pointer comparison is not yet supported"),
                     TypeSpec::Array { .. } => todo!("array comparison is not yet supported"),
@@ -612,12 +644,23 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             Instruction::SLessThan { lhs, rhs } => {
                 let type_spec = function.get_value_type(*lhs);
                 match type_spec {
-                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
-                        self.gen_int_compare(builder, function, IntPredicate::SLT, *lhs, *rhs)
-                    }
-                    TypeSpec::F32 | TypeSpec::F64 => {
-                        self.gen_float_compare(builder, function, FloatPredicate::OLT, *lhs, *rhs)
-                    }
+                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => self
+                        .gen_int_compare(
+                            builder,
+                            local_map,
+                            function,
+                            IntPredicate::SLT,
+                            *lhs,
+                            *rhs,
+                        ),
+                    TypeSpec::F32 | TypeSpec::F64 => self.gen_float_compare(
+                        builder,
+                        local_map,
+                        function,
+                        FloatPredicate::OLT,
+                        *lhs,
+                        *rhs,
+                    ),
                     _ => panic!("unsupported args for signed less than"),
                 }
             }
@@ -628,21 +671,37 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     | TypeSpec::U8
                     | TypeSpec::U16
                     | TypeSpec::U32
-                    | TypeSpec::U64 => {
-                        self.gen_int_compare(builder, function, IntPredicate::ULT, *lhs, *rhs)
-                    }
+                    | TypeSpec::U64 => self.gen_int_compare(
+                        builder,
+                        local_map,
+                        function,
+                        IntPredicate::ULT,
+                        *lhs,
+                        *rhs,
+                    ),
                     _ => panic!("unsupported args for unsigned less than"),
                 }
             }
             Instruction::SGreaterThan { lhs, rhs } => {
                 let type_spec = function.get_value_type(*lhs);
                 match type_spec {
-                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
-                        self.gen_int_compare(builder, function, IntPredicate::SGT, *lhs, *rhs)
-                    }
-                    TypeSpec::F32 | TypeSpec::F64 => {
-                        self.gen_float_compare(builder, function, FloatPredicate::OGT, *lhs, *rhs)
-                    }
+                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => self
+                        .gen_int_compare(
+                            builder,
+                            local_map,
+                            function,
+                            IntPredicate::SGT,
+                            *lhs,
+                            *rhs,
+                        ),
+                    TypeSpec::F32 | TypeSpec::F64 => self.gen_float_compare(
+                        builder,
+                        local_map,
+                        function,
+                        FloatPredicate::OGT,
+                        *lhs,
+                        *rhs,
+                    ),
                     _ => {
                         let lhs = function.get_value_type(*lhs);
                         let rhs = function.get_value_type(*rhs);
@@ -660,21 +719,37 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     | TypeSpec::U8
                     | TypeSpec::U16
                     | TypeSpec::U32
-                    | TypeSpec::U64 => {
-                        self.gen_int_compare(builder, function, IntPredicate::UGT, *lhs, *rhs)
-                    }
+                    | TypeSpec::U64 => self.gen_int_compare(
+                        builder,
+                        local_map,
+                        function,
+                        IntPredicate::UGT,
+                        *lhs,
+                        *rhs,
+                    ),
                     _ => panic!("unsupported args for unsigned greater than"),
                 }
             }
             Instruction::SLessThanEqual { lhs, rhs } => {
                 let type_spec = function.get_value_type(*lhs);
                 match type_spec {
-                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
-                        self.gen_int_compare(builder, function, IntPredicate::SLE, *lhs, *rhs)
-                    }
-                    TypeSpec::F32 | TypeSpec::F64 => {
-                        self.gen_float_compare(builder, function, FloatPredicate::OLE, *lhs, *rhs)
-                    }
+                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => self
+                        .gen_int_compare(
+                            builder,
+                            local_map,
+                            function,
+                            IntPredicate::SLE,
+                            *lhs,
+                            *rhs,
+                        ),
+                    TypeSpec::F32 | TypeSpec::F64 => self.gen_float_compare(
+                        builder,
+                        local_map,
+                        function,
+                        FloatPredicate::OLE,
+                        *lhs,
+                        *rhs,
+                    ),
                     _ => panic!("unsupported args for signed less than or equal"),
                 }
             }
@@ -685,21 +760,37 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     | TypeSpec::U8
                     | TypeSpec::U16
                     | TypeSpec::U32
-                    | TypeSpec::U64 => {
-                        self.gen_int_compare(builder, function, IntPredicate::ULE, *lhs, *rhs)
-                    }
+                    | TypeSpec::U64 => self.gen_int_compare(
+                        builder,
+                        local_map,
+                        function,
+                        IntPredicate::ULE,
+                        *lhs,
+                        *rhs,
+                    ),
                     _ => panic!("unsupported args for unsigned less than or equal"),
                 }
             }
             Instruction::SGreaterThanEqual { lhs, rhs } => {
                 let type_spec = function.get_value_type(*lhs);
                 match type_spec {
-                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
-                        self.gen_int_compare(builder, function, IntPredicate::SGE, *lhs, *rhs)
-                    }
-                    TypeSpec::F32 | TypeSpec::F64 => {
-                        self.gen_float_compare(builder, function, FloatPredicate::OGE, *lhs, *rhs)
-                    }
+                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => self
+                        .gen_int_compare(
+                            builder,
+                            local_map,
+                            function,
+                            IntPredicate::SGE,
+                            *lhs,
+                            *rhs,
+                        ),
+                    TypeSpec::F32 | TypeSpec::F64 => self.gen_float_compare(
+                        builder,
+                        local_map,
+                        function,
+                        FloatPredicate::OGE,
+                        *lhs,
+                        *rhs,
+                    ),
                     _ => panic!("unsupported args for signed greater than or equal"),
                 }
             }
@@ -710,20 +801,25 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     | TypeSpec::U8
                     | TypeSpec::U16
                     | TypeSpec::U32
-                    | TypeSpec::U64 => {
-                        self.gen_int_compare(builder, function, IntPredicate::UGE, *lhs, *rhs)
-                    }
+                    | TypeSpec::U64 => self.gen_int_compare(
+                        builder,
+                        local_map,
+                        function,
+                        IntPredicate::UGE,
+                        *lhs,
+                        *rhs,
+                    ),
                     _ => panic!("unsupported args for unsigned greater than or equal"),
                 }
             }
             Instruction::LogicalAnd { lhs, rhs } => {
-                let lhs = self.gen_inst(builder, function, *lhs);
+                let lhs = self.gen_inst(builder, local_map, function, *lhs);
                 let lhs = match lhs {
                     Some(lhs) => lhs.into_int_value(),
                     None => return None,
                 };
 
-                let rhs = self.gen_inst(builder, function, *rhs);
+                let rhs = self.gen_inst(builder, local_map, function, *rhs);
                 let rhs = match rhs {
                     Some(rhs) => rhs.into_int_value(),
                     None => return None,
@@ -736,13 +832,13 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 Some(value.into())
             }
             Instruction::LogicalOr { lhs, rhs } => {
-                let lhs = self.gen_inst(builder, function, *lhs);
+                let lhs = self.gen_inst(builder, local_map, function, *lhs);
                 let lhs = match lhs {
                     Some(lhs) => lhs.into_int_value(),
                     None => return None,
                 };
 
-                let rhs = self.gen_inst(builder, function, *rhs);
+                let rhs = self.gen_inst(builder, local_map, function, *rhs);
                 let rhs = match rhs {
                     Some(rhs) => rhs.into_int_value(),
                     None => return None,
@@ -754,25 +850,149 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
 
                 Some(value.into())
             }
+            Instruction::Load { place } => {
+                let (ptr, current_type) = match place.base {
+                    PlaceBase::Local(local_id) => {
+                        let ptr = local_map.get(&local_id).expect("failed to find local");
+                        let local = function.get_local(local_id);
+                        self.gen_place_ptr(
+                            builder,
+                            local_map,
+                            function,
+                            place,
+                            *ptr,
+                            &local.type_spec,
+                        )
+                    }
+                    PlaceBase::Global(global_id) => {
+                        let global_data = self
+                            .global_map
+                            .get(&global_id)
+                            .expect("failed to find global");
+                        let ptr = global_data.global_value.as_pointer_value();
+                        self.gen_place_ptr(
+                            builder,
+                            local_map,
+                            function,
+                            place,
+                            ptr,
+                            &global_data.type_spec,
+                        )
+                    }
+                };
+
+                let pointee_ty = self
+                    .gen_type_spec(current_type)
+                    .expect("can not load unit type");
+                let load = builder
+                    .build_load(pointee_ty, ptr, "load")
+                    .expect("failed to build load");
+
+                // there's currently a bug where i64/u64 loads don't have the correct alignment. We
+                // explicitly set the alignment here to compensate
+                if matches!(current_type, TypeSpec::I64 | TypeSpec::U64 | TypeSpec::F64) {
+                    load.as_instruction_value()
+                        .expect("failed to get load instruction")
+                        .set_alignment(8)
+                        .expect("failed to set 8 widht aligment");
+                }
+
+                Some(load)
+            }
             _ => None,
         }
+    }
+
+    fn gen_place_ptr<'ts>(
+        &self,
+        builder: &Builder<'ctx>,
+        local_map: &HashMap<LocalId, PointerValue<'ctx>>,
+        function: &MirFunction,
+        place: &Place,
+        ptr: PointerValue<'ctx>,
+        type_spec: &'ts TypeSpec,
+    ) -> (PointerValue<'ctx>, &'ts TypeSpec) {
+        let mut ptr = ptr;
+        let mut current_type = type_spec;
+        for proj in &place.projections {
+            match proj {
+                Projection::Deref => {
+                    let pointee_ty = self
+                        .gen_type_spec(current_type)
+                        .expect("can not have pointer to unit type");
+
+                    current_type = match current_type {
+                        TypeSpec::Ptr(ts) => ts,
+                        _ => panic!("can not dereference non-pointer type"),
+                    };
+
+                    ptr = builder
+                        .build_load(pointee_ty, ptr, "deref")
+                        .expect("failed to build dereference")
+                        .into_pointer_value();
+                }
+                Projection::Field(field) => {
+                    let pointee_ty = self
+                        .gen_type_spec(current_type)
+                        .expect("can not have pointer to unit type");
+
+                    current_type = match current_type {
+                        TypeSpec::Struct(ts) => &ts[*field],
+                        _ => panic!("can not access field on non-struct type"),
+                    };
+
+                    ptr = builder
+                        .build_struct_gep(pointee_ty, ptr, *field as u32, "struct_access")
+                        .expect("failed to build struct access");
+                }
+                Projection::Index(idx) => {
+                    let pointee_ty = self
+                        .gen_type_spec(current_type)
+                        .expect("can not have pointer to unit type");
+
+                    current_type = match current_type {
+                        // TODO: need to add a check here using len to ensure that
+                        // access is not out of bound and panic if it is
+                        TypeSpec::Array { elem, .. } => elem,
+                        _ => panic!("can not index array type"),
+                    };
+
+                    let idx_value = self
+                        .gen_inst(builder, local_map, function, *idx)
+                        .expect("missing index instruction");
+                    let idx_value = idx_value.into_int_value();
+
+                    // use zero to dereference the local ptr first and then index
+                    // into the array memory
+                    let zero = self.context.i64_type().const_zero();
+                    unsafe {
+                        ptr = builder
+                            .build_gep(pointee_ty, ptr, &[zero, idx_value], "index")
+                            .expect("failed to build index gep")
+                    }
+                }
+            }
+        }
+
+        (ptr, current_type)
     }
 
     fn gen_int_compare(
         &self,
         builder: &Builder<'ctx>,
+        local_map: &HashMap<LocalId, PointerValue<'ctx>>,
         function: &MirFunction,
         op: IntPredicate,
         lhs: ValueId,
         rhs: ValueId,
     ) -> Option<BasicValueEnum<'ctx>> {
-        let lhs = self.gen_inst(builder, function, lhs);
+        let lhs = self.gen_inst(builder, local_map, function, lhs);
         let lhs = match lhs {
             Some(lhs) => lhs.into_int_value(),
             None => return None,
         };
 
-        let rhs = self.gen_inst(builder, function, rhs);
+        let rhs = self.gen_inst(builder, local_map, function, rhs);
         let rhs = match rhs {
             Some(rhs) => rhs.into_int_value(),
             None => return None,
@@ -788,18 +1008,19 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
     fn gen_float_compare(
         &self,
         builder: &Builder<'ctx>,
+        local_map: &HashMap<LocalId, PointerValue<'ctx>>,
         function: &MirFunction,
         op: FloatPredicate,
         lhs: ValueId,
         rhs: ValueId,
     ) -> Option<BasicValueEnum<'ctx>> {
-        let lhs = self.gen_inst(builder, function, lhs);
+        let lhs = self.gen_inst(builder, local_map, function, lhs);
         let lhs = match lhs {
             Some(lhs) => lhs.into_float_value(),
             None => return None,
         };
 
-        let rhs = self.gen_inst(builder, function, rhs);
+        let rhs = self.gen_inst(builder, local_map, function, rhs);
         let rhs = match rhs {
             Some(rhs) => rhs.into_float_value(),
             None => return None,

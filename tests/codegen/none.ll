@@ -24,7 +24,8 @@ entry:
   %p = alloca ptr, align 8
   %p1 = alloca ptr, align 8
   %panic = alloca ptr, align 8
-  br i1 false, label %Block_2, label %Block_3
+  %load = load i1, ptr %cond, align 1
+  br i1 %load, label %Block_2, label %Block_3
 
 Block_2:                                          ; preds = %entry
   br i1 false, label %Block_5, label %Block_7
@@ -33,15 +34,18 @@ Block_3:                                          ; preds = %entry
   unreachable
 
 Block_4:                                          ; preds = %Block_8, %Block_6
+  %load2 = load ptr, ptr %p, align 8
   unreachable
 
 Block_5:                                          ; preds = %Block_2
+  %load3 = load ptr, ptr %p1, align 8
   br label %Block_6
 
 Block_6:                                          ; preds = %Block_5
   br label %Block_4
 
 Block_7:                                          ; preds = %Block_2
+  %load4 = load ptr, ptr %panic, align 8
   br label %Block_8
 
 Block_8:                                          ; preds = %Block_7
@@ -60,6 +64,7 @@ Block_2:                                          ; preds = %Block_6, %Block_4
   ret void
 
 Block_3:                                          ; preds = %entry
+  %load = load ptr, ptr %p, align 8
   br label %Block_4
 
 Block_4:                                          ; preds = %Block_3
