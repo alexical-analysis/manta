@@ -26,60 +26,59 @@ entry:
   %panic = alloca ptr, align 8
   %load = load i1, ptr %cond, align 1
   br i1 %load, label %Block_2, label %Block_3
-
-Block_2:                                          ; preds = %entry
   br i1 false, label %Block_5, label %Block_7
-
-Block_3:                                          ; preds = %entry
   unreachable
-
-Block_4:                                          ; preds = %Block_8, %Block_6
-  %deref = load ptr, ptr %p, align 8
-  store i32 42, ptr %deref, align 4
   %load2 = load ptr, ptr %p, align 8
+  store i32 42, ptr %load2, align 4
+  %load3 = load ptr, ptr %p, align 8
   unreachable
-
-Block_5:                                          ; preds = %Block_2
-  %load3 = load ptr, ptr %p1, align 8
   %load4 = load ptr, ptr %p1, align 8
   store ptr %load4, ptr %p, align 8
   br label %Block_6
-
-Block_6:                                          ; preds = %Block_5
   br label %Block_4
-
-Block_7:                                          ; preds = %Block_2
   %load5 = load ptr, ptr %panic, align 8
   br label %Block_8
-
-Block_8:                                          ; preds = %Block_7
   br label %Block_4
+
+Block_2:                                          ; preds = %entry
+
+Block_3:                                          ; preds = %entry
+
+Block_4:                                          ; preds = %entry, %entry
+
+Block_5:                                          ; preds = %entry
+
+Block_6:                                          ; preds = %entry
+
+Block_7:                                          ; preds = %entry
+
+Block_8:                                          ; preds = %entry
 }
 
 define void @main() {
 entry:
   %p = alloca ptr, align 8
-  switch i64 0, label %Block_7 [
+  switch i1 false, label %Block_7 [
     i8 0, label %Block_3
     i8 1, label %Block_5
   ]
-
-Block_2:                                          ; preds = %Block_6, %Block_4
   ret void
-
-Block_3:                                          ; preds = %entry
   %load = load ptr, ptr %p, align 8
   br label %Block_4
-
-Block_4:                                          ; preds = %Block_3
   br label %Block_2
+  br label %Block_6
+  br label %Block_2
+  unreachable
+
+Block_2:                                          ; preds = %entry, %entry
+
+Block_3:                                          ; preds = %entry
+
+Block_4:                                          ; preds = %entry
 
 Block_5:                                          ; preds = %entry
-  br label %Block_6
 
-Block_6:                                          ; preds = %Block_5
-  br label %Block_2
+Block_6:                                          ; preds = %entry
 
 Block_7:                                          ; preds = %entry
-  unreachable
 }
