@@ -5,7 +5,7 @@ use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::module::Module;
 use inkwell::types::{BasicMetadataTypeEnum, BasicType, BasicTypeEnum};
-use inkwell::values::{BasicValue, BasicValueEnum, GlobalValue, PointerValue};
+use inkwell::values::{AsValueRef, BasicValue, BasicValueEnum, GlobalValue, PointerValue};
 use inkwell::{AddressSpace, FloatPredicate, IntPredicate};
 
 use crate::blocker::{self, Arch};
@@ -898,6 +898,59 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 }
 
                 Some(load)
+            }
+            Instruction::Store { place, value } => {
+                let (ptr, current_type) = match place.base {
+                    PlaceBase::Local(local_id) => {
+                        let ptr = local_map.get(&local_id).expect("failed to find local");
+                        let local = function.get_local(local_id);
+                        self.gen_place_ptr(
+                            builder,
+                            local_map,
+                            function,
+                            place,
+                            *ptr,
+                            &local.type_spec,
+                        )
+                    }
+                    PlaceBase::Global(global_id) => {
+                        let global_data = self
+                            .global_map
+                            .get(&global_id)
+                            .expect("failed to find global");
+                        let ptr = global_data.global_value.as_pointer_value();
+                        self.gen_place_ptr(
+                            builder,
+                            local_map,
+                            function,
+                            place,
+                            ptr,
+                            &global_data.type_spec,
+                        )
+                    }
+                };
+
+                let value = self.gen_inst(builder, local_map, function, *value);
+                let value = match value {
+                    Some(v) => v,
+                    None => {
+                        eprintln!(
+                            "TODO: not all instructions are supported yet skipping store for now"
+                        );
+                        return None;
+                    }
+                };
+                let store = builder
+                    .build_store(ptr, value)
+                    .expect("failed to build store");
+
+                if matches!(current_type, TypeSpec::I64 | TypeSpec::U64 | TypeSpec::F64) {
+                    store
+                        .set_alignment(8)
+                        .expect("failed to set 8 widht aligment");
+                }
+
+                None
             }
             _ => None,
         }
