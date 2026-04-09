@@ -567,6 +567,12 @@ impl MirFunction {
         locals
     }
 
+    pub fn get_local(&self, local_id: LocalId) -> &Local {
+        self.locals
+            .get(local_id.as_idx())
+            .expect("failed to get local from local_id")
+    }
+
     pub fn get_block(&self, block_id: BlockId) -> &BasicBlock {
         match self.blocks.get(block_id.as_idx()) {
             Some(Some(b)) => b,

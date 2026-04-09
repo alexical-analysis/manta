@@ -11,5 +11,16 @@ entry:
   %a = alloca i64, align 8
   %b = alloca i64, align 8
   %c = alloca i64, align 8
-  unreachable
+  %load = load i64, ptr %a, align 8
+  %load1 = load i64, ptr %b, align 8
+  %load2 = load i64, ptr %a, align 8
+  %load3 = load i64, ptr %b, align 8
+  %iadd = add i64 %load2, %load3
+  %load4 = load i64, ptr %c, align 8
+  %load5 = load i64, ptr %a, align 8
+  %load6 = load i64, ptr %b, align 8
+  %iadd7 = add i64 %load5, %load6
+  %load8 = load i64, ptr %c, align 8
+  %isub = sub i64 %iadd7, %load8
+  ret i64 %isub
 }
