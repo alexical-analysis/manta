@@ -43,14 +43,24 @@ entry:
   switch i1 false, label %Block_5 [
     i8 0, label %Block_3
   ]
+
+Block_2:                                          ; preds = %Block_4
   br i1 false, label %Block_10, label %Block_12
+
+Block_3:                                          ; preds = %entry
   %load5 = load {}, ptr %f1, align 1
   store {} %load5, ptr %f, align 1
   br label %Block_4
+
+Block_4:                                          ; preds = %Block_3
   br label %Block_2
+
+Block_5:                                          ; preds = %entry
   store { i8, [0 x i8] } %os_open, ptr %"<wrap>", align 1
   %load6 = load { i8, [0 x i8] }, ptr %"<wrap>", align 1
   br label %Block_23
+
+Block_9:                                          ; preds = %Block_13, %Block_11
   %load7 = load {}, ptr %f, align 1
   %load8 = load ptr, ptr %buf, align 8
   %load9 = load { i64, i64, ptr }, ptr %load8, align 8
@@ -58,64 +68,54 @@ entry:
   switch i1 false, label %Block_19 [
     i8 0, label %Block_17
   ]
+
+Block_10:                                         ; preds = %Block_2
   %load10 = load ptr, ptr %buf2, align 8
   store ptr %load10, ptr %buf, align 8
   br label %Block_11
+
+Block_11:                                         ; preds = %Block_10
   br label %Block_9
+
+Block_12:                                         ; preds = %Block_2
   %load11 = load ptr, ptr %panic, align 8
   br label %Block_13
+
+Block_13:                                         ; preds = %Block_12
   br label %Block_9
+
+Block_16:                                         ; preds = %Block_18
   br label %Block_23
+
+Block_17:                                         ; preds = %Block_9
   %load12 = load i64, ptr %n3, align 8
   store i64 %load12, ptr %n, align 8
   br label %Block_18
+
+Block_18:                                         ; preds = %Block_17
   br label %Block_16
+
+Block_19:                                         ; preds = %Block_9
   store { i8, [8 x i8] } %os_write, ptr %"<wrap>4", align 1
   %load13 = load { i8, [8 x i8] }, ptr %"<wrap>4", align 1
   br label %Block_23
+
+Block_23:                                         ; preds = %Block_19, %Block_16, %Block_5
   %load14 = load ptr, ptr %buf, align 8
   br label %Block_24
+
+Block_24:                                         ; preds = %Block_23
   br label %Block_27
+
+Block_27:                                         ; preds = %Block_24
   %load15 = load {}, ptr %f, align 1
   call void @os_close({} %load15)
   br label %Block_28
+
+Block_28:                                         ; preds = %Block_27
   br label %Block_30
+
+Block_30:                                         ; preds = %Block_28
   %load16 = load { i8, [16 x i8] }, ptr %"<defer>", align 1
   ret { i8, [16 x i8] } %load16
-
-Block_2:                                          ; preds = %entry
-
-Block_3:                                          ; preds = %entry
-
-Block_4:                                          ; preds = %entry
-
-Block_5:                                          ; preds = %entry
-
-Block_9:                                          ; preds = %entry, %entry
-
-Block_10:                                         ; preds = %entry
-
-Block_11:                                         ; preds = %entry
-
-Block_12:                                         ; preds = %entry
-
-Block_13:                                         ; preds = %entry
-
-Block_16:                                         ; preds = %entry
-
-Block_17:                                         ; preds = %entry
-
-Block_18:                                         ; preds = %entry
-
-Block_19:                                         ; preds = %entry
-
-Block_23:                                         ; preds = %entry, %entry, %entry
-
-Block_24:                                         ; preds = %entry
-
-Block_27:                                         ; preds = %entry
-
-Block_28:                                         ; preds = %entry
-
-Block_30:                                         ; preds = %entry
 }

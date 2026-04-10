@@ -149,14 +149,20 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
     }
 
     fn gen_function<'a>(&self, func_builder: &mut FuncBuilder<'ctx, 'a>) {
-        for block in func_builder.get_blocks() {
-            self.gen_block(func_builder, block)
+        for (block_id, block) in func_builder.get_blocks() {
+            self.gen_block(func_builder, block_id, block)
         }
     }
 
     // TODO: we're getting a lot of params here (6), that probably means we should try to bundle
     // some of these together and expose only the functionality that we need to simplify the code
-    fn gen_block<'a>(&self, func_builder: &mut FuncBuilder<'ctx, 'a>, block: &mir::BasicBlock) {
+    fn gen_block<'a>(
+        &self,
+        func_builder: &mut FuncBuilder<'ctx, 'a>,
+        block_id: mir::BlockId,
+        block: &mir::BasicBlock,
+    ) {
+        func_builder.position_at_block(block_id);
         for value_id in &block.instructions {
             match self.gen_inst(func_builder, *value_id) {
                 Some(v) => func_builder.insert_value(*value_id, v),
@@ -193,14 +199,14 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         value_id: ValueId,
     ) -> Option<BasicValueEnum<'ctx>> {
         let inst = func_builder.get_inst(value_id).clone();
-        let type_spec = func_builder.get_value_type(value_id);
+        let inst_type_spec = func_builder.get_value_type(value_id);
 
         match inst {
             Instruction::Const { value } => {
-                let value = self.gen_const(&value, type_spec);
+                let value = self.gen_const(&value, inst_type_spec);
                 Some(value)
             }
-            Instruction::Add { lhs, rhs } => match type_spec {
+            Instruction::Add { lhs, rhs } => match inst_type_spec {
                 TypeSpec::I8
                 | TypeSpec::I16
                 | TypeSpec::I32
@@ -255,7 +261,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 TypeSpec::String => todo!("concatenating strings is not yet supported"),
                 _ => panic!("unsupported arguments for addition"),
             },
-            Instruction::Sub { lhs, rhs } => match type_spec {
+            Instruction::Sub { lhs, rhs } => match inst_type_spec {
                 TypeSpec::I8
                 | TypeSpec::I16
                 | TypeSpec::I32
@@ -309,7 +315,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 }
                 _ => panic!("unsupported arguments for addition"),
             },
-            Instruction::SDiv { lhs, rhs } => match type_spec {
+            Instruction::SDiv { lhs, rhs } => match inst_type_spec {
                 TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
                     let lhs = func_builder.get_llvm_value(lhs);
                     let lhs = match lhs {
@@ -356,7 +362,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 }
                 _ => panic!("unsupported arguments for signed division"),
             },
-            Instruction::UDiv { lhs, rhs } => match type_spec {
+            Instruction::UDiv { lhs, rhs } => match inst_type_spec {
                 TypeSpec::U8 | TypeSpec::U16 | TypeSpec::U32 | TypeSpec::U64 => {
                     let lhs = func_builder.get_llvm_value(lhs);
                     let lhs = match lhs {
@@ -381,7 +387,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 }
                 _ => panic!("unsupported arguments for unsigned division"),
             },
-            Instruction::Mul { lhs, rhs } => match type_spec {
+            Instruction::Mul { lhs, rhs } => match inst_type_spec {
                 TypeSpec::I8
                 | TypeSpec::I16
                 | TypeSpec::I32
@@ -435,7 +441,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 }
                 _ => panic!("unsupported arguments for multiplication"),
             },
-            Instruction::SMod { lhs, rhs } => match type_spec {
+            Instruction::SMod { lhs, rhs } => match inst_type_spec {
                 TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
                     let lhs = func_builder.get_llvm_value(lhs);
                     let lhs = match lhs {
@@ -460,7 +466,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 }
                 _ => panic!("unsupported arguments for signed modulous"),
             },
-            Instruction::UMod { lhs, rhs } => match type_spec {
+            Instruction::UMod { lhs, rhs } => match inst_type_spec {
                 TypeSpec::U8 | TypeSpec::U16 | TypeSpec::U32 | TypeSpec::U64 => {
                     let lhs = func_builder.get_llvm_value(lhs);
                     let lhs = match lhs {
@@ -829,26 +835,147 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 eprintln!("TODO: make_variant instructions are not yet supported");
                 None
             }
-            Instruction::BitwiseAnd { .. } => {
-                eprintln!("TODO: bitwise and instruction are not yet supported");
-                None
-            }
-            Instruction::BitwiseOr { .. } => {
-                eprintln!("TODO: bitwise or instruction are not yet supported");
-                None
-            }
-            Instruction::BitwiseXOr { .. } => {
-                eprintln!("TODO: bitwise xor instruction are not yet supported");
-                None
-            }
-            Instruction::BoolNot { .. } => {
-                eprintln!("TODO: boolean not instruction are not yet supported");
-                None
-            }
-            Instruction::Negate { .. } => {
-                eprintln!("TODO: negate instruction are not yet supported");
-                None
-            }
+            Instruction::BitwiseAnd { lhs, rhs } => match inst_type_spec {
+                TypeSpec::I8
+                | TypeSpec::I16
+                | TypeSpec::I32
+                | TypeSpec::I64
+                | TypeSpec::U8
+                | TypeSpec::U16
+                | TypeSpec::U32
+                | TypeSpec::U64 => {
+                    let lhs = func_builder.get_llvm_value(lhs);
+                    let lhs = match lhs {
+                        Some(lhs) => lhs.into_int_value(),
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
+                    };
+
+                    let rhs = func_builder.get_llvm_value(rhs);
+                    let rhs = match rhs {
+                        Some(rhs) => rhs.into_int_value(),
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
+                    };
+
+                    let value = func_builder.build_and(lhs, rhs);
+                    Some(value)
+                }
+                _ => panic!("invalid type for bitwise and"),
+            },
+            Instruction::BitwiseOr { lhs, rhs } => match inst_type_spec {
+                TypeSpec::I8
+                | TypeSpec::I16
+                | TypeSpec::I32
+                | TypeSpec::I64
+                | TypeSpec::U8
+                | TypeSpec::U16
+                | TypeSpec::U32
+                | TypeSpec::U64 => {
+                    let lhs = func_builder.get_llvm_value(lhs);
+                    let lhs = match lhs {
+                        Some(lhs) => lhs.into_int_value(),
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
+                    };
+
+                    let rhs = func_builder.get_llvm_value(rhs);
+                    let rhs = match rhs {
+                        Some(rhs) => rhs.into_int_value(),
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
+                    };
+
+                    let value = func_builder.build_or(lhs, rhs);
+                    Some(value)
+                }
+                _ => panic!("invalid type for bitwise or"),
+            },
+            Instruction::BitwiseXOr { lhs, rhs } => match inst_type_spec {
+                TypeSpec::I8
+                | TypeSpec::I16
+                | TypeSpec::I32
+                | TypeSpec::I64
+                | TypeSpec::U8
+                | TypeSpec::U16
+                | TypeSpec::U32
+                | TypeSpec::U64 => {
+                    let lhs = func_builder.get_llvm_value(lhs);
+                    let lhs = match lhs {
+                        Some(lhs) => lhs.into_int_value(),
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
+                    };
+
+                    let rhs = func_builder.get_llvm_value(rhs);
+                    let rhs = match rhs {
+                        Some(rhs) => rhs.into_int_value(),
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
+                    };
+
+                    let value = func_builder.build_xor(lhs, rhs);
+                    Some(value)
+                }
+                _ => panic!("invalid type for bitwise xor"),
+            },
+            Instruction::BoolNot { op } => match inst_type_spec {
+                TypeSpec::Bool => {
+                    let op = func_builder.get_llvm_value(op);
+                    let op = match op {
+                        Some(lhs) => lhs.into_int_value(),
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
+                    };
+
+                    let value = func_builder.build_not(op);
+                    Some(value)
+                }
+                _ => panic!("invalid type for boolean not"),
+            },
+            Instruction::Negate { op } => match inst_type_spec {
+                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                    let op = func_builder.get_llvm_value(op);
+                    let op = match op {
+                        Some(lhs) => lhs.into_int_value(),
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
+                    };
+
+                    let value = func_builder.build_int_neg(op);
+                    Some(value)
+                }
+                TypeSpec::F32 | TypeSpec::F64 => {
+                    let op = func_builder.get_llvm_value(op);
+                    let op = match op {
+                        Some(lhs) => lhs.into_float_value(),
+                        None => {
+                            eprintln!("TODO: not all instructions are supported");
+                            return None;
+                        }
+                    };
+
+                    let value = func_builder.build_float_neg(op);
+                    Some(value)
+                }
+                _ => panic!("invalid type for value negation"),
+            },
             Instruction::Alloc { .. } => {
                 eprintln!("TODO: alloc instruction are not yet supported");
                 None
