@@ -816,7 +816,47 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     }
                 }
             }
-            _ => None,
+            Instruction::CallTry { .. } => todo!("call_try instructions are not yet supported"),
+            Instruction::VariantGetPayload { .. } => {
+                eprintln!("TODO: variant_get_payload instructions are not yet supported");
+                None
+            }
+            Instruction::VariantGetTag { .. } => {
+                eprintln!("TODO: variant_get_payload instructions are not yet supported");
+                None
+            }
+            Instruction::MakeVariant { .. } => {
+                eprintln!("TODO: make_variant instructions are not yet supported");
+                None
+            }
+            Instruction::BitwiseAnd { .. } => {
+                eprintln!("TODO: bitwise and instruction are not yet supported");
+                None
+            }
+            Instruction::BitwiseOr { .. } => {
+                eprintln!("TODO: bitwise or instruction are not yet supported");
+                None
+            }
+            Instruction::BitwiseXOr { .. } => {
+                eprintln!("TODO: bitwise xor instruction are not yet supported");
+                None
+            }
+            Instruction::BoolNot { .. } => {
+                eprintln!("TODO: boolean not instruction are not yet supported");
+                None
+            }
+            Instruction::Negate { .. } => {
+                eprintln!("TODO: negate instruction are not yet supported");
+                None
+            }
+            Instruction::Alloc { .. } => {
+                eprintln!("TODO: alloc instruction are not yet supported");
+                None
+            }
+            Instruction::Free { .. } => {
+                eprintln!("TODO: free instruction are not yet supported");
+                None
+            }
         }
     }
 
