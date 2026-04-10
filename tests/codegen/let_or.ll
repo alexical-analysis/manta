@@ -151,3 +151,11 @@ Block_10:                                         ; preds = %Block_2
 Block_11:                                         ; preds = %Block_10
   br label %Block_7
 }
+
+declare ptr @malloc(i64)
+
+declare void @free(ptr)
+
+declare i32 @puts(ptr)
+
+declare void @abort()

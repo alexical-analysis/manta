@@ -50,3 +50,11 @@ Block_8:                                          ; preds = %Block_3
 Block_9:                                          ; preds = %Block_8
   br label %Block_6
 }
+
+declare ptr @malloc(i64)
+
+declare void @free(ptr)
+
+declare i32 @puts(ptr)
+
+declare void @abort()

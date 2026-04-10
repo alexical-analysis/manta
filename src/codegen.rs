@@ -4,7 +4,7 @@ pub mod optimizer;
 use std::collections::BTreeMap;
 
 use inkwell::context::Context;
-use inkwell::module::Module;
+use inkwell::module::{Linkage, Module};
 use inkwell::passes::PassBuilderOptions;
 use inkwell::targets::TargetMachine;
 use inkwell::types::{BasicType, BasicTypeEnum};
@@ -13,8 +13,8 @@ use inkwell::{AddressSpace, FloatPredicate, IntPredicate};
 
 use crate::blocker::{self, Arch};
 use crate::mir::{
-    self, ConstValue, GlobalId, Instruction, MirModule, Place, PlaceBase, Projection, TagSize,
-    Terminator, TypeSpec, ValueId,
+    self, ConstValue, GlobalId, Instruction, MirFunction, MirModule, Place, PlaceBase, Projection,
+    TagSize, Terminator, TypeSpec, ValueId,
 };
 use crate::str_store::{self, StrID, StrStore};
 
@@ -96,6 +96,30 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 },
             );
         }
+
+        // add c-runtime dependencies to the module
+        // TODO: need to make sure malloc uses the correct arch-width. Just assuming Arch:W64 for
+        // now, but will need to update that in the future
+        let malloc_type = self
+            .context
+            .ptr_type(AddressSpace::default())
+            .fn_type(&[self.context.i64_type().into()], false);
+        llvm_module.add_function("malloc", malloc_type, Some(Linkage::External));
+
+        let free_type = self.context.void_type().fn_type(
+            &[self.context.ptr_type(AddressSpace::default()).into()],
+            false,
+        );
+        llvm_module.add_function("free", free_type, Some(Linkage::External));
+
+        let puts_type = self.context.i32_type().fn_type(
+            &[self.context.ptr_type(AddressSpace::default()).into()],
+            false,
+        );
+        llvm_module.add_function("puts", puts_type, Some(Linkage::External));
+
+        let abort_type = self.context.void_type().fn_type(&[], false);
+        llvm_module.add_function("abort", abort_type, Some(Linkage::External));
 
         // code gen the init function
         let mut func_builder = FuncBuilder::new(

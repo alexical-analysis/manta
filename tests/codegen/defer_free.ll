@@ -119,3 +119,11 @@ Block_30:                                         ; preds = %Block_28
   %load16 = load { i8, [16 x i8] }, ptr %"<defer>", align 1
   ret { i8, [16 x i8] } %load16
 }
+
+declare ptr @malloc(i64)
+
+declare void @free(ptr)
+
+declare i32 @puts(ptr)
+
+declare void @abort()
