@@ -336,29 +336,6 @@ pub enum Instruction {
         tag: ConstValue, // ConstUInt(variant_id)
         payload: Option<ValueId>,
     },
-
-    /// move(dst_local, src_value) — produces Unit
-    Move {
-        dst: LocalId,
-        src: ValueId,
-    },
-    /// copy(dst_local, src_value) — produces Unit
-    Copy {
-        dst: LocalId,
-        src: ValueId,
-    },
-    /// drop_local(LocalId) — produces Unit
-    DropLocal {
-        local: LocalId,
-    },
-    /// declare_local(LocalId) — produces Unit (declares a local as uninitialized)
-    DeclareLocal {
-        local: LocalId,
-    },
-    /// set_initialized(LocalId) — produces Unit
-    SetInitialized {
-        local: LocalId,
-    },
     /// add two expressions - produces the same type as its args
     Add {
         lhs: ValueId,
