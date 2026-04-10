@@ -1,9 +1,12 @@
 mod builder;
+pub mod optimizer;
 
 use std::collections::BTreeMap;
 
 use inkwell::context::Context;
 use inkwell::module::Module;
+use inkwell::passes::PassBuilderOptions;
+use inkwell::targets::TargetMachine;
 use inkwell::types::{BasicType, BasicTypeEnum};
 use inkwell::values::{BasicValueEnum, GlobalValue, PointerValue};
 use inkwell::{AddressSpace, FloatPredicate, IntPredicate};
@@ -14,18 +17,19 @@ use crate::mir::{
     Terminator, TypeSpec, ValueId,
 };
 use crate::str_store::StrStore;
+
 use builder::FuncBuilder;
+
+struct GlobalData<'ctx> {
+    global_value: GlobalValue<'ctx>,
+    type_spec: TypeSpec,
+}
 
 pub struct Codegen<'ctx, 'str> {
     str_store: &'str StrStore,
     context: &'ctx Context,
     module_name: String,
     global_map: BTreeMap<GlobalId, GlobalData<'ctx>>,
-}
-
-struct GlobalData<'ctx> {
-    global_value: GlobalValue<'ctx>,
-    type_spec: TypeSpec,
 }
 
 impl<'ctx, 'str> Codegen<'ctx, 'str> {
@@ -37,6 +41,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             global_map: BTreeMap::new(),
         }
     }
+
     pub fn gen_module(&mut self, module: MirModule) -> Module<'ctx> {
         let llvm_module = self.context.create_module(&self.module_name);
         let builder = self.context.create_builder();
@@ -64,7 +69,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
 
         // code gen the init function
         let mut func_builder = FuncBuilder::new(
-            &self.context,
+            self.context,
             &llvm_module,
             &builder,
             &module.init,
@@ -75,7 +80,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         // code gen the remaining functions
         for function in module.functions {
             let mut func_builder = FuncBuilder::new(
-                &self.context,
+                self.context,
                 &llvm_module,
                 &builder,
                 &function,
@@ -84,12 +89,29 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             self.gen_function(&mut func_builder);
         }
 
-        // TODO: validate the module
-        // llvm_module.verify().expect("module is not valid");
-
-        // TODO: optimize the module
+        if let Err(e) = llvm_module.verify() {
+            eprintln!("module verification failed: {}", e);
+        }
 
         llvm_module
+    }
+
+    pub fn optimize_module(&self, target_machine: &TargetMachine, module: &Module<'ctx>) {
+        let passes: &[&str] = &[
+            "instcombine",
+            "reassociate",
+            "gvn",
+            "simplifycfg",
+            "mem2reg",
+        ];
+
+        module
+            .run_passes(
+                passes.join(",").as_str(),
+                &target_machine,
+                PassBuilderOptions::create(),
+            )
+            .expect("failed to optimize module")
     }
 
     fn gen_function<'a>(&self, func_builder: &mut FuncBuilder<'ctx, 'a>) {

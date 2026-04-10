@@ -10,6 +10,8 @@ mod str_store;
 
 use clap::{Parser, Subcommand};
 use std::error::Error;
+use std::fs;
+use std::path::Path;
 use std::path::PathBuf;
 
 use compiler::Compiler;
@@ -37,7 +39,7 @@ enum Commands {
     )]
     Build {
         #[arg(short, long, value_name = "OUT_DIR")]
-        out_dir: Option<PathBuf>,
+        out_file: Option<String>,
 
         #[arg(value_name = "ARGS...")]
         args: Vec<String>,
@@ -70,18 +72,34 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     match &cli.command {
-        Commands::Build { out_dir, args } => {
+        Commands::Build { out_file, args } => {
+            let in_file = match args.first() {
+                Some(f) => f,
+                None => panic!("missing file to compile"),
+            };
+
             println!(
-                "stub: build -> workspace={:?}, out_dir={:?}, args={:?}, verbose={}",
-                workspace, out_dir, args, cli.verbose
+                "stub: build -> workspace={:?}, in_file={:?}, out_file={:?}, args={:?}, verbose={}",
+                workspace, in_file, out_file, args, cli.verbose
             );
 
-            let compiler = Compiler::new("mod main".to_string());
-            // TODO: uncomment any line below to run the reference tests
-            // compiler.compile();
-            // compiler.compile_example();
-            // compiler.compile_hello_world();
-            compiler.compile_for_loop();
+            if !in_file.ends_with(".manta") {
+                panic!("can only compile .manta files")
+            }
+
+            let source = fs::read_to_string(in_file).expect("failed to read input file");
+            let out_file = match out_file {
+                Some(f) => f.clone(),
+                None => Path::new(in_file)
+                    .file_stem()
+                    .and_then(|s| s.to_str())
+                    .expect("failed to get output file name")
+                    .to_string(),
+            };
+
+            println!("compiling file {:?}", in_file);
+            let compiler = Compiler::new(source, out_file);
+            compiler.compile();
         }
         Commands::Check {} => {
             println!(

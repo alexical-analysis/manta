@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 use crate::ast::{BlockStmt, Decl, Expr, LetExcept, Pattern, Payload, Stmt, TypeSpec};
 use crate::parser::ParseError;
 use crate::parser::lexer::{Token, TokenKind};
-use crate::str_store::{self, StrID};
+use crate::str_store::{self, StrID, StrStore};
 
 use super::lexer::SourceID;
 
@@ -277,6 +277,12 @@ impl Module {
 
     pub fn get_errors(&self) -> &Vec<ParseError> {
         &self.errors
+    }
+
+    pub fn get_name(&self, str_store: &StrStore) -> String {
+        str_store
+            .get_string(self.name)
+            .expect("failed to get module name")
     }
 
     fn get_module(decls: &[Decl]) -> (StrID, Vec<ParseError>) {
