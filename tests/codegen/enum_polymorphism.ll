@@ -62,3 +62,11 @@ entry:
   call void @fmt_println(double %load4)
   ret void
 }
+
+declare ptr @malloc(i64)
+
+declare void @free(ptr)
+
+declare i32 @puts(ptr)
+
+declare void @abort()

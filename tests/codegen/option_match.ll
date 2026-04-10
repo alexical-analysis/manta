@@ -63,3 +63,11 @@ Block_6:                                          ; preds = %Block_5
 Block_7:                                          ; preds = %entry
   unreachable
 }
+
+declare ptr @malloc(i64)
+
+declare void @free(ptr)
+
+declare i32 @puts(ptr)
+
+declare void @abort()

@@ -21,3 +21,11 @@ entry:
   %isub = sub i64 %iadd, %load2
   ret i64 %isub
 }
+
+declare ptr @malloc(i64)
+
+declare void @free(ptr)
+
+declare i32 @puts(ptr)
+
+declare void @abort()

@@ -17,3 +17,11 @@ entry:
   call void @fmt_println(i64 0)
   ret void
 }
+
+declare ptr @malloc(i64)
+
+declare void @free(ptr)
+
+declare i32 @puts(ptr)
+
+declare void @abort()
