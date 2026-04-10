@@ -41,10 +41,12 @@ entry:
   %"<wrap>3" = alloca { i8, [16 x i8] }, align 8
   %"<defer>" = alloca { i8, [24 x i8] }, align 8
   %load = load { i64, ptr }, ptr %path, align 8
+  %os_open = call { i8, [0 x i8] } @os_open({ i64, ptr } %load)
   switch i1 false, label %Block_5 [
     i8 0, label %Block_3
   ]
   %load4 = load {}, ptr %f, align 1
+  %io_read_to_string = call { i8, [16 x i8] } @io_read_to_string({} %load4)
   switch i1 false, label %Block_12 [
     i8 0, label %Block_10
   ]
@@ -52,6 +54,7 @@ entry:
   store {} %load5, ptr %f, align 1
   br label %Block_4
   br label %Block_2
+  store { i8, [0 x i8] } %os_open, ptr %"<wrap>", align 1
   %load6 = load { i8, [0 x i8] }, ptr %"<wrap>", align 1
   br label %Block_16
   %load7 = load { i64, ptr }, ptr %s, align 8
@@ -60,9 +63,11 @@ entry:
   store { i64, ptr } %load8, ptr %s, align 8
   br label %Block_11
   br label %Block_9
+  store { i8, [16 x i8] } %io_read_to_string, ptr %"<wrap>3", align 1
   %load9 = load { i8, [16 x i8] }, ptr %"<wrap>3", align 1
   br label %Block_16
   %load10 = load {}, ptr %f, align 1
+  call void @os_close({} %load10)
   br label %Block_17
   br label %Block_19
   %load11 = load { i8, [24 x i8] }, ptr %"<defer>", align 1
@@ -99,25 +104,32 @@ entry:
   %content2 = alloca { i64, ptr }, align 8
   %content3 = alloca { i64, ptr }, align 8
   %panic = alloca { i8, [24 x i8] }, align 8
+  %read_file = call { i8, [24 x i8] } @read_file(i64 0)
   switch i1 false, label %Block_5 [
     i8 0, label %Block_3
   ]
   %load = load { i64, ptr }, ptr %content, align 8
+  call void @fmt_println({ i64, ptr } %load)
+  %read_file4 = call { i8, [24 x i8] } @read_file(i64 0)
   switch i1 false, label %Block_10 [
     i8 0, label %Block_8
   ]
-  %load4 = load { i64, ptr }, ptr %content1, align 8
-  store { i64, ptr } %load4, ptr %content, align 8
+  %load5 = load { i64, ptr }, ptr %content1, align 8
+  store { i64, ptr } %load5, ptr %content, align 8
   br label %Block_4
   br label %Block_2
+  store { i8, [24 x i8] } %read_file, ptr %e, align 1
+  call void @fmt_println(i64 0)
   ret void
-  %load5 = load { i64, ptr }, ptr %content2, align 8
+  %load6 = load { i64, ptr }, ptr %content2, align 8
+  call void @fmt_println({ i64, ptr } %load6)
   ret void
-  %load6 = load { i64, ptr }, ptr %content3, align 8
-  store { i64, ptr } %load6, ptr %content2, align 8
+  %load7 = load { i64, ptr }, ptr %content3, align 8
+  store { i64, ptr } %load7, ptr %content2, align 8
   br label %Block_9
   br label %Block_7
-  %load7 = load { i8, [24 x i8] }, ptr %panic, align 1
+  store { i8, [24 x i8] } %read_file4, ptr %panic, align 1
+  %load8 = load { i8, [24 x i8] }, ptr %panic, align 1
   br label %Block_11
   br label %Block_7
 

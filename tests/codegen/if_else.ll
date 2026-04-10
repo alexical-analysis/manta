@@ -19,15 +19,18 @@ entry:
   store i1 true, ptr %check_this, align 1
   %load = load i1, ptr %check_this, align 1
   br i1 %load, label %Block_2, label %Block_3
+  call void @fmt_println(i64 0)
   br label %Block_4
   store i64 9, ptr %nine, align 8
   %load1 = load i64, ptr %nine, align 8
   %sgt = icmp sgt i64 %load1, 10
   br i1 %sgt, label %Block_5, label %Block_8
   br label %Block_3
+  call void @fmt_println(i64 0)
   br label %Block_7
   ret void
   br label %Block_6
+  call void @fmt_println(i64 0)
   br label %Block_9
   br label %Block_6
 

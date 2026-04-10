@@ -580,6 +580,7 @@ impl MirFunction {
         }
     }
 
+    // TODO: this might only need to return BlockIds
     /// get a vector of all reachable blocks
     pub fn get_blocks(&self) -> Vec<(BlockId, &BasicBlock)> {
         let mut blocks = vec![];

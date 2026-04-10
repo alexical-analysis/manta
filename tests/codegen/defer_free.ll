@@ -39,6 +39,7 @@ entry:
   %"<wrap>4" = alloca { i8, [8 x i8] }, align 8
   %"<defer>" = alloca { i8, [16 x i8] }, align 8
   %load = load { i64, ptr }, ptr %path, align 8
+  %os_open = call { i8, [0 x i8] } @os_open({ i64, ptr } %load)
   switch i1 false, label %Block_5 [
     i8 0, label %Block_3
   ]
@@ -47,11 +48,13 @@ entry:
   store {} %load5, ptr %f, align 1
   br label %Block_4
   br label %Block_2
+  store { i8, [0 x i8] } %os_open, ptr %"<wrap>", align 1
   %load6 = load { i8, [0 x i8] }, ptr %"<wrap>", align 1
   br label %Block_23
   %load7 = load {}, ptr %f, align 1
   %load8 = load ptr, ptr %buf, align 8
   %load9 = load { i64, i64, ptr }, ptr %load8, align 8
+  %os_write = call { i8, [8 x i8] } @os_write({} %load7, { i64, i64, ptr } %load9)
   switch i1 false, label %Block_19 [
     i8 0, label %Block_17
   ]
@@ -67,12 +70,14 @@ entry:
   store i64 %load12, ptr %n, align 8
   br label %Block_18
   br label %Block_16
+  store { i8, [8 x i8] } %os_write, ptr %"<wrap>4", align 1
   %load13 = load { i8, [8 x i8] }, ptr %"<wrap>4", align 1
   br label %Block_23
   %load14 = load ptr, ptr %buf, align 8
   br label %Block_24
   br label %Block_27
   %load15 = load {}, ptr %f, align 1
+  call void @os_close({} %load15)
   br label %Block_28
   br label %Block_30
   %load16 = load { i8, [16 x i8] }, ptr %"<defer>", align 1

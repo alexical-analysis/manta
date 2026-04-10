@@ -14,5 +14,6 @@ entry:
 
 define void @main() {
 entry:
+  call void @fmt_println(i64 0)
   ret void
 }
