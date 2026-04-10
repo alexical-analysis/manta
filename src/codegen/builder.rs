@@ -120,14 +120,21 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
         }
     }
 
-    pub fn get_blocks(&self) -> Vec<&'a mir::BasicBlock> {
+    pub fn get_blocks(&self) -> Vec<(BlockId, &'a mir::BasicBlock)> {
         // TODO: need to get these blocks in dominance order so that all values_ids exist before
         // they are read
         self.block_map
             .iter()
-            .map(|b| b.0)
-            .map(|b| self.mir_function.get_block(*b))
+            .map(|b| (*b.0, self.mir_function.get_block(*b.0)))
             .collect()
+    }
+
+    pub fn position_at_block(&self, block_id: BlockId) {
+        let block = self
+            .block_map
+            .get(&block_id)
+            .expect("failed to find block in block map");
+        self.builder.position_at_end(*block);
     }
 
     pub fn get_inst(&self, value_id: ValueId) -> &Instruction {
@@ -643,6 +650,34 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
         self.builder
             .build_call(function, args, function_name)
             .expect("failed to build call");
+    }
+
+    pub fn build_xor(&self, lhs: IntValue<'ctx>, rhs: IntValue<'ctx>) -> BasicValueEnum<'ctx> {
+        self.builder
+            .build_xor(lhs, rhs, "xor")
+            .expect("failed to build bitwise xor")
+            .into()
+    }
+
+    pub fn build_not(&self, op: IntValue<'ctx>) -> BasicValueEnum<'ctx> {
+        self.builder
+            .build_not(op, "not")
+            .expect("failed to build logical not")
+            .into()
+    }
+
+    pub fn build_int_neg(&self, op: IntValue<'ctx>) -> BasicValueEnum<'ctx> {
+        self.builder
+            .build_int_neg(op, "ineg")
+            .expect("failed to build integer negation")
+            .into()
+    }
+
+    pub fn build_float_neg(&self, op: FloatValue<'ctx>) -> BasicValueEnum<'ctx> {
+        self.builder
+            .build_float_neg(op, "fneg")
+            .expect("failed to build integer negation")
+            .into()
     }
 }
 
