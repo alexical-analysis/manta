@@ -6,7 +6,8 @@ use inkwell::context::Context;
 use inkwell::module::Module;
 use inkwell::types::{BasicMetadataTypeEnum, BasicType, BasicTypeEnum};
 use inkwell::values::{
-    BasicValue, BasicValueEnum, FloatValue, FunctionValue, InstructionValue, IntValue, PointerValue,
+    BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, FunctionValue,
+    InstructionValue, IntValue, PointerValue,
 };
 use inkwell::{AddressSpace, FloatPredicate, IntPredicate};
 
@@ -17,14 +18,46 @@ use crate::mir::{
 };
 use crate::str_store::StrStore;
 
-pub struct FuncType<'a> {
-    pub params: Vec<&'a TypeSpec>,
-    pub return_type: &'a TypeSpec,
+pub fn build_func_value<'ctx>(
+    context: &'ctx Context,
+    module: &Module<'ctx>,
+    str_store: &StrStore,
+    function: &MirFunction,
+) -> FunctionValue<'ctx> {
+    // build the function value
+    let param_types: Vec<BasicMetadataTypeEnum> = function
+        .params
+        .iter()
+        .map(|local_id| {
+            function
+                .locals
+                .get(local_id.as_idx())
+                .expect("failed to find paramater local")
+        })
+        .map(|ts| &ts.type_spec)
+        .map(|ts| {
+            convert_type_spec(context, ts)
+                .expect("params can not be of unit type")
+                .into()
+        })
+        .collect();
+
+    let return_type = convert_type_spec(context, &function.return_type);
+    let func_type = match return_type {
+        Some(ts) => ts.fn_type(&param_types, false),
+        None => context.void_type().fn_type(&param_types, false),
+    };
+
+    let function_name = str_store
+        .get_string(function.name)
+        .expect("failed to get function name");
+    let llvm_function = module.add_function(function_name.as_str(), func_type, None);
+
+    llvm_function
 }
 
 pub struct FuncBuilder<'ctx, 'a> {
     context: &'ctx Context,
-    module: &'a Module<'ctx>,
     builder: &'a Builder<'ctx>,
     mir_function: &'a MirFunction,
     llvm_function: FunctionValue<'ctx>,
@@ -36,40 +69,11 @@ pub struct FuncBuilder<'ctx, 'a> {
 impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
     pub fn new(
         context: &'ctx Context,
-        module: &'a Module<'ctx>,
         builder: &'a Builder<'ctx>,
         function: &'a MirFunction,
+        llvm_function: FunctionValue<'ctx>,
         str_store: &StrStore,
     ) -> Self {
-        // build the function value
-        let param_types: Vec<BasicMetadataTypeEnum> = function
-            .params
-            .iter()
-            .map(|local_id| {
-                function
-                    .locals
-                    .get(local_id.as_idx())
-                    .expect("failed to find paramater local")
-            })
-            .map(|ts| &ts.type_spec)
-            .map(|ts| {
-                convert_type_spec(context, ts)
-                    .expect("params can not be of unit type")
-                    .into()
-            })
-            .collect();
-
-        let return_type = convert_type_spec(context, &function.return_type);
-        let func_type = match return_type {
-            Some(ts) => ts.fn_type(&param_types, false),
-            None => context.void_type().fn_type(&param_types, false),
-        };
-
-        let function_name = str_store
-            .get_string(function.name)
-            .expect("failed to get function name");
-        let llvm_function = module.add_function(function_name.as_str(), func_type, None);
-
         // pre-gen all the blocks
         let mut block_map = BTreeMap::new();
         let mut entry_block = None;
@@ -107,7 +111,6 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
 
         FuncBuilder {
             context,
-            module,
             builder,
             mir_function: function,
             llvm_function,
@@ -613,6 +616,33 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
         self.builder
             .build_struct_gep(pointee_ty, ptr, field as u32, "struce_gep")
             .expect("failed to build struct gep")
+    }
+
+    pub fn build_value_call(
+        &self,
+        function_name: &str,
+        function: FunctionValue<'ctx>,
+        args: &[BasicMetadataValueEnum<'ctx>],
+    ) -> BasicValueEnum<'ctx> {
+        let value = self
+            .builder
+            .build_call(function, args, function_name)
+            .expect("failed to build call");
+
+        value
+            .try_as_basic_value()
+            .expect_basic("failed to get return value as basic value")
+    }
+
+    pub fn build_void_call(
+        &self,
+        function_name: &str,
+        function: FunctionValue<'ctx>,
+        args: &[BasicMetadataValueEnum<'ctx>],
+    ) {
+        self.builder
+            .build_call(function, args, function_name)
+            .expect("failed to build call");
     }
 }
 

@@ -58,14 +58,17 @@ Block_8:                                          ; preds = %entry
 define void @main() {
 entry:
   %p = alloca ptr, align 8
+  %maybe_alloc = call { i8, [8 x i8] } @maybe_alloc(i1 false)
   switch i1 false, label %Block_7 [
     i8 0, label %Block_3
     i8 1, label %Block_5
   ]
   ret void
   %load = load ptr, ptr %p, align 8
+  call void @fmt_println_ptr(ptr %load)
   br label %Block_4
   br label %Block_2
+  call void @fmt_println(i64 0)
   br label %Block_6
   br label %Block_2
   unreachable

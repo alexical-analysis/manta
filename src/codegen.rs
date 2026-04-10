@@ -8,7 +8,7 @@ use inkwell::module::Module;
 use inkwell::passes::PassBuilderOptions;
 use inkwell::targets::TargetMachine;
 use inkwell::types::{BasicType, BasicTypeEnum};
-use inkwell::values::{BasicValueEnum, GlobalValue, PointerValue};
+use inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
 use inkwell::{AddressSpace, FloatPredicate, IntPredicate};
 
 use crate::blocker::{self, Arch};
@@ -16,7 +16,7 @@ use crate::mir::{
     self, ConstValue, GlobalId, Instruction, MirModule, Place, PlaceBase, Projection, TagSize,
     Terminator, TypeSpec, ValueId,
 };
-use crate::str_store::StrStore;
+use crate::str_store::{self, StrID, StrStore};
 
 use builder::FuncBuilder;
 
@@ -25,11 +25,17 @@ struct GlobalData<'ctx> {
     type_spec: TypeSpec,
 }
 
+struct FuncData<'ctx> {
+    function: FunctionValue<'ctx>,
+    return_type: TypeSpec,
+}
+
 pub struct Codegen<'ctx, 'str> {
     str_store: &'str StrStore,
     context: &'ctx Context,
     module_name: String,
     global_map: BTreeMap<GlobalId, GlobalData<'ctx>>,
+    function_map: BTreeMap<StrID, FuncData<'ctx>>,
 }
 
 impl<'ctx, 'str> Codegen<'ctx, 'str> {
@@ -39,6 +45,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             context,
             module_name,
             global_map: BTreeMap::new(),
+            function_map: BTreeMap::new(),
         }
     }
 
@@ -67,23 +74,50 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             );
         }
 
+        // add all the functions to the module
+        let init_func =
+            builder::build_func_value(self.context, &llvm_module, self.str_store, &module.init);
+        self.function_map.insert(
+            module.init.name,
+            FuncData {
+                function: init_func,
+                return_type: module.init.return_type.clone(),
+            },
+        );
+
+        for func in &module.functions {
+            let func_value =
+                builder::build_func_value(self.context, &llvm_module, self.str_store, &func);
+            self.function_map.insert(
+                func.name,
+                FuncData {
+                    function: func_value,
+                    return_type: func.return_type.clone(),
+                },
+            );
+        }
+
         // code gen the init function
         let mut func_builder = FuncBuilder::new(
             self.context,
-            &llvm_module,
             &builder,
             &module.init,
+            init_func,
             self.str_store,
         );
         self.gen_function(&mut func_builder);
 
         // code gen the remaining functions
-        for function in module.functions {
+        for func in module.functions {
+            let func_value = self
+                .function_map
+                .get(&func.name)
+                .expect("failed to get named function");
             let mut func_builder = FuncBuilder::new(
                 self.context,
-                &llvm_module,
                 &builder,
-                &function,
+                &func,
+                func_value.function,
                 self.str_store,
             );
             self.gen_function(&mut func_builder);
@@ -108,7 +142,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         module
             .run_passes(
                 passes.join(",").as_str(),
-                &target_machine,
+                target_machine,
                 PassBuilderOptions::create(),
             )
             .expect("failed to optimize module")
@@ -659,9 +693,9 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             Instruction::Load { place } => {
                 let (ptr, current_type) = match place.base {
                     PlaceBase::Local(local_id) => {
-                        let ptr = func_builder.get_local_ptr(local_id).clone();
+                        let ptr = func_builder.get_local_ptr(local_id);
                         let local_type_spec = func_builder.get_local_type_spec(local_id).clone();
-                        self.gen_place_ptr(func_builder, place, ptr, local_type_spec)
+                        self.gen_place_ptr(func_builder, place, *ptr, local_type_spec)
                     }
                     PlaceBase::Global(global_id) => {
                         let global_data = self
@@ -706,6 +740,81 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
 
                 func_builder.build_store(&current_type, ptr, *value);
                 None
+            }
+            Instruction::AddressOf { place } => {
+                let ptr = match place.base {
+                    PlaceBase::Local(local_id) => {
+                        let ptr = func_builder.get_local_ptr(local_id);
+                        let local_type_spec = func_builder.get_local_type_spec(local_id).clone();
+                        let (ptr, _) =
+                            self.gen_place_ptr(func_builder, place, *ptr, local_type_spec);
+                        ptr
+                    }
+                    PlaceBase::Global(global_id) => {
+                        let global_data = self
+                            .global_map
+                            .get(&global_id)
+                            .expect("failed to find global");
+                        let ptr = global_data.global_value.as_pointer_value();
+                        let (ptr, _) = self.gen_place_ptr(
+                            func_builder,
+                            place,
+                            ptr,
+                            global_data.type_spec.clone(),
+                        );
+                        ptr
+                    }
+                };
+
+                Some(ptr.into())
+            }
+            Instruction::Call { func, args } => {
+                if func == str_store::PANIC {
+                    eprintln!("TODO: skipping panic functions for now");
+                    return None;
+                }
+
+                let mut llvm_args = vec![];
+                for arg in args {
+                    let llvm_value = func_builder.get_llvm_value(arg);
+                    let llvm_value = match llvm_value {
+                        Some(v) => *v,
+                        None => {
+                            eprintln!("TODO: not all instructions are supported yet");
+                            return None;
+                        }
+                    };
+
+                    let llvm_value = llvm_value.into();
+                    llvm_args.push(llvm_value)
+                }
+
+                let func_data = self
+                    .function_map
+                    .get(&func)
+                    .expect("failed to get function by name");
+
+                let func_name = self
+                    .str_store
+                    .get_string(func)
+                    .expect("failed to get function name as string");
+                let func_name = func_name.as_str();
+
+                match func_data.return_type {
+                    TypeSpec::Unit => {
+                        func_builder.build_void_call(func_name, func_data.function, &llvm_args);
+                        None
+                    }
+                    _ => {
+                        let value = func_builder.build_value_call(
+                            func_name,
+                            func_data.function,
+                            &llvm_args,
+                        );
+
+                        Some(value)
+                    }
+                }
             }
             _ => None,
         }

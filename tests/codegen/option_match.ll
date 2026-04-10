@@ -34,6 +34,8 @@ define void @main() {
 entry:
   %r = alloca { i8, [4 x i8] }, align 8
   %v = alloca i32, align 4
+  %div = call { i8, [4 x i8] } @div(i32 10, i32 2)
+  store { i8, [4 x i8] } %div, ptr %r, align 1
   %load = load { i8, [4 x i8] }, ptr %r, align 1
   switch i1 false, label %Block_7 [
     i8 0, label %Block_3
@@ -41,8 +43,10 @@ entry:
   ]
   ret void
   %load1 = load i32, ptr %v, align 4
+  call void @fmt_println(i64 0, i32 %load1)
   br label %Block_4
   br label %Block_2
+  call void @fmt_println(i64 0)
   br label %Block_6
   br label %Block_2
   unreachable
