@@ -220,15 +220,15 @@
       },
       "local_map": {
         "30": 1,
-        "33": 3,
+        "33": 4,
         "35": 2,
-        "40": 4,
-        "52": 6,
-        "54": 5,
-        "60": 7,
-        "72": 9,
-        "74": 8,
-        "79": 10
+        "40": 5,
+        "52": 7,
+        "54": 6,
+        "60": 8,
+        "72": 11,
+        "74": 9,
+        "79": 12
       },
       "locals": [
         {
@@ -240,6 +240,20 @@
             "Struct": []
           },
           "name": 22
+        },
+        {
+          "type_spec": {
+            "Enum": {
+              "tag_size": "U8",
+              "variants": [
+                {
+                  "Struct": []
+                },
+                null
+              ]
+            }
+          },
+          "name": 18446744073709551591
         },
         {
           "type_spec": {
@@ -284,6 +298,18 @@
         {
           "type_spec": "U64",
           "name": 41
+        },
+        {
+          "type_spec": {
+            "Enum": {
+              "tag_size": "U8",
+              "variants": [
+                "U64",
+                null
+              ]
+            }
+          },
+          "name": 18446744073709551591
         },
         {
           "type_spec": "U64",
@@ -338,11 +364,12 @@
           "instructions": [
             1,
             2,
-            3
+            3,
+            4
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 3,
+              "discriminant": 4,
               "default": 5,
               "arms": [
                 {
@@ -357,12 +384,12 @@
         },
         {
           "instructions": [
-            13,
-            14
+            14,
+            15
           ],
           "terminator": {
             "Branch": {
-              "cond": 14,
+              "cond": 15,
               "true_target": 10,
               "false_target": 12
             }
@@ -370,10 +397,10 @@
         },
         {
           "instructions": [
-            4,
             5,
             6,
-            7
+            7,
+            8
           ],
           "terminator": {
             "Jump": {
@@ -391,10 +418,10 @@
         },
         {
           "instructions": [
-            8,
             9,
             10,
-            36
+            11,
+            38
           ],
           "terminator": {
             "Jump": {
@@ -405,8 +432,8 @@
         null,
         {
           "instructions": [
-            11,
-            12
+            12,
+            13
           ],
           "terminator": {
             "Jump": {
@@ -424,14 +451,15 @@
         },
         {
           "instructions": [
-            22,
             23,
             24,
-            25
+            25,
+            26,
+            27
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 25,
+              "discriminant": 27,
               "default": 19,
               "arms": [
                 {
@@ -446,9 +474,9 @@
         },
         {
           "instructions": [
-            15,
             16,
-            17
+            17,
+            18
           ],
           "terminator": {
             "Jump": {
@@ -466,8 +494,8 @@
         },
         {
           "instructions": [
-            18,
-            19
+            19,
+            20
           ],
           "terminator": {
             "Jump": {
@@ -478,8 +506,8 @@
         null,
         {
           "instructions": [
-            20,
-            21
+            21,
+            22
           ],
           "terminator": {
             "Jump": {
@@ -497,8 +525,8 @@
         },
         {
           "instructions": [
-            33,
-            34
+            35,
+            36
           ],
           "terminator": {
             "Jump": {
@@ -508,10 +536,10 @@
         },
         {
           "instructions": [
-            26,
-            27,
             28,
-            29
+            29,
+            30,
+            31
           ],
           "terminator": {
             "Jump": {
@@ -529,10 +557,10 @@
         },
         {
           "instructions": [
-            30,
-            31,
             32,
-            35
+            33,
+            34,
+            37
           ],
           "terminator": {
             "Jump": {
@@ -545,8 +573,8 @@
         null,
         {
           "instructions": [
-            20,
-            21
+            21,
+            22
           ],
           "terminator": {
             "Jump": {
@@ -566,8 +594,8 @@
         null,
         {
           "instructions": [
-            11,
-            12
+            12,
+            13
           ],
           "terminator": {
             "Jump": {
@@ -593,11 +621,11 @@
         },
         {
           "instructions": [
-            37
+            39
           ],
           "terminator": {
             "Return": {
-              "value": 37
+              "value": 39
             }
           }
         },
@@ -624,19 +652,6 @@
           }
         },
         {
-          "VariantGetTag": {
-            "src": 2
-          }
-        },
-        {
-          "VariantGetPayload": {
-            "src": 2,
-            "variant_id": {
-              "ConstUInt": 0
-            }
-          }
-        },
-        {
           "Store": {
             "place": {
               "base": {
@@ -644,14 +659,40 @@
               },
               "projections": []
             },
-            "value": 4
+            "value": 2
+          }
+        },
+        {
+          "VariantGetTag": {
+            "src": 2
+          }
+        },
+        {
+          "VariantGetPayload": {
+            "src": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 4
+              },
+              "projections": []
+            },
+            "value": 5
           }
         },
         {
           "Load": {
             "place": {
               "base": {
-                "Local": 3
+                "Local": 4
               },
               "projections": []
             }
@@ -665,14 +706,14 @@
               },
               "projections": []
             },
-            "value": 6
+            "value": 7
           }
         },
         {
           "Store": {
             "place": {
               "base": {
-                "Local": 4
+                "Local": 5
               },
               "projections": []
             },
@@ -683,7 +724,7 @@
           "Load": {
             "place": {
               "base": {
-                "Local": 4
+                "Local": 5
               },
               "projections": []
             }
@@ -694,7 +735,7 @@
             "tag": {
               "ConstUInt": 1
             },
-            "payload": 9
+            "payload": 10
           }
         },
         {
@@ -711,7 +752,7 @@
           "Call": {
             "func": 21,
             "args": [
-              11
+              12
             ]
           }
         },
@@ -734,39 +775,7 @@
         },
         {
           "Alloc": {
-            "meta_type": 13
-          }
-        },
-        {
-          "Store": {
-            "place": {
-              "base": {
-                "Local": 6
-              },
-              "projections": []
-            },
-            "value": 14
-          }
-        },
-        {
-          "Load": {
-            "place": {
-              "base": {
-                "Local": 6
-              },
-              "projections": []
-            }
-          }
-        },
-        {
-          "Store": {
-            "place": {
-              "base": {
-                "Local": 5
-              },
-              "projections": []
-            },
-            "value": 16
+            "meta_type": 14
           }
         },
         {
@@ -777,7 +786,39 @@
               },
               "projections": []
             },
-            "value": 14
+            "value": 15
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 7
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 6
+              },
+              "projections": []
+            },
+            "value": 17
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 8
+              },
+              "projections": []
+            },
+            "value": 15
           }
         },
         {
@@ -791,7 +832,7 @@
           "Load": {
             "place": {
               "base": {
-                "Local": 5
+                "Local": 6
               },
               "projections": []
             }
@@ -799,7 +840,7 @@
         },
         {
           "Free": {
-            "ptr": 20
+            "ptr": 21
           }
         },
         {
@@ -816,7 +857,7 @@
           "Load": {
             "place": {
               "base": {
-                "Local": 5
+                "Local": 6
               },
               "projections": [
                 "Deref"
@@ -828,40 +869,32 @@
           "Call": {
             "func": 24,
             "args": [
-              22,
-              23
+              23,
+              24
             ]
           }
         },
         {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 10
+              },
+              "projections": []
+            },
+            "value": 25
+          }
+        },
+        {
           "VariantGetTag": {
-            "src": 24
+            "src": 25
           }
         },
         {
           "VariantGetPayload": {
-            "src": 24,
-            "variant_id": {
-              "ConstUInt": 0
-            }
-          }
-        },
-        {
-          "Store": {
-            "place": {
+            "src": {
               "base": {
-                "Local": 9
-              },
-              "projections": []
-            },
-            "value": 26
-          }
-        },
-        {
-          "Load": {
-            "place": {
-              "base": {
-                "Local": 9
+                "Local": 10
               },
               "projections": []
             }
@@ -871,7 +904,7 @@
           "Store": {
             "place": {
               "base": {
-                "Local": 8
+                "Local": 11
               },
               "projections": []
             },
@@ -879,21 +912,42 @@
           }
         },
         {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 11
+              },
+              "projections": []
+            }
+          }
+        },
+        {
           "Store": {
             "place": {
               "base": {
-                "Local": 10
+                "Local": 9
               },
               "projections": []
             },
-            "value": 24
+            "value": 30
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 12
+              },
+              "projections": []
+            },
+            "value": 25
           }
         },
         {
           "Load": {
             "place": {
               "base": {
-                "Local": 10
+                "Local": 12
               },
               "projections": []
             }
@@ -904,7 +958,7 @@
             "tag": {
               "ConstUInt": 2
             },
-            "payload": 31
+            "payload": 33
           }
         },
         {
@@ -919,40 +973,40 @@
           "Store": {
             "place": {
               "base": {
-                "Local": 11
+                "Local": 13
               },
               "projections": []
             },
-            "value": 33
+            "value": 35
           }
         },
         {
           "Store": {
             "place": {
               "base": {
-                "Local": 11
+                "Local": 13
               },
               "projections": []
             },
-            "value": 32
+            "value": 34
           }
         },
         {
           "Store": {
             "place": {
               "base": {
-                "Local": 11
+                "Local": 13
               },
               "projections": []
             },
-            "value": 10
+            "value": 11
           }
         },
         {
           "Load": {
             "place": {
               "base": {
-                "Local": 11
+                "Local": 13
               },
               "projections": []
             }
@@ -972,6 +1026,7 @@
             ]
           }
         },
+        "Unit",
         "U8",
         {
           "Struct": []
@@ -1063,6 +1118,7 @@
             ]
           }
         },
+        "Unit",
         "U8",
         "U64",
         "Unit",

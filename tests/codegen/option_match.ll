@@ -39,7 +39,8 @@ entry:
   %div = call { i8, [4 x i8] } @div(i32 10, i32 2)
   store { i8, [4 x i8] } %div, ptr %r, align 1
   %load = load { i8, [4 x i8] }, ptr %r, align 1
-  switch i1 false, label %Block_7 [
+  %ext_tag = extractvalue { i8, [4 x i8] } %load, 0
+  switch i8 %ext_tag, label %Block_7 [
     i8 0, label %Block_3
     i8 1, label %Block_5
   ]
@@ -48,8 +49,11 @@ Block_2:                                          ; preds = %Block_6, %Block_4
   ret void
 
 Block_3:                                          ; preds = %entry
-  %load1 = load i32, ptr %v, align 4
-  call void @fmt_println(i64 0, i32 %load1)
+  %ext_pay = getelementptr inbounds nuw { i8, [4 x i8] }, ptr %r, i32 0, i32 1
+  %load1 = load i32, ptr %ext_pay, align 4
+  store i32 %load1, ptr %v, align 4
+  %load2 = load i32, ptr %v, align 4
+  call void @fmt_println(i64 0, i32 %load2)
   br label %Block_4
 
 Block_4:                                          ; preds = %Block_3

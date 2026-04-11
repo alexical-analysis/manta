@@ -59,6 +59,7 @@ pub const UNDERSCORE: StrID = StrID(usize::MAX - 20);
 pub const DEFER: StrID = StrID(usize::MAX - 21);
 pub const FREE: StrID = StrID(usize::MAX - 22);
 pub const ALLOC: StrID = StrID(usize::MAX - 23);
+pub const MATCH_TARGET: StrID = StrID(usize::MAX - 24);
 
 fn constant_str_id(s: &str) -> Option<StrID> {
     match s {
@@ -125,6 +126,7 @@ pub fn constant_id_str(id: StrID) -> Option<&'static str> {
         INNERLET => Some("<inner let>"),
         INIT => Some("<init>"),
         DEFER => Some("<defer>"),
+        MATCH_TARGET => Some("<match target>"),
 
         // Nil is also not a valid identifier
         NIL => Some("<nil>"),

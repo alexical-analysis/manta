@@ -7,7 +7,7 @@ use inkwell::module::Module;
 use inkwell::types::{BasicMetadataTypeEnum, BasicType, BasicTypeEnum};
 use inkwell::values::{
     BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, FunctionValue, IntValue,
-    PointerValue,
+    PointerValue, StructValue,
 };
 use inkwell::{AddressSpace, FloatPredicate, IntPredicate};
 
@@ -618,6 +618,26 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
         load.as_basic_value_enum()
     }
 
+    pub fn build_extract_payload(
+        &self,
+        enum_type: &TypeSpec,
+        ptr: PointerValue<'ctx>,
+    ) -> PointerValue<'ctx> {
+        let pointee_ty = self
+            .convert_type_spec(enum_type)
+            .expect("can not access field on unit type");
+
+        self.builder
+            .build_struct_gep(pointee_ty, ptr, 1, "ext_pay")
+            .expect("failed to build struct gep")
+    }
+
+    pub fn build_extract_tag(&self, struct_value: StructValue<'ctx>) -> BasicValueEnum<'ctx> {
+        self.builder
+            .build_extract_value(struct_value, 0, "ext_tag")
+            .expect("failed to build extract value")
+    }
+
     pub fn build_store(
         &self,
         pointee_typ: &TypeSpec,
@@ -664,7 +684,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
             .expect("can not access field on unit type");
 
         self.builder
-            .build_struct_gep(pointee_ty, ptr, field as u32, "struce_gep")
+            .build_struct_gep(pointee_ty, ptr, field as u32, "struct_gep")
             .expect("failed to build struct gep")
     }
 

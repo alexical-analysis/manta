@@ -568,6 +568,27 @@ impl<'a> Blocker<'a> {
             .expect("missing type for match target");
         let ts = lower_type_spec(target_ts);
 
+        // Get the target as a place as well since VariantGetPayload requires a place value instead
+        // of just a simple value_id. We check if the target is already a global or local that we
+        // can convert directly into a place or if we need a temporary local to hold the value
+        let local_target = self.fn_builder.find_local(target);
+        let global_target = self.global_map.get(&target);
+
+        let target_place = match (local_target, global_target) {
+            (Some(local_id), None) => Place::local(local_id),
+            (None, Some(global_id)) => Place::global(*global_id),
+            (Some(_), Some(_)) => unreachable!("value can not be both a local and a global"),
+            _ => {
+                let temp_local = self
+                    .fn_builder
+                    .add_local(str_store::MATCH_TARGET, ts.clone());
+                let tmp_place = Place::local(temp_local);
+                self.fn_builder
+                    .emit_store(block_id, tmp_place.clone(), target_id);
+                tmp_place
+            }
+        };
+
         let discriminant = self
             .fn_builder
             .emit_variant_get_tag(block_id, target_id, ts);
@@ -607,8 +628,7 @@ impl<'a> Blocker<'a> {
 
                             let payload_value = self.fn_builder.emit_variant_get_payload(
                                 arm_block,
-                                target_id,
-                                variant_id.clone(),
+                                target_place.clone(),
                                 ts.clone(),
                             );
 

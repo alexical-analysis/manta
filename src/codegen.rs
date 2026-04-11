@@ -868,13 +868,40 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 }
             }
             Instruction::CallTry { .. } => todo!("call_try instructions are not yet supported"),
-            Instruction::VariantGetPayload { .. } => {
-                eprintln!("TODO: variant_get_payload instructions are not yet supported");
-                None
+            Instruction::VariantGetPayload { src, .. } => {
+                // Clone to release the immutable borrow on func_builder so gen_place_ptr
+                // can take &mut func_builder below.
+                let payload_type = inst_type_spec.clone();
+
+                let (ptr, enum_type) = match src.base {
+                    PlaceBase::Local(local_id) => {
+                        let ptr = *func_builder.get_local_ptr(local_id);
+                        let ts = func_builder.get_local_type_spec(local_id).clone();
+                        self.gen_place_ptr(func_builder, src, ptr, ts)
+                    }
+                    PlaceBase::Global(global_id) => {
+                        let global_data = self
+                            .global_map
+                            .get(&global_id)
+                            .expect("failed to find global for variant_get_payload");
+                        let ptr = global_data.global_value.as_pointer_value();
+                        self.gen_place_ptr(func_builder, src, ptr, global_data.type_spec.clone())
+                    }
+                };
+
+                let data_ptr = func_builder.build_extract_payload(&enum_type, ptr);
+                let value = func_builder.build_load(&payload_type, data_ptr);
+
+                Some(value)
             }
-            Instruction::VariantGetTag { .. } => {
-                eprintln!("TODO: variant_get_payload instructions are not yet supported");
-                None
+            Instruction::VariantGetTag { src } => {
+                let src_value = func_builder
+                    .get_llvm_value(src)
+                    .expect("src value not found for variant_get_tag")
+                    .into_struct_value();
+
+                let value = func_builder.build_extract_tag(src_value);
+                Some(value)
             }
             Instruction::MakeVariant { .. } => {
                 eprintln!("TODO: make_variant instructions are not yet supported");
