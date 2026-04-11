@@ -903,15 +903,18 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 Some(value)
             }
             Instruction::MakeVariant { tag, payload } => {
+                // clone here so the func_builder borrow ends
+                let variant_type = inst_type_spec.clone();
+
                 // start with an poison struct with the correct struct type
-                let struct_type = builder::convert_type_spec(self.context, inst_type_spec)
+                let struct_type = builder::convert_type_spec(self.context, &variant_type)
                     .expect("can not have struct of unit type")
                     .into_struct_type();
                 let poison_struct = struct_type.get_undef();
 
-                let (tag_ts, payload_ts) = match inst_type_spec {
+                let (tag_ts, payload_ts) = match &variant_type {
                     TypeSpec::Enum { tag_size, variants } => {
-                        let tag_ts = match tag_size {
+                        let tag_ts = match &tag_size {
                             TagSize::U8 => TypeSpec::U8,
                             TagSize::U16 => TypeSpec::U16,
                             TagSize::U32 => TypeSpec::U32,
@@ -921,18 +924,38 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                         let payload_ts = match tag {
                             ConstValue::ConstUInt(i) => variants
                                 .get(i as usize)
-                                .expect("failed to get tagged variant"),
+                                .expect("failed to get tagged variant")
+                                .clone(),
                             _ => panic!("invalid tag value, must be uint"),
                         };
 
                         // TODO: we can remove this once we update the enum type spec to use Unit
                         // types instead of optional types
                         let payload_ts = match payload_ts {
-                            Some(t) => t,
-                            None => &TypeSpec::Unit,
+                            Some(t) => t.clone(),
+                            None => TypeSpec::Unit,
                         };
 
                         (tag_ts, payload_ts)
+                    }
+                    _ => panic!("type must be an enum"),
+                };
+
+                let opaque_ts = match &variant_type {
+                    TypeSpec::Enum { variants, .. } => {
+                        let mut bytes = 0;
+                        for ts in variants.iter().flatten() {
+                            // TODO: actually repsect the correct arch here
+                            let layout = blocker::type_layout(ts, Arch::W64);
+                            if layout.size() > bytes {
+                                bytes = layout.size()
+                            }
+                        }
+
+                        TypeSpec::Array {
+                            elem: Box::new(TypeSpec::U8),
+                            len: bytes as usize,
+                        }
                     }
                     _ => panic!("type must be an enum"),
                 };
@@ -945,12 +968,17 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     None => return Some(result),
                 };
 
+                let tmp_local = func_builder.build_alloca(&opaque_ts, "tmp");
                 let payload = func_builder
                     .get_llvm_value(payload)
                     .expect("failed to get enum payload");
 
+                func_builder.build_store(&payload_ts, tmp_local, *payload);
+
+                let payload = func_builder.build_load(&opaque_ts, tmp_local);
+
                 let result_struct = result.into_struct_value();
-                let result = func_builder.build_insert_payload(result_struct, *payload);
+                let result = func_builder.build_insert_payload(result_struct, payload);
 
                 Some(result)
             }

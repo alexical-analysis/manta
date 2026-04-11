@@ -61,6 +61,7 @@ pub struct FuncBuilder<'ctx, 'a> {
     builder: &'a Builder<'ctx>,
     mir_function: &'a MirFunction,
     llvm_function: FunctionValue<'ctx>,
+    current_block: BlockId,
     block_map: BTreeMap<BlockId, BasicBlock<'ctx>>,
     local_map: HashMap<LocalId, PointerValue<'ctx>>,
     value_map: HashMap<ValueId, BasicValueEnum<'ctx>>,
@@ -114,6 +115,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
             builder,
             mir_function: function,
             llvm_function,
+            current_block: function.entry_block,
             block_map,
             local_map,
             value_map: HashMap::new(),
@@ -129,7 +131,19 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
             .collect()
     }
 
-    pub fn position_at_block(&self, block_id: BlockId) {
+    pub fn position_at_entry_block(&self) {
+        let block = self
+            .block_map
+            .get(&self.mir_function.entry_block)
+            .expect("failed to find entry block in block map");
+        match block.get_first_instruction() {
+            Some(first_inst) => self.builder.position_before(&first_inst),
+            None => self.builder.position_at_end(*block),
+        }
+    }
+
+    pub fn position_at_block(&mut self, block_id: BlockId) {
+        self.current_block = block_id;
         let block = self
             .block_map
             .get(&block_id)
@@ -411,6 +425,23 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
         self.builder
             .build_switch(value, else_block, &cases)
             .expect("failed to build switch terminator");
+    }
+
+    pub fn build_alloca(&mut self, type_spec: &TypeSpec, name: &str) -> PointerValue<'ctx> {
+        let block_id = self.current_block;
+        self.position_at_entry_block();
+
+        let ty = self
+            .convert_type_spec(type_spec)
+            .expect("cant alloca a unit type");
+        let ptr = self
+            .builder
+            .build_alloca(ty, name)
+            .expect("failed to build alloca");
+
+        self.position_at_block(block_id);
+
+        ptr
     }
 
     pub fn build_int_add(&self, lhs: IntValue<'ctx>, rhs: IntValue<'ctx>) -> BasicValueEnum<'ctx> {

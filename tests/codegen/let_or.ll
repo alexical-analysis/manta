@@ -34,6 +34,9 @@ entry:
 
 define { i8, [24 x i8] } @read_file({ i64, ptr } %0) {
 entry:
+  %tmp19 = alloca [24 x i8], align 1
+  %tmp12 = alloca [24 x i8], align 1
+  %tmp = alloca [24 x i8], align 1
   %path = alloca { i64, ptr }, align 8
   %f = alloca {}, align 8
   %"<match target>" = alloca { i8, [0 x i8] }, align 8
@@ -75,22 +78,26 @@ Block_4:                                          ; preds = %Block_3
 Block_5:                                          ; preds = %entry
   store { i8, [0 x i8] } %os_open, ptr %"<wrap>", align 1
   %load9 = load { i8, [0 x i8] }, ptr %"<wrap>", align 1
-  %set_tag = insertvalue { i8, [24 x i8] } { i8 1, [24 x i8] undef }, { i8, [0 x i8] } %load9, 1
+  store { i8, [0 x i8] } %load9, ptr %tmp, align 1
+  %load10 = load [24 x i8], ptr %tmp, align 1
+  %set_tag = insertvalue { i8, [24 x i8] } { i8 1, [24 x i8] undef }, [24 x i8] %load10, 1
   store { i8, [24 x i8] } %set_tag, ptr %"<defer>", align 1
   br label %Block_16
 
 Block_9:                                          ; preds = %Block_11
-  %load10 = load { i64, ptr }, ptr %s, align 8
-  %set_tag11 = insertvalue { i8, [24 x i8] } { i8 0, [24 x i8] undef }, { i64, ptr } %load10, 1
-  store { i8, [24 x i8] } %set_tag11, ptr %"<defer>", align 1
+  %load11 = load { i64, ptr }, ptr %s, align 8
+  store { i64, ptr } %load11, ptr %tmp12, align 8
+  %load13 = load [24 x i8], ptr %tmp12, align 1
+  %set_tag14 = insertvalue { i8, [24 x i8] } { i8 0, [24 x i8] undef }, [24 x i8] %load13, 1
+  store { i8, [24 x i8] } %set_tag14, ptr %"<defer>", align 1
   br label %Block_16
 
 Block_10:                                         ; preds = %Block_2
-  %ext_pay12 = getelementptr inbounds nuw { i8, [16 x i8] }, ptr %"<match target>2", i32 0, i32 1
-  %load13 = load { i64, ptr }, ptr %ext_pay12, align 8
-  store { i64, ptr } %load13, ptr %s3, align 8
-  %load14 = load { i64, ptr }, ptr %s3, align 8
-  store { i64, ptr } %load14, ptr %s, align 8
+  %ext_pay15 = getelementptr inbounds nuw { i8, [16 x i8] }, ptr %"<match target>2", i32 0, i32 1
+  %load16 = load { i64, ptr }, ptr %ext_pay15, align 8
+  store { i64, ptr } %load16, ptr %s3, align 8
+  %load17 = load { i64, ptr }, ptr %s3, align 8
+  store { i64, ptr } %load17, ptr %s, align 8
   br label %Block_11
 
 Block_11:                                         ; preds = %Block_10
@@ -98,22 +105,24 @@ Block_11:                                         ; preds = %Block_10
 
 Block_12:                                         ; preds = %Block_2
   store { i8, [16 x i8] } %io_read_to_string, ptr %"<wrap>4", align 1
-  %load15 = load { i8, [16 x i8] }, ptr %"<wrap>4", align 1
-  %set_tag16 = insertvalue { i8, [24 x i8] } { i8 2, [24 x i8] undef }, { i8, [16 x i8] } %load15, 1
-  store { i8, [24 x i8] } %set_tag16, ptr %"<defer>", align 1
+  %load18 = load { i8, [16 x i8] }, ptr %"<wrap>4", align 1
+  store { i8, [16 x i8] } %load18, ptr %tmp19, align 1
+  %load20 = load [24 x i8], ptr %tmp19, align 1
+  %set_tag21 = insertvalue { i8, [24 x i8] } { i8 2, [24 x i8] undef }, [24 x i8] %load20, 1
+  store { i8, [24 x i8] } %set_tag21, ptr %"<defer>", align 1
   br label %Block_16
 
 Block_16:                                         ; preds = %Block_12, %Block_9, %Block_5
-  %load17 = load {}, ptr %f, align 1
-  call void @os_close({} %load17)
+  %load22 = load {}, ptr %f, align 1
+  call void @os_close({} %load22)
   br label %Block_17
 
 Block_17:                                         ; preds = %Block_16
   br label %Block_19
 
 Block_19:                                         ; preds = %Block_17
-  %load18 = load { i8, [24 x i8] }, ptr %"<defer>", align 1
-  ret { i8, [24 x i8] } %load18
+  %load23 = load { i8, [24 x i8] }, ptr %"<defer>", align 1
+  ret { i8, [24 x i8] } %load23
 }
 
 define void @main() {

@@ -16,6 +16,7 @@ entry:
 
 define { i8, [4 x i8] } @div(i32 %0, i32 %1) {
 entry:
+  %tmp = alloca [4 x i8], align 1
   %a = alloca i32, align 4
   %b = alloca i32, align 4
   %load = load i32, ptr %b, align 4
@@ -29,7 +30,9 @@ Block_3:                                          ; preds = %entry
   %load1 = load i32, ptr %a, align 4
   %load2 = load i32, ptr %b, align 4
   %sdiv = sdiv i32 %load1, %load2
-  %set_tag = insertvalue { i8, [4 x i8] } { i8 0, [4 x i8] undef }, i32 %sdiv, 1
+  store i32 %sdiv, ptr %tmp, align 4
+  %load3 = load [4 x i8], ptr %tmp, align 1
+  %set_tag = insertvalue { i8, [4 x i8] } { i8 0, [4 x i8] undef }, [4 x i8] %load3, 1
   ret { i8, [4 x i8] } %set_tag
 }
 
