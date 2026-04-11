@@ -149,10 +149,6 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
         self.mir_function.get_value_type(value_id)
     }
 
-    pub fn convert_type_spec(&self, type_spec: &TypeSpec) -> Option<BasicTypeEnum<'ctx>> {
-        convert_type_spec(self.context, type_spec)
-    }
-
     pub fn get_local_ptr(&'a self, local_id: LocalId) -> &'a PointerValue<'ctx> {
         self.local_map
             .get(&local_id)
@@ -165,6 +161,10 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
 
     pub fn insert_value(&mut self, value_id: ValueId, value: BasicValueEnum<'ctx>) {
         self.value_map.insert(value_id, value);
+    }
+
+    fn convert_type_spec(&self, type_spec: &TypeSpec) -> Option<BasicTypeEnum<'ctx>> {
+        convert_type_spec(self.context, type_spec)
     }
 
     fn convert_const(
@@ -638,6 +638,28 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
             .expect("failed to build extract value")
     }
 
+    pub fn build_insert_payload(
+        &self,
+        struct_value: StructValue<'ctx>,
+        payload_value: BasicValueEnum<'ctx>,
+    ) -> BasicValueEnum<'ctx> {
+        self.builder
+            .build_insert_value(struct_value, payload_value, 1, "set_tag")
+            .expect("failed to build insert value")
+            .as_basic_value_enum()
+    }
+
+    pub fn build_insert_tag(
+        &self,
+        struct_value: StructValue<'ctx>,
+        tag_value: IntValue<'ctx>,
+    ) -> BasicValueEnum<'ctx> {
+        self.builder
+            .build_insert_value(struct_value, tag_value, 0, "set_tag")
+            .expect("failed to build insert value")
+            .as_basic_value_enum()
+    }
+
     pub fn build_store(
         &self,
         pointee_typ: &TypeSpec,
@@ -744,7 +766,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
     }
 }
 
-fn convert_type_spec<'ctx>(
+pub fn convert_type_spec<'ctx>(
     context: &'ctx Context,
     type_spec: &TypeSpec,
 ) -> Option<BasicTypeEnum<'ctx>> {

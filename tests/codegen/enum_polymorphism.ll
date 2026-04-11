@@ -58,11 +58,13 @@ entry:
   %square_area = alloca double, align 8
   %circle = alloca { i8, [8 x i8] }, align 8
   %circle_area = alloca double, align 8
+  store { i8, [8 x i8] } { i8 1, i64 0 }, ptr %square, align 1
   %load = load { i8, [8 x i8] }, ptr %square, align 1
   %area = call double @area({ i8, [8 x i8] } %load)
   store double %area, ptr %square_area, align 8
   %load1 = load double, ptr %square_area, align 8
   call void @fmt_println(double %load1)
+  store { i8, [8 x i8] } zeroinitializer, ptr %circle, align 1
   %load2 = load { i8, [8 x i8] }, ptr %circle, align 1
   %area3 = call double @area({ i8, [8 x i8] } %load2)
   store double %area3, ptr %circle_area, align 8

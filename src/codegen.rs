@@ -59,7 +59,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 .str_store
                 .get_string(global.name)
                 .expect("failed to get global name");
-            let global_type = match self.gen_type_spec(&global.type_spec) {
+            let global_type = match builder::convert_type_spec(self.context, &global.type_spec) {
                 Some(ts) => ts,
                 None => panic!("can not have global values with unit type"),
             };
@@ -868,10 +868,9 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 }
             }
             Instruction::CallTry { .. } => todo!("call_try instructions are not yet supported"),
-            Instruction::VariantGetPayload { src, .. } => {
-                // Clone to release the immutable borrow on func_builder so gen_place_ptr
-                // can take &mut func_builder below.
-                let payload_type = inst_type_spec.clone();
+            Instruction::VariantGetPayload { src } => {
+                // need to do this first to relase func_builder from the borrow
+                let payload_ts = inst_type_spec.clone();
 
                 let (ptr, enum_type) = match src.base {
                     PlaceBase::Local(local_id) => {
@@ -890,7 +889,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 };
 
                 let data_ptr = func_builder.build_extract_payload(&enum_type, ptr);
-                let value = func_builder.build_load(&payload_type, data_ptr);
+                let value = func_builder.build_load(&payload_ts, data_ptr);
 
                 Some(value)
             }
@@ -903,9 +902,57 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 let value = func_builder.build_extract_tag(src_value);
                 Some(value)
             }
-            Instruction::MakeVariant { .. } => {
-                eprintln!("TODO: make_variant instructions are not yet supported");
-                None
+            Instruction::MakeVariant { tag, payload } => {
+                // start with an poison struct with the correct struct type
+                let struct_type = builder::convert_type_spec(self.context, inst_type_spec)
+                    .expect("can not have struct of unit type")
+                    .into_struct_type();
+                let poison_struct = struct_type.get_undef();
+
+                let (tag_ts, payload_ts) = match inst_type_spec {
+                    TypeSpec::Enum { tag_size, variants } => {
+                        let tag_ts = match tag_size {
+                            TagSize::U8 => TypeSpec::U8,
+                            TagSize::U16 => TypeSpec::U16,
+                            TagSize::U32 => TypeSpec::U32,
+                            TagSize::U64 => TypeSpec::U64,
+                        };
+
+                        let payload_ts = match tag {
+                            ConstValue::ConstUInt(i) => variants
+                                .get(i as usize)
+                                .expect("failed to get tagged variant"),
+                            _ => panic!("invalid tag value, must be uint"),
+                        };
+
+                        // TODO: we can remove this once we update the enum type spec to use Unit
+                        // types instead of optional types
+                        let payload_ts = match payload_ts {
+                            Some(t) => t,
+                            None => &TypeSpec::Unit,
+                        };
+
+                        (tag_ts, payload_ts)
+                    }
+                    _ => panic!("type must be an enum"),
+                };
+
+                let const_tag = self.gen_const(&tag, &tag_ts).into_int_value();
+                let result = func_builder.build_insert_tag(poison_struct, const_tag);
+
+                let payload = match payload {
+                    Some(p) => p,
+                    None => return Some(result),
+                };
+
+                let payload = func_builder
+                    .get_llvm_value(payload)
+                    .expect("failed to get enum payload");
+
+                let result_struct = result.into_struct_value();
+                let result = func_builder.build_insert_payload(result_struct, *payload);
+
+                Some(result)
             }
             Instruction::BitwiseAnd { lhs, rhs } => match inst_type_spec {
                 TypeSpec::I8
@@ -1237,8 +1284,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     basic_values.push(const_value);
                 }
 
-                let gen_type = self
-                    .gen_type_spec(elem)
+                let gen_type = builder::convert_type_spec(self.context, elem)
                     .expect("can not have const array of unit type");
 
                 match gen_type {
@@ -1271,91 +1317,6 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 self.context.i64_type().const_zero().into()
             }
         }
-    }
-
-    fn gen_type_spec(&self, type_spec: &TypeSpec) -> Option<BasicTypeEnum<'ctx>> {
-        if matches!(type_spec, TypeSpec::Unit) {
-            return None;
-        }
-
-        let ts = match type_spec {
-            TypeSpec::I8 => self.context.i8_type().into(),
-            TypeSpec::I16 => self.context.i16_type().into(),
-            TypeSpec::I32 => self.context.i32_type().into(),
-            TypeSpec::I64 => self.context.i64_type().into(),
-
-            // LLVM has no unsigned; signedness is in ops so we just use the basic int types here
-            TypeSpec::U8 => self.context.i8_type().into(),
-            TypeSpec::U16 => self.context.i16_type().into(),
-            TypeSpec::U32 => self.context.i32_type().into(),
-            TypeSpec::U64 => self.context.i64_type().into(),
-
-            TypeSpec::F32 => self.context.f32_type().into(),
-            TypeSpec::F64 => self.context.f64_type().into(),
-            TypeSpec::Bool => self.context.bool_type().into(),
-            TypeSpec::Ptr(_) | TypeSpec::OpaquePtr => {
-                self.context.ptr_type(AddressSpace::default()).into()
-            }
-            TypeSpec::Array { elem, len } => self
-                .gen_type_spec(elem)
-                .expect("can not get array of unit types")
-                .array_type(*len as u32)
-                .into(),
-            TypeSpec::Struct(fields) => {
-                let field_types: Vec<_> = fields
-                    .iter()
-                    .map(|f| {
-                        self.gen_type_spec(f)
-                            .expect("can not have a field of unit type")
-                    })
-                    .collect();
-                self.context.struct_type(&field_types, false).into()
-            }
-            TypeSpec::String => {
-                let len_type = self.context.i64_type();
-                let ptr_type = self.context.ptr_type(AddressSpace::default());
-                self.context
-                    .struct_type(&[len_type.into(), ptr_type.into()], false)
-                    .into()
-            }
-            TypeSpec::Enum { tag_size, variants } => {
-                let tag_type = match tag_size {
-                    TagSize::U8 => self.context.i8_type(),
-                    TagSize::U16 => self.context.i16_type(),
-                    TagSize::U32 => self.context.i32_type(),
-                    TagSize::U64 => self.context.i64_type(),
-                };
-
-                let mut max_size = 0;
-                for payload in variants.iter().flatten() {
-                    // TODO: need to actually respect the target arch width
-                    let layout = blocker::type_layout(payload, Arch::W64);
-                    if layout.size() > max_size {
-                        max_size = layout.size()
-                    }
-                }
-
-                let raw_data_type = self.context.i8_type().array_type(max_size as u32);
-
-                self.context
-                    .struct_type(&[tag_type.into(), raw_data_type.into()], false)
-                    .into()
-            }
-            TypeSpec::Slice(_) => self
-                .context
-                .struct_type(
-                    &[
-                        self.context.i64_type().into(),
-                        self.context.i64_type().into(),
-                        self.context.ptr_type(AddressSpace::default()).into(),
-                    ],
-                    false,
-                )
-                .into(),
-            ts => todo!("failed to gen type for type spec: {:?}", ts),
-        };
-
-        Some(ts)
     }
 }
 

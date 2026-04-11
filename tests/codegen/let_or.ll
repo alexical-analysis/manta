@@ -11,7 +11,7 @@ entry:
 define { i8, [0 x i8] } @os_open({ i64, ptr } %0) {
 entry:
   %path = alloca { i64, ptr }, align 8
-  unreachable
+  ret { i8, [0 x i8] } { i8 1, [0 x i8] undef }
 }
 
 define void @os_close({} %0) {
@@ -23,7 +23,7 @@ entry:
 define { i8, [16 x i8] } @io_read_to_string({} %0) {
 entry:
   %f = alloca {}, align 8
-  unreachable
+  ret { i8, [16 x i8] } { i8 1, [16 x i8] undef }
 }
 
 define void @fmt_println({ i64, ptr } %0) {
@@ -75,18 +75,22 @@ Block_4:                                          ; preds = %Block_3
 Block_5:                                          ; preds = %entry
   store { i8, [0 x i8] } %os_open, ptr %"<wrap>", align 1
   %load9 = load { i8, [0 x i8] }, ptr %"<wrap>", align 1
+  %set_tag = insertvalue { i8, [24 x i8] } { i8 1, [24 x i8] undef }, { i8, [0 x i8] } %load9, 1
+  store { i8, [24 x i8] } %set_tag, ptr %"<defer>", align 1
   br label %Block_16
 
 Block_9:                                          ; preds = %Block_11
   %load10 = load { i64, ptr }, ptr %s, align 8
+  %set_tag11 = insertvalue { i8, [24 x i8] } { i8 0, [24 x i8] undef }, { i64, ptr } %load10, 1
+  store { i8, [24 x i8] } %set_tag11, ptr %"<defer>", align 1
   br label %Block_16
 
 Block_10:                                         ; preds = %Block_2
-  %ext_pay11 = getelementptr inbounds nuw { i8, [16 x i8] }, ptr %"<match target>2", i32 0, i32 1
-  %load12 = load { i64, ptr }, ptr %ext_pay11, align 8
-  store { i64, ptr } %load12, ptr %s3, align 8
-  %load13 = load { i64, ptr }, ptr %s3, align 8
-  store { i64, ptr } %load13, ptr %s, align 8
+  %ext_pay12 = getelementptr inbounds nuw { i8, [16 x i8] }, ptr %"<match target>2", i32 0, i32 1
+  %load13 = load { i64, ptr }, ptr %ext_pay12, align 8
+  store { i64, ptr } %load13, ptr %s3, align 8
+  %load14 = load { i64, ptr }, ptr %s3, align 8
+  store { i64, ptr } %load14, ptr %s, align 8
   br label %Block_11
 
 Block_11:                                         ; preds = %Block_10
@@ -94,20 +98,22 @@ Block_11:                                         ; preds = %Block_10
 
 Block_12:                                         ; preds = %Block_2
   store { i8, [16 x i8] } %io_read_to_string, ptr %"<wrap>4", align 1
-  %load14 = load { i8, [16 x i8] }, ptr %"<wrap>4", align 1
+  %load15 = load { i8, [16 x i8] }, ptr %"<wrap>4", align 1
+  %set_tag16 = insertvalue { i8, [24 x i8] } { i8 2, [24 x i8] undef }, { i8, [16 x i8] } %load15, 1
+  store { i8, [24 x i8] } %set_tag16, ptr %"<defer>", align 1
   br label %Block_16
 
 Block_16:                                         ; preds = %Block_12, %Block_9, %Block_5
-  %load15 = load {}, ptr %f, align 1
-  call void @os_close({} %load15)
+  %load17 = load {}, ptr %f, align 1
+  call void @os_close({} %load17)
   br label %Block_17
 
 Block_17:                                         ; preds = %Block_16
   br label %Block_19
 
 Block_19:                                         ; preds = %Block_17
-  %load16 = load { i8, [24 x i8] }, ptr %"<defer>", align 1
-  ret { i8, [24 x i8] } %load16
+  %load18 = load { i8, [24 x i8] }, ptr %"<defer>", align 1
+  ret { i8, [24 x i8] } %load18
 }
 
 define void @main() {

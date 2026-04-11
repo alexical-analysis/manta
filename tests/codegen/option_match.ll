@@ -23,13 +23,14 @@ entry:
   br i1 %ieq, label %Block_2, label %Block_3
 
 Block_2:                                          ; preds = %entry
-  unreachable
+  ret { i8, [4 x i8] } { i8 1, [4 x i8] undef }
 
 Block_3:                                          ; preds = %entry
   %load1 = load i32, ptr %a, align 4
   %load2 = load i32, ptr %b, align 4
   %sdiv = sdiv i32 %load1, %load2
-  unreachable
+  %set_tag = insertvalue { i8, [4 x i8] } { i8 0, [4 x i8] undef }, i32 %sdiv, 1
+  ret { i8, [4 x i8] } %set_tag
 }
 
 define void @main() {
