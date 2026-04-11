@@ -7,8 +7,8 @@ use inkwell::context::Context;
 use inkwell::module::{Linkage, Module};
 use inkwell::passes::PassBuilderOptions;
 use inkwell::targets::TargetMachine;
-use inkwell::types::{BasicType, BasicTypeEnum};
-use inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
+use inkwell::types::BasicTypeEnum;
+use inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, IntValue, PointerValue};
 use inkwell::{AddressSpace, FloatPredicate, IntPredicate};
 
 use crate::blocker::{self, Arch};
@@ -19,6 +19,12 @@ use crate::mir::{
 use crate::str_store::{self, StrID, StrStore};
 
 use builder::FuncBuilder;
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+struct GlobalString<'ctx> {
+    ptr: PointerValue<'ctx>,
+    len: IntValue<'ctx>,
+}
 
 struct GlobalData<'ctx> {
     global_value: GlobalValue<'ctx>,
@@ -35,6 +41,7 @@ pub struct Codegen<'ctx, 'str> {
     context: &'ctx Context,
     module_name: String,
     global_map: BTreeMap<GlobalId, GlobalData<'ctx>>,
+    global_strings: BTreeMap<StrID, GlobalString<'ctx>>,
     function_map: BTreeMap<StrID, FuncData<'ctx>>,
 }
 
@@ -45,6 +52,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             context,
             module_name,
             global_map: BTreeMap::new(),
+            global_strings: BTreeMap::new(),
             function_map: BTreeMap::new(),
         }
     }
@@ -205,7 +213,11 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         builder::convert_type_spec(self.context, type_spec)
     }
 
-    fn gen_function<'a>(&self, module: &Module<'ctx>, func_builder: &mut FuncBuilder<'ctx, 'a>) {
+    fn gen_function<'a>(
+        &mut self,
+        module: &Module<'ctx>,
+        func_builder: &mut FuncBuilder<'ctx, 'a>,
+    ) {
         for (block_id, block) in func_builder.get_blocks() {
             self.gen_block(module, func_builder, block_id, block)
         }
@@ -214,7 +226,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
     // TODO: we're getting a lot of params here (6), that probably means we should try to bundle
     // some of these together and expose only the functionality that we need to simplify the code
     fn gen_block<'a>(
-        &self,
+        &mut self,
         module: &Module<'ctx>,
         func_builder: &mut FuncBuilder<'ctx, 'a>,
         block_id: mir::BlockId,
@@ -260,7 +272,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
     }
 
     fn gen_inst<'a>(
-        &self,
+        &mut self,
         module: &Module<'ctx>,
         func_builder: &mut FuncBuilder<'ctx, 'a>,
         value_id: ValueId,
@@ -1285,7 +1297,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
     }
 
     fn gen_const(
-        &self,
+        &mut self,
         module: &Module<'ctx>,
         const_value: &ConstValue,
         type_spec: &TypeSpec,
@@ -1382,26 +1394,33 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 value.into()
             }
             (ConstValue::ConstString(s), TypeSpec::String) => {
-                // TODO: right now we create a unique string constant every time this appears but
-                // because strings are immutable in manta we can actuall map the str_id to the
-                // global value that stores to bytes and only allocate new globals when needed
-                let const_str = self
-                    .str_store
-                    .get_string(*s)
-                    .expect("failed to get string data");
-                let bytes = const_str.as_bytes();
+                let global_str = match self.global_strings.get(s) {
+                    Some(global) => *global,
+                    None => {
+                        let const_str = self
+                            .str_store
+                            .get_string(*s)
+                            .expect("failed to get string data");
+                        let bytes = const_str.as_bytes();
 
-                let str_bytes = self.context.const_string(bytes, false);
-                let array_type = self.context.i8_type().array_type(bytes.len() as u32);
-                let global_bytes = module.add_global(array_type, None, "const_str");
-                global_bytes.set_initializer(&str_bytes);
-                global_bytes.set_constant(true);
-                global_bytes.set_linkage(Linkage::Private);
+                        let str_bytes = self.context.const_string(bytes, false);
+                        let array_type = self.context.i8_type().array_type(bytes.len() as u32);
+                        let global_bytes = module.add_global(array_type, None, "const_str");
+                        global_bytes.set_initializer(&str_bytes);
+                        global_bytes.set_constant(true);
+                        global_bytes.set_linkage(Linkage::Private);
 
-                let ptr = global_bytes.as_pointer_value();
-                let len = self.context.i64_type().const_int(bytes.len() as u64, false);
+                        let ptr = global_bytes.as_pointer_value();
+                        let len = self.context.i64_type().const_int(bytes.len() as u64, false);
 
-                let str_struct = self.context.const_struct(&[len.into(), ptr.into()], false);
+                        self.global_strings.insert(*s, GlobalString { ptr, len });
+                        GlobalString { ptr, len }
+                    }
+                };
+
+                let str_struct = self
+                    .context
+                    .const_struct(&[global_str.len.into(), global_str.ptr.into()], false);
                 str_struct.into()
             }
             _ => {
