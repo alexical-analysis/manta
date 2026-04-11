@@ -2,6 +2,10 @@
 source_filename = "let_or"
 
 @panic_msg = private unnamed_addr constant [24 x i8] c"Panic reached! exiting!\00", align 1
+@const_str = private constant [10 x i8] c"/tmp/x.txt"
+@const_str.1 = private constant [16 x i8] c"/tmp/missing.txt"
+@const_str.2 = private constant [11 x i8] c"read failed"
+@const_str.3 = private constant [1 x i8] c"_"
 
 define void @"<init>"() {
 entry:
@@ -135,7 +139,7 @@ entry:
   %"<match target>3" = alloca { i8, [24 x i8] }, align 8
   %content4 = alloca { i64, ptr }, align 8
   %panic = alloca { i8, [24 x i8] }, align 8
-  %read_file = call { i8, [24 x i8] } @read_file(i64 0)
+  %read_file = call { i8, [24 x i8] } @read_file({ i64, ptr } { i64 10, ptr @const_str })
   store { i8, [24 x i8] } %read_file, ptr %"<match target>", align 1
   %ext_tag = extractvalue { i8, [24 x i8] } %read_file, 0
   switch i8 %ext_tag, label %Block_5 [
@@ -145,7 +149,7 @@ entry:
 Block_2:                                          ; preds = %Block_4
   %load = load { i64, ptr }, ptr %content, align 8
   call void @fmt_println({ i64, ptr } %load)
-  %read_file5 = call { i8, [24 x i8] } @read_file(i64 0)
+  %read_file5 = call { i8, [24 x i8] } @read_file({ i64, ptr } { i64 16, ptr @const_str.1 })
   store { i8, [24 x i8] } %read_file5, ptr %"<match target>3", align 1
   %ext_tag6 = extractvalue { i8, [24 x i8] } %read_file5, 0
   switch i8 %ext_tag6, label %Block_10 [
@@ -165,7 +169,7 @@ Block_4:                                          ; preds = %Block_3
 
 Block_5:                                          ; preds = %entry
   store { i8, [24 x i8] } %read_file, ptr %e, align 1
-  call void @fmt_println(i64 0)
+  call void @fmt_println({ i64, ptr } { i64 11, ptr @const_str.2 })
   ret void
 
 Block_7:                                          ; preds = %Block_9

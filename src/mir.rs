@@ -235,9 +235,6 @@ pub enum ConstValue {
     ConstFloat(f64),
     ConstBool(bool),
     ConstArray(Vec<ConstValue>),
-    // TODO: this is really just an artifact caused by the fact that I'm not fully supporting
-    // structs yet. Once I can build structs in the MIR instructions I can get rid of both of
-    // these. For now though, they're in use so I'm going to keep them around
     ConstString(StrID),
     ConstStruct(Vec<ConstValue>),
 }

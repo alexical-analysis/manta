@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use crate::hir::NodeID;
 use crate::mir::{
-    BasicBlock, BlockId, ConstValue, GlobalId, Instruction, Local, LocalId, MirFunction, Place,
-    SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
+    BasicBlock, BlockId, ConstValue, Instruction, Local, LocalId, MirFunction, Place, SwitchArm,
+    TagSize, Terminator, TypeSpec, ValueId,
 };
 use crate::str_store::{self, StrID};
 

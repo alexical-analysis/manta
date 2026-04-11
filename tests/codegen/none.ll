@@ -2,6 +2,8 @@
 source_filename = "none"
 
 @panic_msg = private unnamed_addr constant [24 x i8] c"Panic reached! exiting!\00", align 1
+@const_str = private constant [1 x i8] c"_"
+@const_str.1 = private constant [13 x i8] c"no allocation"
 
 define void @"<init>"() {
 entry:
@@ -31,7 +33,7 @@ entry:
   br i1 %load, label %Block_2, label %Block_3
 
 Block_2:                                          ; preds = %entry
-  %alloc = call ptr @alloc(i64 0)
+  %alloc = call ptr @alloc({ i64, i64, i64 } { i64 4, i64 4, i64 0 })
   %ptr_nonnull = icmp ne ptr %alloc, null
   br i1 %ptr_nonnull, label %Block_5, label %Block_7
 
@@ -89,7 +91,7 @@ Block_4:                                          ; preds = %Block_3
   br label %Block_2
 
 Block_5:                                          ; preds = %entry
-  call void @fmt_println(i64 0)
+  call void @fmt_println({ i64, ptr } { i64 13, ptr @const_str.1 })
   br label %Block_6
 
 Block_6:                                          ; preds = %Block_5
