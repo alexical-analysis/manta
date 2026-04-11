@@ -1,6 +1,8 @@
 ; ModuleID = 'defer_free'
 source_filename = "defer_free"
 
+@panic_msg = private unnamed_addr constant [24 x i8] c"Panic reached! exiting!\00", align 1
+
 define void @"<init>"() {
 entry:
   ret void
@@ -127,3 +129,10 @@ declare void @free(ptr)
 declare i32 @puts(ptr)
 
 declare void @abort()
+
+define void @panic() {
+entry:
+  %puts = call i32 @puts(ptr @panic_msg)
+  call void @abort()
+  unreachable
+}

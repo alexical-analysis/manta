@@ -13,8 +13,8 @@ use inkwell::{AddressSpace, FloatPredicate, IntPredicate};
 
 use crate::blocker::{self, Arch};
 use crate::mir::{
-    self, ConstValue, GlobalId, Instruction, MirFunction, MirModule, Place, PlaceBase, Projection,
-    TagSize, Terminator, TypeSpec, ValueId,
+    self, ConstValue, GlobalId, Instruction, MirModule, Place, PlaceBase, Projection, TagSize,
+    Terminator, TypeSpec, ValueId,
 };
 use crate::str_store::{self, StrID, StrStore};
 
@@ -110,16 +110,34 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             &[self.context.ptr_type(AddressSpace::default()).into()],
             false,
         );
-        llvm_module.add_function("free", free_type, Some(Linkage::External));
+        let free_fn = llvm_module.add_function("free", free_type, Some(Linkage::External));
 
         let puts_type = self.context.i32_type().fn_type(
             &[self.context.ptr_type(AddressSpace::default()).into()],
             false,
         );
-        llvm_module.add_function("puts", puts_type, Some(Linkage::External));
+        let puts_fn = llvm_module.add_function("puts", puts_type, Some(Linkage::External));
 
         let abort_type = self.context.void_type().fn_type(&[], false);
-        llvm_module.add_function("abort", abort_type, Some(Linkage::External));
+        let abort_fn = llvm_module.add_function("abort", abort_type, Some(Linkage::External));
+
+        // build manta module level functions that are built on top of the c-runtime
+        let panic_fn =
+            builder::build_manta_panic(self.context, &builder, &llvm_module, puts_fn, abort_fn);
+        self.function_map.insert(
+            str_store::PANIC,
+            FuncData {
+                function: panic_fn,
+                return_type: TypeSpec::Unit,
+            },
+        );
+        self.function_map.insert(
+            str_store::FREE,
+            FuncData {
+                function: free_fn,
+                return_type: TypeSpec::Unit,
+            },
+        );
 
         // code gen the init function
         let mut func_builder = FuncBuilder::new(
@@ -213,7 +231,15 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 arms,
             } => func_builder.build_switch(discriminant, default, arms),
             Terminator::Unreachable => func_builder.build_unreachable(),
-            Terminator::Panic => func_builder.build_unreachable(),
+            Terminator::Panic => {
+                let panic_data = self
+                    .function_map
+                    .get(&str_store::PANIC)
+                    .expect("failed to get panic function");
+                let panic_fn = panic_data.function;
+
+                func_builder.build_panic(panic_fn)
+            }
         };
     }
 

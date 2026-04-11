@@ -16,7 +16,7 @@ use crate::mir::{
     self, BlockId, ConstValue, Instruction, LocalId, MirFunction, SwitchArm, TagSize, TypeSpec,
     ValueId,
 };
-use crate::str_store::StrStore;
+use crate::str_store::{self, StrStore};
 
 pub fn build_func_value<'ctx>(
     context: &'ctx Context,
@@ -264,43 +264,86 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
     }
 }
 
+pub fn build_manta_panic<'ctx>(
+    context: &'ctx Context,
+    builder: &Builder<'ctx>,
+    module: &Module<'ctx>,
+    puts_fn: FunctionValue<'ctx>,
+    abort_fn: FunctionValue<'ctx>,
+) -> FunctionValue<'ctx> {
+    // TODO: eventually it would be nice to have panic take a message but first we need to get
+    // structs, and then strings straight earlier on in the pipeline
+    let panic_type = context.void_type().fn_type(&[], false);
+    let panic_name =
+        str_store::constant_id_str(str_store::PANIC).expect("failed to get panic name");
+
+    let panic_fn = module.add_function(panic_name, panic_type, None);
+
+    let entry_block = context.append_basic_block(panic_fn, "entry");
+    builder.position_at_end(entry_block);
+
+    let panic_msg = builder
+        .build_global_string_ptr("Panic reached! exiting!", "panic_msg")
+        .expect("failed to build panic message")
+        .as_pointer_value();
+
+    builder
+        .build_call(puts_fn, &[panic_msg.into()], "puts")
+        .expect("failed to build puts call");
+
+    builder
+        .build_call(abort_fn, &[], "abort")
+        .expect("failed to build abort call");
+
+    builder
+        .build_unreachable()
+        .expect("failed to build unreachable");
+
+    panic_fn
+}
+
 // This impl block provides all the wrappers around inkwell builder calls
 impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
-    pub fn build_unreachable(&self) -> InstructionValue<'ctx> {
+    pub fn build_unreachable(&self) {
         self.builder
             .build_unreachable()
-            .expect("failed to build unreachable terminator")
+            .expect("failed to build unreachable terminator");
     }
 
-    pub fn build_value_return(&self, value_id: &ValueId) -> InstructionValue<'ctx> {
+    pub fn build_panic(&self, panic_fn: FunctionValue<'ctx>) {
+        // panic already calls terminator unreachable
+        self.build_void_call("panic", panic_fn, &[])
+    }
+
+    pub fn build_value_return(&self, value_id: &ValueId) {
         match self.value_map.get(&value_id) {
             Some(v) => {
                 let value: Option<&dyn BasicValue<'ctx>> = Some(v);
                 self.builder
                     .build_return(value)
-                    .expect("failed to build value return terminator")
+                    .expect("failed to build value return terminator");
             }
             None => {
                 eprintln!("not all values are being calculated yet, skipping for now");
-                self.build_unreachable()
+                self.build_unreachable();
             }
         }
     }
 
-    pub fn build_void_return(&self) -> InstructionValue<'ctx> {
+    pub fn build_void_return(&self) {
         self.builder
             .build_return(None)
-            .expect("failed to build void return terminator")
+            .expect("failed to build void return terminator");
     }
 
-    pub fn build_unconditional_branch(&self, target: &BlockId) -> InstructionValue<'ctx> {
+    pub fn build_unconditional_branch(&self, target: &BlockId) {
         let dest = self
             .block_map
             .get(target)
             .expect("failed to get target block");
         self.builder
             .build_unconditional_branch(*dest)
-            .expect("failed to build unconditional branch terminator")
+            .expect("failed to build unconditional branch terminator");
     }
 
     pub fn build_conditional_branch(
@@ -308,7 +351,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
         cond: &ValueId,
         then_block: &BlockId,
         else_block: &BlockId,
-    ) -> InstructionValue<'ctx> {
+    ) {
         let cond = self.value_map.get(cond);
         let cond = match cond {
             Some(v) => v.into_int_value(),
@@ -329,7 +372,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
 
         self.builder
             .build_conditional_branch(cond, then_block, else_block)
-            .expect("failed to build conditional branch terminator")
+            .expect("failed to build conditional branch terminator");
     }
 
     pub fn build_switch(
@@ -337,7 +380,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
         discriminant: &ValueId,
         default_block: &BlockId,
         arms: &Vec<SwitchArm>,
-    ) -> InstructionValue<'ctx> {
+    ) {
         let value = self.value_map.get(discriminant);
         let value = match value {
             Some(v) => v.into_int_value(),
@@ -367,7 +410,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
 
         self.builder
             .build_switch(value, else_block, &cases)
-            .expect("failed to build switch terminator")
+            .expect("failed to build switch terminator");
     }
 
     pub fn build_int_add(&self, lhs: IntValue<'ctx>, rhs: IntValue<'ctx>) -> BasicValueEnum<'ctx> {

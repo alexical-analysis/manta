@@ -55,7 +55,10 @@ pub const INNERLET: StrID = StrID(usize::MAX - 18);
 
 pub const INIT: StrID = StrID(usize::MAX - 19);
 pub const UNDERSCORE: StrID = StrID(usize::MAX - 20);
+
 pub const DEFER: StrID = StrID(usize::MAX - 21);
+pub const FREE: StrID = StrID(usize::MAX - 22);
+pub const ALLOC: StrID = StrID(usize::MAX - 23);
 
 fn constant_str_id(s: &str) -> Option<StrID> {
     match s {
@@ -77,6 +80,9 @@ fn constant_str_id(s: &str) -> Option<StrID> {
         "size_of" => Some(SIZEOF),
         "align_of" => Some(ALIGNOF),
         "flags" => Some(METAFLAGS),
+        "free" => Some(FREE),
+        "alloc" => Some(ALLOC),
+
         "_" => Some(UNDERSCORE),
 
         // this is not a valid identifier so we can use it in the compiler
@@ -89,7 +95,7 @@ fn constant_str_id(s: &str) -> Option<StrID> {
     }
 }
 
-fn constant_id_str(id: StrID) -> Option<&'static str> {
+pub fn constant_id_str(id: StrID) -> Option<&'static str> {
     match id {
         U8 => Some("u8"),
         U16 => Some("u16"),
@@ -109,6 +115,8 @@ fn constant_id_str(id: StrID) -> Option<&'static str> {
         SIZEOF => Some("size_of"),
         ALIGNOF => Some("align_of"),
         METAFLAGS => Some("flags"),
+        FREE => Some("free"),
+        ALLOC => Some("alloc"),
         UNDERSCORE => Some("_"),
 
         // this is not a valid identifier so we can use it in the compiler
