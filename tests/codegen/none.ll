@@ -56,9 +56,12 @@ Block_7:                                          ; preds = %Block_2
 
 define void @main() {
 entry:
+  %"<match target>" = alloca { i8, [8 x i8] }, align 8
   %p = alloca ptr, align 8
   %maybe_alloc = call { i8, [8 x i8] } @maybe_alloc(i1 false)
-  switch i1 false, label %Block_7 [
+  store { i8, [8 x i8] } %maybe_alloc, ptr %"<match target>", align 1
+  %ext_tag = extractvalue { i8, [8 x i8] } %maybe_alloc, 0
+  switch i8 %ext_tag, label %Block_7 [
     i8 0, label %Block_3
     i8 1, label %Block_5
   ]
@@ -67,8 +70,11 @@ Block_2:                                          ; preds = %Block_6, %Block_4
   ret void
 
 Block_3:                                          ; preds = %entry
-  %load = load ptr, ptr %p, align 8
-  call void @fmt_println_ptr(ptr %load)
+  %ext_pay = getelementptr inbounds nuw { i8, [8 x i8] }, ptr %"<match target>", i32 0, i32 1
+  %load = load ptr, ptr %ext_pay, align 8
+  store ptr %load, ptr %p, align 8
+  %load1 = load ptr, ptr %p, align 8
+  call void @fmt_println_ptr(ptr %load1)
   br label %Block_4
 
 Block_4:                                          ; preds = %Block_3

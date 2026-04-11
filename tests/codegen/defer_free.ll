@@ -31,18 +31,22 @@ define { i8, [16 x i8] } @write_and_cleanup({ i64, ptr } %0) {
 entry:
   %path = alloca { i64, ptr }, align 8
   %f = alloca {}, align 8
+  %"<match target>" = alloca { i8, [0 x i8] }, align 8
   %f1 = alloca {}, align 8
   %"<wrap>" = alloca { i8, [0 x i8] }, align 8
   %buf = alloca ptr, align 8
   %buf2 = alloca ptr, align 8
   %panic = alloca ptr, align 8
   %n = alloca i64, align 8
-  %n3 = alloca i64, align 8
-  %"<wrap>4" = alloca { i8, [8 x i8] }, align 8
+  %"<match target>3" = alloca { i8, [8 x i8] }, align 8
+  %n4 = alloca i64, align 8
+  %"<wrap>5" = alloca { i8, [8 x i8] }, align 8
   %"<defer>" = alloca { i8, [16 x i8] }, align 8
   %load = load { i64, ptr }, ptr %path, align 8
   %os_open = call { i8, [0 x i8] } @os_open({ i64, ptr } %load)
-  switch i1 false, label %Block_5 [
+  store { i8, [0 x i8] } %os_open, ptr %"<match target>", align 1
+  %ext_tag = extractvalue { i8, [0 x i8] } %os_open, 0
+  switch i8 %ext_tag, label %Block_5 [
     i8 0, label %Block_3
   ]
 
@@ -50,8 +54,11 @@ Block_2:                                          ; preds = %Block_4
   br i1 false, label %Block_10, label %Block_12
 
 Block_3:                                          ; preds = %entry
-  %load5 = load {}, ptr %f1, align 1
-  store {} %load5, ptr %f, align 1
+  %ext_pay = getelementptr inbounds nuw { i8, [0 x i8] }, ptr %"<match target>", i32 0, i32 1
+  %load6 = load {}, ptr %ext_pay, align 1
+  store {} %load6, ptr %f1, align 1
+  %load7 = load {}, ptr %f1, align 1
+  store {} %load7, ptr %f, align 1
   br label %Block_4
 
 Block_4:                                          ; preds = %Block_3
@@ -59,29 +66,31 @@ Block_4:                                          ; preds = %Block_3
 
 Block_5:                                          ; preds = %entry
   store { i8, [0 x i8] } %os_open, ptr %"<wrap>", align 1
-  %load6 = load { i8, [0 x i8] }, ptr %"<wrap>", align 1
+  %load8 = load { i8, [0 x i8] }, ptr %"<wrap>", align 1
   br label %Block_23
 
 Block_7:                                          ; preds = %Block_15
-  %load7 = load {}, ptr %f, align 1
-  call void @os_close({} %load7)
+  %load9 = load {}, ptr %f, align 1
+  call void @os_close({} %load9)
   br label %Block_8
 
 Block_8:                                          ; preds = %Block_7
   br label %Block_29
 
 Block_9:                                          ; preds = %Block_11
-  %load8 = load {}, ptr %f, align 1
-  %load9 = load ptr, ptr %buf, align 8
-  %load10 = load { i64, i64, ptr }, ptr %load9, align 8
-  %os_write = call { i8, [8 x i8] } @os_write({} %load8, { i64, i64, ptr } %load10)
-  switch i1 false, label %Block_19 [
+  %load10 = load {}, ptr %f, align 1
+  %load11 = load ptr, ptr %buf, align 8
+  %load12 = load { i64, i64, ptr }, ptr %load11, align 8
+  %os_write = call { i8, [8 x i8] } @os_write({} %load10, { i64, i64, ptr } %load12)
+  store { i8, [8 x i8] } %os_write, ptr %"<match target>3", align 1
+  %ext_tag13 = extractvalue { i8, [8 x i8] } %os_write, 0
+  switch i8 %ext_tag13, label %Block_19 [
     i8 0, label %Block_17
   ]
 
 Block_10:                                         ; preds = %Block_2
-  %load11 = load ptr, ptr %buf2, align 8
-  store ptr %load11, ptr %buf, align 8
+  %load14 = load ptr, ptr %buf2, align 8
+  store ptr %load14, ptr %buf, align 8
   br label %Block_11
 
 Block_11:                                         ; preds = %Block_10
@@ -91,8 +100,8 @@ Block_12:                                         ; preds = %Block_2
   br label %Block_14
 
 Block_14:                                         ; preds = %Block_12
-  %load12 = load ptr, ptr %buf, align 8
-  call void @free(ptr %load12)
+  %load15 = load ptr, ptr %buf, align 8
+  call void @free(ptr %load15)
   br label %Block_15
 
 Block_15:                                         ; preds = %Block_14
@@ -102,29 +111,32 @@ Block_16:                                         ; preds = %Block_18
   br label %Block_23
 
 Block_17:                                         ; preds = %Block_9
-  %load13 = load i64, ptr %n3, align 8
-  store i64 %load13, ptr %n, align 8
+  %ext_pay16 = getelementptr inbounds nuw { i8, [8 x i8] }, ptr %"<match target>3", i32 0, i32 1
+  %load17 = load i64, ptr %ext_pay16, align 8
+  store i64 %load17, ptr %n4, align 8
+  %load18 = load i64, ptr %n4, align 8
+  store i64 %load18, ptr %n, align 8
   br label %Block_18
 
 Block_18:                                         ; preds = %Block_17
   br label %Block_16
 
 Block_19:                                         ; preds = %Block_9
-  store { i8, [8 x i8] } %os_write, ptr %"<wrap>4", align 1
-  %load14 = load { i8, [8 x i8] }, ptr %"<wrap>4", align 1
+  store { i8, [8 x i8] } %os_write, ptr %"<wrap>5", align 1
+  %load19 = load { i8, [8 x i8] }, ptr %"<wrap>5", align 1
   br label %Block_23
 
 Block_23:                                         ; preds = %Block_19, %Block_16, %Block_5
-  %load15 = load ptr, ptr %buf, align 8
-  call void @free(ptr %load15)
+  %load20 = load ptr, ptr %buf, align 8
+  call void @free(ptr %load20)
   br label %Block_24
 
 Block_24:                                         ; preds = %Block_23
   br label %Block_27
 
 Block_27:                                         ; preds = %Block_24
-  %load16 = load {}, ptr %f, align 1
-  call void @os_close({} %load16)
+  %load21 = load {}, ptr %f, align 1
+  call void @os_close({} %load21)
   br label %Block_28
 
 Block_28:                                         ; preds = %Block_27
@@ -135,8 +147,8 @@ Block_29:                                         ; preds = %Block_8
   unreachable
 
 Block_30:                                         ; preds = %Block_28
-  %load17 = load { i8, [16 x i8] }, ptr %"<defer>", align 1
-  ret { i8, [16 x i8] } %load17
+  %load22 = load { i8, [16 x i8] }, ptr %"<defer>", align 1
+  ret { i8, [16 x i8] } %load22
 }
 
 declare ptr @malloc(i64)

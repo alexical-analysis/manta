@@ -396,9 +396,24 @@
       "params": [],
       "return_type": "Unit",
       "local_map": {
-        "47": 1
+        "47": 2
       },
       "locals": [
+        {
+          "type_spec": {
+            "Enum": {
+              "tag_size": "U8",
+              "variants": [
+                {
+                  "Ptr": "I32"
+                },
+                null,
+                null
+              ]
+            }
+          },
+          "name": 18446744073709551591
+        },
         {
           "type_spec": {
             "Ptr": "I32"
@@ -411,11 +426,12 @@
           "instructions": [
             1,
             2,
-            3
+            3,
+            4
           ],
           "terminator": {
             "SwitchVariant": {
-              "discriminant": 3,
+              "discriminant": 4,
               "default": 7,
               "arms": [
                 {
@@ -444,10 +460,10 @@
         },
         {
           "instructions": [
-            4,
             5,
             6,
-            7
+            7,
+            8
           ],
           "terminator": {
             "Jump": {
@@ -465,8 +481,8 @@
         },
         {
           "instructions": [
-            8,
-            9
+            9,
+            10
           ],
           "terminator": {
             "Jump": {
@@ -506,19 +522,6 @@
           }
         },
         {
-          "VariantGetTag": {
-            "src": 2
-          }
-        },
-        {
-          "VariantGetPayload": {
-            "src": 2,
-            "variant_id": {
-              "ConstUInt": 0
-            }
-          }
-        },
-        {
           "Store": {
             "place": {
               "base": {
@@ -526,14 +529,40 @@
               },
               "projections": []
             },
-            "value": 4
+            "value": 2
+          }
+        },
+        {
+          "VariantGetTag": {
+            "src": 2
+          }
+        },
+        {
+          "VariantGetPayload": {
+            "src": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            },
+            "value": 5
           }
         },
         {
           "Load": {
             "place": {
               "base": {
-                "Local": 1
+                "Local": 2
               },
               "projections": []
             }
@@ -543,7 +572,7 @@
           "Call": {
             "func": 9,
             "args": [
-              6
+              7
             ]
           }
         },
@@ -558,7 +587,7 @@
           "Call": {
             "func": 14,
             "args": [
-              8
+              9
             ]
           }
         }
@@ -577,6 +606,7 @@
             ]
           }
         },
+        "Unit",
         "U8",
         {
           "Ptr": "I32"

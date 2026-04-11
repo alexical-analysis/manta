@@ -318,12 +318,12 @@ pub enum Instruction {
         args: Vec<ValueId>,
         handler: BlockId,
     },
-    /// variant_get_payload(src: ValueId, variant_id) -> ValueId
+    /// variant_get_payload(src: Place) -> ValueId
     /// variants can only ever contain a single value in Manta so there's no need to extract a
-    /// specific field
+    /// specific field. src is a Place so codegen can struct_gep directly into the enum's alloca.
+    /// The payload type is already encoded in the instruction's result TypeSpec.
     VariantGetPayload {
-        src: ValueId,
-        variant_id: ConstValue,
+        src: Place,
     },
     /// variant_get_tag(src: ValueId) -> ValueId
     /// Extracts the discriminant tag from an enum value as an integer.

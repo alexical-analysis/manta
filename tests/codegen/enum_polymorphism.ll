@@ -22,24 +22,31 @@ entry:
   %r = alloca double, align 8
   %s1 = alloca double, align 8
   %load = load { i8, [8 x i8] }, ptr %s, align 1
-  switch i1 false, label %Block_7 [
+  %ext_tag = extractvalue { i8, [8 x i8] } %load, 0
+  switch i8 %ext_tag, label %Block_7 [
     i8 0, label %Block_3
     i8 1, label %Block_5
   ]
 
 Block_3:                                          ; preds = %entry
-  %load2 = load double, ptr @MATH_PI, align 8
-  %load3 = load double, ptr %r, align 8
-  %fmul = fmul double %load2, %load3
+  %ext_pay = getelementptr inbounds nuw { i8, [8 x i8] }, ptr %s, i32 0, i32 1
+  %load2 = load double, ptr %ext_pay, align 8
+  store double %load2, ptr %r, align 8
+  %load3 = load double, ptr @MATH_PI, align 8
   %load4 = load double, ptr %r, align 8
-  %fmul5 = fmul double %fmul, %load4
-  ret double %fmul5
+  %fmul = fmul double %load3, %load4
+  %load5 = load double, ptr %r, align 8
+  %fmul6 = fmul double %fmul, %load5
+  ret double %fmul6
 
 Block_5:                                          ; preds = %entry
-  %load6 = load double, ptr %s1, align 8
-  %load7 = load double, ptr %s1, align 8
-  %fmul8 = fmul double %load6, %load7
-  ret double %fmul8
+  %ext_pay7 = getelementptr inbounds nuw { i8, [8 x i8] }, ptr %s, i32 0, i32 1
+  %load8 = load double, ptr %ext_pay7, align 8
+  store double %load8, ptr %s1, align 8
+  %load9 = load double, ptr %s1, align 8
+  %load10 = load double, ptr %s1, align 8
+  %fmul11 = fmul double %load9, %load10
+  ret double %fmul11
 
 Block_7:                                          ; preds = %entry
   unreachable

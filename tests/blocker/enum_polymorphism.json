@@ -199,9 +199,11 @@
         },
         {
           "VariantGetPayload": {
-            "src": 1,
-            "variant_id": {
-              "ConstUInt": 0
+            "src": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
             }
           }
         },
@@ -260,9 +262,11 @@
         },
         {
           "VariantGetPayload": {
-            "src": 1,
-            "variant_id": {
-              "ConstUInt": 1
+            "src": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
             }
           }
         },

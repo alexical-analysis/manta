@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use crate::hir::NodeID;
 use crate::mir::{
-    BasicBlock, BlockId, ConstValue, Instruction, Local, LocalId, MirFunction, Place, SwitchArm,
-    TagSize, Terminator, TypeSpec, ValueId,
+    BasicBlock, BlockId, ConstValue, GlobalId, Instruction, Local, LocalId, MirFunction, Place,
+    SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
 };
 use crate::str_store::{self, StrID};
 
@@ -798,17 +798,13 @@ impl FunctionBuilder {
     pub fn emit_variant_get_payload(
         &mut self,
         block: BlockId,
-        target: ValueId,
-        variant_id: ConstValue,
+        target: Place,
         result_type: TypeSpec,
     ) -> ValueId {
         self.add_instruction(
             block,
             result_type,
-            Instruction::VariantGetPayload {
-                src: target,
-                variant_id,
-            },
+            Instruction::VariantGetPayload { src: target },
         )
     }
 
