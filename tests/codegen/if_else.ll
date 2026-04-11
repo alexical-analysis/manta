@@ -4,7 +4,6 @@ source_filename = "if_else"
 @panic_msg = private unnamed_addr constant [24 x i8] c"Panic reached! exiting!\00", align 1
 @const_str = private constant [3 x i8] c"yes"
 @const_str.1 = private constant [2 x i8] c"no"
-@const_str.2 = private constant [3 x i8] c"yes"
 
 define void @"<init>"() {
 entry:
@@ -49,7 +48,7 @@ Block_7:                                          ; preds = %Block_5
   br label %Block_6
 
 Block_8:                                          ; preds = %Block_3
-  call void @fmt_println({ i64, ptr } { i64 3, ptr @const_str.2 })
+  call void @fmt_println({ i64, ptr } { i64 3, ptr @const_str })
   br label %Block_9
 
 Block_9:                                          ; preds = %Block_8
