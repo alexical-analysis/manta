@@ -54,22 +54,30 @@ Block_7:                                          ; preds = %entry
 
 define void @main() {
 entry:
+  %tmp3 = alloca [8 x i8], align 1
+  %tmp = alloca [8 x i8], align 1
   %square = alloca { i8, [8 x i8] }, align 8
   %square_area = alloca double, align 8
   %circle = alloca { i8, [8 x i8] }, align 8
   %circle_area = alloca double, align 8
-  store { i8, [8 x i8] } { i8 1, i64 0 }, ptr %square, align 1
-  %load = load { i8, [8 x i8] }, ptr %square, align 1
-  %area = call double @area({ i8, [8 x i8] } %load)
+  store i64 0, ptr %tmp, align 8
+  %load = load [8 x i8], ptr %tmp, align 1
+  %set_tag = insertvalue { i8, [8 x i8] } { i8 1, [8 x i8] undef }, [8 x i8] %load, 1
+  store { i8, [8 x i8] } %set_tag, ptr %square, align 1
+  %load1 = load { i8, [8 x i8] }, ptr %square, align 1
+  %area = call double @area({ i8, [8 x i8] } %load1)
   store double %area, ptr %square_area, align 8
-  %load1 = load double, ptr %square_area, align 8
-  call void @fmt_println(double %load1)
-  store { i8, [8 x i8] } zeroinitializer, ptr %circle, align 1
-  %load2 = load { i8, [8 x i8] }, ptr %circle, align 1
-  %area3 = call double @area({ i8, [8 x i8] } %load2)
-  store double %area3, ptr %circle_area, align 8
-  %load4 = load double, ptr %circle_area, align 8
-  call void @fmt_println(double %load4)
+  %load2 = load double, ptr %square_area, align 8
+  call void @fmt_println(double %load2)
+  store i64 0, ptr %tmp3, align 8
+  %load4 = load [8 x i8], ptr %tmp3, align 1
+  %set_tag5 = insertvalue { i8, [8 x i8] } { i8 0, [8 x i8] undef }, [8 x i8] %load4, 1
+  store { i8, [8 x i8] } %set_tag5, ptr %circle, align 1
+  %load6 = load { i8, [8 x i8] }, ptr %circle, align 1
+  %area7 = call double @area({ i8, [8 x i8] } %load6)
+  store double %area7, ptr %circle_area, align 8
+  %load8 = load double, ptr %circle_area, align 8
+  call void @fmt_println(double %load8)
   ret void
 }
 

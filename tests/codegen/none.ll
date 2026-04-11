@@ -22,6 +22,7 @@ entry:
 
 define { i8, [8 x i8] } @maybe_alloc(i1 %0) {
 entry:
+  %tmp = alloca [8 x i8], align 1
   %cond = alloca i1, align 1
   %p = alloca ptr, align 8
   %p1 = alloca ptr, align 8
@@ -39,12 +40,14 @@ Block_4:                                          ; preds = %Block_6
   %load2 = load ptr, ptr %p, align 8
   store i32 42, ptr %load2, align 4
   %load3 = load ptr, ptr %p, align 8
-  %set_tag = insertvalue { i8, [8 x i8] } { i8 0, [8 x i8] undef }, ptr %load3, 1
+  store ptr %load3, ptr %tmp, align 8
+  %load4 = load [8 x i8], ptr %tmp, align 1
+  %set_tag = insertvalue { i8, [8 x i8] } { i8 0, [8 x i8] undef }, [8 x i8] %load4, 1
   ret { i8, [8 x i8] } %set_tag
 
 Block_5:                                          ; preds = %Block_2
-  %load4 = load ptr, ptr %p1, align 8
-  store ptr %load4, ptr %p, align 8
+  %load5 = load ptr, ptr %p1, align 8
+  store ptr %load5, ptr %p, align 8
   br label %Block_6
 
 Block_6:                                          ; preds = %Block_5
