@@ -675,7 +675,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
         payload_value: BasicValueEnum<'ctx>,
     ) -> BasicValueEnum<'ctx> {
         self.builder
-            .build_insert_value(struct_value, payload_value, 1, "set_tag")
+            .build_insert_value(struct_value, payload_value, 1, "set_pay")
             .expect("failed to build insert value")
             .as_basic_value_enum()
     }

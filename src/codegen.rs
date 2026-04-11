@@ -59,7 +59,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 .str_store
                 .get_string(global.name)
                 .expect("failed to get global name");
-            let global_type = match builder::convert_type_spec(self.context, &global.type_spec) {
+            let global_type = match self.convert_type_spec(&global.type_spec) {
                 Some(ts) => ts,
                 None => panic!("can not have global values with unit type"),
             };
@@ -188,6 +188,10 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 PassBuilderOptions::create(),
             )
             .expect("failed to optimize module")
+    }
+
+    fn convert_type_spec(&self, type_spec: &TypeSpec) -> Option<BasicTypeEnum<'ctx>> {
+        builder::convert_type_spec(self.context, type_spec)
     }
 
     fn gen_function<'a>(&self, func_builder: &mut FuncBuilder<'ctx, 'a>) {
@@ -907,7 +911,8 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 let variant_type = inst_type_spec.clone();
 
                 // start with an poison struct with the correct struct type
-                let struct_type = builder::convert_type_spec(self.context, &variant_type)
+                let struct_type = self
+                    .convert_type_spec(&variant_type)
                     .expect("can not have struct of unit type")
                     .into_struct_type();
                 let poison_struct = struct_type.get_undef();
@@ -1312,7 +1317,8 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     basic_values.push(const_value);
                 }
 
-                let gen_type = builder::convert_type_spec(self.context, elem)
+                let gen_type = self
+                    .convert_type_spec(elem)
                     .expect("can not have const array of unit type");
 
                 match gen_type {
