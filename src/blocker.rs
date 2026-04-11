@@ -849,9 +849,8 @@ impl<'a> Blocker<'a> {
         self.fn_builder.set_terminator(
             block_id,
             Terminator::Branch {
-                // target is an unsafe pointer that will get truncated to an i1
-                // durring codegen. For now, any non-nil pointer is considered
-                // truthy and any nil pointer is considered falsey.
+                // target is an unsafe pointer. Codegen emits `icmp ne ptr, null`
+                // to produce an i1 condition: non-null = true, null = false.
                 cond: target_id,
                 true_target,
                 false_target,

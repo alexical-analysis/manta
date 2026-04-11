@@ -53,7 +53,9 @@ entry:
   ]
 
 Block_2:                                          ; preds = %Block_4
-  br i1 false, label %Block_10, label %Block_12
+  %alloc = call ptr @alloc(i64 0)
+  %ptr_nonnull = icmp ne ptr %alloc, null
+  br i1 %ptr_nonnull, label %Block_10, label %Block_12
 
 Block_3:                                          ; preds = %entry
   %ext_pay = getelementptr inbounds nuw { i8, [0 x i8] }, ptr %"<match target>", i32 0, i32 1
@@ -95,6 +97,7 @@ Block_9:                                          ; preds = %Block_11
   ]
 
 Block_10:                                         ; preds = %Block_2
+  store ptr %alloc, ptr %buf2, align 8
   %load15 = load ptr, ptr %buf2, align 8
   store ptr %load15, ptr %buf, align 8
   br label %Block_11
@@ -103,6 +106,7 @@ Block_11:                                         ; preds = %Block_10
   br label %Block_9
 
 Block_12:                                         ; preds = %Block_2
+  store ptr %alloc, ptr %panic, align 8
   br label %Block_14
 
 Block_14:                                         ; preds = %Block_12
@@ -175,4 +179,11 @@ entry:
   %puts = call i32 @puts(ptr @panic_msg)
   call void @abort()
   unreachable
+}
+
+define ptr @alloc({ i64, i64, i64 } %0) {
+entry:
+  %meta_size = extractvalue { i64, i64, i64 } %0, 0
+  %malloc = call ptr @malloc(i64 %meta_size)
+  ret ptr %malloc
 }

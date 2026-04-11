@@ -87,7 +87,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
 
         for func in &module.functions {
             let func_value =
-                builder::build_func_value(self.context, &llvm_module, self.str_store, &func);
+                builder::build_func_value(self.context, &llvm_module, self.str_store, func);
             self.function_map.insert(
                 func.name,
                 FuncData {
@@ -98,13 +98,14 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         }
 
         // add c-runtime dependencies to the module
+
         // TODO: need to make sure malloc uses the correct arch-width. Just assuming Arch:W64 for
         // now, but will need to update that in the future
         let malloc_type = self
             .context
             .ptr_type(AddressSpace::default())
             .fn_type(&[self.context.i64_type().into()], false);
-        llvm_module.add_function("malloc", malloc_type, Some(Linkage::External));
+        let malloc_fn = llvm_module.add_function("malloc", malloc_type, Some(Linkage::External));
 
         let free_type = self.context.void_type().fn_type(
             &[self.context.ptr_type(AddressSpace::default()).into()],
@@ -122,6 +123,14 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         let abort_fn = llvm_module.add_function("abort", abort_type, Some(Linkage::External));
 
         // build manta module level functions that are built on top of the c-runtime
+        self.function_map.insert(
+            str_store::FREE,
+            FuncData {
+                function: free_fn,
+                return_type: TypeSpec::Unit,
+            },
+        );
+
         let panic_fn =
             builder::build_manta_panic(self.context, &builder, &llvm_module, puts_fn, abort_fn);
         self.function_map.insert(
@@ -131,11 +140,13 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 return_type: TypeSpec::Unit,
             },
         );
+
+        let alloc_fn = builder::build_manta_alloc(self.context, &builder, &llvm_module, malloc_fn);
         self.function_map.insert(
-            str_store::FREE,
+            str_store::ALLOC,
             FuncData {
-                function: free_fn,
-                return_type: TypeSpec::Unit,
+                function: alloc_fn,
+                return_type: TypeSpec::OpaquePtr,
             },
         );
 
@@ -1128,9 +1139,19 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 }
                 _ => panic!("invalid type for value negation"),
             },
-            Instruction::Alloc { .. } => {
-                eprintln!("TODO: alloc instruction are not yet supported");
-                None
+            Instruction::Alloc { meta_type } => {
+                let alloc_data = self
+                    .function_map
+                    .get(&str_store::ALLOC)
+                    .expect("failed to get alloc function");
+                let alloc_fn = alloc_data.function;
+
+                let meta_value = *func_builder
+                    .get_llvm_value(meta_type)
+                    .expect("failed to find meta value");
+
+                let value = func_builder.build_value_call("alloc", alloc_fn, &[meta_value.into()]);
+                Some(value)
             }
             Instruction::Free { ptr } => {
                 let free_data = self

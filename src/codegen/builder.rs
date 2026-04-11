@@ -51,16 +51,92 @@ pub fn build_func_value<'ctx>(
     let function_name = str_store
         .get_string(function.name)
         .expect("failed to get function name");
-    let llvm_function = module.add_function(function_name.as_str(), func_type, None);
 
-    llvm_function
+    module.add_function(function_name.as_str(), func_type, None)
+}
+
+pub fn build_manta_panic<'ctx>(
+    context: &'ctx Context,
+    builder: &Builder<'ctx>,
+    module: &Module<'ctx>,
+    puts_fn: FunctionValue<'ctx>,
+    abort_fn: FunctionValue<'ctx>,
+) -> FunctionValue<'ctx> {
+    // TODO: eventually it would be nice to have panic take a message but first we need to get
+    // structs, and then strings straight earlier on in the pipeline
+    let panic_type = context.void_type().fn_type(&[], false);
+    let panic_name =
+        str_store::constant_id_str(str_store::PANIC).expect("failed to get panic name");
+
+    let panic_fn = module.add_function(panic_name, panic_type, None);
+
+    let entry_block = context.append_basic_block(panic_fn, "entry");
+    builder.position_at_end(entry_block);
+
+    let panic_msg = builder
+        .build_global_string_ptr("Panic reached! exiting!", "panic_msg")
+        .expect("failed to build panic message")
+        .as_pointer_value();
+
+    builder
+        .build_call(puts_fn, &[panic_msg.into()], "puts")
+        .expect("failed to build puts call");
+
+    builder
+        .build_call(abort_fn, &[], "abort")
+        .expect("failed to build abort call");
+
+    builder
+        .build_unreachable()
+        .expect("failed to build unreachable");
+
+    panic_fn
+}
+
+pub fn build_manta_alloc<'ctx>(
+    context: &'ctx Context,
+    builder: &Builder<'ctx>,
+    module: &Module<'ctx>,
+    malloc_fn: FunctionValue<'ctx>,
+) -> FunctionValue<'ctx> {
+    let u64_type = context.i64_type();
+    let meta_type =
+        context.struct_type(&[u64_type.into(), u64_type.into(), u64_type.into()], false);
+    let alloc_type = context
+        .ptr_type(AddressSpace::default())
+        .fn_type(&[meta_type.into()], false);
+    let alloc_name =
+        str_store::constant_id_str(str_store::ALLOC).expect("failed to get alloc name");
+
+    let alloc_fn = module.add_function(alloc_name, alloc_type, None);
+
+    let entry_block = context.append_basic_block(alloc_fn, "entry");
+    builder.position_at_end(entry_block);
+
+    let meta = alloc_fn
+        .get_nth_param(0)
+        .expect("failed to get input meta")
+        .into_struct_value();
+    let size_of = builder
+        .build_extract_value(meta, 0, "meta_size")
+        .expect("failed to extract size from meta struct");
+
+    let ptr = builder
+        .build_call(malloc_fn, &[size_of.into()], "malloc")
+        .expect("failed to build call")
+        .try_as_basic_value()
+        .expect_basic("failed to conver malloc return into a basic value");
+
+    let ret: Option<&dyn BasicValue<'ctx>> = Some(&ptr);
+    builder.build_return(ret).expect("failed to build return");
+
+    alloc_fn
 }
 
 pub struct FuncBuilder<'ctx, 'a> {
     context: &'ctx Context,
     builder: &'a Builder<'ctx>,
     mir_function: &'a MirFunction,
-    llvm_function: FunctionValue<'ctx>,
     current_block: BlockId,
     block_map: BTreeMap<BlockId, BasicBlock<'ctx>>,
     local_map: HashMap<LocalId, PointerValue<'ctx>>,
@@ -114,7 +190,6 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
             context,
             builder,
             mir_function: function,
-            llvm_function,
             current_block: function.entry_block,
             block_map,
             local_map,
@@ -278,44 +353,6 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
     }
 }
 
-pub fn build_manta_panic<'ctx>(
-    context: &'ctx Context,
-    builder: &Builder<'ctx>,
-    module: &Module<'ctx>,
-    puts_fn: FunctionValue<'ctx>,
-    abort_fn: FunctionValue<'ctx>,
-) -> FunctionValue<'ctx> {
-    // TODO: eventually it would be nice to have panic take a message but first we need to get
-    // structs, and then strings straight earlier on in the pipeline
-    let panic_type = context.void_type().fn_type(&[], false);
-    let panic_name =
-        str_store::constant_id_str(str_store::PANIC).expect("failed to get panic name");
-
-    let panic_fn = module.add_function(panic_name, panic_type, None);
-
-    let entry_block = context.append_basic_block(panic_fn, "entry");
-    builder.position_at_end(entry_block);
-
-    let panic_msg = builder
-        .build_global_string_ptr("Panic reached! exiting!", "panic_msg")
-        .expect("failed to build panic message")
-        .as_pointer_value();
-
-    builder
-        .build_call(puts_fn, &[panic_msg.into()], "puts")
-        .expect("failed to build puts call");
-
-    builder
-        .build_call(abort_fn, &[], "abort")
-        .expect("failed to build abort call");
-
-    builder
-        .build_unreachable()
-        .expect("failed to build unreachable");
-
-    panic_fn
-}
-
 // This impl block provides all the wrappers around inkwell builder calls
 impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
     pub fn build_unreachable(&self) {
@@ -368,7 +405,18 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
     ) {
         let cond = self.value_map.get(cond);
         let cond = match cond {
-            Some(v) => v.into_int_value(),
+            Some(BasicValueEnum::IntValue(v)) => *v,
+            Some(BasicValueEnum::PointerValue(ptr)) => {
+                // Pointer used as a bool: non-null = true, null = false
+                let null = self.context.ptr_type(AddressSpace::default()).const_null();
+                self.builder
+                    .build_int_compare(IntPredicate::NE, *ptr, null, "ptr_nonnull")
+                    .expect("failed to build pointer null check")
+            }
+            Some(_) => {
+                eprintln!("TODO: not all values are supported yet, returning const 0 for now");
+                self.context.bool_type().const_zero()
+            }
             None => {
                 eprintln!("TODO: not all values are supported yet, returning const 0 for now");
                 self.context.bool_type().const_zero()
