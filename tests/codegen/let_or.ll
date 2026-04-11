@@ -204,3 +204,10 @@ entry:
   call void @abort()
   unreachable
 }
+
+define ptr @alloc({ i64, i64, i64 } %0) {
+entry:
+  %meta_size = extractvalue { i64, i64, i64 } %0, 0
+  %malloc = call ptr @malloc(i64 %meta_size)
+  ret ptr %malloc
+}

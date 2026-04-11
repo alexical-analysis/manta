@@ -31,7 +31,9 @@ entry:
   br i1 %load, label %Block_2, label %Block_3
 
 Block_2:                                          ; preds = %entry
-  br i1 false, label %Block_5, label %Block_7
+  %alloc = call ptr @alloc(i64 0)
+  %ptr_nonnull = icmp ne ptr %alloc, null
+  br i1 %ptr_nonnull, label %Block_5, label %Block_7
 
 Block_3:                                          ; preds = %entry
   ret { i8, [8 x i8] } { i8 1, [8 x i8] undef }
@@ -46,6 +48,7 @@ Block_4:                                          ; preds = %Block_6
   ret { i8, [8 x i8] } %set_pay
 
 Block_5:                                          ; preds = %Block_2
+  store ptr %alloc, ptr %p1, align 8
   %load5 = load ptr, ptr %p1, align 8
   store ptr %load5, ptr %p, align 8
   br label %Block_6
@@ -54,6 +57,7 @@ Block_6:                                          ; preds = %Block_5
   br label %Block_4
 
 Block_7:                                          ; preds = %Block_2
+  store ptr %alloc, ptr %panic, align 8
   call void @panic()
   unreachable
 }
@@ -108,4 +112,11 @@ entry:
   %puts = call i32 @puts(ptr @panic_msg)
   call void @abort()
   unreachable
+}
+
+define ptr @alloc({ i64, i64, i64 } %0) {
+entry:
+  %meta_size = extractvalue { i64, i64, i64 } %0, 0
+  %malloc = call ptr @malloc(i64 %meta_size)
+  ret ptr %malloc
 }
