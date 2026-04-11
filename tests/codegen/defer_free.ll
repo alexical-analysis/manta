@@ -2,6 +2,7 @@
 source_filename = "defer_free"
 
 @panic_msg = private unnamed_addr constant [24 x i8] c"Panic reached! exiting!\00", align 1
+@const_str = private constant [1 x i8] c"_"
 
 define void @"<init>"() {
 entry:
@@ -53,7 +54,7 @@ entry:
   ]
 
 Block_2:                                          ; preds = %Block_4
-  %alloc = call ptr @alloc(i64 0)
+  %alloc = call ptr @alloc({ i64, i64, i64 } { i64 24, i64 8, i64 0 })
   %ptr_nonnull = icmp ne ptr %alloc, null
   br i1 %ptr_nonnull, label %Block_10, label %Block_12
 

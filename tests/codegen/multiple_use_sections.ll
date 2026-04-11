@@ -2,6 +2,7 @@
 source_filename = "multiple_use_sections"
 
 @panic_msg = private unnamed_addr constant [24 x i8] c"Panic reached! exiting!\00", align 1
+@const_str = private constant [7 x i8] c"testing"
 
 define void @"<init>"() {
 entry:
@@ -16,7 +17,7 @@ entry:
 
 define void @main() {
 entry:
-  call void @fmt_println(i64 0)
+  call void @fmt_println({ i64, ptr } { i64 7, ptr @const_str })
   ret void
 }
 

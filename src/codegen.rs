@@ -158,7 +158,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             init_func,
             self.str_store,
         );
-        self.gen_function(&mut func_builder);
+        self.gen_function(&llvm_module, &mut func_builder);
 
         // code gen the remaining functions
         for func in module.functions {
@@ -173,7 +173,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 func_value.function,
                 self.str_store,
             );
-            self.gen_function(&mut func_builder);
+            self.gen_function(&llvm_module, &mut func_builder);
         }
 
         if let Err(e) = llvm_module.verify() {
@@ -205,9 +205,9 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         builder::convert_type_spec(self.context, type_spec)
     }
 
-    fn gen_function<'a>(&self, func_builder: &mut FuncBuilder<'ctx, 'a>) {
+    fn gen_function<'a>(&self, module: &Module<'ctx>, func_builder: &mut FuncBuilder<'ctx, 'a>) {
         for (block_id, block) in func_builder.get_blocks() {
-            self.gen_block(func_builder, block_id, block)
+            self.gen_block(module, func_builder, block_id, block)
         }
     }
 
@@ -215,13 +215,14 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
     // some of these together and expose only the functionality that we need to simplify the code
     fn gen_block<'a>(
         &self,
+        module: &Module<'ctx>,
         func_builder: &mut FuncBuilder<'ctx, 'a>,
         block_id: mir::BlockId,
         block: &mir::BasicBlock,
     ) {
         func_builder.position_at_block(block_id);
         for value_id in &block.instructions {
-            match self.gen_inst(func_builder, *value_id) {
+            match self.gen_inst(module, func_builder, *value_id) {
                 Some(v) => func_builder.insert_value(*value_id, v),
                 None => {
                     eprintln!("TODO: not all instructions are supported")
@@ -260,6 +261,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
 
     fn gen_inst<'a>(
         &self,
+        module: &Module<'ctx>,
         func_builder: &mut FuncBuilder<'ctx, 'a>,
         value_id: ValueId,
     ) -> Option<BasicValueEnum<'ctx>> {
@@ -268,7 +270,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
 
         match inst {
             Instruction::Const { value } => {
-                let value = self.gen_const(&value, inst_type_spec);
+                let value = self.gen_const(module, &value, inst_type_spec);
                 Some(value)
             }
             Instruction::Add { lhs, rhs } => match inst_type_spec {
@@ -976,7 +978,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     _ => panic!("type must be an enum"),
                 };
 
-                let const_tag = self.gen_const(&tag, &tag_ts).into_int_value();
+                let const_tag = self.gen_const(module, &tag, &tag_ts).into_int_value();
                 let result = func_builder.build_insert_tag(poison_struct, const_tag);
 
                 let payload = match payload {
@@ -1282,7 +1284,12 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         Some(value)
     }
 
-    fn gen_const(&self, const_value: &ConstValue, type_spec: &TypeSpec) -> BasicValueEnum<'ctx> {
+    fn gen_const(
+        &self,
+        module: &Module<'ctx>,
+        const_value: &ConstValue,
+        type_spec: &TypeSpec,
+    ) -> BasicValueEnum<'ctx> {
         match (const_value, type_spec) {
             (ConstValue::ConstInt(i), TypeSpec::I8) => {
                 let value = self.context.i8_type().const_int(*i as u64, false);
@@ -1334,7 +1341,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             (ConstValue::ConstArray(values), TypeSpec::Array { elem, .. }) => {
                 let mut basic_values = vec![];
                 for value in values {
-                    let const_value = self.gen_const(value, elem);
+                    let const_value = self.gen_const(module, value, elem);
                     basic_values.push(const_value);
                 }
 
@@ -1363,6 +1370,39 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     }
                     _ => todo!("TODO: not all array types are supported yet"),
                 }
+            }
+            (ConstValue::ConstStruct(values), TypeSpec::Struct(ts)) => {
+                let mut fields = vec![];
+                for (v, ts) in values.iter().zip(ts.iter()) {
+                    let field_const = self.gen_const(module, v, ts);
+                    fields.push(field_const);
+                }
+
+                let value = self.context.const_struct(&fields, false);
+                value.into()
+            }
+            (ConstValue::ConstString(s), TypeSpec::String) => {
+                // TODO: right now we create a unique string constant every time this appears but
+                // because strings are immutable in manta we can actuall map the str_id to the
+                // global value that stores to bytes and only allocate new globals when needed
+                let const_str = self
+                    .str_store
+                    .get_string(*s)
+                    .expect("failed to get string data");
+                let bytes = const_str.as_bytes();
+
+                let str_bytes = self.context.const_string(bytes, false);
+                let array_type = self.context.i8_type().array_type(bytes.len() as u32);
+                let global_bytes = module.add_global(array_type, None, "const_str");
+                global_bytes.set_initializer(&str_bytes);
+                global_bytes.set_constant(true);
+                global_bytes.set_linkage(Linkage::Private);
+
+                let ptr = global_bytes.as_pointer_value();
+                let len = self.context.i64_type().const_int(bytes.len() as u64, false);
+
+                let str_struct = self.context.const_struct(&[len.into(), ptr.into()], false);
+                str_struct.into()
             }
             _ => {
                 eprintln!(

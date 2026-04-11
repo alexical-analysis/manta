@@ -2,6 +2,7 @@
 source_filename = "missing_module"
 
 @panic_msg = private unnamed_addr constant [24 x i8] c"Panic reached! exiting!\00", align 1
+@const_str = private constant [21 x i8] c"this will have errors"
 
 define void @"<init>"() {
 entry:
@@ -16,7 +17,7 @@ entry:
 
 define void @main() {
 entry:
-  call void @fmt_println(i64 0)
+  call void @fmt_println({ i64, ptr } { i64 21, ptr @const_str })
   ret void
 }
 
