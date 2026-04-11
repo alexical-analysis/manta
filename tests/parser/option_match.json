@@ -240,13 +240,6 @@
                                 "args": [
                                   {
                                     "StringLiteral": 34
-                                  },
-                                  {
-                                    "Identifier": {
-                                      "id": 517,
-                                      "module": null,
-                                      "name": 33
-                                    }
                                   }
                                 ]
                               }
@@ -257,17 +250,17 @@
                     }
                   },
                   {
-                    "id": 530,
+                    "id": 521,
                     "pattern": {
                       "EnumVariant": {
-                        "id": 530,
+                        "id": 521,
                         "enum_name": null,
                         "variant": 16,
                         "payload": "None"
                       }
                     },
                     "body": {
-                      "id": 541,
+                      "id": 532,
                       "statements": [
                         {
                           "Expr": {
@@ -275,7 +268,7 @@
                               "Call": {
                                 "func": {
                                   "Identifier": {
-                                    "id": 543,
+                                    "id": 534,
                                     "module": null,
                                     "name": 8
                                   }
@@ -540,7 +533,7 @@
             "id": 20,
             "name": 33,
             "binding_type": "ValueDecl",
-            "used": true
+            "used": false
           }
         ]
       },
@@ -643,19 +636,15 @@
         "scope_id": 9,
         "scope_depth": 0
       },
-      "517": {
-        "scope_id": 9,
-        "scope_depth": 0
-      },
-      "530": {
+      "521": {
         "scope_id": 10,
         "scope_depth": 0
       },
-      "541": {
+      "532": {
         "scope_id": 11,
         "scope_depth": 0
       },
-      "543": {
+      "534": {
         "scope_id": 11,
         "scope_depth": 0
       }

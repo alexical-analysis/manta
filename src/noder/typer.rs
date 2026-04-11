@@ -421,6 +421,14 @@ impl Typer {
                     _ => panic!("cannot call non-function type"),
                 };
 
+                if func_type.params.len() != args.len() {
+                    panic!(
+                        "expected {} argument(s) but got {}",
+                        func_type.params.len(),
+                        args.len()
+                    );
+                }
+
                 for (param, arg) in func_type.params.iter().zip(args.iter()) {
                     let arg_type = self.type_expr_node(node_tree, *arg);
                     match match_types(param, &arg_type) {

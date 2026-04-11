@@ -286,8 +286,7 @@
             7,
             8,
             9,
-            10,
-            11
+            10
           ],
           "terminator": {
             "Jump": {
@@ -305,8 +304,8 @@
         },
         {
           "instructions": [
-            12,
-            13
+            11,
+            12
           ],
           "terminator": {
             "Jump": {
@@ -408,21 +407,10 @@
           }
         },
         {
-          "Load": {
-            "place": {
-              "base": {
-                "Local": 2
-              },
-              "projections": []
-            }
-          }
-        },
-        {
           "Call": {
             "func": 8,
             "args": [
-              9,
-              10
+              9
             ]
           }
         },
@@ -437,7 +425,7 @@
           "Call": {
             "func": 8,
             "args": [
-              12
+              11
             ]
           }
         }
@@ -468,7 +456,6 @@
         "I32",
         "Unit",
         "String",
-        "I32",
         "Unit",
         "String",
         "Unit"
