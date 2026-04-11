@@ -2,7 +2,7 @@
 source_filename = "option_match"
 
 @panic_msg = private unnamed_addr constant [24 x i8] c"Panic reached! exiting!\00", align 1
-@const_str = private constant [8 x i8] c"result: "
+@const_str = private constant [2 x i8] c"ok"
 @const_str.1 = private constant [22 x i8] c"can not divide by zero"
 
 define void @"<init>"() {
@@ -58,8 +58,7 @@ Block_3:                                          ; preds = %entry
   %ext_pay = getelementptr inbounds nuw { i8, [4 x i8] }, ptr %r, i32 0, i32 1
   %load1 = load i32, ptr %ext_pay, align 4
   store i32 %load1, ptr %v, align 4
-  %load2 = load i32, ptr %v, align 4
-  call void @fmt_println({ i64, ptr } { i64 8, ptr @const_str }, i32 %load2)
+  call void @fmt_println({ i64, ptr } { i64 2, ptr @const_str })
   br label %Block_4
 
 Block_4:                                          ; preds = %Block_3

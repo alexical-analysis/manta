@@ -185,7 +185,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         }
 
         if let Err(e) = llvm_module.verify() {
-            eprintln!("module verification failed: {}", e);
+            panic!("module verification failed: {}", e);
         }
 
         llvm_module
