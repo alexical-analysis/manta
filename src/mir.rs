@@ -493,7 +493,7 @@ pub enum Terminator {
     /// Unreachable (for proven-unreachable code)
     Unreachable,
     /// Panic (for code the exit control-flow with a panic)
-    Panic,
+    Panic { msg: ValueId },
 }
 
 /// A basic block in the control-flow graph.

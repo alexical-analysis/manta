@@ -97,7 +97,7 @@ impl CFG {
                     }
                 }
                 Some(Terminator::Unreachable) => {}
-                Some(Terminator::Panic) => {}
+                Some(Terminator::Panic { .. }) => {}
                 Some(Terminator::Return { .. }) => {}
                 None => {}
             }
@@ -172,7 +172,7 @@ impl CFG {
                 })
             }
             Some(Terminator::Unreachable) => None,
-            Some(Terminator::Panic) => None,
+            Some(Terminator::Panic { .. }) => None,
             Some(Terminator::Return { .. }) => None,
             None => None,
         }
@@ -217,7 +217,9 @@ impl CFG {
     fn panic_to(&self, fn_builder: &mut FunctionBuilder, panic_to: BlockId) {
         for block_id in &self.blocks {
             let block = fn_builder.get_block_mut(*block_id);
-            if matches!(block.terminator, Some(Terminator::Panic)) {
+            // TODO: need to set a panic value just like we do with return terminators
+            // skipping for now though
+            if matches!(block.terminator, Some(Terminator::Panic { .. })) {
                 block.terminator = Some(Terminator::Jump { target: panic_to })
             }
         }
@@ -376,7 +378,13 @@ impl FunctionBuilder {
         // wire the final defer blocks up so they correctly jump back into the flow either
         // returing, continuing to panic, or mergeing back into an empty merge block
         let final_panic_block = self.add_block();
-        self.set_terminator(final_panic_block, Terminator::Panic);
+        // TODO: need to actually get the panic value here in the same way we do returns
+        self.set_terminator(
+            final_panic_block,
+            Terminator::Panic {
+                msg: ValueId::nil(),
+            },
+        );
 
         panic_block.jump_to(self, final_panic_block);
         panic_block.panic_to(self, final_panic_block);
@@ -956,7 +964,7 @@ impl FunctionBuilder {
             match block.terminator {
                 Terminator::Return { .. } => {}
                 Terminator::Unreachable => {}
-                Terminator::Panic => {}
+                Terminator::Panic { .. } => {}
                 Terminator::Jump { target } => {
                     block_stack.push(target);
                 }
@@ -1211,7 +1219,9 @@ mod tests {
         for term in [
             Terminator::Return { value: None },
             Terminator::Unreachable,
-            Terminator::Panic,
+            Terminator::Panic {
+                msg: ValueId::nil(),
+            },
         ] {
             let mut fb = test_builder();
             let a = fb.add_block();
@@ -1417,7 +1427,12 @@ mod tests {
     fn test_can_return_single_block_panic() {
         let mut fb = test_builder();
         let a = fb.add_block();
-        fb.set_terminator(a, Terminator::Panic);
+        fb.set_terminator(
+            a,
+            Terminator::Panic {
+                msg: ValueId::nil(),
+            },
+        );
 
         let cfg = CFG::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
@@ -1501,7 +1516,12 @@ mod tests {
             },
         );
         fb.set_terminator(b, Terminator::Unreachable);
-        fb.set_terminator(c, Terminator::Panic);
+        fb.set_terminator(
+            c,
+            Terminator::Panic {
+                msg: ValueId::nil(),
+            },
+        );
 
         let cfg = CFG::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
@@ -1553,7 +1573,12 @@ mod tests {
             },
         );
         fb.set_terminator(default, Terminator::Unreachable);
-        fb.set_terminator(arm_block, Terminator::Panic);
+        fb.set_terminator(
+            arm_block,
+            Terminator::Panic {
+                msg: ValueId::nil(),
+            },
+        );
 
         let cfg = CFG::new(&mut fb, entry);
         let can_return = cfg.can_return(&fb);
@@ -1633,7 +1658,9 @@ mod tests {
         for term in [
             Terminator::Return { value: None },
             Terminator::Unreachable,
-            Terminator::Panic,
+            Terminator::Panic {
+                msg: ValueId::nil(),
+            },
         ] {
             let mut fb = test_builder();
             let a = fb.add_block();
@@ -1778,7 +1805,12 @@ mod tests {
         let a = fb.add_block();
         let target = fb.add_block();
         fb.set_terminator(target, Terminator::Return { value: None });
-        fb.set_terminator(a, Terminator::Panic);
+        fb.set_terminator(
+            a,
+            Terminator::Panic {
+                msg: ValueId::nil(),
+            },
+        );
 
         let cfg = CFG::new(&mut fb, a);
         cfg.panic_to(&mut fb, target);
@@ -1814,7 +1846,12 @@ mod tests {
         let target = fb.add_block();
         fb.set_terminator(target, Terminator::Return { value: None });
         fb.set_terminator(a, Terminator::Jump { target: b });
-        fb.set_terminator(b, Terminator::Panic);
+        fb.set_terminator(
+            b,
+            Terminator::Panic {
+                msg: ValueId::nil(),
+            },
+        );
 
         let cfg = CFG::new(&mut fb, a);
         cfg.panic_to(&mut fb, target);
@@ -1843,8 +1880,18 @@ mod tests {
                 false_target: c,
             },
         );
-        fb.set_terminator(b, Terminator::Panic);
-        fb.set_terminator(c, Terminator::Panic);
+        fb.set_terminator(
+            b,
+            Terminator::Panic {
+                msg: ValueId::nil(),
+            },
+        );
+        fb.set_terminator(
+            c,
+            Terminator::Panic {
+                msg: ValueId::nil(),
+            },
+        );
 
         let cfg = CFG::new(&mut fb, a);
         cfg.panic_to(&mut fb, target);
@@ -1874,7 +1921,12 @@ mod tests {
             },
         );
         fb.set_terminator(b, Terminator::Return { value: None });
-        fb.set_terminator(c, Terminator::Panic);
+        fb.set_terminator(
+            c,
+            Terminator::Panic {
+                msg: ValueId::nil(),
+            },
+        );
 
         let cfg = CFG::new(&mut fb, a);
         cfg.panic_to(&mut fb, target);
@@ -1905,7 +1957,12 @@ mod tests {
                 false_target: c,
             },
         );
-        fb.set_terminator(c, Terminator::Panic);
+        fb.set_terminator(
+            c,
+            Terminator::Panic {
+                msg: ValueId::nil(),
+            },
+        );
 
         let cfg = CFG::new(&mut fb, a);
         cfg.panic_to(&mut fb, target);
@@ -1981,7 +2038,12 @@ mod tests {
     // Non-Return terminators should be left unchanged.
     #[test]
     fn test_return_to_leaves_non_return_terminators_alone() {
-        for term in [Terminator::Panic, Terminator::Unreachable] {
+        for term in [
+            Terminator::Panic {
+                msg: ValueId::nil(),
+            },
+            Terminator::Unreachable,
+        ] {
             let mut fb = test_builder();
             let a = fb.add_block();
             let target = fb.add_block();
@@ -2064,7 +2126,12 @@ mod tests {
                 false_target: c,
             },
         );
-        fb.set_terminator(b, Terminator::Panic);
+        fb.set_terminator(
+            b,
+            Terminator::Panic {
+                msg: ValueId::nil(),
+            },
+        );
         fb.set_terminator(c, Terminator::Return { value: None });
 
         let cfg = CFG::new(&mut fb, a);
@@ -2072,7 +2139,12 @@ mod tests {
 
         let b_terminator = fb.get_block(b).terminator.clone();
         let c_terminator = fb.get_block(c).terminator.clone();
-        assert_eq!(b_terminator, Some(Terminator::Panic));
+        assert_eq!(
+            b_terminator,
+            Some(Terminator::Panic {
+                msg: ValueId::nil()
+            })
+        );
         assert_eq!(c_terminator, Some(Terminator::Jump { target }));
     }
 

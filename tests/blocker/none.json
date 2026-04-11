@@ -156,24 +156,24 @@
         },
         {
           "instructions": [
-            14
-          ],
-          "terminator": {
-            "Return": {
-              "value": 14
-            }
-          }
-        },
-        {
-          "instructions": [
-            10,
-            11,
-            12,
             13
           ],
           "terminator": {
             "Return": {
               "value": 13
+            }
+          }
+        },
+        {
+          "instructions": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "terminator": {
+            "Return": {
+              "value": 12
             }
           }
         },
@@ -200,23 +200,15 @@
         {
           "instructions": [
             7,
-            8,
-            9
+            8
           ],
           "terminator": {
-            "Jump": {
-              "target": 8
+            "Panic": {
+              "msg": 8
             }
           }
         },
-        {
-          "instructions": [],
-          "terminator": {
-            "Jump": {
-              "target": 4
-            }
-          }
-        },
+        null,
         null,
         null
       ],
@@ -298,21 +290,10 @@
           }
         },
         {
-          "Load": {
-            "place": {
-              "base": {
-                "Local": 4
-              },
-              "projections": []
+          "Const": {
+            "value": {
+              "ConstString": 18446744073709551595
             }
-          }
-        },
-        {
-          "Call": {
-            "func": 18446744073709551601,
-            "args": [
-              8
-            ]
           }
         },
         {
@@ -332,7 +313,7 @@
                 "Deref"
               ]
             },
-            "value": 10
+            "value": 9
           }
         },
         {
@@ -350,7 +331,7 @@
             "tag": {
               "ConstUInt": 0
             },
-            "payload": 12
+            "payload": 11
           }
         },
         {
@@ -378,8 +359,7 @@
         },
         "Unit",
         "Unit",
-        "OpaquePtr",
-        "Unit",
+        "String",
         "I32",
         "Unit",
         {
@@ -416,7 +396,7 @@
       "params": [],
       "return_type": "Unit",
       "local_map": {
-        "46": 1
+        "47": 1
       },
       "locals": [
         {

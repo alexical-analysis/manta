@@ -132,7 +132,7 @@ Block_5:                                          ; preds = %entry
   call void @fmt_println(i64 0)
   ret void
 
-Block_7:                                          ; preds = %Block_11, %Block_9
+Block_7:                                          ; preds = %Block_9
   %load6 = load { i64, ptr }, ptr %content2, align 8
   call void @fmt_println({ i64, ptr } %load6)
   ret void
@@ -147,11 +147,8 @@ Block_9:                                          ; preds = %Block_8
 
 Block_10:                                         ; preds = %Block_2
   store { i8, [24 x i8] } %read_file4, ptr %panic, align 1
-  %load8 = load { i8, [24 x i8] }, ptr %panic, align 1
-  br label %Block_11
-
-Block_11:                                         ; preds = %Block_10
-  br label %Block_7
+  call void @panic()
+  unreachable
 }
 
 declare ptr @malloc(i64)

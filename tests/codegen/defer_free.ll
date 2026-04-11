@@ -62,36 +62,48 @@ Block_5:                                          ; preds = %entry
   %load6 = load { i8, [0 x i8] }, ptr %"<wrap>", align 1
   br label %Block_23
 
-Block_9:                                          ; preds = %Block_13, %Block_11
+Block_7:                                          ; preds = %Block_15
   %load7 = load {}, ptr %f, align 1
-  %load8 = load ptr, ptr %buf, align 8
-  %load9 = load { i64, i64, ptr }, ptr %load8, align 8
-  %os_write = call { i8, [8 x i8] } @os_write({} %load7, { i64, i64, ptr } %load9)
+  call void @os_close({} %load7)
+  br label %Block_8
+
+Block_8:                                          ; preds = %Block_7
+  br label %Block_29
+
+Block_9:                                          ; preds = %Block_11
+  %load8 = load {}, ptr %f, align 1
+  %load9 = load ptr, ptr %buf, align 8
+  %load10 = load { i64, i64, ptr }, ptr %load9, align 8
+  %os_write = call { i8, [8 x i8] } @os_write({} %load8, { i64, i64, ptr } %load10)
   switch i1 false, label %Block_19 [
     i8 0, label %Block_17
   ]
 
 Block_10:                                         ; preds = %Block_2
-  %load10 = load ptr, ptr %buf2, align 8
-  store ptr %load10, ptr %buf, align 8
+  %load11 = load ptr, ptr %buf2, align 8
+  store ptr %load11, ptr %buf, align 8
   br label %Block_11
 
 Block_11:                                         ; preds = %Block_10
   br label %Block_9
 
 Block_12:                                         ; preds = %Block_2
-  %load11 = load ptr, ptr %panic, align 8
-  br label %Block_13
+  br label %Block_14
 
-Block_13:                                         ; preds = %Block_12
-  br label %Block_9
+Block_14:                                         ; preds = %Block_12
+  %load12 = load ptr, ptr %buf, align 8
+  call void @free(ptr %load12)
+  br label %Block_15
+
+Block_15:                                         ; preds = %Block_14
+  br label %Block_7
 
 Block_16:                                         ; preds = %Block_18
   br label %Block_23
 
 Block_17:                                         ; preds = %Block_9
-  %load12 = load i64, ptr %n3, align 8
-  store i64 %load12, ptr %n, align 8
+  %load13 = load i64, ptr %n3, align 8
+  store i64 %load13, ptr %n, align 8
   br label %Block_18
 
 Block_18:                                         ; preds = %Block_17
@@ -99,27 +111,32 @@ Block_18:                                         ; preds = %Block_17
 
 Block_19:                                         ; preds = %Block_9
   store { i8, [8 x i8] } %os_write, ptr %"<wrap>4", align 1
-  %load13 = load { i8, [8 x i8] }, ptr %"<wrap>4", align 1
+  %load14 = load { i8, [8 x i8] }, ptr %"<wrap>4", align 1
   br label %Block_23
 
 Block_23:                                         ; preds = %Block_19, %Block_16, %Block_5
-  %load14 = load ptr, ptr %buf, align 8
+  %load15 = load ptr, ptr %buf, align 8
+  call void @free(ptr %load15)
   br label %Block_24
 
 Block_24:                                         ; preds = %Block_23
   br label %Block_27
 
 Block_27:                                         ; preds = %Block_24
-  %load15 = load {}, ptr %f, align 1
-  call void @os_close({} %load15)
+  %load16 = load {}, ptr %f, align 1
+  call void @os_close({} %load16)
   br label %Block_28
 
 Block_28:                                         ; preds = %Block_27
   br label %Block_30
 
+Block_29:                                         ; preds = %Block_8
+  call void @panic()
+  unreachable
+
 Block_30:                                         ; preds = %Block_28
-  %load16 = load { i8, [16 x i8] }, ptr %"<defer>", align 1
-  ret { i8, [16 x i8] } %load16
+  %load17 = load { i8, [16 x i8] }, ptr %"<defer>", align 1
+  ret { i8, [16 x i8] } %load17
 }
 
 declare ptr @malloc(i64)

@@ -6,8 +6,8 @@ use inkwell::context::Context;
 use inkwell::module::Module;
 use inkwell::types::{BasicMetadataTypeEnum, BasicType, BasicTypeEnum};
 use inkwell::values::{
-    BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, FunctionValue,
-    InstructionValue, IntValue, PointerValue,
+    BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, FunctionValue, IntValue,
+    PointerValue,
 };
 use inkwell::{AddressSpace, FloatPredicate, IntPredicate};
 
@@ -311,12 +311,12 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
     }
 
     pub fn build_panic(&self, panic_fn: FunctionValue<'ctx>) {
-        // panic already calls terminator unreachable
-        self.build_void_call("panic", panic_fn, &[])
+        self.build_void_call("panic", panic_fn, &[]);
+        self.build_unreachable();
     }
 
     pub fn build_value_return(&self, value_id: &ValueId) {
-        match self.value_map.get(&value_id) {
+        match self.value_map.get(value_id) {
             Some(v) => {
                 let value: Option<&dyn BasicValue<'ctx>> = Some(v);
                 self.builder

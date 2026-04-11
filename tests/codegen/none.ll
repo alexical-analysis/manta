@@ -35,7 +35,7 @@ Block_2:                                          ; preds = %entry
 Block_3:                                          ; preds = %entry
   unreachable
 
-Block_4:                                          ; preds = %Block_8, %Block_6
+Block_4:                                          ; preds = %Block_6
   %load2 = load ptr, ptr %p, align 8
   store i32 42, ptr %load2, align 4
   %load3 = load ptr, ptr %p, align 8
@@ -50,11 +50,8 @@ Block_6:                                          ; preds = %Block_5
   br label %Block_4
 
 Block_7:                                          ; preds = %Block_2
-  %load5 = load ptr, ptr %panic, align 8
-  br label %Block_8
-
-Block_8:                                          ; preds = %Block_7
-  br label %Block_4
+  call void @panic()
+  unreachable
 }
 
 define void @main() {
