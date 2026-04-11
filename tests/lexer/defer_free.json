@@ -712,7 +712,7 @@
   {
     "kind": "Identifier",
     "source_id": 1061,
-    "lexeme_id": 39
+    "lexeme_id": 18446744073709551592
   },
   {
     "kind": "OpenParen",
@@ -722,7 +722,7 @@
   {
     "kind": "At",
     "source_id": 1067,
-    "lexeme_id": 40
+    "lexeme_id": 39
   },
   {
     "kind": "OpenSquare",
@@ -747,7 +747,7 @@
   {
     "kind": "Bang",
     "source_id": 1074,
-    "lexeme_id": 41
+    "lexeme_id": 40
   },
   {
     "kind": "Semicolon",
@@ -767,7 +767,7 @@
   {
     "kind": "Identifier",
     "source_id": 1088,
-    "lexeme_id": 42
+    "lexeme_id": 18446744073709551593
   },
   {
     "kind": "OpenParen",
@@ -822,7 +822,7 @@
   {
     "kind": "Identifier",
     "source_id": 1113,
-    "lexeme_id": 43
+    "lexeme_id": 41
   },
   {
     "kind": "CloseParen",

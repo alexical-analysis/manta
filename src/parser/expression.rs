@@ -1030,7 +1030,7 @@ mod tests {
                     options: vec![Expr::Call(CallExpr {
                         func: Box::new(Expr::DotAccess(DotAccessExpr {
                             target: None,
-                            field: StrID::from_usize(7),
+                            field: StrID::from_usize(6),
                         })),
                         args: vec![Expr::IntLiteral(10)],
                     })],
@@ -1050,13 +1050,13 @@ mod tests {
                         Expr::Call(CallExpr {
                             func: Box::new(Expr::DotAccess(DotAccessExpr {
                                 target: None,
-                                field: StrID::from_usize(7),
+                                field: StrID::from_usize(6),
                             })),
                             args: vec![Expr::IntLiteral(15)],
                         }),
                         Expr::DotAccess(DotAccessExpr {
                             target: None,
-                            field: StrID::from_usize(10),
+                            field: StrID::from_usize(9),
                         })
                     ],
                 },
@@ -1075,7 +1075,7 @@ mod tests {
                             })),
                             options: vec![],
                         }))),
-                        field: StrID::from_usize(5),
+                        field: StrID::from_usize(4),
                     })),
                     args: vec![],
                 }
@@ -1090,7 +1090,7 @@ mod tests {
                     expr: Box::new(Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(5),
                         module: None,
-                        name: StrID::from_usize(2)
+                        name: StrID::from_usize(1)
                     })),
                 }
             ),
@@ -1106,11 +1106,11 @@ mod tests {
                             target: Some(Box::new(Expr::Identifier(IdentifierExpr {
                                 id: SourceID::from_usize(5),
                                 module: None,
-                                name: StrID::from_usize(2)
+                                name: StrID::from_usize(1)
                             }))),
-                            field: StrID::from_usize(4),
+                            field: StrID::from_usize(3),
                         }))),
-                        field: StrID::from_usize(5),
+                        field: StrID::from_usize(4),
                     })),
                 }
             ),

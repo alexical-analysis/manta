@@ -379,7 +379,7 @@
                     "enum_name": null,
                     "variant": 14,
                     "payload": {
-                      "Some": 43
+                      "Some": 41
                     }
                   }
                 },
@@ -824,7 +824,7 @@
           },
           {
             "id": 27,
-            "name": 43,
+            "name": 41,
             "binding_type": "ValueDecl",
             "used": false
           }

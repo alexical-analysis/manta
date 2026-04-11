@@ -346,7 +346,7 @@ mod test {
                                 expr: Box::new(Expr::Identifier(IdentifierExpr {
                                     id: SourceID::from_usize(13),
                                     module: None,
-                                    name: StrID::from_usize(4)
+                                    name: StrID::from_usize(3)
                                 })),
                             })
                         })]
