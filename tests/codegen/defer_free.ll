@@ -11,7 +11,7 @@ entry:
 define { i8, [0 x i8] } @os_open({ i64, ptr } %0) {
 entry:
   %path = alloca { i64, ptr }, align 8
-  unreachable
+  ret { i8, [0 x i8] } { i8 1, [0 x i8] undef }
 }
 
 define void @os_close({} %0) {
@@ -24,7 +24,7 @@ define { i8, [8 x i8] } @os_write({} %0, { i64, i64, ptr } %1) {
 entry:
   %f = alloca {}, align 8
   %buf = alloca { i64, i64, ptr }, align 8
-  unreachable
+  ret { i8, [8 x i8] } { i8 1, [8 x i8] undef }
 }
 
 define { i8, [16 x i8] } @write_and_cleanup({ i64, ptr } %0) {
@@ -67,6 +67,8 @@ Block_4:                                          ; preds = %Block_3
 Block_5:                                          ; preds = %entry
   store { i8, [0 x i8] } %os_open, ptr %"<wrap>", align 1
   %load8 = load { i8, [0 x i8] }, ptr %"<wrap>", align 1
+  %set_tag = insertvalue { i8, [16 x i8] } { i8 1, [16 x i8] undef }, { i8, [0 x i8] } %load8, 1
+  store { i8, [16 x i8] } %set_tag, ptr %"<defer>", align 1
   br label %Block_23
 
 Block_7:                                          ; preds = %Block_15
@@ -108,6 +110,7 @@ Block_15:                                         ; preds = %Block_14
   br label %Block_7
 
 Block_16:                                         ; preds = %Block_18
+  store { i8, [16 x i8] } { i8 0, [16 x i8] undef }, ptr %"<defer>", align 1
   br label %Block_23
 
 Block_17:                                         ; preds = %Block_9
@@ -124,19 +127,21 @@ Block_18:                                         ; preds = %Block_17
 Block_19:                                         ; preds = %Block_9
   store { i8, [8 x i8] } %os_write, ptr %"<wrap>5", align 1
   %load19 = load { i8, [8 x i8] }, ptr %"<wrap>5", align 1
+  %set_tag20 = insertvalue { i8, [16 x i8] } { i8 2, [16 x i8] undef }, { i8, [8 x i8] } %load19, 1
+  store { i8, [16 x i8] } %set_tag20, ptr %"<defer>", align 1
   br label %Block_23
 
 Block_23:                                         ; preds = %Block_19, %Block_16, %Block_5
-  %load20 = load ptr, ptr %buf, align 8
-  call void @free(ptr %load20)
+  %load21 = load ptr, ptr %buf, align 8
+  call void @free(ptr %load21)
   br label %Block_24
 
 Block_24:                                         ; preds = %Block_23
   br label %Block_27
 
 Block_27:                                         ; preds = %Block_24
-  %load21 = load {}, ptr %f, align 1
-  call void @os_close({} %load21)
+  %load22 = load {}, ptr %f, align 1
+  call void @os_close({} %load22)
   br label %Block_28
 
 Block_28:                                         ; preds = %Block_27
@@ -147,8 +152,8 @@ Block_29:                                         ; preds = %Block_8
   unreachable
 
 Block_30:                                         ; preds = %Block_28
-  %load22 = load { i8, [16 x i8] }, ptr %"<defer>", align 1
-  ret { i8, [16 x i8] } %load22
+  %load23 = load { i8, [16 x i8] }, ptr %"<defer>", align 1
+  ret { i8, [16 x i8] } %load23
 }
 
 declare ptr @malloc(i64)

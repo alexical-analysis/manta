@@ -33,13 +33,14 @@ Block_2:                                          ; preds = %entry
   br i1 false, label %Block_5, label %Block_7
 
 Block_3:                                          ; preds = %entry
-  unreachable
+  ret { i8, [8 x i8] } { i8 1, [8 x i8] undef }
 
 Block_4:                                          ; preds = %Block_6
   %load2 = load ptr, ptr %p, align 8
   store i32 42, ptr %load2, align 4
   %load3 = load ptr, ptr %p, align 8
-  unreachable
+  %set_tag = insertvalue { i8, [8 x i8] } { i8 0, [8 x i8] undef }, ptr %load3, 1
+  ret { i8, [8 x i8] } %set_tag
 
 Block_5:                                          ; preds = %Block_2
   %load4 = load ptr, ptr %p1, align 8
