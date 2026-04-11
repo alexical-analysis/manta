@@ -901,24 +901,26 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
             node_tree.type_map.add(
                 panic_fn_id,
                 TypeSpec::Function(FunctionType {
-                    // Technically we won't know this type until the type checking phases gives us
-                    // the type of the target for this let decl
-                    params: vec![TypeSpec::Any],
+                    params: vec![TypeSpec::String],
                     return_type: Box::new(TypeSpec::Panic),
                 }),
             );
 
             // the identifier for the pattern, this needs to be seperate from the function call
-            // ideentifier for type checking to work correctly since they need to have different
+            // identifier for type checking to work correctly since they need to have different
             // underlying types
             let panic_ident_id = node_tree.add_node(Node::Identifier {
                 name: str_store::PANIC,
                 module: None,
             });
 
+            let panic_str_id = node_tree.add_node(Node::StringLiteral(str_store::UNDERSCORE));
+
             let call_id = node_tree.add_node(Node::Call {
                 func: panic_fn_id,
-                args: vec![panic_ident_id],
+                // TODO: eventually we need to support more flexible panics but for now just use a
+                // constant string
+                args: vec![panic_str_id],
             });
             let body_id = node_tree.add_node(Node::Block {
                 statements: vec![call_id],

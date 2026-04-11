@@ -231,7 +231,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 arms,
             } => func_builder.build_switch(discriminant, default, arms),
             Terminator::Unreachable => func_builder.build_unreachable(),
-            Terminator::Panic => {
+            Terminator::Panic { .. } => {
                 let panic_data = self
                     .function_map
                     .get(&str_store::PANIC)
@@ -825,11 +825,6 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 Some(ptr.into())
             }
             Instruction::Call { func, args } => {
-                if func == str_store::PANIC {
-                    eprintln!("TODO: skipping panic functions for now");
-                    return None;
-                }
-
                 let mut llvm_args = vec![];
                 for arg in args {
                     let llvm_value = func_builder.get_llvm_value(arg);
@@ -1030,8 +1025,19 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 eprintln!("TODO: alloc instruction are not yet supported");
                 None
             }
-            Instruction::Free { .. } => {
-                eprintln!("TODO: free instruction are not yet supported");
+            Instruction::Free { ptr } => {
+                let free_data = self
+                    .function_map
+                    .get(&str_store::FREE)
+                    .expect("failed to get free function");
+                let free_fn = free_data.function;
+
+                let ptr = func_builder
+                    .get_llvm_value(ptr)
+                    .expect("failed to get pointer value");
+                let ptr = ptr.into_pointer_value();
+
+                func_builder.build_void_call("free", free_fn, &[ptr.into()]);
                 None
             }
         }

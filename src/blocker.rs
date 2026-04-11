@@ -258,14 +258,16 @@ impl<'a> Blocker<'a> {
 
         match node {
             Node::Invalid => {
-                // TODO: what are the args here? Should the 'Node::Invalid' have associated error
-                // info so that we panic with a syntax error or something?
+                // TODO: this string should contain the error that cause the invalid node to appear
+                // in the first place
+                let value = self.fn_builder.emit_const(
+                    block_id,
+                    TypeSpec::String,
+                    ConstValue::ConstString(str_store::UNDERSCORE),
+                );
                 self.fn_builder
-                    .emit_call(block_id, str_store::PANIC, vec![], TypeSpec::Unit);
-                self.fn_builder.set_terminator(block_id, Terminator::Panic);
+                    .set_terminator(block_id, Terminator::Panic { msg: value });
 
-                // return a None because this block is closed and there's no more blocks that we know
-                // about at this level
                 None
             }
             Node::Block { statements } => {
@@ -410,11 +412,28 @@ impl<'a> Blocker<'a> {
                 }
             }
             Node::MatchArm { .. } => panic!("out of place match arm"),
-            Node::Call { .. } => {
-                // Calls are technically expressions but because they can result in side effects they
-                // need to be handled as statements as well
-                self.block_expression(block_id, node_id);
-                Some(block_id)
+            Node::Call { func, args } => {
+                let name = self.get_ident_name(func);
+
+                match name {
+                    str_store::PANIC => {
+                        if args.len() != 1 {
+                            panic!("panic requires exactly 1 argument")
+                        }
+                        let arg = args.first().expect("missing argument for panic");
+                        let value = self.block_expression(block_id, *arg);
+
+                        self.fn_builder
+                            .set_terminator(block_id, Terminator::Panic { msg: value });
+                        None
+                    }
+                    _ => {
+                        // Other calls are technically expressions but because they can result
+                        // in side effects they need to be handled as statements as well
+                        self.block_expression(block_id, node_id);
+                        Some(block_id)
+                    }
+                }
             }
             Node::Free { .. } => {
                 // Same as call
@@ -914,10 +933,11 @@ impl<'a> Blocker<'a> {
             },
             Node::Call { func, args } => {
                 let name = self.get_ident_name(func);
-                let arg_values = args
+                let arg_values: Vec<ValueId> = args
                     .iter()
                     .map(|a| self.block_expression(block_id, *a))
                     .collect();
+
                 self.fn_builder.emit_call(block_id, name, arg_values, ts)
             }
             Node::EnumConstructor {
