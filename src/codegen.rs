@@ -4,12 +4,12 @@ pub mod optimizer;
 use std::collections::BTreeMap;
 
 use inkwell::context::Context;
-use inkwell::module::{self, Linkage, Module};
+use inkwell::module::{Linkage, Module};
 use inkwell::passes::PassBuilderOptions;
 use inkwell::targets::TargetMachine;
 use inkwell::types::BasicTypeEnum;
 use inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, IntValue, PointerValue};
-use inkwell::{AddressSpace, FloatPredicate, IntPredicate};
+use inkwell::{FloatPredicate, IntPredicate};
 
 use crate::blocker::{self, Arch};
 use crate::mir::{
@@ -975,7 +975,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                         };
 
                         let payload_ts = match tag {
-                            ConstValue::ConstUInt(i) => variants
+                            ConstValue::ConstInt(i) => variants
                                 .get(i as usize)
                                 .expect("failed to get tagged variant")
                                 .clone(),
@@ -1327,34 +1327,34 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
     ) -> BasicValueEnum<'ctx> {
         match (const_value, type_spec) {
             (ConstValue::ConstInt(i), TypeSpec::I8) => {
-                let value = self.context.i8_type().const_int(*i as u64, false);
-                value.into()
-            }
-            (ConstValue::ConstInt(i), TypeSpec::I16) => {
-                let value = self.context.i16_type().const_int(*i as u64, false);
-                value.into()
-            }
-            (ConstValue::ConstInt(i), TypeSpec::I32) => {
-                let value = self.context.i32_type().const_int(*i as u64, false);
-                value.into()
-            }
-            (ConstValue::ConstInt(i), TypeSpec::I64) => {
-                let value = self.context.i64_type().const_int(*i as u64, false);
-                value.into()
-            }
-            (ConstValue::ConstUInt(i), TypeSpec::U8) => {
                 let value = self.context.i8_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::ConstUInt(i), TypeSpec::U16) => {
+            (ConstValue::ConstInt(i), TypeSpec::I16) => {
                 let value = self.context.i16_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::ConstUInt(i), TypeSpec::U32) => {
+            (ConstValue::ConstInt(i), TypeSpec::I32) => {
                 let value = self.context.i32_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::ConstUInt(i), TypeSpec::U64) => {
+            (ConstValue::ConstInt(i), TypeSpec::I64) => {
+                let value = self.context.i64_type().const_int(*i, false);
+                value.into()
+            }
+            (ConstValue::ConstInt(i), TypeSpec::U8) => {
+                let value = self.context.i8_type().const_int(*i, false);
+                value.into()
+            }
+            (ConstValue::ConstInt(i), TypeSpec::U16) => {
+                let value = self.context.i16_type().const_int(*i, false);
+                value.into()
+            }
+            (ConstValue::ConstInt(i), TypeSpec::U32) => {
+                let value = self.context.i32_type().const_int(*i, false);
+                value.into()
+            }
+            (ConstValue::ConstInt(i), TypeSpec::U64) => {
                 let value = self.context.i64_type().const_int(*i, false);
                 value.into()
             }

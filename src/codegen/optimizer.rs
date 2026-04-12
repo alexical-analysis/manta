@@ -13,7 +13,7 @@ pub fn create_target_machine(target_triple: TargetTriple) -> TargetMachine {
             &target_triple,
             "generic",
             "",
-            OptimizationLevel::None,
+            OptimizationLevel::Aggressive,
             RelocMode::PIC,
             CodeModel::Default,
         )

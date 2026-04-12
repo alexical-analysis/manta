@@ -262,12 +262,22 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
             }
 
             let return_type = node_type_spec(node_tree, module, &decl.function_type.return_type);
-            let body_id = node_fn_body(node_tree, module, &decl.body, return_type);
 
+            // need to make sure the identifier is declared before we node the fn body so recursive
+            // functions can find themselves
             let ident_id = node_tree.add_node(Node::Identifier {
                 name: decl.name,
                 module: None,
             });
+            let scope_pos = module
+                .get_scope_pos(decl.id)
+                .expect("missing scope_pos for function");
+            let binding = module
+                .find_binding(scope_pos, decl.name)
+                .expect("missing binding for function");
+            node_tree.symbol_map.add(binding.id, ident_id);
+
+            let body_id = node_fn_body(node_tree, module, &decl.body, return_type);
             let func_id = node_tree.add_root_node(Node::FunctionDecl {
                 ident: ident_id,
                 params,
@@ -276,17 +286,9 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
 
             let func_type = ast::TypeSpec::Function(decl.function_type.clone());
             let func_type = node_type_spec(node_tree, module, &func_type);
+
             node_tree.type_map.add(ident_id, func_type.clone());
             node_tree.type_map.add(func_id, func_type);
-
-            let scope_pos = module
-                .get_scope_pos(decl.id)
-                .expect("missing scope_pos for function");
-            let binding = module
-                .find_binding(scope_pos, decl.name)
-                .expect("missing binding for function");
-
-            node_tree.symbol_map.add(binding.id, ident_id);
         }
         Decl::Type(decl) => {
             let ident_id = node_tree.add_node(Node::Identifier {
@@ -408,7 +410,7 @@ fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<Node
             let l_id = node_expr(node_tree, module, &stmt.lvalue);
             let r_id = node_expr(node_tree, module, &stmt.rvalue);
 
-            // TODO: should i check that l_id is an assignable node here or should that
+            // TODO: should I check that l_id is an assignable node here or should that
             // happen later when I do full type checking? (defaulting to later for now)
             vec![node_tree.add_node(Node::Assign {
                 target: l_id,

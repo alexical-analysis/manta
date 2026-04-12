@@ -1,0 +1,36 @@
+mod main
+
+fn fib(n u64) u64 {
+  match n {
+    0 { return 0 }
+    1 { return 1 }
+    _ { return fib(n - 1) + fib(n - 2) }
+  }
+}
+
+// print num is needed because we don't have support for parsing strings into
+// integer types yet. It needs to be recusrive because we don't support loops yet
+fn print_num(n u64) {
+  if n >= 10 {
+      print_num( n / 10 )
+  }
+
+  match n % 10 {
+    0 { print("0") }
+    1 { print("1") }
+    2 { print("2") }
+    3 { print("3") }
+    4 { print("4") }
+    5 { print("5") }
+    6 { print("6") }
+    7 { print("7") }
+    8 { print("8") }
+    9 { print("9") }
+  }
+}
+
+fn main() {
+  let n = fib(50)
+  print_num(n)
+}
+
