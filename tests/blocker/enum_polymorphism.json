@@ -149,8 +149,8 @@
       "return_type": "F64",
       "local_map": {
         "24": 1,
-        "26": 2,
-        "33": 3
+        "27": 2,
+        "34": 3
       },
       "locals": [
         {
@@ -187,13 +187,13 @@
               "arms": [
                 {
                   "target": {
-                    "ConstUInt": 0
+                    "ConstInt": 0
                   },
                   "jump": 3
                 },
                 {
                   "target": {
-                    "ConstUInt": 1
+                    "ConstInt": 1
                   },
                   "jump": 5
                 }
@@ -398,10 +398,10 @@
       "params": [],
       "return_type": "Unit",
       "local_map": {
-        "45": 1,
-        "49": 2,
-        "55": 3,
-        "59": 4
+        "46": 1,
+        "50": 2,
+        "56": 3,
+        "60": 4
       },
       "locals": [
         {
@@ -477,7 +477,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstUInt": 1
+              "ConstInt": 1
             },
             "payload": 1
           }
@@ -550,7 +550,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstUInt": 0
+              "ConstInt": 0
             },
             "payload": 9
           }

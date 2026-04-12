@@ -162,9 +162,9 @@
       },
       "local_map": {
         "26": 1,
-        "30": 3,
-        "32": 2,
-        "38": 4
+        "31": 3,
+        "33": 2,
+        "39": 4
       },
       "locals": [
         {
@@ -289,13 +289,13 @@
             "value": {
               "ConstStruct": [
                 {
-                  "ConstUInt": 4
+                  "ConstInt": 4
                 },
                 {
-                  "ConstUInt": 4
+                  "ConstInt": 4
                 },
                 {
-                  "ConstUInt": 0
+                  "ConstInt": 0
                 }
               ]
             }
@@ -389,7 +389,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstUInt": 0
+              "ConstInt": 0
             },
             "payload": 11
           }
@@ -397,7 +397,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstUInt": 1
+              "ConstInt": 1
             },
             "payload": null
           }
@@ -456,7 +456,7 @@
       "params": [],
       "return_type": "Unit",
       "local_map": {
-        "59": 2
+        "60": 2
       },
       "locals": [
         {
@@ -496,13 +496,13 @@
               "arms": [
                 {
                   "target": {
-                    "ConstUInt": 0
+                    "ConstInt": 0
                   },
                   "jump": 3
                 },
                 {
                   "target": {
-                    "ConstUInt": 1
+                    "ConstInt": 1
                   },
                   "jump": 5
                 }
