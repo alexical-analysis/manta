@@ -840,7 +840,7 @@ mod tests {
         },
         lex_input_pointer {
             input: "let .Ok(p) = maybe_alloc(false) !
-print(*p)
+println(*p)
 free(p)
 ",
             want: vec![
@@ -858,17 +858,17 @@ free(p)
                 Token { kind: TokenKind::Bang, source_id: SourceID::from_usize(32), lexeme_id: StrID::from_usize(9 )},
                 Token { kind: TokenKind::Semicolon, source_id: SourceID::from_usize(33), lexeme_id: StrID::from_usize(10 )},
                 Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(34), lexeme_id: StrID::from_usize(11 )},
-                Token { kind: TokenKind::OpenParen, source_id: SourceID::from_usize(39), lexeme_id: StrID::from_usize(3 )},
-                Token { kind: TokenKind::Star, source_id: SourceID::from_usize(40), lexeme_id: StrID::from_usize(12 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(41), lexeme_id: StrID::from_usize(4 )},
-                Token { kind: TokenKind::CloseParen, source_id: SourceID::from_usize(42), lexeme_id: StrID::from_usize(5 )},
-                Token { kind: TokenKind::Semicolon, source_id: SourceID::from_usize(43), lexeme_id: StrID::from_usize(10 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(44), lexeme_id: crate::str_store::FREE },
-                Token { kind: TokenKind::OpenParen, source_id: SourceID::from_usize(48), lexeme_id: StrID::from_usize(3 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(49), lexeme_id: StrID::from_usize(4 )},
-                Token { kind: TokenKind::CloseParen, source_id: SourceID::from_usize(50), lexeme_id: StrID::from_usize(5 )},
-                Token { kind: TokenKind::Semicolon, source_id: SourceID::from_usize(51), lexeme_id: StrID::from_usize(10 )},
-                Token { kind: TokenKind::Eof, source_id: SourceID::from_usize(52), lexeme_id: StrID::from_usize(13 )},
+                Token { kind: TokenKind::OpenParen, source_id: SourceID::from_usize(41), lexeme_id: StrID::from_usize(3 )},
+                Token { kind: TokenKind::Star, source_id: SourceID::from_usize(42), lexeme_id: StrID::from_usize(12 )},
+                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(43), lexeme_id: StrID::from_usize(4 )},
+                Token { kind: TokenKind::CloseParen, source_id: SourceID::from_usize(44), lexeme_id: StrID::from_usize(5 )},
+                Token { kind: TokenKind::Semicolon, source_id: SourceID::from_usize(45), lexeme_id: StrID::from_usize(10 )},
+                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(46), lexeme_id: str_store::FREE },
+                Token { kind: TokenKind::OpenParen, source_id: SourceID::from_usize(50), lexeme_id: StrID::from_usize(3 )},
+                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(51), lexeme_id: StrID::from_usize(4 )},
+                Token { kind: TokenKind::CloseParen, source_id: SourceID::from_usize(52), lexeme_id: StrID::from_usize(5 )},
+                Token { kind: TokenKind::Semicolon, source_id: SourceID::from_usize(53), lexeme_id: StrID::from_usize(10 )},
+                Token { kind: TokenKind::Eof, source_id: SourceID::from_usize(54), lexeme_id: StrID::from_usize(13 )},
             ],
         },
         lex_unterminated_string {

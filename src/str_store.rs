@@ -60,6 +60,8 @@ pub const DEFER: StrID = StrID(usize::MAX - 21);
 pub const FREE: StrID = StrID(usize::MAX - 22);
 pub const ALLOC: StrID = StrID(usize::MAX - 23);
 pub const MATCH_TARGET: StrID = StrID(usize::MAX - 24);
+pub const PRINT: StrID = StrID(usize::MAX - 25);
+pub const EPRINT: StrID = StrID(usize::MAX - 26);
 
 fn constant_str_id(s: &str) -> Option<StrID> {
     match s {
@@ -83,15 +85,18 @@ fn constant_str_id(s: &str) -> Option<StrID> {
         "flags" => Some(METAFLAGS),
         "free" => Some(FREE),
         "alloc" => Some(ALLOC),
+        "print" => Some(PRINT),
+        "eprint" => Some(EPRINT),
 
         "_" => Some(UNDERSCORE),
 
-        // this is not a valid identifier so we can use it in the compiler
+        // these are not a valid identifier so we can use it in the compiler
         // without worrying about conflicting with user identifiers
         "<wrap>" => Some(WRAP),
         "<inner let>" => Some(INNERLET),
         "<init>" => Some(INIT),
         "<defer>" => Some(DEFER),
+        "<match_target>" => Some(MATCH_TARGET),
         _ => None,
     }
 }
@@ -118,6 +123,8 @@ pub fn constant_id_str(id: StrID) -> Option<&'static str> {
         METAFLAGS => Some("flags"),
         FREE => Some("free"),
         ALLOC => Some("alloc"),
+        PRINT => Some("print"),
+        EPRINT => Some("eprint"),
         UNDERSCORE => Some("_"),
 
         // this is not a valid identifier so we can use it in the compiler

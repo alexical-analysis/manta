@@ -170,7 +170,7 @@ mod tests {
         },
         parse_decl_function_no_params {
             input: r#"fn main() {
-                print("hello")
+                println("hello")
                 return
             }"#,
             want_var: Decl::Function(decl),
@@ -239,7 +239,7 @@ mod tests {
         },
         parse_decl_function_no_return_type {
             input: r#"fn greet(name str) {
-                print(name)
+                println(name)
             }"#,
             want_var: Decl::Function(decl),
             want_value: assert_eq!(
@@ -266,7 +266,7 @@ mod tests {
                                 })),
 
                                 args: vec![Expr::Identifier(IdentifierExpr {
-                                    id: SourceID::from_usize(43),
+                                    id: SourceID::from_usize(45),
                                     module: None,
                                     name: StrID::from_usize(3)
                                 })],
@@ -381,7 +381,7 @@ mod tests {
         },
         parse_decl_slice_parameter {
             input: r#"fn process_array(arr []i32) {
-                print(arr)
+                println(arr)
             }"#,
             want_var: Decl::Function(decl),
             want_value: assert_eq!(
@@ -408,7 +408,7 @@ mod tests {
                                 })),
 
                                 args: vec![Expr::Identifier(IdentifierExpr {
-                                    id: SourceID::from_usize(52),
+                                    id: SourceID::from_usize(54),
                                     module: None,
                                     name: StrID::from_usize(3)
                                 })],

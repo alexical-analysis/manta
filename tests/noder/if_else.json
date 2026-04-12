@@ -3,7 +3,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 9
+        "name": 18446744073709551595
       }
     },
     {
@@ -26,7 +26,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 8
+        "name": 18446744073709551590
       }
     },
     {
@@ -36,6 +36,82 @@
           1
         ],
         "body": 3
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551595
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 6
+      }
+    },
+    {
+      "Return": {
+        "value": null
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          8
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551589
+      }
+    },
+    {
+      "FunctionDecl": {
+        "ident": 10,
+        "params": [
+          7
+        ],
+        "body": 9
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 9
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 12
+      }
+    },
+    {
+      "Return": {
+        "value": null
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          14
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 8
+      }
+    },
+    {
+      "FunctionDecl": {
+        "ident": 16,
+        "params": [
+          13
+        ],
+        "body": 15
       }
     },
     {
@@ -49,13 +125,13 @@
     },
     {
       "VarDecl": {
-        "ident": 7
+        "ident": 19
       }
     },
     {
       "Assign": {
-        "target": 7,
-        "value": 6
+        "target": 19,
+        "value": 18
       }
     },
     {
@@ -63,23 +139,23 @@
     },
     {
       "Call": {
-        "func": 4,
+        "func": 16,
         "args": [
-          10
+          22
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          11
+          23
         ]
       }
     },
     {
       "If": {
-        "condition": 7,
-        "then_block": 12,
+        "condition": 19,
+        "then_block": 24,
         "else_block": null
       }
     },
@@ -94,13 +170,13 @@
     },
     {
       "VarDecl": {
-        "ident": 15
+        "ident": 27
       }
     },
     {
       "Assign": {
-        "target": 15,
-        "value": 14
+        "target": 27,
+        "value": 26
       }
     },
     {
@@ -108,9 +184,9 @@
     },
     {
       "Binary": {
-        "left": 15,
+        "left": 27,
         "operator": "GreaterThan",
-        "right": 18
+        "right": 30
       }
     },
     {
@@ -118,16 +194,16 @@
     },
     {
       "Call": {
-        "func": 4,
+        "func": 16,
         "args": [
-          20
+          32
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          21
+          33
         ]
       }
     },
@@ -136,24 +212,24 @@
     },
     {
       "Call": {
-        "func": 4,
+        "func": 16,
         "args": [
-          23
+          35
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          24
+          36
         ]
       }
     },
     {
       "If": {
-        "condition": 19,
-        "then_block": 22,
-        "else_block": 25
+        "condition": 31,
+        "then_block": 34,
+        "else_block": 37
       }
     },
     {
@@ -164,13 +240,13 @@
     {
       "Block": {
         "statements": [
-          8,
-          9,
-          13,
-          16,
-          17,
-          26,
-          27
+          20,
+          21,
+          25,
+          28,
+          29,
+          38,
+          39
         ]
       }
     },
@@ -182,51 +258,99 @@
     },
     {
       "FunctionDecl": {
-        "ident": 29,
+        "ident": 41,
         "params": [],
-        "body": 28
+        "body": 40
       }
     }
   ],
   "roots": [
     5,
-    30
+    11,
+    17,
+    42
   ],
   "type_map": {
     "keys": {
       "0": 0,
-      "1": 5,
-      "2": 7,
-      "3": 6,
+      "1": 11,
+      "2": 13,
+      "3": 12,
       "4": 1,
       "5": 2,
-      "6": 11,
-      "7": 12,
-      "8": 9,
-      "9": 10,
-      "10": 15,
-      "11": 16,
-      "12": 14,
-      "13": 13,
+      "6": 3,
+      "7": 14,
+      "8": 16,
+      "9": 15,
+      "10": 4,
+      "11": 5,
+      "12": 6,
+      "13": 17,
       "14": 19,
-      "15": 20,
-      "16": 17,
-      "17": 18,
-      "18": 22,
-      "19": 23,
-      "20": 25,
-      "21": 26,
-      "22": 24,
+      "15": 18,
+      "16": 7,
+      "17": 8,
+      "18": 23,
+      "19": 24,
+      "20": 21,
+      "21": 22,
+      "22": 27,
       "23": 28,
-      "24": 29,
-      "25": 27,
-      "26": 21,
-      "27": 30,
-      "28": 8,
-      "29": 3,
-      "30": 4
+      "24": 26,
+      "25": 25,
+      "26": 31,
+      "27": 32,
+      "28": 29,
+      "29": 30,
+      "30": 34,
+      "31": 35,
+      "32": 37,
+      "33": 38,
+      "34": 36,
+      "35": 40,
+      "36": 41,
+      "37": 39,
+      "38": 33,
+      "39": 42,
+      "40": 20,
+      "41": 9,
+      "42": 10
     },
     "values": [
+      "String",
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": "Unit"
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": "Unit"
+        }
+      },
+      "String",
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": "Unit"
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": "Unit"
+        }
+      },
       "String",
       {
         "Function": {
@@ -256,6 +380,12 @@
           "return_type": "Unit"
         }
       },
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
       "Unit",
       "Unit",
       "Unit",
@@ -288,16 +418,24 @@
     "keys": {
       "12": 1,
       "13": 0,
-      "14": 4,
+      "14": 3,
       "15": 2,
-      "16": 3
+      "16": 5,
+      "17": 4,
+      "18": 8,
+      "19": 6,
+      "20": 7
     },
     "values": [
       0,
       4,
-      7,
-      15,
-      29
+      6,
+      10,
+      12,
+      16,
+      19,
+      27,
+      41
     ]
   }
 }

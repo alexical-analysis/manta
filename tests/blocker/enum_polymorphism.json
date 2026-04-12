@@ -52,13 +52,73 @@
   },
   "functions": [
     {
+      "name": 18446744073709551590,
+      "params": [
+        1
+      ],
+      "return_type": "Unit",
+      "local_map": {
+        "0": 1
+      },
+      "locals": [
+        {
+          "type_spec": "String",
+          "name": 18446744073709551595
+        }
+      ],
+      "blocks": [
+        {
+          "instructions": [],
+          "terminator": {
+            "Return": {
+              "value": null
+            }
+          }
+        },
+        null
+      ],
+      "entry_block": 1,
+      "instructions": [],
+      "value_types": []
+    },
+    {
+      "name": 18446744073709551589,
+      "params": [
+        1
+      ],
+      "return_type": "Unit",
+      "local_map": {
+        "6": 1
+      },
+      "locals": [
+        {
+          "type_spec": "String",
+          "name": 18446744073709551595
+        }
+      ],
+      "blocks": [
+        {
+          "instructions": [],
+          "terminator": {
+            "Return": {
+              "value": null
+            }
+          }
+        },
+        null
+      ],
+      "entry_block": 1,
+      "instructions": [],
+      "value_types": []
+    },
+    {
       "name": 13,
       "params": [
         1
       ],
       "return_type": "Unit",
       "local_map": {
-        "4": 1
+        "16": 1
       },
       "locals": [
         {
@@ -88,9 +148,9 @@
       ],
       "return_type": "F64",
       "local_map": {
-        "12": 1,
-        "14": 2,
-        "21": 3
+        "24": 1,
+        "26": 2,
+        "33": 3
       },
       "locals": [
         {
@@ -338,10 +398,10 @@
       "params": [],
       "return_type": "Unit",
       "local_map": {
-        "33": 1,
-        "37": 2,
-        "43": 3,
-        "47": 4
+        "45": 1,
+        "49": 2,
+        "55": 3,
+        "59": 4
       },
       "locals": [
         {
