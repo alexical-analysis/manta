@@ -13,6 +13,7 @@ entry:
 define void @fmt_println(double %0) {
 entry:
   %i = alloca double, align 8
+  store double %0, ptr %i, align 8
   ret void
 }
 
@@ -21,6 +22,7 @@ entry:
   %s = alloca { i8, [8 x i8] }, align 8
   %r = alloca double, align 8
   %s1 = alloca double, align 8
+  store { i8, [8 x i8] } %0, ptr %s, align 1
   %load = load { i8, [8 x i8] }, ptr %s, align 1
   %ext_tag = extractvalue { i8, [8 x i8] } %load, 0
   switch i8 %ext_tag, label %Block_7 [

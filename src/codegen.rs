@@ -198,6 +198,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             "gvn",
             "simplifycfg",
             "mem2reg",
+            "globaldce",
         ];
 
         module

@@ -166,6 +166,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
             block_map.insert(block_id, basic_block);
         }
 
+        // ensure all the paramaters are used to assign locals
         match entry_block {
             Some(block) => builder.position_at_end(block),
             None => panic!("failed to find entry block in function"),
@@ -184,6 +185,16 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
                 .expect("failed to alloca local");
 
             local_map.insert(local_id, local_value);
+        }
+
+        for (i, param) in function.params.iter().enumerate() {
+            let local = local_map.get(param).expect("failed to get paramater");
+            let value = llvm_function
+                .get_nth_param(i as u32)
+                .expect("failed to get nth param");
+            builder
+                .build_store(*local, value)
+                .expect("failed to store paramater");
         }
 
         FuncBuilder {

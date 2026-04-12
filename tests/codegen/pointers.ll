@@ -11,6 +11,7 @@ entry:
 define void @fmt_println(i64 %0) {
 entry:
   %i = alloca i64, align 8
+  store i64 %0, ptr %i, align 4
   ret void
 }
 
