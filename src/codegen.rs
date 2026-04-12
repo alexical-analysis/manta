@@ -4,7 +4,7 @@ pub mod optimizer;
 use std::collections::BTreeMap;
 
 use inkwell::context::Context;
-use inkwell::module::{Linkage, Module};
+use inkwell::module::{self, Linkage, Module};
 use inkwell::passes::PassBuilderOptions;
 use inkwell::targets::TargetMachine;
 use inkwell::types::BasicTypeEnum;
@@ -106,41 +106,26 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         }
 
         // add c-runtime dependencies to the module
+        let c_funcs = builder::build_c_deps(self.context, &llvm_module);
 
-        // TODO: need to make sure malloc uses the correct arch-width. Just assuming Arch:W64 for
-        // now, but will need to update that in the future
-        let malloc_type = self
-            .context
-            .ptr_type(AddressSpace::default())
-            .fn_type(&[self.context.i64_type().into()], false);
-        let malloc_fn = llvm_module.add_function("malloc", malloc_type, Some(Linkage::External));
-
-        let free_type = self.context.void_type().fn_type(
-            &[self.context.ptr_type(AddressSpace::default()).into()],
-            false,
-        );
-        let free_fn = llvm_module.add_function("free", free_type, Some(Linkage::External));
-
-        let puts_type = self.context.i32_type().fn_type(
-            &[self.context.ptr_type(AddressSpace::default()).into()],
-            false,
-        );
-        let puts_fn = llvm_module.add_function("puts", puts_type, Some(Linkage::External));
-
-        let abort_type = self.context.void_type().fn_type(&[], false);
-        let abort_fn = llvm_module.add_function("abort", abort_type, Some(Linkage::External));
-
-        // build manta module level functions that are built on top of the c-runtime
+        // build manta module level functions that are built on top of the c-runtime, we need to
+        // replace the bulitin placeholders which is why this comes after we've already built all
+        // the module functions
         self.function_map.insert(
             str_store::FREE,
             FuncData {
-                function: free_fn,
+                function: *c_funcs.get("free").expect("failed to get free() c dep"),
                 return_type: TypeSpec::Unit,
             },
         );
 
-        let panic_fn =
-            builder::build_manta_panic(self.context, &builder, &llvm_module, puts_fn, abort_fn);
+        let panic_fn = builder::build_manta_panic(
+            self.context,
+            &builder,
+            &llvm_module,
+            *c_funcs.get("puts").expect("failed to get puts() c dep"),
+            *c_funcs.get("abort").expect("failed to get abort() c dep"),
+        );
         self.function_map.insert(
             str_store::PANIC,
             FuncData {
@@ -149,12 +134,45 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             },
         );
 
-        let alloc_fn = builder::build_manta_alloc(self.context, &builder, &llvm_module, malloc_fn);
+        let alloc_fn = builder::build_manta_alloc(
+            self.context,
+            &builder,
+            &llvm_module,
+            *c_funcs.get("malloc").expect("failed to get malloc() c dep"),
+        );
         self.function_map.insert(
             str_store::ALLOC,
             FuncData {
                 function: alloc_fn,
                 return_type: TypeSpec::OpaquePtr,
+            },
+        );
+
+        let print_fn = builder::build_manta_print(
+            self.context,
+            &builder,
+            &llvm_module,
+            *c_funcs.get("write").expect("failed to get write() c dep"),
+        );
+        self.function_map.insert(
+            str_store::PRINT,
+            FuncData {
+                function: print_fn,
+                return_type: TypeSpec::Unit,
+            },
+        );
+
+        let eprint_fn = builder::build_manta_eprint(
+            self.context,
+            &builder,
+            &llvm_module,
+            *c_funcs.get("write").expect("failed to get write() c dep"),
+        );
+        self.function_map.insert(
+            str_store::EPRINT,
+            FuncData {
+                function: eprint_fn,
+                return_type: TypeSpec::Unit,
             },
         );
 
@@ -192,18 +210,22 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
     }
 
     pub fn optimize_module(&self, target_machine: &TargetMachine, module: &Module<'ctx>) {
-        let passes: &[&str] = &[
+        let func_passes: &[&str] = &[
             "instcombine",
             "reassociate",
             "gvn",
             "simplifycfg",
             "mem2reg",
-            "globaldce",
         ];
+        let func_passes = func_passes.join(",");
+        let func_passes = format!("function({})", func_passes);
+
+        let mod_passes: &[&str] = &["globaldce"];
+        let mod_passes = mod_passes.join(",");
 
         module
             .run_passes(
-                passes.join(",").as_str(),
+                [func_passes, mod_passes].join(",").as_str(),
                 target_machine,
                 PassBuilderOptions::create(),
             )

@@ -3,12 +3,16 @@ source_filename = "if_else"
 
 @panic_msg = private unnamed_addr constant [24 x i8] c"Panic reached! exiting!\00", align 1
 @const_str = private constant [3 x i8] c"yes"
-@const_str.1 = private constant [2 x i8] c"no"
+@const_str.3 = private constant [2 x i8] c"no"
 
 define void @"<init>"() {
 entry:
   ret void
 }
+
+declare void @print({ i64, ptr })
+
+declare void @eprint({ i64, ptr })
 
 define void @fmt_println({ i64, ptr } %0) {
 entry:
@@ -39,7 +43,7 @@ Block_4:                                          ; preds = %Block_2
   br label %Block_3
 
 Block_5:                                          ; preds = %Block_3
-  call void @fmt_println({ i64, ptr } { i64 2, ptr @const_str.1 })
+  call void @fmt_println({ i64, ptr } { i64 2, ptr @const_str.3 })
   br label %Block_7
 
 Block_6:                                          ; preds = %Block_9, %Block_7
@@ -64,16 +68,44 @@ declare i32 @puts(ptr)
 
 declare void @abort()
 
-define void @panic() {
+declare i64 @write(i32, ptr, i64)
+
+define internal void @panic() {
 entry:
   %puts = call i32 @puts(ptr @panic_msg)
   call void @abort()
   unreachable
 }
 
-define ptr @alloc({ i64, i64, i64 } %0) {
+define internal ptr @alloc({ i64, i64, i64 } %0) {
 entry:
   %meta_size = extractvalue { i64, i64, i64 } %0, 0
   %malloc = call ptr @malloc(i64 %meta_size)
   ret ptr %malloc
+}
+
+define internal void @print.1({ i64, ptr } %0) {
+entry:
+  %len = extractvalue { i64, ptr } %0, 0
+  %ptr = extractvalue { i64, ptr } %0, 1
+  %write = call i64 @write(i32 1, ptr %ptr, i64 %len)
+  ret void
+
+entry1:                                           ; No predecessors!
+  %_ = alloca { i64, ptr }, align 8
+  store { i64, ptr } %0, ptr %_, align 8
+  ret void
+}
+
+define internal void @eprint.2({ i64, ptr } %0) {
+entry:
+  %len = extractvalue { i64, ptr } %0, 0
+  %ptr = extractvalue { i64, ptr } %0, 1
+  %write = call i64 @write(i32 2, ptr %ptr, i64 %len)
+  ret void
+
+entry1:                                           ; No predecessors!
+  %_ = alloca { i64, ptr }, align 8
+  store { i64, ptr } %0, ptr %_, align 8
+  ret void
 }

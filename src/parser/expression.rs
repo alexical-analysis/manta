@@ -777,7 +777,7 @@ mod tests {
             ),
         },
         parse_expression_call_no_args {
-            input: "print()",
+            input: "println()",
             want_var: Expr::Call(expr),
             want_value: assert_eq!(
                 expr,

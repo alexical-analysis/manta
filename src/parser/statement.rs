@@ -355,7 +355,7 @@ mod test {
             ),
         },
         parse_stmt_defer_multi {
-            input: "defer {\nprint(\"done:\", err)\nalloc(@i32)\n}",
+            input: "defer {\nprintln(\"done:\", err)\nalloc(@i32)\n}",
             want_var: Stmt::Defer(stmt),
             want_value: assert_eq!(
                 stmt,
@@ -373,7 +373,7 @@ mod test {
                                     args: vec![
                                         Expr::StringLiteral(StrID::from_usize(4)),
                                         Expr::Identifier(IdentifierExpr {
-                                            id: SourceID::from_usize(23),
+                                            id: SourceID::from_usize(25),
                                             module: None,
                                             name: StrID::from_usize(6)
                                         })
@@ -550,7 +550,7 @@ mod test {
         },
         parse_stmt_if {
             input: r#"if true {
-    print("ok")
+    println("ok")
 }"#,
             want_var: Stmt::If(stmt),
             want_value: assert_eq!(
@@ -576,7 +576,7 @@ mod test {
         },
         parse_stmt_if_else {
             input: r#"if a < 13 {
-    print("ok")
+    println("ok")
 } else {
     a = 10 + number(3.45)
 }"#,
@@ -607,10 +607,10 @@ mod test {
                         })],
                     },
                     fail: Some(BlockStmt {
-                        id: SourceID::from_usize(35),
+                        id: SourceID::from_usize(37),
                         statements: vec![Stmt::Assign(AssignStmt {
                             lvalue: Expr::Identifier(IdentifierExpr {
-                                id: SourceID::from_usize(41),
+                                id: SourceID::from_usize(43),
                                 module: None,
                                 name: StrID::from_usize(1)
                             }),
@@ -619,7 +619,7 @@ mod test {
                                 operator: BinaryOp::Add,
                                 right: Box::new(Expr::Call(CallExpr {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
-                                        id: SourceID::from_usize(50),
+                                        id: SourceID::from_usize(52),
                                         module: None,
                                         name: StrID::from_usize(15),
                                     })),
@@ -692,7 +692,7 @@ mod test {
         },
         parse_stmt_let_simple_catch {
             input: r#"let Ret.Valid(v) = validate("data") or {
-    print("invalid!")
+    println("invalid!")
 }"#,
             want_var: Stmt::Let(stmt),
             want_value: assert_eq!(
@@ -738,7 +738,7 @@ mod test {
         },
         parse_stmt_let_catch_binding {
             input: r#"let .Err = build_item(name, false) or(i) {
-    print("built item")
+    println("built item")
     return i
 }"#,
             want_var: Stmt::Let(stmt),
@@ -784,7 +784,7 @@ mod test {
                                 }),
                                 Stmt::Return(ReturnStmt {
                                     value: Some(Expr::Identifier(IdentifierExpr {
-                                        id: SourceID::from_usize(78),
+                                        id: SourceID::from_usize(80),
                                         module: None,
                                         name: StrID::from_usize(11)
                                     })),
@@ -824,8 +824,8 @@ mod test {
         },
         parse_stmt_match {
             input: r#"match x {
-    .Some(v) { print(v) }
-    .None { print("none") }
+    .Some(v) { println(v) }
+    .None { println("none") }
 }"#,
             want_var: Stmt::Match(stmt),
             want_value: assert_eq!(
@@ -855,7 +855,7 @@ mod test {
                                             name: StrID::from_usize(8),
                                         })),
                                         args: vec![Expr::Identifier(IdentifierExpr {
-                                            id: SourceID::from_usize(31),
+                                            id: SourceID::from_usize(33),
                                             module: None,
                                             name: StrID::from_usize(6)
                                         })],
@@ -864,19 +864,19 @@ mod test {
                             },
                         },
                         MatchArm {
-                            id: SourceID::from_usize(40),
+                            id: SourceID::from_usize(42),
                             pattern: Pattern::EnumVariant(EnumVariantPat {
-                                id: SourceID::from_usize(40),
+                                id: SourceID::from_usize(42),
                                 enum_name: None,
                                 variant: StrID::from_usize(12),
                                 payload: Payload::None,
                             }),
                             body: BlockStmt {
-                                id: SourceID::from_usize(46),
+                                id: SourceID::from_usize(48),
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            id: SourceID::from_usize(48),
+                                            id: SourceID::from_usize(50),
                                             module: None,
                                             name: StrID::from_usize(8)
                                         })),
@@ -891,9 +891,9 @@ mod test {
         },
         parse_stmt_match_mixed_patterns {
             input: r#"match result {
-    .Success(val) { print(val) }
-    .Warning(msg) { print(msg) }
-    .Failed { print("error") }
+    .Success(val) { println(val) }
+    .Warning(msg) { println(msg) }
+    .Failed { println("error") }
 }"#,
             want_var: Stmt::Match(stmt),
             want_value: assert_eq!(
@@ -923,7 +923,7 @@ mod test {
                                             name: StrID::from_usize(8)
                                         })),
                                         args: vec![Expr::Identifier(IdentifierExpr {
-                                            id: SourceID::from_usize(41),
+                                            id: SourceID::from_usize(43),
                                             module: None,
                                             name: StrID::from_usize(6)
                                         })],
@@ -932,24 +932,24 @@ mod test {
                             },
                         },
                         MatchArm {
-                            id: SourceID::from_usize(52),
+                            id: SourceID::from_usize(54),
                             pattern: Pattern::EnumVariant(EnumVariantPat {
-                                id: SourceID::from_usize(52),
+                                id: SourceID::from_usize(54),
                                 enum_name: None,
                                 variant: StrID::from_usize(12),
                                 payload: Payload::Some(StrID::from_usize(13)),
                             }),
                             body: BlockStmt {
-                                id: SourceID::from_usize(66),
+                                id: SourceID::from_usize(68),
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            id: SourceID::from_usize(68),
+                                            id: SourceID::from_usize(70),
                                             module: None,
                                             name: StrID::from_usize(8)
                                         })),
                                         args: vec![Expr::Identifier(IdentifierExpr {
-                                            id: SourceID::from_usize(74),
+                                            id: SourceID::from_usize(78),
                                             module: None,
                                             name: StrID::from_usize(13)
                                         })],
@@ -958,19 +958,19 @@ mod test {
                             },
                         },
                         MatchArm {
-                            id: SourceID::from_usize(85),
+                            id: SourceID::from_usize(89),
                             pattern: Pattern::EnumVariant(EnumVariantPat {
-                                id: SourceID::from_usize(85),
+                                id: SourceID::from_usize(89),
                                 enum_name: None,
                                 variant: StrID::from_usize(14),
                                 payload: Payload::None,
                             }),
                             body: BlockStmt {
-                                id: SourceID::from_usize(93),
+                                id: SourceID::from_usize(97),
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            id: SourceID::from_usize(95),
+                                            id: SourceID::from_usize(99),
                                             module: None,
                                             name: StrID::from_usize(8)
                                         })),
@@ -985,8 +985,8 @@ mod test {
         },
         parse_stmt_match_empty_payload {
             input: r#"match signal {
-    .Ready { print("go") }
-    .Idle(ts) { print("idle since", ts) }
+    .Ready { println("go") }
+    .Idle(ts) { println("idle since", ts) }
 }"#,
             want_var: Stmt::Match(stmt),
             want_value: assert_eq!(
@@ -1021,26 +1021,26 @@ mod test {
                             },
                         },
                         MatchArm {
-                            id: SourceID::from_usize(46),
+                            id: SourceID::from_usize(48),
                             pattern: Pattern::EnumVariant(EnumVariantPat {
-                                id: SourceID::from_usize(46),
+                                id: SourceID::from_usize(48),
                                 enum_name: None,
                                 variant: StrID::from_usize(12),
                                 payload: Payload::Some(StrID::from_usize(13)),
                             }),
                             body: BlockStmt {
-                                id: SourceID::from_usize(56),
+                                id: SourceID::from_usize(58),
                                 statements: vec![Stmt::Expr(ExprStmt {
                                     expr: Expr::Call(CallExpr {
                                         func: Box::new(Expr::Identifier(IdentifierExpr {
-                                            id: SourceID::from_usize(58),
+                                            id: SourceID::from_usize(60),
                                             module: None,
                                             name: StrID::from_usize(5)
                                         })),
                                         args: vec![
                                             Expr::StringLiteral(StrID::from_usize(14)),
                                             Expr::Identifier(IdentifierExpr {
-                                                id: SourceID::from_usize(78),
+                                                id: SourceID::from_usize(82),
                                                 module: None,
                                                 name: StrID::from_usize(13)
                                             }),

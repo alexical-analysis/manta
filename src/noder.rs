@@ -66,8 +66,8 @@ pub struct NodeTree {
     pub roots: Vec<NodeID>,
     // the type_map maps each node in the node tree to it's type (if it has one)
     // TODO: we're going to have a type for every node so maybe we can use a slot map or something
-    // to pack these more tightly withouth a lookup/ performance cost. I think right now the side
-    // table uses an internal hash map.
+    // to pack these more tightly withouth a lookup/ performance cost. right now the side
+    // table uses an internal b tree map.
     pub(crate) type_map: SideTable<NodeID, TypeSpec>,
     // the symbol_map maps a bindings symbol id, which is related to it's declaratoin site, to the
     // node_id where it was declared, using this you can look up a symbols declaration site in the

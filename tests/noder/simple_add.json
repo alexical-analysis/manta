@@ -1,6 +1,82 @@
 {
   "nodes": [
     {
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551595
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 0
+      }
+    },
+    {
+      "Return": {
+        "value": null
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          2
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551590
+      }
+    },
+    {
+      "FunctionDecl": {
+        "ident": 4,
+        "params": [
+          1
+        ],
+        "body": 3
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551595
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 6
+      }
+    },
+    {
+      "Return": {
+        "value": null
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          8
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551589
+      }
+    },
+    {
+      "FunctionDecl": {
+        "ident": 10,
+        "params": [
+          7
+        ],
+        "body": 9
+      }
+    },
+    {
       "IntLiteral": 10
     },
     {
@@ -11,13 +87,13 @@
     },
     {
       "VarDecl": {
-        "ident": 1
+        "ident": 13
       }
     },
     {
       "Assign": {
-        "target": 1,
-        "value": 0
+        "target": 13,
+        "value": 12
       }
     },
     {
@@ -31,13 +107,13 @@
     },
     {
       "VarDecl": {
-        "ident": 5
+        "ident": 17
       }
     },
     {
       "Assign": {
-        "target": 5,
-        "value": 4
+        "target": 17,
+        "value": 16
       }
     },
     {
@@ -51,44 +127,44 @@
     },
     {
       "VarDecl": {
-        "ident": 9
+        "ident": 21
       }
     },
     {
       "Assign": {
-        "target": 9,
-        "value": 8
+        "target": 21,
+        "value": 20
       }
     },
     {
       "Binary": {
-        "left": 1,
+        "left": 13,
         "operator": "Add",
-        "right": 5
+        "right": 17
       }
     },
     {
       "Binary": {
-        "left": 12,
+        "left": 24,
         "operator": "Subtract",
-        "right": 9
+        "right": 21
       }
     },
     {
       "Return": {
-        "value": 13
+        "value": 25
       }
     },
     {
       "Block": {
         "statements": [
-          2,
-          3,
-          6,
-          7,
-          10,
-          11,
-          14
+          14,
+          15,
+          18,
+          19,
+          22,
+          23,
+          26
         ]
       }
     },
@@ -100,41 +176,83 @@
     },
     {
       "FunctionDecl": {
-        "ident": 16,
+        "ident": 28,
         "params": [],
-        "body": 15
+        "body": 27
       }
     }
   ],
   "roots": [
-    17
+    5,
+    11,
+    29
   ],
   "type_map": {
     "keys": {
-      "0": 5,
-      "1": 6,
-      "2": 3,
-      "3": 4,
-      "4": 9,
-      "5": 10,
-      "6": 7,
-      "7": 8,
+      "0": 0,
+      "1": 8,
+      "2": 10,
+      "3": 9,
+      "4": 1,
+      "5": 2,
+      "6": 3,
+      "7": 11,
       "8": 13,
-      "9": 14,
-      "10": 11,
-      "11": 12,
-      "12": 16,
-      "13": 17,
+      "9": 12,
+      "10": 4,
+      "11": 5,
+      "12": 17,
+      "13": 18,
       "14": 15,
-      "15": 2,
-      "16": 0,
-      "17": 1
+      "15": 16,
+      "16": 21,
+      "17": 22,
+      "18": 19,
+      "19": 20,
+      "20": 25,
+      "21": 26,
+      "22": 23,
+      "23": 24,
+      "24": 28,
+      "25": 29,
+      "26": 27,
+      "27": 14,
+      "28": 6,
+      "29": 7
     },
     "values": [
+      "String",
       {
         "Function": {
-          "params": [],
-          "return_type": "Int64"
+          "params": [
+            "String"
+          ],
+          "return_type": "Unit"
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": "Unit"
+        }
+      },
+      "String",
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": "Unit"
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": "Unit"
         }
       },
       {
@@ -143,6 +261,18 @@
           "return_type": "Int64"
         }
       },
+      {
+        "Function": {
+          "params": [],
+          "return_type": "Int64"
+        }
+      },
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
       "Unit",
       "Unit",
       "Unit",
@@ -163,16 +293,24 @@
   },
   "symbol_map": {
     "keys": {
-      "12": 3,
+      "12": 1,
       "13": 0,
-      "14": 1,
-      "15": 2
+      "14": 3,
+      "15": 2,
+      "16": 7,
+      "17": 4,
+      "18": 5,
+      "19": 6
     },
     "values": [
-      1,
-      5,
-      9,
-      16
+      0,
+      4,
+      6,
+      10,
+      13,
+      17,
+      21,
+      28
     ]
   }
 }

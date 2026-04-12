@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, HashMap};
 use inkwell::basic_block::BasicBlock;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
-use inkwell::module::Module;
+use inkwell::module::{Linkage, Module};
 use inkwell::types::{BasicMetadataTypeEnum, BasicType, BasicTypeEnum};
 use inkwell::values::{
     BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, FunctionValue, IntValue,
@@ -18,6 +18,7 @@ use crate::mir::{
 };
 use crate::str_store::{self, StrStore};
 
+// build an llvm function value from a manta MirFunction
 pub fn build_func_value<'ctx>(
     context: &'ctx Context,
     module: &Module<'ctx>,
@@ -55,6 +56,51 @@ pub fn build_func_value<'ctx>(
     module.add_function(function_name.as_str(), func_type, None)
 }
 
+pub fn build_c_deps<'ctx>(
+    context: &'ctx Context,
+    module: &Module<'ctx>,
+) -> HashMap<&'static str, FunctionValue<'ctx>> {
+    let mut c_funcs = HashMap::new();
+
+    // TODO: need to make sure malloc uses the correct arch-width. Just assuming Arch:W64 for
+    // now, but will need to update that in the future
+    let malloc_type = context
+        .ptr_type(AddressSpace::default())
+        .fn_type(&[context.i64_type().into()], false);
+    let malloc_fn = module.add_function("malloc", malloc_type, Some(Linkage::External));
+    c_funcs.insert("malloc", malloc_fn);
+
+    let free_type = context
+        .void_type()
+        .fn_type(&[context.ptr_type(AddressSpace::default()).into()], false);
+    let free_fn = module.add_function("free", free_type, Some(Linkage::External));
+    c_funcs.insert("free", free_fn);
+
+    let puts_type = context
+        .i32_type()
+        .fn_type(&[context.ptr_type(AddressSpace::default()).into()], false);
+    let puts_fn = module.add_function("puts", puts_type, Some(Linkage::External));
+    c_funcs.insert("puts", puts_fn);
+
+    let abort_type = context.void_type().fn_type(&[], false);
+    let abort_fn = module.add_function("abort", abort_type, Some(Linkage::External));
+    c_funcs.insert("abort", abort_fn);
+
+    let write_type = context.i64_type().fn_type(
+        &[
+            context.i32_type().into(),
+            context.ptr_type(AddressSpace::default()).into(),
+            context.i64_type().into(),
+        ],
+        false,
+    );
+    let write_fn = module.add_function("write", write_type, Some(Linkage::External));
+    c_funcs.insert("write", write_fn);
+
+    c_funcs
+}
+
+// builds the manta panic builtin by wrapping puts and abort
 pub fn build_manta_panic<'ctx>(
     context: &'ctx Context,
     builder: &Builder<'ctx>,
@@ -68,7 +114,7 @@ pub fn build_manta_panic<'ctx>(
     let panic_name =
         str_store::constant_id_str(str_store::PANIC).expect("failed to get panic name");
 
-    let panic_fn = module.add_function(panic_name, panic_type, None);
+    let panic_fn = module.add_function(panic_name, panic_type, Some(Linkage::Internal));
 
     let entry_block = context.append_basic_block(panic_fn, "entry");
     builder.position_at_end(entry_block);
@@ -93,6 +139,7 @@ pub fn build_manta_panic<'ctx>(
     panic_fn
 }
 
+/// builds the manta alloc builtin by wrapping c-runtimes malloc
 pub fn build_manta_alloc<'ctx>(
     context: &'ctx Context,
     builder: &Builder<'ctx>,
@@ -108,7 +155,7 @@ pub fn build_manta_alloc<'ctx>(
     let alloc_name =
         str_store::constant_id_str(str_store::ALLOC).expect("failed to get alloc name");
 
-    let alloc_fn = module.add_function(alloc_name, alloc_type, None);
+    let alloc_fn = module.add_function(alloc_name, alloc_type, Some(Linkage::Internal));
 
     let entry_block = context.append_basic_block(alloc_fn, "entry");
     builder.position_at_end(entry_block);
@@ -131,6 +178,86 @@ pub fn build_manta_alloc<'ctx>(
     builder.build_return(ret).expect("failed to build return");
 
     alloc_fn
+}
+
+pub fn build_manta_print<'ctx>(
+    context: &'ctx Context,
+    builder: &Builder<'ctx>,
+    module: &Module<'ctx>,
+    write_fn: FunctionValue<'ctx>,
+) -> FunctionValue<'ctx> {
+    let str_type = context.struct_type(
+        &[
+            context.i64_type().into(),
+            context.ptr_type(AddressSpace::default()).into(),
+        ],
+        false,
+    );
+    let print_type = context.void_type().fn_type(&[str_type.into()], false);
+    let print_fn = module.add_function("print", print_type, Some(Linkage::Internal));
+
+    let entry_block = context.append_basic_block(print_fn, "entry");
+    builder.position_at_end(entry_block);
+
+    let msg = print_fn
+        .get_nth_param(0)
+        .expect("failed to get input message")
+        .into_struct_value();
+    let len = builder
+        .build_extract_value(msg, 0, "len")
+        .expect("failed to build extract value");
+    let ptr = builder
+        .build_extract_value(msg, 1, "ptr")
+        .expect("failed to build extract value");
+
+    let std_out = context.i32_type().const_int(1, false);
+    builder
+        .build_call(write_fn, &[std_out.into(), ptr.into(), len.into()], "write")
+        .expect("failed to build call");
+
+    builder.build_return(None).expect("failed to build return");
+
+    print_fn
+}
+
+pub fn build_manta_eprint<'ctx>(
+    context: &'ctx Context,
+    builder: &Builder<'ctx>,
+    module: &Module<'ctx>,
+    write_fn: FunctionValue<'ctx>,
+) -> FunctionValue<'ctx> {
+    let str_type = context.struct_type(
+        &[
+            context.i64_type().into(),
+            context.ptr_type(AddressSpace::default()).into(),
+        ],
+        false,
+    );
+    let eprint_type = context.void_type().fn_type(&[str_type.into()], false);
+    let eprint_fn = module.add_function("eprint", eprint_type, Some(Linkage::Internal));
+
+    let entry_block = context.append_basic_block(eprint_fn, "entry");
+    builder.position_at_end(entry_block);
+
+    let msg = eprint_fn
+        .get_nth_param(0)
+        .expect("failed to get input message")
+        .into_struct_value();
+    let len = builder
+        .build_extract_value(msg, 0, "len")
+        .expect("failed to build extract value");
+    let ptr = builder
+        .build_extract_value(msg, 1, "ptr")
+        .expect("failed to build extract value");
+
+    let std_err = context.i32_type().const_int(2, false);
+    builder
+        .build_call(write_fn, &[std_err.into(), ptr.into(), len.into()], "write")
+        .expect("failed to build call");
+
+    builder.build_return(None).expect("failed to build return");
+
+    eprint_fn
 }
 
 pub struct FuncBuilder<'ctx, 'a> {
