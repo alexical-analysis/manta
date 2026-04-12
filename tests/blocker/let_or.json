@@ -124,7 +124,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstUInt": 1
+              "ConstInt": 1
             },
             "payload": null
           }
@@ -219,7 +219,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstUInt": 1
+              "ConstInt": 1
             },
             "payload": null
           }
@@ -302,12 +302,12 @@
       },
       "local_map": {
         "46": 1,
-        "49": 4,
-        "51": 2,
-        "56": 5,
-        "67": 8,
-        "69": 6,
-        "74": 9
+        "50": 4,
+        "52": 2,
+        "57": 5,
+        "68": 8,
+        "70": 6,
+        "75": 9
       },
       "locals": [
         {
@@ -433,7 +433,7 @@
               "arms": [
                 {
                   "target": {
-                    "ConstUInt": 0
+                    "ConstInt": 0
                   },
                   "jump": 3
                 }
@@ -455,7 +455,7 @@
               "arms": [
                 {
                   "target": {
-                    "ConstUInt": 0
+                    "ConstInt": 0
                   },
                   "jump": 10
                 }
@@ -683,7 +683,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstUInt": 1
+              "ConstInt": 1
             },
             "payload": 10
           }
@@ -806,7 +806,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstUInt": 2
+              "ConstInt": 2
             },
             "payload": 23
           }
@@ -824,7 +824,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstUInt": 0
+              "ConstInt": 0
             },
             "payload": 25
           }
@@ -1063,12 +1063,12 @@
       "params": [],
       "return_type": "Unit",
       "local_map": {
-        "88": 3,
-        "90": 1,
-        "95": 4,
-        "106": 7,
-        "108": 5,
-        "114": 8
+        "89": 3,
+        "91": 1,
+        "96": 4,
+        "107": 7,
+        "109": 5,
+        "115": 8
       },
       "locals": [
         {
@@ -1227,7 +1227,7 @@
               "arms": [
                 {
                   "target": {
-                    "ConstUInt": 0
+                    "ConstInt": 0
                   },
                   "jump": 3
                 }
@@ -1251,7 +1251,7 @@
               "arms": [
                 {
                   "target": {
-                    "ConstUInt": 0
+                    "ConstInt": 0
                   },
                   "jump": 8
                 }

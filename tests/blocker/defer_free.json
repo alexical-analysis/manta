@@ -124,7 +124,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstUInt": 1
+              "ConstInt": 1
             },
             "payload": null
           }
@@ -227,7 +227,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstUInt": 1
+              "ConstInt": 1
             },
             "payload": null
           }
@@ -280,15 +280,15 @@
       },
       "local_map": {
         "42": 1,
-        "45": 4,
-        "47": 2,
-        "52": 5,
-        "64": 7,
-        "66": 6,
-        "72": 8,
-        "84": 11,
-        "86": 9,
-        "91": 12
+        "46": 4,
+        "48": 2,
+        "53": 5,
+        "65": 7,
+        "67": 6,
+        "73": 8,
+        "85": 11,
+        "87": 9,
+        "92": 12
       },
       "locals": [
         {
@@ -434,7 +434,7 @@
               "arms": [
                 {
                   "target": {
-                    "ConstUInt": 0
+                    "ConstInt": 0
                   },
                   "jump": 3
                 }
@@ -524,7 +524,7 @@
               "arms": [
                 {
                   "target": {
-                    "ConstUInt": 0
+                    "ConstInt": 0
                   },
                   "jump": 17
                 }
@@ -793,7 +793,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstUInt": 1
+              "ConstInt": 1
             },
             "payload": 10
           }
@@ -821,13 +821,13 @@
             "value": {
               "ConstStruct": [
                 {
-                  "ConstUInt": 24
+                  "ConstInt": 24
                 },
                 {
-                  "ConstUInt": 8
+                  "ConstInt": 8
                 },
                 {
-                  "ConstUInt": 0
+                  "ConstInt": 0
                 }
               ]
             }
@@ -1016,7 +1016,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstUInt": 2
+              "ConstInt": 2
             },
             "payload": 33
           }
@@ -1024,7 +1024,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstUInt": 0
+              "ConstInt": 0
             },
             "payload": null
           }
