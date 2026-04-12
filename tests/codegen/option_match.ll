@@ -13,6 +13,7 @@ entry:
 define void @fmt_println({ i64, ptr } %0) {
 entry:
   %s = alloca { i64, ptr }, align 8
+  store { i64, ptr } %0, ptr %s, align 8
   ret void
 }
 
@@ -21,6 +22,8 @@ entry:
   %tmp = alloca [4 x i8], align 1
   %a = alloca i32, align 4
   %b = alloca i32, align 4
+  store i32 %0, ptr %a, align 4
+  store i32 %1, ptr %b, align 4
   %load = load i32, ptr %b, align 4
   %ieq = icmp eq i32 %load, 0
   br i1 %ieq, label %Block_2, label %Block_3

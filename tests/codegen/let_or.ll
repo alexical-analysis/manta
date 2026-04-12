@@ -15,24 +15,28 @@ entry:
 define { i8, [0 x i8] } @os_open({ i64, ptr } %0) {
 entry:
   %path = alloca { i64, ptr }, align 8
+  store { i64, ptr } %0, ptr %path, align 8
   ret { i8, [0 x i8] } { i8 1, [0 x i8] undef }
 }
 
 define void @os_close({} %0) {
 entry:
   %f = alloca {}, align 8
+  store {} %0, ptr %f, align 1
   ret void
 }
 
 define { i8, [16 x i8] } @io_read_to_string({} %0) {
 entry:
   %f = alloca {}, align 8
+  store {} %0, ptr %f, align 1
   ret { i8, [16 x i8] } { i8 1, [16 x i8] undef }
 }
 
 define void @fmt_println({ i64, ptr } %0) {
 entry:
   %s = alloca { i64, ptr }, align 8
+  store { i64, ptr } %0, ptr %s, align 8
   ret void
 }
 
@@ -51,6 +55,7 @@ entry:
   %s3 = alloca { i64, ptr }, align 8
   %"<wrap>4" = alloca { i8, [16 x i8] }, align 8
   %"<defer>" = alloca { i8, [24 x i8] }, align 8
+  store { i64, ptr } %0, ptr %path, align 8
   %load = load { i64, ptr }, ptr %path, align 8
   %os_open = call { i8, [0 x i8] } @os_open({ i64, ptr } %load)
   store { i8, [0 x i8] } %os_open, ptr %"<match target>", align 1

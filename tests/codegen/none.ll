@@ -13,12 +13,14 @@ entry:
 define void @fmt_println_ptr(ptr %0) {
 entry:
   %p = alloca ptr, align 8
+  store ptr %0, ptr %p, align 8
   ret void
 }
 
 define void @fmt_println({ i64, ptr } %0) {
 entry:
   %s = alloca { i64, ptr }, align 8
+  store { i64, ptr } %0, ptr %s, align 8
   ret void
 }
 
@@ -29,6 +31,7 @@ entry:
   %p = alloca ptr, align 8
   %p1 = alloca ptr, align 8
   %panic = alloca ptr, align 8
+  store i1 %0, ptr %cond, align 1
   %load = load i1, ptr %cond, align 1
   br i1 %load, label %Block_2, label %Block_3
 
