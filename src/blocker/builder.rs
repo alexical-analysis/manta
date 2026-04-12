@@ -1124,7 +1124,7 @@ mod tests {
                 discriminant,
                 default,
                 arms: vec![SwitchArm {
-                    target: ConstValue::ConstUInt(0),
+                    target: ConstValue::ConstInt(0),
                     jump: arm_block,
                 }],
             },
@@ -1145,7 +1145,7 @@ mod tests {
                 assert_ne!(default, cloned_default);
                 assert_eq!(cloned_arms.len(), 1);
                 assert_ne!(arm_block, cloned_arms[0].jump);
-                assert_eq!(cloned_arms[0].target, ConstValue::ConstUInt(0));
+                assert_eq!(cloned_arms[0].target, ConstValue::ConstInt(0));
                 assert_eq!(
                     fb.get_block(cloned_default).terminator,
                     Some(Terminator::Return { value: None })
@@ -1314,7 +1314,7 @@ mod tests {
                 discriminant,
                 default,
                 arms: vec![SwitchArm {
-                    target: ConstValue::ConstUInt(0),
+                    target: ConstValue::ConstInt(0),
                     jump: arm_block,
                 }],
             },
@@ -1340,7 +1340,7 @@ mod tests {
                 discriminant,
                 default,
                 arms: vec![SwitchArm {
-                    target: ConstValue::ConstUInt(0),
+                    target: ConstValue::ConstInt(0),
                     jump: arm_block,
                 }],
             },
@@ -1537,7 +1537,7 @@ mod tests {
                 discriminant,
                 default,
                 arms: vec![SwitchArm {
-                    target: ConstValue::ConstUInt(0),
+                    target: ConstValue::ConstInt(0),
                     jump: arm_block,
                 }],
             },
@@ -1563,7 +1563,7 @@ mod tests {
                 discriminant,
                 default,
                 arms: vec![SwitchArm {
-                    target: ConstValue::ConstUInt(0),
+                    target: ConstValue::ConstInt(0),
                     jump: arm_block,
                 }],
             },

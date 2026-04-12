@@ -523,8 +523,18 @@ impl Typer {
                 let ts = match match_types(&target_type, &ts) {
                     TypeMatch::ExactType => ts,
                     TypeMatch::Inference(ts) => ts,
-                    TypeMatch::InferenceFailed => panic!("invalid type for pattern"),
-                    TypeMatch::Mismatch => panic!("invalid type for pattern"),
+                    TypeMatch::InferenceFailed => {
+                        panic!(
+                            "Inference Failed: invalid type for pattern {:?} vs {:?}",
+                            target_type, ts
+                        )
+                    }
+                    TypeMatch::Mismatch => {
+                        panic!(
+                            "Type Missmatch: invalid type for pattern {:?} vs {:?}",
+                            target_type, ts
+                        )
+                    }
                 };
 
                 node_tree.type_map.add(node_id, ts.clone());
@@ -535,8 +545,12 @@ impl Typer {
                 let ts = match match_types(&target_type, &ts) {
                     TypeMatch::ExactType => ts,
                     TypeMatch::Inference(ts) => ts,
-                    TypeMatch::InferenceFailed => panic!("invalid type for pattern"),
-                    TypeMatch::Mismatch => panic!("invalid type for patter"),
+                    TypeMatch::InferenceFailed => {
+                        panic!("invalid type for pattern {:?} vs {:?}", target_type, ts)
+                    }
+                    TypeMatch::Mismatch => {
+                        panic!("invalid type for pattern {:?} vs {:?}", target_type, ts)
+                    }
                 };
 
                 node_tree.type_map.add(node_id, ts.clone());
@@ -792,9 +806,10 @@ fn match_types(a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
             TypeSpec::Int32 => match_int(i, i32::MIN as i64, i32::MAX as i64, TypeSpec::Int32),
             TypeSpec::Int16 => match_int(i, i16::MIN as i64, i16::MAX as i64, TypeSpec::Int16),
             TypeSpec::Int8 => match_int(i, i8::MIN as i64, i8::MAX as i64, TypeSpec::Int8),
-            // TODO: in order to support u64 types we need the IntLiteral type to be a bit more
+            // TODO: in order to correctly u64 types we need the IntLiteral type to be a bit more
             // complex because we can actually store the full range of a u64 in the current int
             // literal type
+            TypeSpec::UInt64 => match_int(i, u32::MIN as i64, u32::MAX as i64, TypeSpec::UInt64),
             TypeSpec::UInt32 => match_int(i, u32::MIN as i64, u32::MAX as i64, TypeSpec::UInt32),
             TypeSpec::UInt16 => match_int(i, u16::MIN as i64, u16::MAX as i64, TypeSpec::UInt16),
             TypeSpec::UInt8 => match_int(i, u8::MIN as i64, u8::MAX as i64, TypeSpec::UInt8),

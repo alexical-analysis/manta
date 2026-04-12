@@ -484,7 +484,7 @@ impl<'a> Blocker<'a> {
                     }
 
                     match_arms.push(SwitchArm {
-                        target: ConstValue::ConstInt(i),
+                        target: ConstValue::ConstInt(i as u64),
                         jump: arm_block,
                     });
                 }
@@ -881,7 +881,7 @@ impl<'a> Blocker<'a> {
         match node {
             Node::IntLiteral(i) => {
                 self.fn_builder
-                    .emit_const(block_id, ts, ConstValue::ConstInt(i))
+                    .emit_const(block_id, ts, ConstValue::ConstInt(i as u64))
             }
             Node::FloatLiteral(f) => {
                 self.fn_builder
@@ -989,9 +989,9 @@ impl<'a> Blocker<'a> {
                 // Produce a const struct { sizeof: u64, alignof: u64, flags: u64 }.
                 let layout = type_layout(&ts, Arch::W64);
                 let meta_value = ConstValue::ConstStruct(vec![
-                    ConstValue::ConstUInt(layout.size),
-                    ConstValue::ConstUInt(layout.align),
-                    ConstValue::ConstUInt(0), // flags reserved for future use
+                    ConstValue::ConstInt(layout.size),
+                    ConstValue::ConstInt(layout.align),
+                    ConstValue::ConstInt(0), // flags reserved for future use
                 ]);
                 let meta_type = TypeSpec::Struct(vec![TypeSpec::U64, TypeSpec::U64, TypeSpec::U64]);
                 self.fn_builder.emit_const(block_id, meta_type, meta_value)
@@ -1213,7 +1213,7 @@ fn get_variant_tag(type_spec: &hir::TypeSpec, variant_name: StrID) -> ConstValue
         hir::TypeSpec::Enum(e) => {
             for (i, v) in e.variants.iter().enumerate() {
                 if variant_name == v.name {
-                    return ConstValue::ConstUInt(i as u64);
+                    return ConstValue::ConstInt(i as u64);
                 }
             }
             panic!("missing variant!")

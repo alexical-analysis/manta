@@ -230,8 +230,7 @@ pub struct Local {
 /// directly to the MIR but I've added them now just in case
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum ConstValue {
-    ConstInt(i64),
-    ConstUInt(u64),
+    ConstInt(u64),
     ConstFloat(f64),
     ConstBool(bool),
     ConstArray(Vec<ConstValue>),
