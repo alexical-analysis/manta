@@ -313,7 +313,8 @@ mod tests {
     use super::*;
     use crate::ast::{
         AllocExpr, ArrayType, BinaryExpr, BinaryOp, CallExpr, DotAccessExpr, Expr, FreeExpr,
-        IdentifierExpr, IndexExpr, MetaTypeExpr, NamedType, TypeSpec, UnaryExpr, UnaryOp,
+        IdentifierExpr, IndexExpr, MetaTypeExpr, NamedType, StructConstructor, StructValueField,
+        TypeSpec, UnaryExpr, UnaryOp,
     };
     use crate::parser::lexer::{Lexer, SourceID};
     use crate::str_store::{StrID, StrStore};
@@ -1273,6 +1274,85 @@ mod tests {
                         type_spec: TypeSpec::Int32,
                     })),
                     options: vec![Expr::BoolLiteral(true), Expr::IntLiteral(10),],
+                }
+            ),
+        },
+        parse_expression_struct_constructor_empty {
+            input: "Empty{}",
+            want_var: Expr::StructConstructor(expr),
+            want_value: assert_eq!(
+                expr,
+                StructConstructor {
+                    type_spec: TypeSpec::Named(NamedType {
+                        id: SourceID::from_usize(0),
+                        module: None,
+                        name: StrID::from_usize(0),
+                    }),
+                    fields: vec![],
+                }
+            ),
+        },
+        parse_expression_struct_constructor_with_fields {
+            // Vec2{x: 10, y: 20}
+            // StrIDs: Vec2=0, {=1, x=2, :=3, 10=4, ,=5, y=6
+            input: "Vec2{x: 10, y: 20}",
+            want_var: Expr::StructConstructor(expr),
+            want_value: assert_eq!(
+                expr,
+                StructConstructor {
+                    type_spec: TypeSpec::Named(NamedType {
+                        id: SourceID::from_usize(0),
+                        module: None,
+                        name: StrID::from_usize(0),
+                    }),
+                    fields: vec![
+                        StructValueField {
+                            name: StrID::from_usize(2),
+                            value: Box::new(Expr::IntLiteral(10)),
+                        },
+                        StructValueField {
+                            name: StrID::from_usize(6),
+                            value: Box::new(Expr::IntLiteral(20)),
+                        },
+                    ],
+                }
+            ),
+        },
+        parse_expression_struct_constructor_expr_values {
+            // Point{x: a + 1, y: b}
+            // StrIDs: Point=0, {=1, x=2, :=3, a=4, +=5, 1=6, ,=7, y=8, b=9
+            input: "Point{x: a + 1, y: b}",
+            want_var: Expr::StructConstructor(expr),
+            want_value: assert_eq!(
+                expr,
+                StructConstructor {
+                    type_spec: TypeSpec::Named(NamedType {
+                        id: SourceID::from_usize(0),
+                        module: None,
+                        name: StrID::from_usize(0),
+                    }),
+                    fields: vec![
+                        StructValueField {
+                            name: StrID::from_usize(2),
+                            value: Box::new(Expr::Binary(BinaryExpr {
+                                left: Box::new(Expr::Identifier(IdentifierExpr {
+                                    id: SourceID::from_usize(9),
+                                    module: None,
+                                    name: StrID::from_usize(4),
+                                })),
+                                operator: BinaryOp::Add,
+                                right: Box::new(Expr::IntLiteral(1)),
+                            })),
+                        },
+                        StructValueField {
+                            name: StrID::from_usize(8),
+                            value: Box::new(Expr::Identifier(IdentifierExpr {
+                                id: SourceID::from_usize(19),
+                                module: None,
+                                name: StrID::from_usize(9),
+                            })),
+                        },
+                    ],
                 }
             ),
         },
