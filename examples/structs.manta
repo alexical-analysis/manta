@@ -1,0 +1,12 @@
+mod main
+
+type Vec2 struct {
+  x i32
+  y i32
+}
+
+fn main() i32 {
+  let a = Vec2{x: 10, y: 20}
+
+  return a.x / 2
+}

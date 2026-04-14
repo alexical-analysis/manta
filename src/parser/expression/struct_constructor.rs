@@ -147,6 +147,12 @@ fn parse_struct_constructor(
         lexer.next_token();
     }
 
+    // Consume the semicolon between each field, this will either be explicit or inserted by the
+    // ASI system that automatically adds semicolon's after certian lines
+    if lexer.peek().kind == TokenKind::Semicolon {
+        lexer.next_token();
+    }
+
     // Expect a closing '}'
     let close = lexer.next_token();
     if close.kind != TokenKind::CloseBrace {

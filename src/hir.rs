@@ -104,6 +104,16 @@ pub enum Node {
         payload: Option<NodeID>,
     },
 
+    StructConstructor {
+        // no type_spec field required since the typespecs are stored in a side table
+        fields: Vec<NodeID>,
+    },
+
+    StructConstructorField {
+        name: StrID,
+        value: NodeID,
+    },
+
     Index {
         target: NodeID,
         index: NodeID,
@@ -235,11 +245,11 @@ pub struct ArrayType {
 /// Struct type with named fields
 #[derive(Debug, PartialEq, Clone, Serialize)]
 pub struct StructType {
-    pub fields: Vec<StructField>,
+    pub fields: Vec<StructTypeField>,
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize)]
-pub struct StructField {
+pub struct StructTypeField {
     pub name: StrID,
     pub type_spec: TypeSpec,
 }
