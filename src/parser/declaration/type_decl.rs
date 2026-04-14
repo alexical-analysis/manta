@@ -1,4 +1,4 @@
-use crate::ast::{Decl, EnumType, EnumVariant, StructField, StructType, TypeDecl, TypeSpec};
+use crate::ast::{Decl, EnumType, EnumVariant, StructType, StructTypeField, TypeDecl, TypeSpec};
 use crate::parser::ParseError;
 use crate::parser::declaration::{DeclParselet, DeclParser};
 use crate::parser::lexer::{Lexer, Token, TokenKind};
@@ -165,7 +165,7 @@ fn parse_struct(lexer: &mut Lexer, token: Token) -> Result<Decl, ParseError> {
 /// Parse struct fields
 /// Syntax: field_decl*
 /// field_decl: identifier type_spec
-fn parse_struct_fields(lexer: &mut Lexer) -> Result<Vec<StructField>, ParseError> {
+fn parse_struct_fields(lexer: &mut Lexer) -> Result<Vec<StructTypeField>, ParseError> {
     let mut fields = vec![];
 
     // Check for empty field list
@@ -186,7 +186,7 @@ fn parse_struct_fields(lexer: &mut Lexer) -> Result<Vec<StructField>, ParseError
         let token = lexer.next_token();
         let type_spec = types::parse_type(lexer, token)?;
 
-        fields.push(StructField { name, type_spec });
+        fields.push(StructTypeField { name, type_spec });
 
         let token = lexer.next_token();
         if token.kind != TokenKind::Semicolon {

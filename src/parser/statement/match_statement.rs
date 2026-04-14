@@ -15,7 +15,7 @@ impl PrefixStmtParselet for MatchParselet {
         lexer: &mut Lexer,
         _token: Token,
     ) -> Result<Stmt, ParseError> {
-        let target = parser.parse_expression(lexer)?;
+        let target = parser.parse_no_struct_expression(lexer)?;
 
         let token = lexer.next_token();
         if token.kind != TokenKind::OpenBrace {

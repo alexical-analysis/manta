@@ -640,6 +640,12 @@ impl Module {
                     Self::build_sym_table_expr(errors, sym_table, arg);
                 }
             }
+            Expr::StructConstructor(expr) => {
+                Self::build_sym_table_type_spec(errors, sym_table, &expr.type_spec);
+                for field in &expr.fields {
+                    Self::build_sym_table_expr(errors, sym_table, &field.value);
+                }
+            }
             Expr::Index(expr) => {
                 Self::build_sym_table_expr(errors, sym_table, &expr.target);
                 Self::build_sym_table_expr(errors, sym_table, &expr.index);
