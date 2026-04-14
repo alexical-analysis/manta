@@ -5,7 +5,7 @@ use std::collections::HashMap;
 /// without storing duplicate string data.
 /// StrID types are safe to compare like strings since the same string will always map to the
 /// same StrID
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Hash)]
 pub struct StrID(usize);
 
 impl StrID {

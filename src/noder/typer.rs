@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::ops::Deref;
 
 use crate::ast::{BinaryOp, UnaryOp};
@@ -202,12 +203,6 @@ impl Typer {
     }
 
     fn type_expr_node(&mut self, node_tree: &mut NodeTree, node_id: NodeID) -> TypeSpec {
-        // if the type of this node is already known we can just return that, otherwise we need to go
-        // through the work of inferring the type
-        if let Some(ts) = node_tree.type_map.get(node_id) {
-            return ts.clone();
-        }
-
         let node = node_tree
             .get_node(node_id)
             .expect("failed to find node for type checking");
@@ -344,23 +339,62 @@ impl Typer {
                 }
             },
             Node::StructConstructor { fields } => {
-                for field in fields {
-                    let field_type = self.type_expr_node(node_tree, field);
-                    node_tree.type_map.add(field, field_type);
-                }
-
                 let type_spec = node_tree
                     .type_map
                     .get(node_id)
-                    .expect("failed to get type for struct");
-                let base_type = resolve_type(type_spec);
-                if !matches!(base_type, TypeSpec::Struct(_)) {
-                    panic!("type spec for struct constructor must be a type")
+                    .expect("failed to get type for struct")
+                    .clone();
+                let base_type = resolve_type(&type_spec);
+                let struct_type = match base_type {
+                    TypeSpec::Struct(ts) => ts,
+                    _ => panic!("type spec for struct constructor must be a struct type"),
+                };
+
+                if fields.len() != struct_type.fields.len() {
+                    panic!("number of fields does not match what is expected")
+                }
+
+                let field_type_map: HashMap<StrID, TypeSpec> = struct_type
+                    .fields
+                    .iter()
+                    .map(|f| (f.name, f.type_spec.clone()))
+                    .collect();
+
+                for field in &fields {
+                    let node = node_tree
+                        .get_node(*field)
+                        .expect("failed to get struct field")
+                        .clone();
+
+                    if let Node::StructConstructorField { name, value } = node {
+                        let field_type = self.type_expr_node(node_tree, value);
+                        let expect_type = match field_type_map.get(&name) {
+                            Some(ts) => ts,
+                            None => panic!("unknown field in struct"),
+                        };
+
+                        match match_types(&field_type, &expect_type) {
+                            TypeMatch::ExactType => {
+                                node_tree.type_map.add(*field, field_type);
+                            }
+                            TypeMatch::Inference(ts) => {
+                                node_tree.type_map.add(*field, ts);
+                            }
+                            TypeMatch::InferenceFailed => {
+                                panic!("failed to infer type for field value")
+                            }
+                            TypeMatch::Mismatch => panic!("field type was incorrect"),
+                        }
+                    } else {
+                        panic!("field must be of type struct constructor field")
+                    }
                 }
 
                 type_spec.clone()
             }
-            Node::StructConstructorField { value, .. } => self.type_expr_node(node_tree, value),
+            Node::StructConstructorField { value, .. } => {
+                panic!("invalid position for a struct field")
+            }
             Node::FieldAccess { target, field } => {
                 let target_type = self.type_expr_node(node_tree, target);
                 match resolve_type(&target_type) {
