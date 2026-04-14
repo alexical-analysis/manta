@@ -3,7 +3,7 @@ use std::ops::Deref;
 use crate::ast::{BinaryOp, UnaryOp};
 use crate::hir::{
     EnumVariant, InferredEnumExpr, InferredEnumPat, NamedType, Node, NodeID, PatternNode,
-    StructField, StructType, TypeSpec,
+    StructType, StructTypeField, TypeSpec,
 };
 use crate::noder::NodeTree;
 use crate::str_store::{self, StrID};
@@ -191,6 +191,8 @@ impl Typer {
             | Node::Call { .. }
             | Node::Index { .. }
             | Node::EnumConstructor { .. }
+            | Node::StructConstructor { .. }
+            | Node::StructConstructorField { .. }
             | Node::FieldAccess { .. }
             | Node::MetaType
             | Node::Alloc { .. } => {
@@ -341,6 +343,24 @@ impl Typer {
                     ts
                 }
             },
+            Node::StructConstructor { fields } => {
+                for field in fields {
+                    let field_type = self.type_expr_node(node_tree, field);
+                    node_tree.type_map.add(field, field_type);
+                }
+
+                let type_spec = node_tree
+                    .type_map
+                    .get(node_id)
+                    .expect("failed to get type for struct");
+                let base_type = resolve_type(type_spec);
+                if !matches!(base_type, TypeSpec::Struct(_)) {
+                    panic!("type spec for struct constructor must be a type")
+                }
+
+                type_spec.clone()
+            }
+            Node::StructConstructorField { value, .. } => self.type_expr_node(node_tree, value),
             Node::FieldAccess { target, field } => {
                 let target_type = self.type_expr_node(node_tree, target);
                 match resolve_type(&target_type) {
@@ -463,19 +483,19 @@ impl Typer {
             }
             Node::MetaType => TypeSpec::Struct(StructType {
                 fields: vec![
-                    StructField {
+                    StructTypeField {
                         name: str_store::SIZEOF,
                         // TODO: this should actually be a usize instead of a u64 since we need to support
                         // 32-bit systems as well
                         type_spec: TypeSpec::UInt64,
                     },
-                    StructField {
+                    StructTypeField {
                         name: str_store::ALIGNOF,
                         // TODO: this should actually be a usize instead of a u64 since we need to support
                         // 32-bit systems as well
                         type_spec: TypeSpec::UInt64,
                     },
-                    StructField {
+                    StructTypeField {
                         name: str_store::METAFLAGS,
                         // TODO: this should actually be a usize instead of a u64 since we need to support
                         // 32-bit systems as well
@@ -485,7 +505,19 @@ impl Typer {
             }),
             Node::Range { .. } => todo!("Range expressions are not yet supported"),
             Node::Pattern(_) => panic!("Invalid position for a patter node"),
-            Node::Alloc { .. } => TypeSpec::UnsafePtr,
+            Node::Alloc { meta_type, .. } => {
+                let type_spec = self.type_expr_node(node_tree, meta_type);
+                match type_spec {
+                    // TODO: meta type's should actually probably be a named type at some point.
+                    // For now though I'll just leave them as these sort of weird internal types
+                    TypeSpec::Struct(ts) => {
+                        eprintln!("TODO: need to validate this is actually the meta type")
+                    }
+                    _ => panic!("alloc requires a meta type expression"),
+                }
+
+                TypeSpec::UnsafePtr
+            }
             Node::Defer { .. }
             | Node::If { .. }
             | Node::VarDecl { .. }

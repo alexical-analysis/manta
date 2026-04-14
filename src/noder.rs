@@ -11,7 +11,7 @@ use crate::ast::{
 };
 use crate::hir::{
     ArrayType, DefaultPat, EnumType, EnumVariant, EnumVariantPat, FunctionType, NamedType, Node,
-    NodeID, PatternNode, StructField, StructType, TypeSpec, TypeSpecPat,
+    NodeID, PatternNode, StructType, StructTypeField, TypeSpec, TypeSpecPat,
 };
 use crate::noder::typer::Typer;
 use crate::parser::module::{BindingType, Module, SymID};
@@ -194,7 +194,7 @@ fn node_type_spec(node_tree: &NodeTree, module: &Module, type_spec: &ast::TypeSp
             let mut fields = vec![];
             for field in &t.fields {
                 let inner = node_type_spec(node_tree, module, &field.type_spec);
-                fields.push(StructField {
+                fields.push(StructTypeField {
                     name: field.name,
                     type_spec: inner,
                 })
@@ -1126,7 +1126,26 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
                 })
             }
         }
-        Expr::StructConstructor(_) => todo!("struct constructors are not supported yet"),
+        Expr::StructConstructor(expr) => {
+            let mut fields = vec![];
+
+            for field in &expr.fields {
+                let value_id = node_expr(node_tree, module, &field.value);
+                let field_id = node_tree.add_node(Node::StructConstructorField {
+                    name: field.name,
+                    value: value_id,
+                });
+
+                fields.push(field_id)
+            }
+
+            // Make sure we track the type here otherwise we'll loose the type
+            let struct_id = node_tree.add_node(Node::StructConstructor { fields });
+            let type_spec = node_type_spec(node_tree, module, &expr.type_spec);
+            node_tree.type_map.add(struct_id, type_spec);
+
+            struct_id
+        }
         Expr::Index(expr) => {
             let target_id = node_expr(node_tree, module, &expr.target);
             let idx_id = node_expr(node_tree, module, &expr.index);
