@@ -392,7 +392,7 @@ impl Typer {
 
                 type_spec.clone()
             }
-            Node::StructConstructorField { value, .. } => {
+            Node::StructConstructorField { .. } => {
                 panic!("invalid position for a struct field")
             }
             Node::FieldAccess { target, field } => {
