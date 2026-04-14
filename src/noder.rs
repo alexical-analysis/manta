@@ -1264,6 +1264,7 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use crate::ast::{BinaryOp, ConstDecl, TypeDecl, UnaryOp, VarDecl};
+    use crate::noder::typer::resolve_type;
     use crate::parser::Parser;
     use crate::parser::lexer::SourceID;
     use crate::str_store::{StrID, StrStore};
@@ -1586,6 +1587,75 @@ mod tests {
                         TypeSpec::Named(NamedType {
                             name: NodeID::from_usize(0),
                             type_spec: Box::new(TypeSpec::Int64),
+                        }),
+                    ],
+                },
+                symbol_map: SideTable {
+                    keys: BTreeMap::from([(12_usize, 0)]),
+                    values: vec![NodeID::from_usize(0)],
+                },
+            }
+        },
+        node_struct_type_decl {
+            decl: Decl::Type(TypeDecl {
+                id: SourceID::from_usize(0),
+                name: StrID::from_usize(1),
+                type_spec: ast::TypeSpec::Struct(ast::StructType {
+                    fields: vec![
+                        ast::StructTypeField {
+                            name: StrID::from_usize(2),
+                            type_spec: ast::TypeSpec::Int32
+                        },
+                        ast::StructTypeField {
+                            name: StrID::from_usize(3),
+                            type_spec: ast::TypeSpec::Int32
+                        },
+                    ],
+                }),
+            }),
+            expected: NodeTree {
+                // NodeID(0): Identifier (type name), NodeID(1): TypeDecl (root)
+                nodes: vec![
+                    Node::Identifier {
+                        name: StrID::from_usize(1),
+                        module: None
+                    },
+                    Node::TypeDecl {
+                        ident: NodeID::from_usize(0)
+                    },
+                ],
+                roots: vec![NodeID::from_usize(1)],
+                type_map: SideTable {
+                    // noder adds NodeID(1) first with the struct type spec
+                    // typer adds NodeID(0) with the Named wrapper
+                    keys: BTreeMap::from([(NodeID::from_usize(0), 1), (NodeID::from_usize(1), 0),]),
+                    values: vec![
+                        TypeSpec::Struct(StructType {
+                            fields: vec![
+                                StructTypeField {
+                                    name: StrID::from_usize(2),
+                                    type_spec: TypeSpec::Int32
+                                },
+                                StructTypeField {
+                                    name: StrID::from_usize(3),
+                                    type_spec: TypeSpec::Int32
+                                },
+                            ],
+                        }),
+                        TypeSpec::Named(NamedType {
+                            name: NodeID::from_usize(0),
+                            type_spec: Box::new(TypeSpec::Struct(StructType {
+                                fields: vec![
+                                    StructTypeField {
+                                        name: StrID::from_usize(2),
+                                        type_spec: TypeSpec::Int32
+                                    },
+                                    StructTypeField {
+                                        name: StrID::from_usize(3),
+                                        type_spec: TypeSpec::Int32
+                                    },
+                                ],
+                            })),
                         }),
                     ],
                 },
