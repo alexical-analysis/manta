@@ -48,6 +48,7 @@ pub trait InfixStmtParselet {
 
 pub struct StmtParser {
     expr_parser: ExprParser,
+    no_struct_expr_parser: ExprParser,
     pattern_parser: PatternParser,
     prefix_parselets: HashMap<TokenKind, Rc<dyn PrefixStmtParselet>>,
     infix_parselets: HashMap<TokenKind, Rc<dyn InfixStmtParselet>>,
@@ -66,11 +67,13 @@ impl StmtParser {
         let mut infix_parselets: HashMap<TokenKind, Rc<dyn InfixStmtParselet>> = HashMap::new();
         infix_parselets.insert(TokenKind::Equal, Rc::new(AssignParselet));
 
-        let expr_parser = ExprParser::new();
+        let expr_parser = ExprParser::new_parse_structs();
+        let no_struct_expr_parser = ExprParser::new_no_structs();
         let pattern_parser = PatternParser::new();
 
         StmtParser {
             expr_parser,
+            no_struct_expr_parser,
             pattern_parser,
             prefix_parselets,
             infix_parselets,
@@ -165,6 +168,10 @@ impl StmtParser {
 
     pub fn parse_expression(&self, lexer: &mut Lexer) -> Result<Expr, ParseError> {
         self.expr_parser.parse(lexer, Precedence::Base)
+    }
+
+    pub fn parse_no_struct_expression(&self, lexer: &mut Lexer) -> Result<Expr, ParseError> {
+        self.no_struct_expr_parser.parse(lexer, Precedence::Base)
     }
 
     pub fn parse_pattern(&self, lexer: &mut Lexer) -> Result<Pattern, ParseError> {

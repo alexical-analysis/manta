@@ -146,11 +146,11 @@ pub struct ArrayType {
 /// Struct type with named fields
 #[derive(Debug, PartialEq, Clone, Serialize)]
 pub struct StructType {
-    pub fields: Vec<StructField>,
+    pub fields: Vec<StructTypeField>,
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize)]
-pub struct StructField {
+pub struct StructTypeField {
     pub name: StrID,
     pub type_spec: TypeSpec,
 }
@@ -172,6 +172,18 @@ pub struct FunctionType {
 pub struct EnumVariant {
     pub name: StrID,
     pub payload: Option<TypeSpec>,
+}
+
+#[derive(Debug, PartialEq, Serialize)]
+pub struct StructConstructor {
+    pub type_spec: TypeSpec,
+    pub fields: Vec<StructValueField>,
+}
+
+#[derive(Debug, PartialEq, Serialize)]
+pub struct StructValueField {
+    pub name: StrID,
+    pub value: Box<Expr>,
 }
 
 /// A block of statements
@@ -329,6 +341,9 @@ pub enum Expr {
 
     // Function call
     Call(CallExpr),
+
+    // struct constructors
+    StructConstructor(StructConstructor),
 
     // Indexing for an expression
     Index(IndexExpr),

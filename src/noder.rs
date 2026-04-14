@@ -1126,6 +1126,7 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
                 })
             }
         }
+        Expr::StructConstructor(_) => todo!("struct constructors are not supported yet"),
         Expr::Index(expr) => {
             let target_id = node_expr(node_tree, module, &expr.target);
             let idx_id = node_expr(node_tree, module, &expr.index);

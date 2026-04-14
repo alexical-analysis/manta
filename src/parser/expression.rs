@@ -7,6 +7,7 @@ mod index;
 mod literal;
 mod meta_type;
 mod module_access;
+mod struct_constructor;
 mod unary_operator;
 
 use std::collections::HashMap;
@@ -14,6 +15,9 @@ use std::rc::Rc;
 
 use crate::ast::{BinaryOp, Expr, UnaryOp};
 use crate::parser::ParseError;
+use crate::parser::expression::struct_constructor::{
+    AnonymousStructConstructorParselet, StructConstructorParselet,
+};
 use crate::parser::lexer::{Lexer, Token, TokenKind};
 
 use binary_operator::BinaryOperatorParselet;
@@ -76,7 +80,15 @@ pub struct ExprParser {
 }
 
 impl ExprParser {
-    pub fn new() -> Self {
+    pub fn new_parse_structs() -> Self {
+        Self::new(true)
+    }
+
+    pub fn new_no_structs() -> Self {
+        Self::new(false)
+    }
+
+    fn new(allow_structs: bool) -> Self {
         let mut prefix_parselets: HashMap<TokenKind, Rc<dyn PrefixExprParselet>> = HashMap::new();
         prefix_parselets.insert(TokenKind::Int, Rc::new(LiteralParselet));
         prefix_parselets.insert(TokenKind::Float, Rc::new(LiteralParselet));
@@ -116,6 +128,10 @@ impl ExprParser {
             Rc::new(UnaryOperatorParselet {
                 operator: UnaryOp::AddressOf,
             }),
+        );
+        prefix_parselets.insert(
+            TokenKind::StructKeyword,
+            Rc::new(AnonymousStructConstructorParselet),
         );
 
         let mut infix_parselets: HashMap<TokenKind, Rc<dyn InfixExprParselet>> = HashMap::new();
@@ -236,6 +252,11 @@ impl ExprParser {
         infix_parselets.insert(TokenKind::Dot, Rc::new(InfixDotAccessParselet));
         infix_parselets.insert(TokenKind::ColonColon, Rc::new(ModuleAccessParselet));
 
+        // structs are not always allowed like normal expressions
+        if allow_structs {
+            infix_parselets.insert(TokenKind::OpenBrace, Rc::new(StructConstructorParselet));
+        }
+
         ExprParser {
             prefix_parselets,
             infix_parselets,
@@ -305,9 +326,9 @@ mod tests {
                 fn $case() {
                     let mut str_store = StrStore::new();
                     let mut lexer = Lexer::new($input, &mut str_store);
-                    let parser = ExprParser::new();
+                    let parser = ExprParser::new(true);
 
-                    let expr = parser.parse(&mut lexer, Precedence::Base).unwrap();
+                    let expr = parser.parse(&mut lexer,  Precedence::Base).unwrap();
                     match expr {
                         $want_var => $want_value,
                         _ => panic!("Expected {:?} => {{ {:?} }}, got {:?}", stringify!($want_var), stringify!($want_value), expr),

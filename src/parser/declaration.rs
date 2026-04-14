@@ -95,7 +95,7 @@ mod tests {
     use crate::ast::{
         AllocExpr, BinaryExpr, BinaryOp, BlockStmt, CallExpr, ConstDecl, EnumType, EnumVariant,
         Expr, ExprStmt, FunctionDecl, FunctionType, IdentifierExpr, IfStmt, MetaTypeExpr,
-        NamedType, Parameter, ReturnStmt, Stmt, StructField, StructType, TypeDecl, TypeSpec,
+        NamedType, Parameter, ReturnStmt, Stmt, StructType, StructTypeField, TypeDecl, TypeSpec,
         UseDecl,
     };
     use crate::parser::lexer::{Lexer, SourceID};
@@ -431,11 +431,11 @@ mod tests {
                     name: StrID::from_usize(1),
                     type_spec: TypeSpec::Struct(StructType {
                         fields: vec![
-                            StructField {
+                            StructTypeField {
                                 name: StrID::from_usize(4),
                                 type_spec: TypeSpec::Int32,
                             },
-                            StructField {
+                            StructTypeField {
                                 name: StrID::from_usize(6),
                                 type_spec: TypeSpec::Int32,
                             },

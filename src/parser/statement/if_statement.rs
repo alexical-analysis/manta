@@ -15,7 +15,7 @@ impl PrefixStmtParselet for IfParselet {
         lexer: &mut Lexer,
         _token: Token,
     ) -> Result<Stmt, ParseError> {
-        let check = parser.parse_expression(lexer)?;
+        let check = parser.parse_no_struct_expression(lexer)?;
         let check = Box::new(check);
 
         let token = lexer.next_token();

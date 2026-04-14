@@ -16,13 +16,13 @@ impl InfixExprParselet for CallParselet {
         left: Expr,
         _token: Token,
     ) -> Result<Expr, ParseError> {
-        let mut arguments = Vec::new();
+        let mut arguments = vec![];
 
         // Check for empty argument list
         let token = lexer.peek();
         if token.kind == TokenKind::CloseParen {
             lexer.next_token();
-            return Ok(Expr::Call(crate::ast::CallExpr {
+            return Ok(Expr::Call(CallExpr {
                 func: Box::new(left),
                 args: arguments,
             }));
