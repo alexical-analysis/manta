@@ -1,0 +1,21 @@
+mod main
+
+type Vec3 struct {
+    x i32
+    y f64
+    z u64
+}
+
+type Vec2 struct { x u8; y i32 }
+
+fn two() i32 {
+    return 2
+}
+
+fn main() i32 {
+    let a = Vec3{x: 10, y: 20, z: 30}
+    let b = Vec2{x: 128, y: a.x + 5}
+    let c = Vec3{x: (b.y / 2) + two(), y: 3.1415, z: a.z + 1_000}
+
+    return c.x
+}

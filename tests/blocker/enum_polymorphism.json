@@ -470,7 +470,7 @@
         {
           "Const": {
             "value": {
-              "ConstInt": 10
+              "ConstFloat": 10.0
             }
           }
         },
@@ -543,7 +543,7 @@
         {
           "Const": {
             "value": {
-              "ConstInt": 3
+              "ConstFloat": 3.0
             }
           }
         },

@@ -1,0 +1,713 @@
+{
+  "name": 1,
+  "using_modules": [],
+  "errors": [],
+  "decls": [
+    {
+      "Mod": {
+        "name": 1
+      }
+    },
+    {
+      "Function": {
+        "id": 9999999999,
+        "name": 18446744073709551590,
+        "params": [
+          {
+            "id": 9999999998,
+            "name": 18446744073709551595
+          }
+        ],
+        "body": {
+          "id": 9999999997,
+          "statements": []
+        },
+        "function_type": {
+          "params": [
+            "String"
+          ],
+          "return_type": "Unit"
+        }
+      }
+    },
+    {
+      "Function": {
+        "id": 9999999996,
+        "name": 18446744073709551589,
+        "params": [
+          {
+            "id": 9999999995,
+            "name": 18446744073709551595
+          }
+        ],
+        "body": {
+          "id": 9999999994,
+          "statements": []
+        },
+        "function_type": {
+          "params": [
+            "String"
+          ],
+          "return_type": "Unit"
+        }
+      }
+    },
+    {
+      "Type": {
+        "id": 15,
+        "name": 4,
+        "type_spec": {
+          "Struct": {
+            "fields": [
+              {
+                "name": 7,
+                "type_spec": "Int32"
+              },
+              {
+                "name": 8,
+                "type_spec": "Float64"
+              },
+              {
+                "name": 9,
+                "type_spec": "UInt64"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "Type": {
+        "id": 67,
+        "name": 11,
+        "type_spec": {
+          "Struct": {
+            "fields": [
+              {
+                "name": 7,
+                "type_spec": "UInt8"
+              },
+              {
+                "name": 8,
+                "type_spec": "Int32"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "Function": {
+        "id": 96,
+        "name": 15,
+        "params": [],
+        "body": {
+          "id": 109,
+          "statements": [
+            {
+              "Return": {
+                "value": {
+                  "IntLiteral": 2
+                }
+              }
+            }
+          ]
+        },
+        "function_type": {
+          "params": [],
+          "return_type": "Int32"
+        }
+      }
+    },
+    {
+      "Function": {
+        "id": 127,
+        "name": 1,
+        "params": [],
+        "body": {
+          "id": 141,
+          "statements": [
+            {
+              "Let": {
+                "pattern": {
+                  "Identifier": {
+                    "id": 151,
+                    "name": 21
+                  }
+                },
+                "value": {
+                  "StructConstructor": {
+                    "type_spec": {
+                      "Named": {
+                        "id": 155,
+                        "module": null,
+                        "name": 4
+                      }
+                    },
+                    "fields": [
+                      {
+                        "name": 7,
+                        "value": {
+                          "IntLiteral": 10
+                        }
+                      },
+                      {
+                        "name": 8,
+                        "value": {
+                          "IntLiteral": 20
+                        }
+                      },
+                      {
+                        "name": 9,
+                        "value": {
+                          "IntLiteral": 30
+                        }
+                      }
+                    ]
+                  }
+                },
+                "except": "None"
+              }
+            },
+            {
+              "Let": {
+                "pattern": {
+                  "Identifier": {
+                    "id": 189,
+                    "name": 28
+                  }
+                },
+                "value": {
+                  "StructConstructor": {
+                    "type_spec": {
+                      "Named": {
+                        "id": 193,
+                        "module": null,
+                        "name": 11
+                      }
+                    },
+                    "fields": [
+                      {
+                        "name": 7,
+                        "value": {
+                          "IntLiteral": 128
+                        }
+                      },
+                      {
+                        "name": 8,
+                        "value": {
+                          "Binary": {
+                            "left": {
+                              "DotAccess": {
+                                "target": {
+                                  "Identifier": {
+                                    "id": 209,
+                                    "module": null,
+                                    "name": 21
+                                  }
+                                },
+                                "field": 7
+                              }
+                            },
+                            "operator": "Add",
+                            "right": {
+                              "IntLiteral": 5
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                "except": "None"
+              }
+            },
+            {
+              "Let": {
+                "pattern": {
+                  "Identifier": {
+                    "id": 226,
+                    "name": 33
+                  }
+                },
+                "value": {
+                  "StructConstructor": {
+                    "type_spec": {
+                      "Named": {
+                        "id": 230,
+                        "module": null,
+                        "name": 4
+                      }
+                    },
+                    "fields": [
+                      {
+                        "name": 7,
+                        "value": {
+                          "Binary": {
+                            "left": {
+                              "Binary": {
+                                "left": {
+                                  "DotAccess": {
+                                    "target": {
+                                      "Identifier": {
+                                        "id": 239,
+                                        "module": null,
+                                        "name": 28
+                                      }
+                                    },
+                                    "field": 8
+                                  }
+                                },
+                                "operator": "Divide",
+                                "right": {
+                                  "IntLiteral": 2
+                                }
+                              }
+                            },
+                            "operator": "Add",
+                            "right": {
+                              "Call": {
+                                "func": {
+                                  "Identifier": {
+                                    "id": 250,
+                                    "module": null,
+                                    "name": 15
+                                  }
+                                },
+                                "args": []
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "name": 8,
+                        "value": {
+                          "FloatLiteral": 3.1415
+                        }
+                      },
+                      {
+                        "name": 9,
+                        "value": {
+                          "Binary": {
+                            "left": {
+                              "DotAccess": {
+                                "target": {
+                                  "Identifier": {
+                                    "id": 271,
+                                    "module": null,
+                                    "name": 21
+                                  }
+                                },
+                                "field": 9
+                              }
+                            },
+                            "operator": "Add",
+                            "right": {
+                              "IntLiteral": 1000
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                "except": "None"
+              }
+            },
+            {
+              "Return": {
+                "value": {
+                  "DotAccess": {
+                    "target": {
+                      "Identifier": {
+                        "id": 296,
+                        "module": null,
+                        "name": 33
+                      }
+                    },
+                    "field": 7
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "function_type": {
+          "params": [],
+          "return_type": "Int32"
+        }
+      }
+    }
+  ],
+  "sym_table": {
+    "scopes": [
+      {
+        "parent": null,
+        "bindings": [
+          {
+            "id": 0,
+            "name": 18446744073709551614,
+            "binding_type": {
+              "TypeDecl": "UInt8"
+            },
+            "used": true
+          },
+          {
+            "id": 1,
+            "name": 18446744073709551613,
+            "binding_type": {
+              "TypeDecl": "UInt16"
+            },
+            "used": true
+          },
+          {
+            "id": 2,
+            "name": 18446744073709551612,
+            "binding_type": {
+              "TypeDecl": "UInt32"
+            },
+            "used": true
+          },
+          {
+            "id": 3,
+            "name": 18446744073709551611,
+            "binding_type": {
+              "TypeDecl": "UInt64"
+            },
+            "used": true
+          },
+          {
+            "id": 4,
+            "name": 18446744073709551610,
+            "binding_type": {
+              "TypeDecl": "Int8"
+            },
+            "used": true
+          },
+          {
+            "id": 5,
+            "name": 18446744073709551609,
+            "binding_type": {
+              "TypeDecl": "Int16"
+            },
+            "used": true
+          },
+          {
+            "id": 6,
+            "name": 18446744073709551608,
+            "binding_type": {
+              "TypeDecl": "Int32"
+            },
+            "used": true
+          },
+          {
+            "id": 7,
+            "name": 18446744073709551607,
+            "binding_type": {
+              "TypeDecl": "Int64"
+            },
+            "used": true
+          },
+          {
+            "id": 8,
+            "name": 18446744073709551606,
+            "binding_type": {
+              "TypeDecl": "Float32"
+            },
+            "used": true
+          },
+          {
+            "id": 9,
+            "name": 18446744073709551605,
+            "binding_type": {
+              "TypeDecl": "Float64"
+            },
+            "used": true
+          },
+          {
+            "id": 10,
+            "name": 18446744073709551603,
+            "binding_type": {
+              "TypeDecl": "Bool"
+            },
+            "used": true
+          },
+          {
+            "id": 11,
+            "name": 18446744073709551604,
+            "binding_type": {
+              "TypeDecl": "String"
+            },
+            "used": true
+          },
+          {
+            "id": 12,
+            "name": 18446744073709551590,
+            "binding_type": {
+              "FuncDecl": {
+                "Function": {
+                  "params": [
+                    "String"
+                  ],
+                  "return_type": "Unit"
+                }
+              }
+            },
+            "used": false
+          },
+          {
+            "id": 14,
+            "name": 18446744073709551589,
+            "binding_type": {
+              "FuncDecl": {
+                "Function": {
+                  "params": [
+                    "String"
+                  ],
+                  "return_type": "Unit"
+                }
+              }
+            },
+            "used": false
+          },
+          {
+            "id": 16,
+            "name": 4,
+            "binding_type": {
+              "TypeDecl": {
+                "Struct": {
+                  "fields": [
+                    {
+                      "name": 7,
+                      "type_spec": "Int32"
+                    },
+                    {
+                      "name": 8,
+                      "type_spec": "Float64"
+                    },
+                    {
+                      "name": 9,
+                      "type_spec": "UInt64"
+                    }
+                  ]
+                }
+              }
+            },
+            "used": true
+          },
+          {
+            "id": 17,
+            "name": 11,
+            "binding_type": {
+              "TypeDecl": {
+                "Struct": {
+                  "fields": [
+                    {
+                      "name": 7,
+                      "type_spec": "UInt8"
+                    },
+                    {
+                      "name": 8,
+                      "type_spec": "Int32"
+                    }
+                  ]
+                }
+              }
+            },
+            "used": true
+          },
+          {
+            "id": 18,
+            "name": 15,
+            "binding_type": {
+              "FuncDecl": {
+                "Function": {
+                  "params": [],
+                  "return_type": "Int32"
+                }
+              }
+            },
+            "used": true
+          },
+          {
+            "id": 19,
+            "name": 1,
+            "binding_type": {
+              "FuncDecl": {
+                "Function": {
+                  "params": [],
+                  "return_type": "Int32"
+                }
+              }
+            },
+            "used": false
+          }
+        ]
+      },
+      {
+        "parent": 0,
+        "bindings": [
+          {
+            "id": 13,
+            "name": 18446744073709551595,
+            "binding_type": "ValueDecl",
+            "used": false
+          }
+        ]
+      },
+      {
+        "parent": 1,
+        "bindings": []
+      },
+      {
+        "parent": 0,
+        "bindings": [
+          {
+            "id": 15,
+            "name": 18446744073709551595,
+            "binding_type": "ValueDecl",
+            "used": false
+          }
+        ]
+      },
+      {
+        "parent": 3,
+        "bindings": []
+      },
+      {
+        "parent": 0,
+        "bindings": []
+      },
+      {
+        "parent": 5,
+        "bindings": []
+      },
+      {
+        "parent": 0,
+        "bindings": []
+      },
+      {
+        "parent": 7,
+        "bindings": [
+          {
+            "id": 20,
+            "name": 21,
+            "binding_type": "ValueDecl",
+            "used": true
+          },
+          {
+            "id": 21,
+            "name": 28,
+            "binding_type": "ValueDecl",
+            "used": true
+          },
+          {
+            "id": 22,
+            "name": 33,
+            "binding_type": "ValueDecl",
+            "used": true
+          }
+        ]
+      }
+    ],
+    "current_scope": 0,
+    "scope_map": {
+      "15": {
+        "scope_id": 0,
+        "scope_depth": 15
+      },
+      "67": {
+        "scope_id": 0,
+        "scope_depth": 16
+      },
+      "96": {
+        "scope_id": 5,
+        "scope_depth": 0
+      },
+      "109": {
+        "scope_id": 6,
+        "scope_depth": 0
+      },
+      "127": {
+        "scope_id": 7,
+        "scope_depth": 0
+      },
+      "141": {
+        "scope_id": 8,
+        "scope_depth": 0
+      },
+      "151": {
+        "scope_id": 8,
+        "scope_depth": 1
+      },
+      "155": {
+        "scope_id": 8,
+        "scope_depth": 1
+      },
+      "189": {
+        "scope_id": 8,
+        "scope_depth": 2
+      },
+      "193": {
+        "scope_id": 8,
+        "scope_depth": 2
+      },
+      "209": {
+        "scope_id": 8,
+        "scope_depth": 2
+      },
+      "226": {
+        "scope_id": 8,
+        "scope_depth": 3
+      },
+      "230": {
+        "scope_id": 8,
+        "scope_depth": 3
+      },
+      "239": {
+        "scope_id": 8,
+        "scope_depth": 3
+      },
+      "250": {
+        "scope_id": 8,
+        "scope_depth": 3
+      },
+      "271": {
+        "scope_id": 8,
+        "scope_depth": 3
+      },
+      "296": {
+        "scope_id": 8,
+        "scope_depth": 3
+      },
+      "9999999994": {
+        "scope_id": 4,
+        "scope_depth": 0
+      },
+      "9999999995": {
+        "scope_id": 3,
+        "scope_depth": 1
+      },
+      "9999999996": {
+        "scope_id": 3,
+        "scope_depth": 0
+      },
+      "9999999997": {
+        "scope_id": 2,
+        "scope_depth": 0
+      },
+      "9999999998": {
+        "scope_id": 1,
+        "scope_depth": 1
+      },
+      "9999999999": {
+        "scope_id": 1,
+        "scope_depth": 0
+      }
+    },
+    "id_tracker": {
+      "id": 23
+    }
+  }
+}

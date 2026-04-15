@@ -882,8 +882,13 @@ impl<'a> Blocker<'a> {
 
         match node {
             Node::IntLiteral(i) => {
-                self.fn_builder
-                    .emit_const(block_id, ts, ConstValue::ConstInt(i as u64))
+                // This is necessary because int literals can technically be coerced into floating point types
+                // in certian situations.
+                let const_value = match ts {
+                    TypeSpec::F32 | TypeSpec::F64 => ConstValue::ConstFloat(i as f64),
+                    _ => ConstValue::ConstInt(i as u64),
+                };
+                self.fn_builder.emit_const(block_id, ts, const_value)
             }
             Node::FloatLiteral(f) => {
                 self.fn_builder

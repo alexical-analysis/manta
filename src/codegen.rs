@@ -1048,12 +1048,12 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
 
                 let mut result = poison_struct;
                 for (i, field) in fields.iter().enumerate() {
-                    let value = self
-                        .gen_inst(module, func_builder, *field)
+                    let value = func_builder
+                        .get_llvm_value(*field)
                         .expect("failed to get field value");
 
                     result = func_builder
-                        .build_insert_struct_field(result, value, i)
+                        .build_insert_struct_field(result, *value, i)
                         .into_struct_value();
                 }
 
