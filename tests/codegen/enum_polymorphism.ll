@@ -66,7 +66,7 @@ entry:
   %square_area = alloca double, align 8
   %circle = alloca { i8, [8 x i8] }, align 8
   %circle_area = alloca double, align 8
-  store i64 0, ptr %tmp, align 8
+  store double 1.000000e+01, ptr %tmp, align 8
   %load = load [8 x i8], ptr %tmp, align 1
   %set_pay = insertvalue { i8, [8 x i8] } { i8 1, [8 x i8] undef }, [8 x i8] %load, 1
   store { i8, [8 x i8] } %set_pay, ptr %square, align 1
@@ -75,7 +75,7 @@ entry:
   store double %area, ptr %square_area, align 8
   %load2 = load double, ptr %square_area, align 8
   call void @fmt_println(double %load2)
-  store i64 0, ptr %tmp3, align 8
+  store double 3.000000e+00, ptr %tmp3, align 8
   %load4 = load [8 x i8], ptr %tmp3, align 1
   %set_pay5 = insertvalue { i8, [8 x i8] } { i8 0, [8 x i8] undef }, [8 x i8] %load4, 1
   store { i8, [8 x i8] } %set_pay5, ptr %circle, align 1

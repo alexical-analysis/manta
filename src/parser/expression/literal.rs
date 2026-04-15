@@ -32,7 +32,10 @@ impl PrefixExprParselet for LiteralParselet {
 }
 
 fn parse_int(lexer: &mut Lexer, token: Token) -> Result<Expr, ParseError> {
-    match lexer.lexeme(token.lexeme_id).parse() {
+    let integer_str = lexer.lexeme(token.lexeme_id);
+    let integer_str = integer_str.replace("_", "");
+
+    match integer_str.parse() {
         Ok(n) => Ok(Expr::IntLiteral(n)),
         Err(e) => Err(ParseError::Custom(
             token,
