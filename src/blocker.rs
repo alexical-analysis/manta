@@ -974,6 +974,21 @@ impl<'a> Blocker<'a> {
                 self.fn_builder
                     .emit_make_variant(block_id, tag_val, payload_val, ts)
             }
+            Node::StructConstructor { fields } => {
+                let ts = self
+                    .node_tree
+                    .get_type(node_id)
+                    .expect("missing type for struct");
+
+                let mut field_values = vec![];
+                for field in &fields {
+                    let field_value = self.block_expression(block_id, *field);
+                    field_values.push(field_value)
+                }
+
+                let ts = lower_type_spec(ts);
+                self.fn_builder.emit_make_struct(block_id, field_values, ts)
+            }
             Node::Index { .. } => {
                 // TODO: slice indexing should be desugared to a core lib call before this point
                 let place = self.block_lvalue(block_id, node_id);
