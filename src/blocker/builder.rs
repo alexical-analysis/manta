@@ -818,6 +818,15 @@ impl FunctionBuilder {
         self.add_instruction(block, enum_type, Instruction::MakeVariant { tag, payload })
     }
 
+    pub fn emit_make_struct(
+        &mut self,
+        block: BlockId,
+        fields: Vec<ValueId>,
+        struct_type: TypeSpec,
+    ) -> ValueId {
+        self.add_instruction(block, struct_type, Instruction::MakeStruct { fields })
+    }
+
     /// Emit a load from a place, producing a value of `type_spec`.
     pub fn emit_load(&mut self, block_id: BlockId, place: Place, type_spec: TypeSpec) -> ValueId {
         self.add_instruction(block_id, type_spec, Instruction::Load { place })

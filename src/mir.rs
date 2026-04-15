@@ -332,6 +332,12 @@ pub enum Instruction {
         tag: ConstValue, // ConstUInt(variant_id)
         payload: Option<ValueId>,
     },
+
+    /// MakeStruct { fields } -> ValueId (type: Struct { ... })
+    MakeStruct {
+        fields: Vec<ValueId>,
+    },
+
     /// add two expressions - produces the same type as its args
     Add {
         lhs: ValueId,

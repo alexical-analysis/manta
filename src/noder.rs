@@ -2,7 +2,7 @@ pub mod typer;
 
 use serde::Serialize;
 use std::cmp::Ord;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::fmt::Debug;
 use std::ops::Deref;
 
@@ -13,7 +13,7 @@ use crate::hir::{
     ArrayType, DefaultPat, EnumType, EnumVariant, EnumVariantPat, FunctionType, NamedType, Node,
     NodeID, PatternNode, StructType, StructTypeField, TypeSpec, TypeSpecPat,
 };
-use crate::noder::typer::Typer;
+use crate::noder::typer::{Typer, resolve_type};
 use crate::parser::module::{BindingType, Module, SymID};
 use crate::str_store;
 
@@ -1127,21 +1127,48 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
             }
         }
         Expr::StructConstructor(expr) => {
-            let mut fields = vec![];
-
+            // ensure all field names are unique
+            let mut assigned_fields = HashSet::new();
             for field in &expr.fields {
-                let value_id = node_expr(node_tree, module, &field.value);
-                let field_id = node_tree.add_node(Node::StructConstructorField {
-                    name: field.name,
-                    value: value_id,
-                });
+                let new = assigned_fields.insert(field.name);
+                if !new {
+                    panic!("duplicate fields in struct construction");
+                }
+            }
 
-                fields.push(field_id)
+            let type_spec = node_type_spec(node_tree, module, &expr.type_spec);
+            let base_type = resolve_type(&type_spec);
+            let field_types = match base_type {
+                TypeSpec::Struct(ts) => ts.fields.clone(),
+                _ => panic!("invalid type for struct construction"),
+            };
+
+            if expr.fields.len() > field_types.len() {
+                panic!("too many fields for struct construction");
+            }
+            if expr.fields.len() < field_types.len() {
+                panic!("missing fields for struct construction");
+            }
+
+            let mut fields = Vec::with_capacity(field_types.len());
+
+            for field_type in field_types {
+                for field in &expr.fields {
+                    if field.name == field_type.name {
+                        let value_id = node_expr(node_tree, module, &field.value);
+                        let field_id = node_tree.add_node(Node::StructConstructorField {
+                            name: field.name,
+                            value: value_id,
+                        });
+
+                        fields.push(field_id);
+                        break;
+                    }
+                }
             }
 
             // Make sure we track the type here otherwise we'll loose the type
             let struct_id = node_tree.add_node(Node::StructConstructor { fields });
-            let type_spec = node_type_spec(node_tree, module, &expr.type_spec);
             node_tree.type_map.add(struct_id, type_spec);
 
             struct_id
