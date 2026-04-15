@@ -1035,6 +1035,30 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
 
                 Some(result)
             }
+            Instruction::MakeStruct { fields } => {
+                // clone here so the func_builder borrow ends
+                let type_spec = inst_type_spec.clone();
+
+                // start with an poison struct with the correct struct type
+                let struct_type = self
+                    .convert_type_spec(&type_spec)
+                    .expect("can not have struct of unit type")
+                    .into_struct_type();
+                let poison_struct = struct_type.get_undef();
+
+                let mut result = poison_struct;
+                for (i, field) in fields.iter().enumerate() {
+                    let value = self
+                        .gen_inst(module, func_builder, *field)
+                        .expect("failed to get field value");
+
+                    result = func_builder
+                        .build_insert_struct_field(result, value, i)
+                        .into_struct_value();
+                }
+
+                Some(result.into())
+            }
             Instruction::BitwiseAnd { lhs, rhs } => match inst_type_spec {
                 TypeSpec::I8
                 | TypeSpec::I16
