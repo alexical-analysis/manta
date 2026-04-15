@@ -1152,19 +1152,20 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
 
             let mut fields = Vec::with_capacity(field_types.len());
 
-            for field_type in field_types {
-                for field in &expr.fields {
-                    if field.name == field_type.name {
-                        let value_id = node_expr(node_tree, module, &field.value);
-                        let field_id = node_tree.add_node(Node::StructConstructorField {
-                            name: field.name,
-                            value: value_id,
-                        });
+            for field_type in &field_types {
+                let field = expr
+                    .fields
+                    .iter()
+                    .find(|f| f.name == field_type.name)
+                    .expect("unknown field name in struct constructor");
 
-                        fields.push(field_id);
-                        break;
-                    }
-                }
+                let value_id = node_expr(node_tree, module, &field.value);
+                let field_id = node_tree.add_node(Node::StructConstructorField {
+                    name: field.name,
+                    value: value_id,
+                });
+
+                fields.push(field_id);
             }
 
             // Make sure we track the type here otherwise we'll loose the type

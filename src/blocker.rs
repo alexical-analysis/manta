@@ -10,6 +10,7 @@ use crate::mir::{
     BlockId, ConstValue, Global, GlobalId, MirFunction, MirModule, Place, PlaceBase, Projection,
     SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
 };
+use crate::noder::typer::resolve_type;
 use crate::noder::{NodeTree, typer};
 use crate::str_store::{self, StrID};
 
@@ -214,12 +215,13 @@ impl<'a> Blocker<'a> {
             }
             Node::FieldAccess { target, field } => {
                 let mut inner = self.block_lvalue(block_id, target);
-                let ts = self
+                let type_spec = self
                     .node_tree
                     .get_type(target)
                     .expect("missing type for field access target");
 
-                let fields = match ts {
+                let base_type = resolve_type(type_spec);
+                let fields = match base_type {
                     hir::TypeSpec::Struct(s) => &s.fields,
                     _ => panic!("invalid target type for field access"),
                 };
@@ -989,6 +991,7 @@ impl<'a> Blocker<'a> {
                 let ts = lower_type_spec(ts);
                 self.fn_builder.emit_make_struct(block_id, field_values, ts)
             }
+            Node::StructConstructorField { value, .. } => self.block_expression(block_id, value),
             Node::Index { .. } => {
                 // TODO: slice indexing should be desugared to a core lib call before this point
                 let place = self.block_lvalue(block_id, node_id);

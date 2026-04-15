@@ -877,6 +877,18 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
             .as_basic_value_enum()
     }
 
+    pub fn build_insert_struct_field(
+        &self,
+        struct_value: StructValue<'ctx>,
+        value: BasicValueEnum<'ctx>,
+        index: usize,
+    ) -> BasicValueEnum<'ctx> {
+        self.builder
+            .build_insert_value(struct_value, value, index as u32, "set_field")
+            .expect("failed to build insert value")
+            .as_basic_value_enum()
+    }
+
     pub fn build_store(
         &self,
         pointee_typ: &TypeSpec,

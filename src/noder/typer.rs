@@ -350,51 +350,38 @@ impl Typer {
                     _ => panic!("type spec for struct constructor must be a struct type"),
                 };
 
-                if fields.len() != struct_type.fields.len() {
-                    panic!("number of fields does not match what is expected")
-                }
-
-                let field_type_map: HashMap<StrID, TypeSpec> = struct_type
-                    .fields
-                    .iter()
-                    .map(|f| (f.name, f.type_spec.clone()))
-                    .collect();
-
-                for field in &fields {
-                    let node = node_tree
-                        .get_node(*field)
-                        .expect("failed to get struct field")
-                        .clone();
-
-                    if let Node::StructConstructorField { name, value } = node {
-                        let field_type = self.type_expr_node(node_tree, value);
-                        let expect_type = match field_type_map.get(&name) {
-                            Some(ts) => ts,
-                            None => panic!("unknown field in struct"),
-                        };
-
-                        match match_types(&field_type, &expect_type) {
-                            TypeMatch::ExactType => {
-                                node_tree.type_map.add(*field, field_type);
-                            }
-                            TypeMatch::Inference(ts) => {
-                                node_tree.type_map.add(*field, ts);
-                            }
-                            TypeMatch::InferenceFailed => {
-                                panic!("failed to infer type for field value")
-                            }
-                            TypeMatch::Mismatch => panic!("field type was incorrect"),
+                for (field, field_type) in fields.iter().zip(struct_type.fields.iter()) {
+                    let got_type = self.type_expr_node(node_tree, *field);
+                    let expect_type = &field_type.type_spec;
+                    match match_types(&expect_type, &got_type) {
+                        TypeMatch::ExactType => {
+                            // need to update the type for the inner field value as well
+                            let value_id = match node_tree.get_node(*field).unwrap() {
+                                Node::StructConstructorField { value, .. } => value,
+                                _ => panic!("expected StructConstructorField"),
+                            };
+                            node_tree.type_map.set(*value_id, expect_type.clone());
+                            node_tree.type_map.add(*field, expect_type.clone());
                         }
-                    } else {
-                        panic!("field must be of type struct constructor field")
+                        TypeMatch::Inference(ts) => {
+                            // need to update the type for the inner field value as well
+                            let value_id = match node_tree.get_node(*field).unwrap() {
+                                Node::StructConstructorField { value, .. } => value,
+                                _ => panic!("expected StructConstructorField"),
+                            };
+                            node_tree.type_map.set(*value_id, expect_type.clone());
+                            node_tree.type_map.add(*field, ts);
+                        }
+                        TypeMatch::InferenceFailed => {
+                            panic!("failed to infer type for field value")
+                        }
+                        TypeMatch::Mismatch => panic!("field type was incorrect"),
                     }
                 }
 
                 type_spec.clone()
             }
-            Node::StructConstructorField { .. } => {
-                panic!("invalid position for a struct field")
-            }
+            Node::StructConstructorField { value, .. } => self.type_expr_node(node_tree, value),
             Node::FieldAccess { target, field } => {
                 let target_type = self.type_expr_node(node_tree, target);
                 match resolve_type(&target_type) {
