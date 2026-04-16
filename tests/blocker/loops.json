@@ -1,0 +1,197 @@
+{
+  "globals": [],
+  "init": {
+    "name": 18446744073709551596,
+    "params": [],
+    "return_type": "Unit",
+    "local_map": {},
+    "locals": [],
+    "blocks": [
+      {
+        "instructions": [],
+        "terminator": {
+          "Return": {
+            "value": null
+          }
+        }
+      }
+    ],
+    "entry_block": 1,
+    "instructions": [],
+    "value_types": []
+  },
+  "functions": [
+    {
+      "name": 18446744073709551590,
+      "params": [
+        1
+      ],
+      "return_type": "Unit",
+      "local_map": {
+        "0": 1
+      },
+      "locals": [
+        {
+          "type_spec": "String",
+          "name": 18446744073709551595
+        }
+      ],
+      "blocks": [
+        {
+          "instructions": [],
+          "terminator": {
+            "Return": {
+              "value": null
+            }
+          }
+        },
+        null
+      ],
+      "entry_block": 1,
+      "instructions": [],
+      "value_types": []
+    },
+    {
+      "name": 18446744073709551589,
+      "params": [
+        1
+      ],
+      "return_type": "Unit",
+      "local_map": {
+        "6": 1
+      },
+      "locals": [
+        {
+          "type_spec": "String",
+          "name": 18446744073709551595
+        }
+      ],
+      "blocks": [
+        {
+          "instructions": [],
+          "terminator": {
+            "Return": {
+              "value": null
+            }
+          }
+        },
+        null
+      ],
+      "entry_block": 1,
+      "instructions": [],
+      "value_types": []
+    },
+    {
+      "name": 1,
+      "params": [],
+      "return_type": "I64",
+      "local_map": {
+        "14": 1
+      },
+      "locals": [
+        {
+          "type_spec": "I64",
+          "name": 8
+        }
+      ],
+      "blocks": [
+        {
+          "instructions": [
+            1,
+            2
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 2
+            }
+          }
+        },
+        {
+          "instructions": [
+            3,
+            4,
+            5,
+            6
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 3
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 2
+            }
+          }
+        },
+        null
+      ],
+      "entry_block": 1,
+      "instructions": [
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 0
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            },
+            "value": 1
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 1
+            }
+          }
+        },
+        {
+          "Add": {
+            "lhs": 3,
+            "rhs": 4
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            },
+            "value": 5
+          }
+        }
+      ],
+      "value_types": [
+        "I64",
+        "Unit",
+        "I64",
+        "I64",
+        "I64",
+        "Unit"
+      ]
+    }
+  ]
+}
