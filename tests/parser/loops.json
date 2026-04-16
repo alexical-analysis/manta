@@ -1,0 +1,387 @@
+{
+  "name": 1,
+  "using_modules": [],
+  "errors": [],
+  "decls": [
+    {
+      "Mod": {
+        "name": 1
+      }
+    },
+    {
+      "Function": {
+        "id": 9999999999,
+        "name": 18446744073709551590,
+        "params": [
+          {
+            "id": 9999999998,
+            "name": 18446744073709551595
+          }
+        ],
+        "body": {
+          "id": 9999999997,
+          "statements": []
+        },
+        "function_type": {
+          "params": [
+            "String"
+          ],
+          "return_type": "Unit"
+        }
+      }
+    },
+    {
+      "Function": {
+        "id": 9999999996,
+        "name": 18446744073709551589,
+        "params": [
+          {
+            "id": 9999999995,
+            "name": 18446744073709551595
+          }
+        ],
+        "body": {
+          "id": 9999999994,
+          "statements": []
+        },
+        "function_type": {
+          "params": [
+            "String"
+          ],
+          "return_type": "Unit"
+        }
+      }
+    },
+    {
+      "Function": {
+        "id": 10,
+        "name": 1,
+        "params": [],
+        "body": {
+          "id": 24,
+          "statements": [
+            {
+              "Let": {
+                "pattern": {
+                  "Identifier": {
+                    "id": 34,
+                    "name": 8
+                  }
+                },
+                "value": {
+                  "IntLiteral": 0
+                },
+                "except": "None"
+              }
+            },
+            {
+              "Loop": {
+                "body": {
+                  "id": 44,
+                  "statements": [
+                    {
+                      "Assign": {
+                        "lvalue": {
+                          "Identifier": {
+                            "id": 59,
+                            "module": null,
+                            "name": 8
+                          }
+                        },
+                        "rvalue": {
+                          "Binary": {
+                            "left": {
+                              "Identifier": {
+                                "id": 63,
+                                "module": null,
+                                "name": 8
+                              }
+                            },
+                            "operator": "Add",
+                            "right": {
+                              "IntLiteral": 1
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "Return": {
+                "value": {
+                  "Identifier": {
+                    "id": 87,
+                    "module": null,
+                    "name": 8
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "function_type": {
+          "params": [],
+          "return_type": "Int64"
+        }
+      }
+    }
+  ],
+  "sym_table": {
+    "scopes": [
+      {
+        "parent": null,
+        "bindings": [
+          {
+            "id": 0,
+            "name": 18446744073709551614,
+            "binding_type": {
+              "TypeDecl": "UInt8"
+            },
+            "used": true
+          },
+          {
+            "id": 1,
+            "name": 18446744073709551613,
+            "binding_type": {
+              "TypeDecl": "UInt16"
+            },
+            "used": true
+          },
+          {
+            "id": 2,
+            "name": 18446744073709551612,
+            "binding_type": {
+              "TypeDecl": "UInt32"
+            },
+            "used": true
+          },
+          {
+            "id": 3,
+            "name": 18446744073709551611,
+            "binding_type": {
+              "TypeDecl": "UInt64"
+            },
+            "used": true
+          },
+          {
+            "id": 4,
+            "name": 18446744073709551610,
+            "binding_type": {
+              "TypeDecl": "Int8"
+            },
+            "used": true
+          },
+          {
+            "id": 5,
+            "name": 18446744073709551609,
+            "binding_type": {
+              "TypeDecl": "Int16"
+            },
+            "used": true
+          },
+          {
+            "id": 6,
+            "name": 18446744073709551608,
+            "binding_type": {
+              "TypeDecl": "Int32"
+            },
+            "used": true
+          },
+          {
+            "id": 7,
+            "name": 18446744073709551607,
+            "binding_type": {
+              "TypeDecl": "Int64"
+            },
+            "used": true
+          },
+          {
+            "id": 8,
+            "name": 18446744073709551606,
+            "binding_type": {
+              "TypeDecl": "Float32"
+            },
+            "used": true
+          },
+          {
+            "id": 9,
+            "name": 18446744073709551605,
+            "binding_type": {
+              "TypeDecl": "Float64"
+            },
+            "used": true
+          },
+          {
+            "id": 10,
+            "name": 18446744073709551603,
+            "binding_type": {
+              "TypeDecl": "Bool"
+            },
+            "used": true
+          },
+          {
+            "id": 11,
+            "name": 18446744073709551604,
+            "binding_type": {
+              "TypeDecl": "String"
+            },
+            "used": true
+          },
+          {
+            "id": 12,
+            "name": 18446744073709551590,
+            "binding_type": {
+              "FuncDecl": {
+                "Function": {
+                  "params": [
+                    "String"
+                  ],
+                  "return_type": "Unit"
+                }
+              }
+            },
+            "used": false
+          },
+          {
+            "id": 14,
+            "name": 18446744073709551589,
+            "binding_type": {
+              "FuncDecl": {
+                "Function": {
+                  "params": [
+                    "String"
+                  ],
+                  "return_type": "Unit"
+                }
+              }
+            },
+            "used": false
+          },
+          {
+            "id": 16,
+            "name": 1,
+            "binding_type": {
+              "FuncDecl": {
+                "Function": {
+                  "params": [],
+                  "return_type": "Int64"
+                }
+              }
+            },
+            "used": false
+          }
+        ]
+      },
+      {
+        "parent": 0,
+        "bindings": [
+          {
+            "id": 13,
+            "name": 18446744073709551595,
+            "binding_type": "ValueDecl",
+            "used": false
+          }
+        ]
+      },
+      {
+        "parent": 1,
+        "bindings": []
+      },
+      {
+        "parent": 0,
+        "bindings": [
+          {
+            "id": 15,
+            "name": 18446744073709551595,
+            "binding_type": "ValueDecl",
+            "used": false
+          }
+        ]
+      },
+      {
+        "parent": 3,
+        "bindings": []
+      },
+      {
+        "parent": 0,
+        "bindings": []
+      },
+      {
+        "parent": 5,
+        "bindings": [
+          {
+            "id": 17,
+            "name": 8,
+            "binding_type": "ValueDecl",
+            "used": true
+          }
+        ]
+      },
+      {
+        "parent": 6,
+        "bindings": []
+      }
+    ],
+    "current_scope": 0,
+    "scope_map": {
+      "10": {
+        "scope_id": 5,
+        "scope_depth": 0
+      },
+      "24": {
+        "scope_id": 6,
+        "scope_depth": 0
+      },
+      "34": {
+        "scope_id": 6,
+        "scope_depth": 1
+      },
+      "44": {
+        "scope_id": 7,
+        "scope_depth": 0
+      },
+      "59": {
+        "scope_id": 7,
+        "scope_depth": 0
+      },
+      "63": {
+        "scope_id": 7,
+        "scope_depth": 0
+      },
+      "87": {
+        "scope_id": 6,
+        "scope_depth": 1
+      },
+      "9999999994": {
+        "scope_id": 4,
+        "scope_depth": 0
+      },
+      "9999999995": {
+        "scope_id": 3,
+        "scope_depth": 1
+      },
+      "9999999996": {
+        "scope_id": 3,
+        "scope_depth": 0
+      },
+      "9999999997": {
+        "scope_id": 2,
+        "scope_depth": 0
+      },
+      "9999999998": {
+        "scope_id": 1,
+        "scope_depth": 1
+      },
+      "9999999999": {
+        "scope_id": 1,
+        "scope_depth": 0
+      }
+    },
+    "id_tracker": {
+      "id": 18
+    }
+  }
+}
