@@ -16,6 +16,23 @@ fn main() i64 {
 
             return 0
         }
+
+        loop {
+            loop {
+                break
+            }
+            break
+        }
+    }
+
+    let c = true
+    let d = 3.1415
+    while c {
+        d = d + 3.1415
+
+        if d > 30 {
+            c = false
+        }
     }
 
     return a
