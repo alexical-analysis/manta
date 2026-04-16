@@ -54,12 +54,24 @@ entry:
   store i64 0, ptr %a, align 8
   br label %Block_2
 
-Block_2:                                          ; preds = %Block_3, %entry
+Block_2:                                          ; preds = %Block_6, %entry
   %load = load i64, ptr %a, align 8
   %iadd = add i64 %load, 1
   store i64 %iadd, ptr %a, align 8
-  br label %Block_3
+  %load1 = load i64, ptr %a, align 8
+  %sgt = icmp sgt i64 %load1, 255
+  br i1 %sgt, label %Block_3, label %Block_4
 
 Block_3:                                          ; preds = %Block_2
+  br label %Block_7
+
+Block_4:                                          ; preds = %Block_2
+  br label %Block_6
+
+Block_6:                                          ; preds = %Block_4
   br label %Block_2
+
+Block_7:                                          ; preds = %Block_3
+  %load2 = load i64, ptr %a, align 8
+  ret i64 %load2
 }

@@ -564,6 +564,7 @@ impl Module {
             Stmt::Loop(stmt) => {
                 Self::build_sym_table_block(errors, sym_table, &stmt.body);
             }
+            Stmt::Break => { /* nothing to do here */ }
         }
     }
 

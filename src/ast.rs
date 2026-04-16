@@ -217,6 +217,7 @@ pub enum Stmt {
     Block(BlockStmt),
     If(IfStmt),
     Loop(LoopStmt),
+    Break,
 }
 
 #[derive(Debug, PartialEq, Serialize)]

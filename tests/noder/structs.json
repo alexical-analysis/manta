@@ -772,5 +772,6 @@
       39,
       55
     ]
-  }
+  },
+  "within_loop": false
 }

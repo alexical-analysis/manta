@@ -259,8 +259,6 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         }
     }
 
-    // TODO: we're getting a lot of params here (6), that probably means we should try to bundle
-    // some of these together and expose only the functionality that we need to simplify the code
     fn gen_block<'a>(
         &mut self,
         module: &Module<'ctx>,
@@ -303,6 +301,9 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 let panic_fn = panic_data.function;
 
                 func_builder.build_panic(panic_fn)
+            }
+            Terminator::Break => {
+                panic!("no break terminators should remain at this phase of the pipeline")
             }
         };
     }

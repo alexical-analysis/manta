@@ -73,6 +73,7 @@ pub struct NodeTree {
     // node_id where it was declared, using this you can look up a symbols declaration site in the
     // node tree through the symbol table
     pub(crate) symbol_map: SideTable<SymID, NodeID>,
+    pub within_loop: bool,
 }
 
 impl NodeTree {
@@ -83,6 +84,7 @@ impl NodeTree {
             roots: vec![],
             type_map: SideTable::new(),
             symbol_map: SideTable::new(),
+            within_loop: false,
         }
     }
 
@@ -468,8 +470,18 @@ fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<Node
             })]
         }
         Stmt::Loop(stmt) => {
+            node_tree.within_loop = true;
             let body = node_block(node_tree, module, &stmt.body);
+            node_tree.within_loop = false;
+
             vec![node_tree.add_node(Node::Loop { body })]
+        }
+        Stmt::Break => {
+            if !node_tree.within_loop {
+                panic!("break keywords must appear within loops")
+            }
+
+            vec![node_tree.add_node(Node::Break)]
         }
     }
 }
@@ -1296,7 +1308,6 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use crate::ast::{BinaryOp, ConstDecl, TypeDecl, UnaryOp, VarDecl};
-    use crate::noder::typer::resolve_type;
     use crate::parser::Parser;
     use crate::parser::lexer::SourceID;
     use crate::str_store::{StrID, StrStore};
@@ -1486,6 +1497,7 @@ mod tests {
                     keys: BTreeMap::from([(12_usize, 0)]),
                     values: vec![NodeID::from_usize(0)],
                 },
+                within_loop: false,
             }
         },
         node_invalid_decl {
@@ -1502,6 +1514,7 @@ mod tests {
                     keys: BTreeMap::new(),
                     values: vec![]
                 },
+                within_loop: false,
             }
         },
         node_const_decl_bool_literal {
@@ -1546,6 +1559,7 @@ mod tests {
                     keys: BTreeMap::from([(12_usize, 0)]),
                     values: vec![NodeID::from_usize(0)],
                 },
+                within_loop: false,
             }
         },
         node_const_decl_float_literal {
@@ -1590,6 +1604,7 @@ mod tests {
                     keys: BTreeMap::from([(12_usize, 0)]),
                     values: vec![NodeID::from_usize(0)],
                 },
+                within_loop: false,
             }
         },
         node_type_decl_int64 {
@@ -1626,6 +1641,7 @@ mod tests {
                     keys: BTreeMap::from([(12_usize, 0)]),
                     values: vec![NodeID::from_usize(0)],
                 },
+                within_loop: false,
             }
         },
         node_struct_type_decl {
@@ -1695,6 +1711,7 @@ mod tests {
                     keys: BTreeMap::from([(12_usize, 0)]),
                     values: vec![NodeID::from_usize(0)],
                 },
+                within_loop: false,
             }
         },
         node_var_decl_string_literal {
@@ -1739,6 +1756,7 @@ mod tests {
                     keys: BTreeMap::from([(12_usize, 0)]),
                     values: vec![NodeID::from_usize(0)],
                 },
+                within_loop: false,
             }
         },
     );

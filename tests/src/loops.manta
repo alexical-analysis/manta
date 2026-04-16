@@ -4,6 +4,12 @@ fn main() i64 {
     let a = 0
     loop {
         a = a + 1
+
+        if a > 255 {
+            break
+
+            return 0
+        }
     }
 
     return a

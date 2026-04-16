@@ -111,11 +111,16 @@
             3,
             4,
             5,
-            6
+            6,
+            7,
+            8,
+            9
           ],
           "terminator": {
-            "Jump": {
-              "target": 3
+            "Branch": {
+              "cond": 9,
+              "true_target": 3,
+              "false_target": 4
             }
           }
         },
@@ -123,7 +128,34 @@
           "instructions": [],
           "terminator": {
             "Jump": {
+              "target": 7
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 6
+            }
+          }
+        },
+        null,
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
               "target": 2
+            }
+          }
+        },
+        {
+          "instructions": [
+            10
+          ],
+          "terminator": {
+            "Return": {
+              "value": 10
             }
           }
         },
@@ -182,6 +214,39 @@
             },
             "value": 5
           }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 255
+            }
+          }
+        },
+        {
+          "SGreaterThan": {
+            "lhs": 7,
+            "rhs": 8
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 1
+              },
+              "projections": []
+            }
+          }
         }
       ],
       "value_types": [
@@ -190,7 +255,11 @@
         "I64",
         "I64",
         "I64",
-        "Unit"
+        "Unit",
+        "I64",
+        "I64",
+        "Bool",
+        "I64"
       ]
     }
   ]

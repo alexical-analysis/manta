@@ -564,10 +564,12 @@
           "instructions": [],
           "terminator": {
             "Jump": {
-              "target": 19
+              "target": 21
             }
           }
         },
+        null,
+        null,
         null,
         {
           "instructions": [
@@ -579,6 +581,7 @@
             }
           }
         },
+        null,
         null
       ],
       "entry_block": 1,
