@@ -442,7 +442,45 @@ impl<'a> Blocker<'a> {
                 self.block_expression(block_id, node_id);
                 Some(block_id)
             }
-            _ => panic!("node is not a valid statement {:?}", node),
+            Node::Loop { body } => {
+                // create a new block for the loop so we have something we can jump back to
+                let loop_start = self.fn_builder.add_block();
+                self.fn_builder
+                    .set_terminator(block_id, Terminator::Jump { target: loop_start });
+
+                let loop_end = self.block_statement(loop_start, body);
+                if let Some(loop_end) = loop_end {
+                    self.fn_builder
+                        .set_terminator(loop_end, Terminator::Jump { target: loop_start });
+                }
+
+                // all loops are infinite right now until we support `break` or `continue`
+                None
+            }
+            Node::FunctionDecl { .. } => panic!("function decls are not valid statements"),
+            Node::TypeDecl { .. } => panic!("type decls are not valid statements"),
+            Node::IntLiteral(_) => panic!("int literals are expressions, not statements"),
+            Node::FloatLiteral(_) => panic!("float literals are expressions, not statements"),
+            Node::StringLiteral(_) => panic!("string literals are expressions, not statements"),
+            Node::BoolLiteral(_) => panic!("bool literals are expressions, not statements"),
+            Node::Identifier { .. } => panic!("identifiers are expressions, not statements"),
+            Node::Binary { .. } => panic!("binary expressions are not statements"),
+            Node::Unary { .. } => panic!("unary expressions are not statements"),
+            Node::EnumConstructor { .. } => {
+                panic!("enum constructors are expressions not statements")
+            }
+            Node::StructConstructor { .. } => {
+                panic!("struct constructors are expressions not statements")
+            }
+            Node::StructConstructorField { .. } => {
+                panic!("struct fields must be in struct constructor expressions")
+            }
+            Node::Index { .. } => panic!("index expressions are not statements"),
+            Node::Range { .. } => panic!("range expressions are not statements"),
+            Node::FieldAccess { .. } => panic!("field access expressions are not statements"),
+            Node::MetaType { .. } => panic!("meta type expressions are not statements"),
+            Node::Alloc { .. } => panic!("alloc expressions are not statements"),
+            Node::Pattern(_) => panic!("patterns must appear within match expressions"),
         }
     }
 

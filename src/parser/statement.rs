@@ -3,6 +3,7 @@ mod block_statement;
 mod defer_statement;
 mod if_statement;
 mod let_statement;
+mod loop_statement;
 mod match_statement;
 mod return_statement;
 
@@ -20,6 +21,7 @@ use block_statement::BlockParselet;
 use defer_statement::DeferParselet;
 use if_statement::IfParselet;
 use let_statement::LetParselet;
+use loop_statement::LoopParselet;
 use match_statement::MatchParselet;
 use return_statement::ReturnParselet;
 
@@ -63,6 +65,7 @@ impl StmtParser {
         prefix_parselets.insert(TokenKind::OpenBrace, Rc::new(BlockParselet));
         prefix_parselets.insert(TokenKind::IfKeyword, Rc::new(IfParselet));
         prefix_parselets.insert(TokenKind::MatchKeyword, Rc::new(MatchParselet));
+        prefix_parselets.insert(TokenKind::LoopKeyword, Rc::new(LoopParselet));
 
         let mut infix_parselets: HashMap<TokenKind, Rc<dyn InfixStmtParselet>> = HashMap::new();
         infix_parselets.insert(TokenKind::Equal, Rc::new(AssignParselet));

@@ -467,6 +467,10 @@ fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<Node
                 else_block: fail_id,
             })]
         }
+        Stmt::Loop(stmt) => {
+            let body = node_block(node_tree, module, &stmt.body);
+            vec![node_tree.add_node(Node::Loop { body })]
+        }
     }
 }
 

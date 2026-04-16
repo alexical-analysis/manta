@@ -61,6 +61,10 @@ pub enum Node {
         then_block: NodeID,         // Always a Block
         else_block: Option<NodeID>, // Always a Block or None
     },
+    // Loop statment (all loops are desugared into this simple loop)
+    Loop {
+        body: NodeID, // Always a block
+    },
     // Match statement (all complex patterns are reduced to simple patterns)
     Match {
         target: NodeID,

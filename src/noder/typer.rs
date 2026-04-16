@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::ops::Deref;
 
 use crate::ast::{BinaryOp, UnaryOp};
@@ -53,6 +52,11 @@ impl Typer {
                 if let Some(b) = else_block {
                     self.type_node(node_tree, b);
                 }
+            }
+            Node::Loop { body } => {
+                node_tree.type_map.add(node_id, TypeSpec::Unit);
+
+                self.type_node(node_tree, body);
             }
             Node::Match { target, arms } => {
                 node_tree.type_map.add(node_id, TypeSpec::Unit);
@@ -541,6 +545,7 @@ impl Typer {
             }
             Node::Defer { .. }
             | Node::If { .. }
+            | Node::Loop { .. }
             | Node::VarDecl { .. }
             | Node::Match { .. }
             | Node::Return { .. }
