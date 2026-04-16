@@ -200,6 +200,11 @@ pub struct IfStmt {
     pub fail: Option<BlockStmt>,
 }
 
+#[derive(Debug, PartialEq, Serialize)]
+pub struct LoopStmt {
+    pub body: BlockStmt,
+}
+
 /// Statements in a block
 #[derive(Debug, PartialEq, Serialize)]
 pub enum Stmt {
@@ -211,6 +216,7 @@ pub enum Stmt {
     Match(MatchStmt),
     Block(BlockStmt),
     If(IfStmt),
+    Loop(LoopStmt),
 }
 
 #[derive(Debug, PartialEq, Serialize)]
