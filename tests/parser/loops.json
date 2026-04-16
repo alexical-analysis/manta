@@ -183,6 +183,135 @@
                         },
                         "fail": null
                       }
+                    },
+                    {
+                      "Loop": {
+                        "body": {
+                          "id": 236,
+                          "statements": [
+                            {
+                              "Loop": {
+                                "body": {
+                                  "id": 255,
+                                  "statements": [
+                                    "Break"
+                                  ]
+                                }
+                              }
+                            },
+                            "Break"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "Let": {
+                "pattern": {
+                  "Identifier": {
+                    "id": 341,
+                    "name": 24
+                  }
+                },
+                "value": {
+                  "BoolLiteral": true
+                },
+                "except": "None"
+              }
+            },
+            {
+              "Let": {
+                "pattern": {
+                  "Identifier": {
+                    "id": 358,
+                    "name": 25
+                  }
+                },
+                "value": {
+                  "FloatLiteral": 3.1415
+                },
+                "except": "None"
+              }
+            },
+            {
+              "While": {
+                "check": {
+                  "Identifier": {
+                    "id": 379,
+                    "module": null,
+                    "name": 24
+                  }
+                },
+                "body": {
+                  "id": 373,
+                  "statements": [
+                    {
+                      "Assign": {
+                        "lvalue": {
+                          "Identifier": {
+                            "id": 391,
+                            "module": null,
+                            "name": 25
+                          }
+                        },
+                        "rvalue": {
+                          "Binary": {
+                            "left": {
+                              "Identifier": {
+                                "id": 395,
+                                "module": null,
+                                "name": 25
+                              }
+                            },
+                            "operator": "Add",
+                            "right": {
+                              "FloatLiteral": 3.1415
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "If": {
+                        "check": {
+                          "Binary": {
+                            "left": {
+                              "Identifier": {
+                                "id": 418,
+                                "module": null,
+                                "name": 25
+                              }
+                            },
+                            "operator": "GreaterThan",
+                            "right": {
+                              "IntLiteral": 30
+                            }
+                          }
+                        },
+                        "success": {
+                          "id": 425,
+                          "statements": [
+                            {
+                              "Assign": {
+                                "lvalue": {
+                                  "Identifier": {
+                                    "id": 439,
+                                    "module": null,
+                                    "name": 24
+                                  }
+                                },
+                                "rvalue": {
+                                  "BoolLiteral": false
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "fail": null
+                      }
                     }
                   ]
                 }
@@ -192,7 +321,7 @@
               "Return": {
                 "value": {
                   "Identifier": {
-                    "id": 245,
+                    "id": 477,
                     "module": null,
                     "name": 8
                   }
@@ -402,6 +531,18 @@
             "name": 11,
             "binding_type": "ValueDecl",
             "used": true
+          },
+          {
+            "id": 19,
+            "name": 24,
+            "binding_type": "ValueDecl",
+            "used": true
+          },
+          {
+            "id": 20,
+            "name": 25,
+            "binding_type": "ValueDecl",
+            "used": true
           }
         ]
       },
@@ -415,6 +556,22 @@
       },
       {
         "parent": 7,
+        "bindings": []
+      },
+      {
+        "parent": 7,
+        "bindings": []
+      },
+      {
+        "parent": 10,
+        "bindings": []
+      },
+      {
+        "parent": 6,
+        "bindings": []
+      },
+      {
+        "parent": 12,
         "bindings": []
       }
     ],
@@ -468,9 +625,53 @@
         "scope_id": 9,
         "scope_depth": 0
       },
-      "245": {
+      "236": {
+        "scope_id": 10,
+        "scope_depth": 0
+      },
+      "255": {
+        "scope_id": 11,
+        "scope_depth": 0
+      },
+      "341": {
         "scope_id": 6,
-        "scope_depth": 2
+        "scope_depth": 3
+      },
+      "358": {
+        "scope_id": 6,
+        "scope_depth": 4
+      },
+      "373": {
+        "scope_id": 12,
+        "scope_depth": 0
+      },
+      "379": {
+        "scope_id": 6,
+        "scope_depth": 4
+      },
+      "391": {
+        "scope_id": 12,
+        "scope_depth": 0
+      },
+      "395": {
+        "scope_id": 12,
+        "scope_depth": 0
+      },
+      "418": {
+        "scope_id": 12,
+        "scope_depth": 0
+      },
+      "425": {
+        "scope_id": 13,
+        "scope_depth": 0
+      },
+      "439": {
+        "scope_id": 13,
+        "scope_depth": 0
+      },
+      "477": {
+        "scope_id": 6,
+        "scope_depth": 4
       },
       "9999999994": {
         "scope_id": 4,
@@ -498,7 +699,7 @@
       }
     },
     "id_tracker": {
-      "id": 19
+      "id": 21
     }
   }
 }

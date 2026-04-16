@@ -87,7 +87,9 @@
       "return_type": "I64",
       "local_map": {
         "14": 1,
-        "18": 2
+        "18": 2,
+        "45": 3,
+        "49": 4
       },
       "locals": [
         {
@@ -97,6 +99,14 @@
         {
           "type_spec": "Bool",
           "name": 11
+        },
+        {
+          "type_spec": "Bool",
+          "name": 24
+        },
+        {
+          "type_spec": "F64",
+          "name": 25
         }
       ],
       "blocks": [
@@ -159,7 +169,7 @@
           "instructions": [],
           "terminator": {
             "Jump": {
-              "target": 10
+              "target": 16
             }
           }
         },
@@ -176,17 +186,139 @@
           "instructions": [],
           "terminator": {
             "Jump": {
+              "target": 10
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 12
+            }
+          }
+        },
+        null,
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 14
+            }
+          }
+        },
+        null,
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 15
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
               "target": 2
             }
           }
         },
         {
           "instructions": [
-            15
+            15,
+            16,
+            17,
+            18
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 17
+            }
+          }
+        },
+        {
+          "instructions": [
+            19,
+            20
+          ],
+          "terminator": {
+            "Branch": {
+              "cond": 20,
+              "true_target": 18,
+              "false_target": 19
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 25
+            }
+          }
+        },
+        {
+          "instructions": [
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27
+          ],
+          "terminator": {
+            "Branch": {
+              "cond": 27,
+              "true_target": 21,
+              "false_target": 22
+            }
+          }
+        },
+        null,
+        {
+          "instructions": [
+            28,
+            29
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 23
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 24
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 22
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 17
+            }
+          }
+        },
+        {
+          "instructions": [
+            30
           ],
           "terminator": {
             "Return": {
-              "value": 15
+              "value": 30
             }
           }
         },
@@ -316,6 +448,132 @@
           }
         },
         {
+          "Const": {
+            "value": {
+              "ConstBool": true
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            },
+            "value": 15
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstFloat": 3.1415
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 4
+              },
+              "projections": []
+            },
+            "value": 17
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "BoolNot": {
+            "op": 19
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 4
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstFloat": 3.1415
+            }
+          }
+        },
+        {
+          "Add": {
+            "lhs": 21,
+            "rhs": 22
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 4
+              },
+              "projections": []
+            },
+            "value": 23
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 4
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstFloat": 30.0
+            }
+          }
+        },
+        {
+          "SGreaterThan": {
+            "lhs": 25,
+            "rhs": 26
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstBool": false
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 3
+              },
+              "projections": []
+            },
+            "value": 28
+          }
+        },
+        {
           "Load": {
             "place": {
               "base": {
@@ -341,6 +599,21 @@
         "I64",
         "I64",
         "Bool",
+        "Bool",
+        "Unit",
+        "F64",
+        "Unit",
+        "Bool",
+        "Bool",
+        "F64",
+        "F64",
+        "F64",
+        "Unit",
+        "F64",
+        "F64",
+        "Bool",
+        "Bool",
+        "Unit",
         "I64"
       ]
     }

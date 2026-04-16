@@ -23,7 +23,7 @@ use control_flow_statement::{BreakParselet, ContinueParselet};
 use defer_statement::DeferParselet;
 use if_statement::IfParselet;
 use let_statement::LetParselet;
-use loop_statement::LoopParselet;
+use loop_statement::{LoopParselet, WhileParselet};
 use match_statement::MatchParselet;
 use return_statement::ReturnParselet;
 
@@ -68,6 +68,7 @@ impl StmtParser {
         prefix_parselets.insert(TokenKind::IfKeyword, Rc::new(IfParselet));
         prefix_parselets.insert(TokenKind::MatchKeyword, Rc::new(MatchParselet));
         prefix_parselets.insert(TokenKind::LoopKeyword, Rc::new(LoopParselet));
+        prefix_parselets.insert(TokenKind::WhileKeyword, Rc::new(WhileParselet));
         prefix_parselets.insert(TokenKind::BreakKeyword, Rc::new(BreakParselet));
         prefix_parselets.insert(TokenKind::ContinueKey, Rc::new(ContinueParselet));
 

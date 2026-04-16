@@ -7,7 +7,7 @@ use std::fmt::Debug;
 use std::ops::Deref;
 
 use crate::ast::{
-    self, BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Payload, ReturnStmt, Stmt,
+    self, BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Payload, ReturnStmt, Stmt, UnaryOp,
 };
 use crate::hir::{
     ArrayType, DefaultPat, EnumType, EnumVariant, EnumVariantPat, FunctionType, NamedType, Node,
@@ -470,9 +470,43 @@ fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<Node
             })]
         }
         Stmt::Loop(stmt) => {
+            let prev = node_tree.within_loop;
             node_tree.within_loop = true;
             let body = node_block(node_tree, module, &stmt.body);
-            node_tree.within_loop = false;
+            node_tree.within_loop = prev;
+
+            vec![node_tree.add_node(Node::Loop { body })]
+        }
+        Stmt::While(stmt) => {
+            let break_id = node_tree.add_node(Node::Break);
+            let break_block = node_tree.add_node(Node::Block {
+                statements: vec![break_id],
+            });
+
+            let check = node_expr(node_tree, module, &stmt.check);
+            let not_check = node_tree.add_node(Node::Unary {
+                operator: UnaryOp::Not,
+                operand: check,
+            });
+            let check_id = node_tree.add_node(Node::If {
+                condition: not_check,
+                then_block: break_block,
+                else_block: None,
+            });
+
+            let prev = node_tree.within_loop;
+            node_tree.within_loop = true;
+            let body = node_block(node_tree, module, &stmt.body);
+            node_tree.within_loop = prev;
+
+            // insert the check into the head of the body
+            let body_node = node_tree
+                .get_mut_node(body)
+                .expect("failed to get while loop body");
+            match body_node {
+                Node::Block { statements } => statements.insert(0, check_id),
+                _ => panic!("while body must be a block"),
+            }
 
             vec![node_tree.add_node(Node::Loop { body })]
         }
