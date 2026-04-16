@@ -75,15 +75,61 @@
               }
             },
             {
+              "Let": {
+                "pattern": {
+                  "Identifier": {
+                    "id": 48,
+                    "name": 11
+                  }
+                },
+                "value": {
+                  "BoolLiteral": true
+                },
+                "except": "None"
+              }
+            },
+            {
               "Loop": {
                 "body": {
-                  "id": 44,
+                  "id": 61,
                   "statements": [
+                    {
+                      "If": {
+                        "check": {
+                          "Identifier": {
+                            "id": 79,
+                            "module": null,
+                            "name": 11
+                          }
+                        },
+                        "success": {
+                          "id": 81,
+                          "statements": [
+                            {
+                              "Assign": {
+                                "lvalue": {
+                                  "Identifier": {
+                                    "id": 95,
+                                    "module": null,
+                                    "name": 11
+                                  }
+                                },
+                                "rvalue": {
+                                  "BoolLiteral": false
+                                }
+                              }
+                            },
+                            "Continue"
+                          ]
+                        },
+                        "fail": null
+                      }
+                    },
                     {
                       "Assign": {
                         "lvalue": {
                           "Identifier": {
-                            "id": 59,
+                            "id": 145,
                             "module": null,
                             "name": 8
                           }
@@ -92,7 +138,7 @@
                           "Binary": {
                             "left": {
                               "Identifier": {
-                                "id": 63,
+                                "id": 149,
                                 "module": null,
                                 "name": 8
                               }
@@ -111,7 +157,7 @@
                           "Binary": {
                             "left": {
                               "Identifier": {
-                                "id": 81,
+                                "id": 167,
                                 "module": null,
                                 "name": 8
                               }
@@ -123,7 +169,7 @@
                           }
                         },
                         "success": {
-                          "id": 89,
+                          "id": 175,
                           "statements": [
                             "Break",
                             {
@@ -146,7 +192,7 @@
               "Return": {
                 "value": {
                   "Identifier": {
-                    "id": 159,
+                    "id": 245,
                     "module": null,
                     "name": 8
                   }
@@ -350,11 +396,21 @@
             "name": 8,
             "binding_type": "ValueDecl",
             "used": true
+          },
+          {
+            "id": 18,
+            "name": 11,
+            "binding_type": "ValueDecl",
+            "used": true
           }
         ]
       },
       {
         "parent": 6,
+        "bindings": []
+      },
+      {
+        "parent": 7,
         "bindings": []
       },
       {
@@ -376,29 +432,45 @@
         "scope_id": 6,
         "scope_depth": 1
       },
-      "44": {
+      "48": {
+        "scope_id": 6,
+        "scope_depth": 2
+      },
+      "61": {
         "scope_id": 7,
         "scope_depth": 0
       },
-      "59": {
-        "scope_id": 7,
-        "scope_depth": 0
-      },
-      "63": {
+      "79": {
         "scope_id": 7,
         "scope_depth": 0
       },
       "81": {
-        "scope_id": 7,
-        "scope_depth": 0
-      },
-      "89": {
         "scope_id": 8,
         "scope_depth": 0
       },
-      "159": {
+      "95": {
+        "scope_id": 8,
+        "scope_depth": 0
+      },
+      "145": {
+        "scope_id": 7,
+        "scope_depth": 0
+      },
+      "149": {
+        "scope_id": 7,
+        "scope_depth": 0
+      },
+      "167": {
+        "scope_id": 7,
+        "scope_depth": 0
+      },
+      "175": {
+        "scope_id": 9,
+        "scope_depth": 0
+      },
+      "245": {
         "scope_id": 6,
-        "scope_depth": 1
+        "scope_depth": 2
       },
       "9999999994": {
         "scope_id": 4,
@@ -426,7 +498,7 @@
       }
     },
     "id_tracker": {
-      "id": 18
+      "id": 19
     }
   }
 }

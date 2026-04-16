@@ -61,6 +61,9 @@ impl Typer {
             Node::Break => {
                 node_tree.type_map.add(node_id, TypeSpec::Unit);
             }
+            Node::Continue => {
+                node_tree.type_map.add(node_id, TypeSpec::Unit);
+            }
             Node::Match { target, arms } => {
                 node_tree.type_map.add(node_id, TypeSpec::Unit);
 
@@ -538,7 +541,7 @@ impl Typer {
                 match type_spec {
                     // TODO: meta type's should actually probably be a named type at some point.
                     // For now though I'll just leave them as these sort of weird internal types
-                    TypeSpec::Struct(ts) => {
+                    TypeSpec::Struct(_) => {
                         eprintln!("TODO: need to validate this is actually the meta type")
                     }
                     _ => panic!("alloc requires a meta type expression"),
@@ -550,6 +553,7 @@ impl Typer {
             | Node::If { .. }
             | Node::Loop { .. }
             | Node::Break
+            | Node::Continue
             | Node::VarDecl { .. }
             | Node::Match { .. }
             | Node::Return { .. }

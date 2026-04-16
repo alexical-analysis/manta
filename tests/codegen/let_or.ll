@@ -167,9 +167,9 @@ Block_16:                                         ; preds = %Block_12, %Block_9,
   br label %Block_17
 
 Block_17:                                         ; preds = %Block_16
-  br label %Block_21
+  br label %Block_23
 
-Block_21:                                         ; preds = %Block_17
+Block_23:                                         ; preds = %Block_17
   %load23 = load { i8, [24 x i8] }, ptr %"<defer>", align 1
   ret { i8, [24 x i8] } %load23
 }

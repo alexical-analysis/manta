@@ -86,19 +86,26 @@
       "params": [],
       "return_type": "I64",
       "local_map": {
-        "14": 1
+        "14": 1,
+        "18": 2
       },
       "locals": [
         {
           "type_spec": "I64",
           "name": 8
+        },
+        {
+          "type_spec": "Bool",
+          "name": 11
         }
       ],
       "blocks": [
         {
           "instructions": [
             1,
-            2
+            2,
+            3,
+            4
           ],
           "terminator": {
             "Jump": {
@@ -108,27 +115,51 @@
         },
         {
           "instructions": [
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9
+            5
           ],
           "terminator": {
             "Branch": {
-              "cond": 9,
+              "cond": 5,
               "true_target": 3,
               "false_target": 4
             }
           }
         },
         {
+          "instructions": [
+            6,
+            7
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 2
+            }
+          }
+        },
+        {
+          "instructions": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "terminator": {
+            "Branch": {
+              "cond": 14,
+              "true_target": 6,
+              "false_target": 7
+            }
+          }
+        },
+        null,
+        {
           "instructions": [],
           "terminator": {
             "Jump": {
-              "target": 7
+              "target": 10
             }
           }
         },
@@ -136,7 +167,7 @@
           "instructions": [],
           "terminator": {
             "Jump": {
-              "target": 6
+              "target": 9
             }
           }
         },
@@ -151,11 +182,11 @@
         },
         {
           "instructions": [
-            10
+            15
           ],
           "terminator": {
             "Return": {
-              "value": 10
+              "value": 15
             }
           }
         },
@@ -182,6 +213,52 @@
           }
         },
         {
+          "Const": {
+            "value": {
+              "ConstBool": true
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            },
+            "value": 3
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstBool": false
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 2
+              },
+              "projections": []
+            },
+            "value": 6
+          }
+        },
+        {
           "Load": {
             "place": {
               "base": {
@@ -200,8 +277,8 @@
         },
         {
           "Add": {
-            "lhs": 3,
-            "rhs": 4
+            "lhs": 8,
+            "rhs": 9
           }
         },
         {
@@ -212,7 +289,7 @@
               },
               "projections": []
             },
-            "value": 5
+            "value": 10
           }
         },
         {
@@ -234,8 +311,8 @@
         },
         {
           "SGreaterThan": {
-            "lhs": 7,
-            "rhs": 8
+            "lhs": 12,
+            "rhs": 13
           }
         },
         {
@@ -251,6 +328,11 @@
       ],
       "value_types": [
         "I64",
+        "Unit",
+        "Bool",
+        "Unit",
+        "Bool",
+        "Bool",
         "Unit",
         "I64",
         "I64",

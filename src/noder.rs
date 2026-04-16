@@ -483,6 +483,13 @@ fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<Node
 
             vec![node_tree.add_node(Node::Break)]
         }
+        Stmt::Continue => {
+            if !node_tree.within_loop {
+                panic!("continue keywords must appear within loops")
+            }
+
+            vec![node_tree.add_node(Node::Continue)]
+        }
     }
 }
 

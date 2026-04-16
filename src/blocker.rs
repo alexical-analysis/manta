@@ -455,6 +455,8 @@ impl<'a> Blocker<'a> {
                 }
 
                 let loop_cfg = CFG::new(&mut self.fn_builder, loop_start);
+                loop_cfg.continue_to(&mut self.fn_builder, loop_start);
+
                 if loop_cfg.can_break(&mut self.fn_builder) {
                     let break_block = self.fn_builder.add_block();
                     loop_cfg.break_to(&mut self.fn_builder, break_block);
@@ -469,6 +471,14 @@ impl<'a> Blocker<'a> {
             }
             Node::Break => {
                 self.fn_builder.set_terminator(block_id, Terminator::Break);
+
+                // after breaking out of a loop no more instructions should be added to
+                // the current block
+                None
+            }
+            Node::Continue => {
+                self.fn_builder
+                    .set_terminator(block_id, Terminator::Continue);
 
                 // after breaking out of a loop no more instructions should be added to
                 // the current block

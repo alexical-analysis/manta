@@ -208,14 +208,6 @@ impl StrStore {
             None => self.reverse_strings.get(id.to_usize()).cloned(),
         }
     }
-
-    /// get the StrID for the string if it has been added previously.
-    pub fn find_id(&self, s: &str) -> Option<StrID> {
-        match constant_str_id(s) {
-            Some(id) => Some(id),
-            None => self.strings.get(s).copied(),
-        }
-    }
 }
 
 #[cfg(test)]
@@ -227,19 +219,6 @@ mod tests {
         let mut store = StrStore::new();
         let id = store.get_id("hello");
         assert_eq!(id, StrID(0));
-    }
-
-    #[test]
-    fn test_find_string() {
-        let mut store = StrStore::new();
-        store.get_id("hello");
-        store.get_id("goodbye");
-        if store.find_id("hello").is_none() {
-            panic!("hello should be in the store");
-        }
-        if store.find_id("world").is_some() {
-            panic!("world should not be in the store");
-        }
     }
 
     #[test]
