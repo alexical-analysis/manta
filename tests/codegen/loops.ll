@@ -51,27 +51,37 @@ entry:
 define i64 @main() {
 entry:
   %a = alloca i64, align 8
+  %b = alloca i1, align 1
   store i64 0, ptr %a, align 8
+  store i1 true, ptr %b, align 1
   br label %Block_2
 
-Block_2:                                          ; preds = %Block_6, %entry
-  %load = load i64, ptr %a, align 8
-  %iadd = add i64 %load, 1
-  store i64 %iadd, ptr %a, align 8
-  %load1 = load i64, ptr %a, align 8
-  %sgt = icmp sgt i64 %load1, 255
-  br i1 %sgt, label %Block_3, label %Block_4
+Block_2:                                          ; preds = %Block_9, %Block_3, %entry
+  %load = load i1, ptr %b, align 1
+  br i1 %load, label %Block_3, label %Block_4
 
 Block_3:                                          ; preds = %Block_2
-  br label %Block_7
-
-Block_4:                                          ; preds = %Block_2
-  br label %Block_6
-
-Block_6:                                          ; preds = %Block_4
+  store i1 false, ptr %b, align 1
   br label %Block_2
 
-Block_7:                                          ; preds = %Block_3
+Block_4:                                          ; preds = %Block_2
+  %load1 = load i64, ptr %a, align 8
+  %iadd = add i64 %load1, 1
+  store i64 %iadd, ptr %a, align 8
   %load2 = load i64, ptr %a, align 8
-  ret i64 %load2
+  %sgt = icmp sgt i64 %load2, 255
+  br i1 %sgt, label %Block_6, label %Block_7
+
+Block_6:                                          ; preds = %Block_4
+  br label %Block_10
+
+Block_7:                                          ; preds = %Block_4
+  br label %Block_9
+
+Block_9:                                          ; preds = %Block_7
+  br label %Block_2
+
+Block_10:                                         ; preds = %Block_6
+  %load3 = load i64, ptr %a, align 8
+  ret i64 %load3
 }

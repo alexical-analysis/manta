@@ -129,7 +129,7 @@ Block_7:                                          ; preds = %Block_15
   br label %Block_8
 
 Block_8:                                          ; preds = %Block_7
-  br label %Block_33
+  br label %Block_37
 
 Block_9:                                          ; preds = %Block_11
   %load11 = load {}, ptr %f, align 1
@@ -193,21 +193,21 @@ Block_23:                                         ; preds = %Block_19, %Block_16
   br label %Block_24
 
 Block_24:                                         ; preds = %Block_23
-  br label %Block_29
+  br label %Block_31
 
-Block_29:                                         ; preds = %Block_24
+Block_31:                                         ; preds = %Block_24
   %load25 = load {}, ptr %f, align 1
   call void @os_close({} %load25)
-  br label %Block_30
+  br label %Block_32
 
-Block_30:                                         ; preds = %Block_29
-  br label %Block_34
+Block_32:                                         ; preds = %Block_31
+  br label %Block_38
 
-Block_33:                                         ; preds = %Block_8
+Block_37:                                         ; preds = %Block_8
   call void @panic()
   unreachable
 
-Block_34:                                         ; preds = %Block_30
+Block_38:                                         ; preds = %Block_32
   %load26 = load { i8, [16 x i8] }, ptr %"<defer>", align 1
   ret { i8, [16 x i8] } %load26
 }

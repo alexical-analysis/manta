@@ -218,6 +218,7 @@ pub enum Stmt {
     If(IfStmt),
     Loop(LoopStmt),
     Break,
+    Continue,
 }
 
 #[derive(Debug, PartialEq, Serialize)]

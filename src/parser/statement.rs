@@ -19,7 +19,7 @@ use crate::parser::pattern::PatternParser;
 
 use assign_statement::AssignParselet;
 use block_statement::BlockParselet;
-use control_flow_statement::BreakParselet;
+use control_flow_statement::{BreakParselet, ContinueParselet};
 use defer_statement::DeferParselet;
 use if_statement::IfParselet;
 use let_statement::LetParselet;
@@ -69,6 +69,7 @@ impl StmtParser {
         prefix_parselets.insert(TokenKind::MatchKeyword, Rc::new(MatchParselet));
         prefix_parselets.insert(TokenKind::LoopKeyword, Rc::new(LoopParselet));
         prefix_parselets.insert(TokenKind::BreakKeyword, Rc::new(BreakParselet));
+        prefix_parselets.insert(TokenKind::ContinueKey, Rc::new(ContinueParselet));
 
         let mut infix_parselets: HashMap<TokenKind, Rc<dyn InfixStmtParselet>> = HashMap::new();
         infix_parselets.insert(TokenKind::Equal, Rc::new(AssignParselet));

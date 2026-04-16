@@ -2,7 +2,13 @@ mod main
 
 fn main() i64 {
     let a = 0
+    let b = true
     loop {
+        if b {
+            b = false
+            continue
+        }
+
         a = a + 1
 
         if a > 255 {

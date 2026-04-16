@@ -5,7 +5,7 @@ use crate::parser::statement::{PrefixStmtParselet, StmtParser};
 
 /// Parse break statements.
 ///
-/// Example `break`
+/// Example: `break`
 pub struct BreakParselet;
 
 impl PrefixStmtParselet for BreakParselet {
@@ -16,5 +16,21 @@ impl PrefixStmtParselet for BreakParselet {
         _token: Token,
     ) -> Result<Stmt, ParseError> {
         Ok(Stmt::Break)
+    }
+}
+
+/// Parse continue statements.
+///
+/// Example: `continue`
+pub struct ContinueParselet;
+
+impl PrefixStmtParselet for ContinueParselet {
+    fn parse(
+        &self,
+        _parser: &StmtParser,
+        _lexer: &mut Lexer,
+        _token: Token,
+    ) -> Result<Stmt, ParseError> {
+        Ok(Stmt::Continue)
     }
 }

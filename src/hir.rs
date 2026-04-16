@@ -66,6 +66,7 @@ pub enum Node {
         body: NodeID, // Always a block
     },
     Break,
+    Continue,
     // Match statement (all complex patterns are reduced to simple patterns)
     Match {
         target: NodeID,

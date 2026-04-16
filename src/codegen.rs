@@ -305,6 +305,9 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             Terminator::Break => {
                 panic!("no break terminators should remain at this phase of the pipeline")
             }
+            Terminator::Continue => {
+                panic!("no continue terminators should remain at this phase of the pipeline")
+            }
         };
     }
 
