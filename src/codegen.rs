@@ -1,7 +1,7 @@
 mod builder;
 pub mod optimizer;
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 
 use inkwell::context::Context;
 use inkwell::module::{Linkage, Module};
@@ -82,35 +82,9 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             );
         }
 
-        // add all the functions to the module
-        let init_func =
-            builder::build_func_value(self.context, &llvm_module, self.str_store, &module.init);
-        self.function_map.insert(
-            module.init.name,
-            FuncData {
-                function: init_func,
-                return_type: module.init.return_type.clone(),
-            },
-        );
-
-        for func in &module.functions {
-            let func_value =
-                builder::build_func_value(self.context, &llvm_module, self.str_store, func);
-            self.function_map.insert(
-                func.name,
-                FuncData {
-                    function: func_value,
-                    return_type: func.return_type.clone(),
-                },
-            );
-        }
-
-        // add c-runtime dependencies to the module
+        // add c-runtime dependencies and manta builtins
         let c_funcs = builder::build_c_deps(self.context, &llvm_module);
 
-        // build manta module level functions that are built on top of the c-runtime, we need to
-        // replace the bulitin placeholders which is why this comes after we've already built all
-        // the module functions
         self.function_map.insert(
             str_store::FREE,
             FuncData {
@@ -176,6 +150,41 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             },
         );
 
+        // add function values for user-defined functions, skipping any already registered as builtins
+        let init_func =
+            builder::build_func_value(self.context, &llvm_module, self.str_store, &module.init);
+        self.function_map.insert(
+            module.init.name,
+            FuncData {
+                function: init_func,
+                return_type: module.init.return_type.clone(),
+            },
+        );
+
+        let builtin_names: HashSet<StrID> = HashSet::from([
+            str_store::FREE,
+            str_store::PANIC,
+            str_store::ALLOC,
+            str_store::PRINT,
+            str_store::EPRINT,
+        ]);
+        for func in &module.functions {
+            // skip builtins since we stub those out for type checking
+            if builtin_names.contains(&func.name) {
+                continue;
+            }
+
+            let func_value =
+                builder::build_func_value(self.context, &llvm_module, self.str_store, func);
+            self.function_map.insert(
+                func.name,
+                FuncData {
+                    function: func_value,
+                    return_type: func.return_type.clone(),
+                },
+            );
+        }
+
         // code gen the init function
         let mut func_builder = FuncBuilder::new(
             self.context,
@@ -186,8 +195,12 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         );
         self.gen_function(&llvm_module, &mut func_builder);
 
-        // code gen the remaining functions
+        // code gen user-defined functions, skipping builtins
         for func in module.functions {
+            if builtin_names.contains(&func.name) {
+                continue;
+            }
+
             let func_value = self
                 .function_map
                 .get(&func.name)
