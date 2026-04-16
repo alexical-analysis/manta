@@ -496,6 +496,8 @@ pub enum Terminator {
     Unreachable,
     /// Panic (for code the exit control-flow with a panic)
     Panic { msg: ValueId },
+    /// Break (for statements the break out of loops)
+    Break,
 }
 
 /// A basic block in the control-flow graph.

@@ -312,5 +312,6 @@
       18,
       22
     ]
-  }
+  },
+  "within_loop": false
 }

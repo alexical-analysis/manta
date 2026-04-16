@@ -437,5 +437,6 @@
       20,
       28
     ]
-  }
+  },
+  "within_loop": false
 }

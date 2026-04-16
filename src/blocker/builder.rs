@@ -99,6 +99,7 @@ impl CFG {
                 Some(Terminator::Unreachable) => {}
                 Some(Terminator::Panic { .. }) => {}
                 Some(Terminator::Return { .. }) => {}
+                Some(Terminator::Break) => {}
                 None => {}
             }
         }
@@ -174,6 +175,7 @@ impl CFG {
             Some(Terminator::Unreachable) => None,
             Some(Terminator::Panic { .. }) => None,
             Some(Terminator::Return { .. }) => None,
+            Some(Terminator::Break) => None,
             None => None,
         }
     }
@@ -187,6 +189,30 @@ impl CFG {
         }
 
         true
+    }
+
+    /// this function replaces all break terminators with unconditional jumps to the target block
+    pub fn break_to(&self, fn_builder: &mut FunctionBuilder, break_to: BlockId) {
+        for block_id in &self.blocks {
+            let block = fn_builder.get_block_mut(*block_id);
+
+            if matches!(block.terminator, Some(Terminator::Break)) {
+                fn_builder.unset_terminator(*block_id);
+                fn_builder.set_terminator(*block_id, Terminator::Jump { target: break_to });
+            }
+        }
+    }
+
+    /// this function returns true if any block in the CFG terminates in a break
+    pub fn can_break(&self, fn_builder: &FunctionBuilder) -> bool {
+        for block_id in &self.blocks {
+            let block = fn_builder.get_block(*block_id);
+            if matches!(block.terminator, Some(Terminator::Break)) {
+                return true;
+            }
+        }
+
+        false
     }
 
     /// returns true if any path through the CFG results in a return terminator
@@ -322,8 +348,8 @@ impl FunctionBuilder {
             .expect("can not close scope, not currently in a scope");
 
         let block = CFG::new(self, scope.start);
-        let triple = match scope.defer.pop() {
-            Some(b) => self.build_defer_triple(b),
+        let quad = match scope.defer.pop() {
+            Some(b) => self.build_defer_quad(b),
             None => {
                 // If there's no defer block we can just jump from this scope directly into a merge
                 // black and return that block id to continue gathering instructions
@@ -334,13 +360,14 @@ impl FunctionBuilder {
         };
 
         // String all the defer blocks together, we need three distinct flows depending on how you
-        // enterd the defer block, though a panic, a return statement, or a normal scope close
-        // (i.e. no explicit terminator)
-        let (mut panic_block, mut merge_block, mut return_block) = triple;
+        // enterd the defer block, though a panic, a return statement, a normal scope close
+        // (i.e. no explicit terminator), or a loop break
+        let (mut panic_block, mut merge_block, mut return_block, mut break_block) = quad;
 
         // jump from the original block CFG into the correct defer stack
         block.jump_to(self, merge_block.entry);
         block.panic_to(self, panic_block.entry);
+        block.break_to(self, break_block.entry);
 
         // need to create a local if this function has an expected return value
         let ret_local = match self.return_type.clone() {
@@ -359,25 +386,29 @@ impl FunctionBuilder {
         // defer stack since we don't allow recovery from a panic defer as it leads to potentially
         // undefined return values
         while let Some(b) = scope.defer.pop() {
-            let triple = self.build_defer_triple(b);
-            let (next_panic_block, next_merge_block, next_return_block) = triple;
+            let quad = self.build_defer_quad(b);
+            let (next_panic_block, next_merge_block, next_return_block, next_break_block) = quad;
 
             panic_block.jump_to(self, next_panic_block.entry);
             merge_block.jump_to(self, next_merge_block.entry);
             return_block.jump_to(self, next_return_block.entry);
+            break_block.jump_to(self, next_break_block.entry);
 
             panic_block.panic_to(self, next_panic_block.entry);
             merge_block.panic_to(self, next_panic_block.entry);
             return_block.panic_to(self, next_panic_block.entry);
+            break_block.jump_to(self, next_panic_block.entry);
 
             panic_block = next_panic_block;
             merge_block = next_merge_block;
             return_block = next_return_block;
+            break_block = next_break_block;
         }
 
         // wire the final defer blocks up so they correctly jump back into the flow either
         // returing, continuing to panic, or mergeing back into an empty merge block
         let final_panic_block = self.add_block();
+
         // TODO: need to actually get the panic value here in the same way we do returns
         self.set_terminator(
             final_panic_block,
@@ -390,6 +421,7 @@ impl FunctionBuilder {
         panic_block.panic_to(self, final_panic_block);
         merge_block.panic_to(self, final_panic_block);
         return_block.panic_to(self, final_panic_block);
+        break_block.panic_to(self, final_panic_block);
 
         let final_return_block = self.add_block();
         match ret_local {
@@ -410,15 +442,22 @@ impl FunctionBuilder {
         let final_merge_block = self.add_block();
         merge_block.jump_to(self, final_merge_block);
 
+        let final_break_block = self.add_block();
+        break_block.jump_to(self, final_break_block);
+        self.set_terminator(final_break_block, Terminator::Break);
+
         final_merge_block
     }
 
-    /// build 3 different CFG, based on b. The inital CFG is not a clone and should be treated as
-    /// the panic block, the remaining 2 CFGs are clones of the first
-    fn build_defer_triple(&mut self, b: BlockId) -> (CFG, CFG, CFG) {
+    /// build 4 different CFGs, based on b. The inital CFG is not a clone and should be treated as
+    /// the panic block, the remaining 3 CFGs are clones of the first
+    fn build_defer_quad(&mut self, b: BlockId) -> (CFG, CFG, CFG, CFG) {
         let panic_defer = CFG::new(self, b);
         if panic_defer.can_return(self) {
             panic!("can not return from inside defer blocks")
+        }
+        if panic_defer.can_break(self) {
+            panic!("can not break from inside defer blocks")
         }
 
         let merge_defer = panic_defer.clone(self);
@@ -427,7 +466,10 @@ impl FunctionBuilder {
         let return_defer = panic_defer.clone(self);
         let return_cfg = CFG::new(self, return_defer);
 
-        (panic_defer, merge_cfg, return_cfg)
+        let break_defer = panic_defer.clone(self);
+        let break_cfg = CFG::new(self, break_defer);
+
+        (panic_defer, merge_cfg, return_cfg, break_cfg)
     }
 
     pub fn add_param(&mut self, node: NodeID, name: StrID, return_type: TypeSpec) {
@@ -968,6 +1010,7 @@ impl FunctionBuilder {
 
             match block.terminator {
                 Terminator::Return { .. } => {}
+                Terminator::Break => {}
                 Terminator::Unreachable => {}
                 Terminator::Panic { .. } => {}
                 Terminator::Jump { target } => {

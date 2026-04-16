@@ -808,5 +808,6 @@
       40,
       43
     ]
-  }
+  },
+  "within_loop": false
 }

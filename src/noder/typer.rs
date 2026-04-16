@@ -58,6 +58,9 @@ impl Typer {
 
                 self.type_node(node_tree, body);
             }
+            Node::Break => {
+                node_tree.type_map.add(node_id, TypeSpec::Unit);
+            }
             Node::Match { target, arms } => {
                 node_tree.type_map.add(node_id, TypeSpec::Unit);
 
@@ -546,6 +549,7 @@ impl Typer {
             Node::Defer { .. }
             | Node::If { .. }
             | Node::Loop { .. }
+            | Node::Break
             | Node::VarDecl { .. }
             | Node::Match { .. }
             | Node::Return { .. }

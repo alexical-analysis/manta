@@ -454,7 +454,24 @@ impl<'a> Blocker<'a> {
                         .set_terminator(loop_end, Terminator::Jump { target: loop_start });
                 }
 
-                // all loops are infinite right now until we support `break` or `continue`
+                let loop_cfg = CFG::new(&mut self.fn_builder, loop_start);
+                if loop_cfg.can_break(&mut self.fn_builder) {
+                    let break_block = self.fn_builder.add_block();
+                    loop_cfg.break_to(&mut self.fn_builder, break_block);
+
+                    // controll flow continues after breaking out of the block
+                    Some(break_block)
+                } else {
+                    // unless there is some code that can break out of the loop there is no way to
+                    // escape the loop
+                    None
+                }
+            }
+            Node::Break => {
+                self.fn_builder.set_terminator(block_id, Terminator::Break);
+
+                // after breaking out of a loop no more instructions should be added to
+                // the current block
                 None
             }
             Node::FunctionDecl { .. } => panic!("function decls are not valid statements"),
@@ -1476,6 +1493,7 @@ mod tests {
                     keys: BTreeMap::new(),
                     values: vec![],
                 },
+                within_loop: false,
             },
             want: MirModule {
                 globals: vec![],
@@ -1546,6 +1564,7 @@ mod tests {
                     keys: BTreeMap::new(),
                     values: vec![]
                 },
+                within_loop: false,
             },
             want: MirModule {
                 globals: vec![],
@@ -1616,6 +1635,7 @@ mod tests {
                     keys: BTreeMap::new(),
                     values: vec![]
                 },
+                within_loop: false,
             },
             want: MirModule {
                 globals: vec![],
@@ -1686,6 +1706,7 @@ mod tests {
                     keys: BTreeMap::new(),
                     values: vec![]
                 },
+                within_loop: false,
             },
             want: MirModule {
                 globals: vec![],
@@ -1756,6 +1777,7 @@ mod tests {
                     keys: BTreeMap::new(),
                     values: vec![]
                 },
+                within_loop: false,
             },
             want: MirModule {
                 globals: vec![],

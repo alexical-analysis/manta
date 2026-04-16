@@ -914,5 +914,6 @@
       56,
       60
     ]
-  }
+  },
+  "within_loop": false
 }
