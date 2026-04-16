@@ -3,14 +3,50 @@ source_filename = "pointers"
 
 @panic_msg = private unnamed_addr constant [24 x i8] c"Panic reached! exiting!\00", align 1
 
+declare ptr @malloc(i64)
+
+declare void @free(ptr)
+
+declare i32 @puts(ptr)
+
+declare void @abort()
+
+declare i64 @write(i32, ptr, i64)
+
+define internal void @panic() {
+entry:
+  %puts = call i32 @puts(ptr @panic_msg)
+  call void @abort()
+  unreachable
+}
+
+define internal ptr @alloc({ i64, i64, i64 } %0) {
+entry:
+  %meta_size = extractvalue { i64, i64, i64 } %0, 0
+  %malloc = call ptr @malloc(i64 %meta_size)
+  ret ptr %malloc
+}
+
+define internal void @print({ i64, ptr } %0) {
+entry:
+  %len = extractvalue { i64, ptr } %0, 0
+  %ptr = extractvalue { i64, ptr } %0, 1
+  %write = call i64 @write(i32 1, ptr %ptr, i64 %len)
+  ret void
+}
+
+define internal void @eprint({ i64, ptr } %0) {
+entry:
+  %len = extractvalue { i64, ptr } %0, 0
+  %ptr = extractvalue { i64, ptr } %0, 1
+  %write = call i64 @write(i32 2, ptr %ptr, i64 %len)
+  ret void
+}
+
 define void @"<init>"() {
 entry:
   ret void
 }
-
-declare void @print({ i64, ptr })
-
-declare void @eprint({ i64, ptr })
 
 define void @fmt_println(i64 %0) {
 entry:
@@ -42,55 +78,5 @@ entry:
   store i64 %sdiv, ptr %load6, align 8
   %load7 = load i64, ptr %j, align 8
   call void @fmt_println(i64 %load7)
-  ret void
-}
-
-declare ptr @malloc(i64)
-
-declare void @free(ptr)
-
-declare i32 @puts(ptr)
-
-declare void @abort()
-
-declare i64 @write(i32, ptr, i64)
-
-define internal void @panic() {
-entry:
-  %puts = call i32 @puts(ptr @panic_msg)
-  call void @abort()
-  unreachable
-}
-
-define internal ptr @alloc({ i64, i64, i64 } %0) {
-entry:
-  %meta_size = extractvalue { i64, i64, i64 } %0, 0
-  %malloc = call ptr @malloc(i64 %meta_size)
-  ret ptr %malloc
-}
-
-define internal void @print.1({ i64, ptr } %0) {
-entry:
-  %len = extractvalue { i64, ptr } %0, 0
-  %ptr = extractvalue { i64, ptr } %0, 1
-  %write = call i64 @write(i32 1, ptr %ptr, i64 %len)
-  ret void
-
-entry1:                                           ; No predecessors!
-  %_ = alloca { i64, ptr }, align 8
-  store { i64, ptr } %0, ptr %_, align 8
-  ret void
-}
-
-define internal void @eprint.2({ i64, ptr } %0) {
-entry:
-  %len = extractvalue { i64, ptr } %0, 0
-  %ptr = extractvalue { i64, ptr } %0, 1
-  %write = call i64 @write(i32 2, ptr %ptr, i64 %len)
-  ret void
-
-entry1:                                           ; No predecessors!
-  %_ = alloca { i64, ptr }, align 8
-  store { i64, ptr } %0, ptr %_, align 8
   ret void
 }
