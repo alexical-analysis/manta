@@ -20,7 +20,7 @@ type MaybeAlloc enum {
 fn maybe_alloc(cond bool) MaybeAlloc {
     if cond {
         // TODO: use `wrap .AllocFailed` once unsafe::ptr is available via modules
-        let *i32(p) = alloc(@i32) !
+        mut *i32(p) = alloc(@i32) !
         *p = 42
         return .Ok(p)
     }

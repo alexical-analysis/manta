@@ -10,7 +10,7 @@ fn main() {
     let i = 42
     let j = 2701
 
-    let p = &i
+    mut p = &i
     fmt_println(*p)
     *p = 21
     fmt_println(i)

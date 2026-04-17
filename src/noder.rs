@@ -406,15 +406,51 @@ fn node_block(node_tree: &mut NodeTree, module: &Module, block: &BlockStmt) -> N
     })
 }
 
+/// Walk through leading dereferences to find the root identifier of an lvalue expression.
+/// Returns None for lvalues that have no root identifier binding to check — in those cases
+/// the mutability check is simply skipped.
+fn lvalue_root(expr: &ast::Expr) -> Option<&ast::IdentifierExpr> {
+    match expr {
+        ast::Expr::Identifier(ident) => Some(ident),
+        ast::Expr::Unary(unary) if unary.operator == ast::UnaryOp::Dereference => {
+            lvalue_root(&unary.operand)
+        }
+        // TODO: index (arr[i] = x) and field (s.field = x) lvalues — extract root identifier.
+        // A notable unhandled case is writing through a pointer returned directly from a call,
+        // e.g. `*slot() = 10`. Manta intentionally does not support this pattern: since there is
+        // no binding, there is nowhere to attach mutability. The workaround is a temporary:
+        //   `mut p = slot(); *p = 10`
+        // This keeps the type system simple — mutability lives on bindings, not on types.
+        _ => None,
+    }
+}
+
 fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<NodeID> {
     match stmt {
         Stmt::Let(stmt) => node_let(node_tree, module, stmt),
         Stmt::Assign(stmt) => {
+            // Enforce mutability: walk through the l_value expression to find the root
+            // identifier, then check that it is mutable. This means `let p = &x` blocks
+            // both `p = &y` and `*p = y` since both are mutations through the same binding.
+            // TODO: extend this to cover index assignment (arr[i] = x) and field assignment
+            // (s.field = x) by also handling Index and DotAccess lvalues here.
+            if let Some(ident) = lvalue_root(&stmt.lvalue) {
+                let scope_pos = module
+                    .get_scope_pos(ident.id)
+                    .expect("could not get scope for assignment lvalue");
+                let binding = module
+                    .find_binding(scope_pos, ident.name)
+                    .expect("failed to find binding for assignment lvalue");
+                if !binding.mutable {
+                    panic!("assignment to immutable variable");
+                }
+            } else {
+                eprintln!("TODO: not all identifier mutations are current checked")
+            }
+
             let l_id = node_expr(node_tree, module, &stmt.lvalue);
             let r_id = node_expr(node_tree, module, &stmt.rvalue);
 
-            // TODO: should I check that l_id is an assignable node here or should that
-            // happen later when I do full type checking? (defaulting to later for now)
             vec![node_tree.add_node(Node::Assign {
                 target: l_id,
                 value: r_id,
