@@ -6,9 +6,11 @@ use crate::parser::statement::{PrefixStmtParselet, StmtParser};
 /// Parses let expressions
 ///
 /// Example: `let .Ok = do() or { return .Err }`
-/// Example: `let .Ok(buf) = read_file(file) or(e) { print(e); return }`
+/// Example: `mut .Ok(buf) = read_file(file) or(e) { print(e); return }`
 /// Example: `let Ret.Ok = send_data(data) !`
-pub struct LetParselet;
+pub struct LetParselet {
+    pub mutable_binding: bool,
+}
 
 impl PrefixStmtParselet for LetParselet {
     fn parse(
@@ -73,6 +75,7 @@ impl PrefixStmtParselet for LetParselet {
                 };
 
                 Ok(Stmt::Let(LetStmt {
+                    mutable: self.mutable_binding,
                     pattern,
                     value,
                     except,
@@ -84,6 +87,7 @@ impl PrefixStmtParselet for LetParselet {
                 let expr = parser.parse_expression(lexer)?;
 
                 Ok(Stmt::Let(LetStmt {
+                    mutable: self.mutable_binding,
                     pattern,
                     value,
                     except: LetExcept::Wrap(expr),
@@ -93,12 +97,14 @@ impl PrefixStmtParselet for LetParselet {
                 lexer.next_token();
 
                 Ok(Stmt::Let(LetStmt {
+                    mutable: self.mutable_binding,
                     pattern,
                     value,
                     except: LetExcept::Panic,
                 }))
             }
             TokenKind::Semicolon => Ok(Stmt::Let(LetStmt {
+                mutable: self.mutable_binding,
                 pattern,
                 value,
                 except: LetExcept::None,

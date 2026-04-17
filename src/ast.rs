@@ -238,6 +238,7 @@ pub enum Stmt {
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct LetStmt {
+    pub mutable: bool,
     pub pattern: Pattern,
     pub value: Expr,
     pub except: LetExcept,

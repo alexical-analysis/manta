@@ -129,6 +129,7 @@
           "statements": [
             {
               "Let": {
+                "mutable": false,
                 "pattern": {
                   "Identifier": {
                     "id": 151,
@@ -171,6 +172,7 @@
             },
             {
               "Let": {
+                "mutable": false,
                 "pattern": {
                   "Identifier": {
                     "id": 189,
@@ -224,6 +226,7 @@
             },
             {
               "Let": {
+                "mutable": false,
                 "pattern": {
                   "Identifier": {
                     "id": 226,

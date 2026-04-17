@@ -162,6 +162,7 @@
                   "statements": [
                     {
                       "Let": {
+                        "mutable": false,
                         "pattern": {
                           "TypeSpec": {
                             "id": 467,

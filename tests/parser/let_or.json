@@ -307,6 +307,7 @@
           "statements": [
             {
               "Let": {
+                "mutable": false,
                 "pattern": {
                   "EnumVariant": {
                     "id": 1093,
@@ -382,6 +383,7 @@
             },
             {
               "Let": {
+                "mutable": false,
                 "pattern": {
                   "EnumVariant": {
                     "id": 1165,
@@ -471,6 +473,7 @@
           "statements": [
             {
               "Let": {
+                "mutable": false,
                 "pattern": {
                   "EnumVariant": {
                     "id": 1281,
@@ -561,6 +564,7 @@
             },
             {
               "Let": {
+                "mutable": false,
                 "pattern": {
                   "EnumVariant": {
                     "id": 1480,

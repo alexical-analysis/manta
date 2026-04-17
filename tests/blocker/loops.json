@@ -104,15 +104,15 @@
         },
         {
           "type_spec": "Bool",
-          "name": 24
-        },
-        {
-          "type_spec": "F64",
           "name": 25
         },
         {
+          "type_spec": "F64",
+          "name": 26
+        },
+        {
           "type_spec": "I64",
-          "name": 30
+          "name": 31
         },
         {
           "type_spec": "I64",
