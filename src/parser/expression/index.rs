@@ -7,7 +7,7 @@ use crate::parser::lexer::{Lexer, Token, TokenKind};
 /// Parses index access expressions.
 ///
 /// Example: `array[0]`
-/// Example: `data[0:10]`
+/// Example: `data[0..<10]`
 pub struct IndexParselet;
 
 impl InfixExprParselet for IndexParselet {

@@ -364,6 +364,99 @@
       }
     },
     {
+      "Identifier": {
+        "module": null,
+        "name": 30
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 67
+      }
+    },
+    {
+      "IntLiteral": 0
+    },
+    {
+      "Assign": {
+        "target": 67,
+        "value": 69
+      }
+    },
+    "Break",
+    {
+      "Block": {
+        "statements": [
+          71
+        ]
+      }
+    },
+    {
+      "IntLiteral": 10
+    },
+    {
+      "Binary": {
+        "left": 67,
+        "operator": "GreaterThanOrEqual",
+        "right": 73
+      }
+    },
+    {
+      "If": {
+        "condition": 74,
+        "then_block": 72,
+        "else_block": null
+      }
+    },
+    {
+      "IntLiteral": 1
+    },
+    {
+      "Binary": {
+        "left": 67,
+        "operator": "Add",
+        "right": 76
+      }
+    },
+    {
+      "Assign": {
+        "target": 67,
+        "value": 77
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 11
+      }
+    },
+    {
+      "VarDecl": {
+        "ident": 79
+      }
+    },
+    {
+      "Assign": {
+        "target": 79,
+        "value": 67
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          75,
+          80,
+          81,
+          78
+        ]
+      }
+    },
+    {
+      "Loop": {
+        "body": 82
+      }
+    },
+    {
       "Return": {
         "value": 14
       }
@@ -381,7 +474,10 @@
           50,
           51,
           66,
-          67
+          68,
+          70,
+          83,
+          84
         ]
       }
     },
@@ -389,14 +485,14 @@
       "FunctionDecl": {
         "ident": 12,
         "params": [],
-        "body": 68
+        "body": 85
       }
     }
   ],
   "roots": [
     5,
     11,
-    69
+    86
   ],
   "type_map": {
     "keys": {
@@ -467,9 +563,26 @@
       "64": 63,
       "65": 55,
       "66": 54,
-      "67": 69,
-      "68": 14,
-      "69": 7
+      "67": 72,
+      "68": 69,
+      "69": 71,
+      "70": 70,
+      "71": 79,
+      "72": 78,
+      "73": 76,
+      "74": 77,
+      "75": 75,
+      "76": 84,
+      "77": 85,
+      "78": 83,
+      "79": 82,
+      "80": 80,
+      "81": 81,
+      "82": 74,
+      "83": 73,
+      "84": 86,
+      "85": 14,
+      "86": 7
     },
     "values": [
       "String",
@@ -579,6 +692,23 @@
       "Unit",
       "Unit",
       "Bool",
+      "Unit",
+      "Unit",
+      "Int64",
+      "Int64",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Int64",
+      "Bool",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Int64",
+      "Unit",
+      "Int64",
+      "Int64",
       "Unit"
     ]
   },
@@ -592,7 +722,9 @@
       "17": 5,
       "18": 6,
       "19": 7,
-      "20": 8
+      "20": 8,
+      "21": 9,
+      "22": 10
     },
     "values": [
       0,
@@ -603,7 +735,9 @@
       14,
       18,
       45,
-      49
+      49,
+      67,
+      79
     ]
   },
   "within_loop": false

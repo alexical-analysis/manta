@@ -89,7 +89,9 @@
         "14": 1,
         "18": 2,
         "45": 3,
-        "49": 4
+        "49": 4,
+        "67": 5,
+        "79": 6
       },
       "locals": [
         {
@@ -107,6 +109,14 @@
         {
           "type_spec": "F64",
           "name": 25
+        },
+        {
+          "type_spec": "I64",
+          "name": 30
+        },
+        {
+          "type_spec": "I64",
+          "name": 11
         }
       ],
       "blocks": [
@@ -314,11 +324,68 @@
         },
         {
           "instructions": [
-            30
+            30,
+            31
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 26
+            }
+          }
+        },
+        {
+          "instructions": [
+            32,
+            33,
+            34
+          ],
+          "terminator": {
+            "Branch": {
+              "cond": 34,
+              "true_target": 27,
+              "false_target": 28
+            }
+          }
+        },
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 31
+            }
+          }
+        },
+        {
+          "instructions": [
+            35,
+            36,
+            37,
+            38,
+            39,
+            40
+          ],
+          "terminator": {
+            "Jump": {
+              "target": 30
+            }
+          }
+        },
+        null,
+        {
+          "instructions": [],
+          "terminator": {
+            "Jump": {
+              "target": 26
+            }
+          }
+        },
+        {
+          "instructions": [
+            41
           ],
           "terminator": {
             "Return": {
-              "value": 30
+              "value": 41
             }
           }
         },
@@ -574,6 +641,102 @@
           }
         },
         {
+          "Const": {
+            "value": {
+              "ConstInt": 0
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 5
+              },
+              "projections": []
+            },
+            "value": 30
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 5
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 10
+            }
+          }
+        },
+        {
+          "SGreaterThanEqual": {
+            "lhs": 32,
+            "rhs": 33
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 5
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 6
+              },
+              "projections": []
+            },
+            "value": 35
+          }
+        },
+        {
+          "Load": {
+            "place": {
+              "base": {
+                "Local": 5
+              },
+              "projections": []
+            }
+          }
+        },
+        {
+          "Const": {
+            "value": {
+              "ConstInt": 1
+            }
+          }
+        },
+        {
+          "Add": {
+            "lhs": 37,
+            "rhs": 38
+          }
+        },
+        {
+          "Store": {
+            "place": {
+              "base": {
+                "Local": 5
+              },
+              "projections": []
+            },
+            "value": 39
+          }
+        },
+        {
           "Load": {
             "place": {
               "base": {
@@ -613,6 +776,17 @@
         "F64",
         "Bool",
         "Bool",
+        "Unit",
+        "I64",
+        "Unit",
+        "I64",
+        "I64",
+        "Bool",
+        "I64",
+        "Unit",
+        "I64",
+        "I64",
+        "I64",
         "Unit",
         "I64"
       ]

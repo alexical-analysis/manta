@@ -35,5 +35,9 @@ fn main() i64 {
         }
     }
 
+    for i in 0..<10 {
+        let b = i
+    }
+
     return a
 }

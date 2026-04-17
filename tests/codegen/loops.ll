@@ -54,6 +54,8 @@ entry:
   %b = alloca i1, align 1
   %c = alloca i1, align 1
   %d = alloca double, align 8
+  %i = alloca i64, align 8
+  %b1 = alloca i64, align 8
   store i64 0, ptr %a, align 8
   store i1 true, ptr %b, align 1
   br label %Block_2
@@ -67,11 +69,11 @@ Block_3:                                          ; preds = %Block_2
   br label %Block_2
 
 Block_4:                                          ; preds = %Block_2
-  %load1 = load i64, ptr %a, align 8
-  %iadd = add i64 %load1, 1
-  store i64 %iadd, ptr %a, align 8
   %load2 = load i64, ptr %a, align 8
-  %sgt = icmp sgt i64 %load2, 255
+  %iadd = add i64 %load2, 1
+  store i64 %iadd, ptr %a, align 8
+  %load3 = load i64, ptr %a, align 8
+  %sgt = icmp sgt i64 %load3, 255
   br i1 %sgt, label %Block_6, label %Block_7
 
 Block_6:                                          ; preds = %Block_4
@@ -101,19 +103,19 @@ Block_16:                                         ; preds = %Block_6
   br label %Block_17
 
 Block_17:                                         ; preds = %Block_24, %Block_16
-  %load3 = load i1, ptr %c, align 1
-  %not = xor i1 %load3, true
+  %load4 = load i1, ptr %c, align 1
+  %not = xor i1 %load4, true
   br i1 %not, label %Block_18, label %Block_19
 
 Block_18:                                         ; preds = %Block_17
   br label %Block_25
 
 Block_19:                                         ; preds = %Block_17
-  %load4 = load double, ptr %d, align 8
-  %fadd = fadd double %load4, 3.141500e+00
-  store double %fadd, ptr %d, align 8
   %load5 = load double, ptr %d, align 8
-  %fgt = fcmp ogt double %load5, 3.000000e+01
+  %fadd = fadd double %load5, 3.141500e+00
+  store double %fadd, ptr %d, align 8
+  %load6 = load double, ptr %d, align 8
+  %fgt = fcmp ogt double %load6, 3.000000e+01
   br i1 %fgt, label %Block_21, label %Block_22
 
 Block_21:                                         ; preds = %Block_19
@@ -130,6 +132,29 @@ Block_24:                                         ; preds = %Block_22
   br label %Block_17
 
 Block_25:                                         ; preds = %Block_18
-  %load6 = load i64, ptr %a, align 8
-  ret i64 %load6
+  store i64 0, ptr %i, align 8
+  br label %Block_26
+
+Block_26:                                         ; preds = %Block_30, %Block_25
+  %load7 = load i64, ptr %i, align 8
+  %sge = icmp sge i64 %load7, 10
+  br i1 %sge, label %Block_27, label %Block_28
+
+Block_27:                                         ; preds = %Block_26
+  br label %Block_31
+
+Block_28:                                         ; preds = %Block_26
+  %load8 = load i64, ptr %i, align 8
+  store i64 %load8, ptr %b1, align 8
+  %load9 = load i64, ptr %i, align 8
+  %iadd10 = add i64 %load9, 1
+  store i64 %iadd10, ptr %i, align 8
+  br label %Block_30
+
+Block_30:                                         ; preds = %Block_28
+  br label %Block_26
+
+Block_31:                                         ; preds = %Block_27
+  %load11 = load i64, ptr %a, align 8
+  ret i64 %load11
 }

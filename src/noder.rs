@@ -7,7 +7,8 @@ use std::fmt::Debug;
 use std::ops::Deref;
 
 use crate::ast::{
-    self, BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Payload, ReturnStmt, Stmt, UnaryOp,
+    self, BinaryOp, BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Payload, ReturnStmt, Stmt,
+    UnaryOp,
 };
 use crate::hir::{
     ArrayType, DefaultPat, EnumType, EnumVariant, EnumVariantPat, FunctionType, NamedType, Node,
@@ -509,6 +510,86 @@ fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<Node
             }
 
             vec![node_tree.add_node(Node::Loop { body })]
+        }
+        Stmt::For(stmt) => {
+            // set up the identifier for bindings
+            let binding_id = node_tree.add_node(Node::Identifier {
+                module: None,
+                name: stmt.binding.name,
+            });
+            let var_decl_id = node_tree.add_node(Node::VarDecl { ident: binding_id });
+
+            let scope_pos = module
+                .get_scope_pos(stmt.binding.id)
+                .expect("missing scope position for loop for stmt");
+            let binding = module
+                .find_binding(scope_pos, stmt.binding.name)
+                .expect("missing binding for function parameter");
+
+            node_tree.symbol_map.add(binding.id, binding_id);
+
+            let start_id = node_expr(node_tree, module, &stmt.range.start);
+            let initial_assign_id = node_tree.add_node(Node::Assign {
+                target: binding_id,
+                value: start_id,
+            });
+
+            let break_id = node_tree.add_node(Node::Break);
+            let break_block = node_tree.add_node(Node::Block {
+                statements: vec![break_id],
+            });
+
+            let end_id = node_expr(node_tree, module, &stmt.range.end);
+
+            let comp_op = match stmt.range.inclusive {
+                true => BinaryOp::GreaterThan,
+                false => BinaryOp::GreaterThanOrEqual,
+            };
+
+            let condition_id = node_tree.add_node(Node::Binary {
+                left: binding_id,
+                operator: comp_op,
+                right: end_id,
+            });
+            let check_id = node_tree.add_node(Node::If {
+                condition: condition_id,
+                then_block: break_block,
+                else_block: None,
+            });
+
+            let one_id = node_tree.add_node(Node::IntLiteral(1));
+            let inc_add_id = node_tree.add_node(Node::Binary {
+                left: binding_id,
+                operator: BinaryOp::Add,
+                right: one_id,
+            });
+            let increment_id = node_tree.add_node(Node::Assign {
+                target: binding_id,
+                value: inc_add_id,
+            });
+
+            let prev = node_tree.within_loop;
+            node_tree.within_loop = true;
+            let body = node_block(node_tree, module, &stmt.body);
+            node_tree.within_loop = prev;
+
+            // insert the check into the head of the body and the increment into the tail
+            let body_node = node_tree
+                .get_mut_node(body)
+                .expect("failed to get while loop body");
+            match body_node {
+                Node::Block { statements } => {
+                    statements.insert(0, check_id);
+                    statements.push(increment_id);
+                }
+                _ => panic!("while body must be a block"),
+            }
+
+            vec![
+                var_decl_id,
+                initial_assign_id,
+                node_tree.add_node(Node::Loop { body }),
+            ]
         }
         Stmt::Break => {
             if !node_tree.within_loop {
