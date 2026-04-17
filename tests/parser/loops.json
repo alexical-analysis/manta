@@ -62,6 +62,7 @@
           "statements": [
             {
               "Let": {
+                "mutable": false,
                 "pattern": {
                   "Identifier": {
                     "id": 34,
@@ -76,6 +77,7 @@
             },
             {
               "Let": {
+                "mutable": false,
                 "pattern": {
                   "Identifier": {
                     "id": 48,
@@ -210,10 +212,11 @@
             },
             {
               "Let": {
+                "mutable": true,
                 "pattern": {
                   "Identifier": {
                     "id": 341,
-                    "name": 24
+                    "name": 25
                   }
                 },
                 "value": {
@@ -224,10 +227,11 @@
             },
             {
               "Let": {
+                "mutable": true,
                 "pattern": {
                   "Identifier": {
                     "id": 358,
-                    "name": 25
+                    "name": 26
                   }
                 },
                 "value": {
@@ -242,7 +246,7 @@
                   "Identifier": {
                     "id": 379,
                     "module": null,
-                    "name": 24
+                    "name": 25
                   }
                 },
                 "body": {
@@ -254,7 +258,7 @@
                           "Identifier": {
                             "id": 391,
                             "module": null,
-                            "name": 25
+                            "name": 26
                           }
                         },
                         "rvalue": {
@@ -263,7 +267,7 @@
                               "Identifier": {
                                 "id": 395,
                                 "module": null,
-                                "name": 25
+                                "name": 26
                               }
                             },
                             "operator": "Add",
@@ -282,7 +286,7 @@
                               "Identifier": {
                                 "id": 418,
                                 "module": null,
-                                "name": 25
+                                "name": 26
                               }
                             },
                             "operator": "GreaterThan",
@@ -300,7 +304,7 @@
                                   "Identifier": {
                                     "id": 439,
                                     "module": null,
-                                    "name": 24
+                                    "name": 25
                                   }
                                 },
                                 "rvalue": {
@@ -322,7 +326,7 @@
                 "binding": {
                   "id": 474,
                   "module": null,
-                  "name": 30
+                  "name": 31
                 },
                 "range": {
                   "start": {
@@ -338,6 +342,7 @@
                   "statements": [
                     {
                       "Let": {
+                        "mutable": false,
                         "pattern": {
                           "Identifier": {
                             "id": 500,
@@ -348,7 +353,7 @@
                           "Identifier": {
                             "id": 504,
                             "module": null,
-                            "name": 30
+                            "name": 31
                           }
                         },
                         "except": "None"
@@ -575,19 +580,19 @@
           },
           {
             "id": 19,
-            "name": 24,
-            "binding_type": "ValueDecl",
-            "used": true
-          },
-          {
-            "id": 20,
             "name": 25,
             "binding_type": "ValueDecl",
             "used": true
           },
           {
+            "id": 20,
+            "name": 26,
+            "binding_type": "ValueDecl",
+            "used": true
+          },
+          {
             "id": 21,
-            "name": 30,
+            "name": 31,
             "binding_type": "ValueDecl",
             "used": true
           }

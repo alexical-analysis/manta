@@ -260,6 +260,7 @@
           "statements": [
             {
               "Let": {
+                "mutable": false,
                 "pattern": {
                   "Identifier": {
                     "id": 605,
@@ -292,6 +293,7 @@
             },
             {
               "Let": {
+                "mutable": false,
                 "pattern": {
                   "Identifier": {
                     "id": 639,
@@ -347,6 +349,7 @@
             },
             {
               "Let": {
+                "mutable": false,
                 "pattern": {
                   "Identifier": {
                     "id": 704,
@@ -379,6 +382,7 @@
             },
             {
               "Let": {
+                "mutable": false,
                 "pattern": {
                   "Identifier": {
                     "id": 737,

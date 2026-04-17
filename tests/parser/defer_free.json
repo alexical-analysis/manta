@@ -288,6 +288,7 @@
           "statements": [
             {
               "Let": {
+                "mutable": false,
                 "pattern": {
                   "EnumVariant": {
                     "id": 976,
@@ -363,6 +364,7 @@
             },
             {
               "Let": {
+                "mutable": false,
                 "pattern": {
                   "TypeSpec": {
                     "id": 1048,
@@ -417,6 +419,7 @@
             },
             {
               "Let": {
+                "mutable": false,
                 "pattern": {
                   "EnumVariant": {
                     "id": 1109,

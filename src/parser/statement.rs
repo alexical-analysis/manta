@@ -61,7 +61,18 @@ pub struct StmtParser {
 impl StmtParser {
     pub fn new() -> Self {
         let mut prefix_parselets: HashMap<TokenKind, Rc<dyn PrefixStmtParselet>> = HashMap::new();
-        prefix_parselets.insert(TokenKind::LetKeyword, Rc::new(LetParselet));
+        prefix_parselets.insert(
+            TokenKind::LetKeyword,
+            Rc::new(LetParselet {
+                mutable_binding: false,
+            }),
+        );
+        prefix_parselets.insert(
+            TokenKind::MutKeyword,
+            Rc::new(LetParselet {
+                mutable_binding: true,
+            }),
+        );
         prefix_parselets.insert(TokenKind::ReturnKeyword, Rc::new(ReturnParselet));
         prefix_parselets.insert(TokenKind::DeferKeyword, Rc::new(DeferParselet));
         prefix_parselets.insert(TokenKind::OpenBrace, Rc::new(BlockParselet));
@@ -231,6 +242,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
+                    mutable: false,
                     pattern: Pattern::Identifier(IdentifierPat {
                         id: SourceID::from_usize(4),
                         name: StrID::from_usize(1)
@@ -241,11 +253,12 @@ mod test {
             ),
         },
         parse_stmt_let_with_value {
-            input: "let bool(y) = true",
+            input: "mut bool(y) = true",
             want_var: Stmt::Let(stmt),
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
+                    mutable: true,
                     pattern: Pattern::TypeSpec(TypeSpecPat {
                         id: SourceID::from_usize(4),
                         type_spec: TypeSpec::Bool,
@@ -262,6 +275,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
+                    mutable: false,
                     pattern: Pattern::Identifier(IdentifierPat {
                         id: SourceID::from_usize(4),
                         name: StrID::from_usize(1)
@@ -272,11 +286,12 @@ mod test {
             ),
         },
         parse_stmt_let_user_type {
-            input: "let Person(jill) = new_person()",
+            input: "mut Person(jill) = new_person()",
             want_var: Stmt::Let(stmt),
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
+                    mutable: true,
                     pattern: Pattern::TypeSpec(TypeSpecPat {
                         id: SourceID::from_usize(4),
                         type_spec: TypeSpec::Named(NamedType {
@@ -422,6 +437,7 @@ mod test {
                     id: SourceID::from_usize(0),
                     statements: vec![
                         Stmt::Let(LetStmt {
+                            mutable: false,
                             pattern: Pattern::Identifier(IdentifierPat {
                                 id: SourceID::from_usize(10),
                                 name: StrID::from_usize(2)
@@ -430,6 +446,7 @@ mod test {
                             except: LetExcept::None,
                         }),
                         Stmt::Let(LetStmt {
+                            mutable: false,
                             pattern: Pattern::EnumVariant(EnumVariantPat {
                                 id: SourceID::from_usize(25),
                                 enum_name: None,
@@ -447,6 +464,7 @@ mod test {
                             except: LetExcept::Panic,
                         }),
                         Stmt::Let(LetStmt {
+                            mutable: false,
                             pattern: Pattern::Identifier(IdentifierPat {
                                 id: SourceID::from_usize(58),
                                 name: StrID::from_usize(14)
@@ -666,6 +684,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
+                    mutable: false,
                     pattern: Pattern::Identifier(IdentifierPat {
                         id: SourceID::from_usize(4),
                         name: StrID::from_usize(1)
@@ -683,11 +702,12 @@ mod test {
             ),
         },
         parse_stmt_let_with_panic {
-            input: "let .Ok = call() !",
+            input: "mut .Ok = call() !",
             want_var: Stmt::Let(stmt),
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
+                    mutable: true,
                     pattern: Pattern::EnumVariant(EnumVariantPat {
                         id: SourceID::from_usize(4),
                         enum_name: None,
@@ -714,6 +734,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
+                    mutable: false,
                     pattern: Pattern::EnumVariant(EnumVariantPat {
                         id: SourceID::from_usize(7),
                         enum_name: Some(IdentifierExpr {
@@ -761,6 +782,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
+                    mutable: false,
                     pattern: Pattern::EnumVariant(EnumVariantPat {
                         id: SourceID::from_usize(4),
                         enum_name: None,
@@ -817,6 +839,7 @@ mod test {
             want_value: assert_eq!(
                 stmt,
                 LetStmt {
+                    mutable: false,
                     pattern: Pattern::EnumVariant(EnumVariantPat {
                         id: SourceID::from_usize(4),
                         enum_name: None,
