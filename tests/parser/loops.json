@@ -318,10 +318,51 @@
               }
             },
             {
+              "For": {
+                "binding": {
+                  "id": 474,
+                  "module": null,
+                  "name": 30
+                },
+                "range": {
+                  "start": {
+                    "IntLiteral": 0
+                  },
+                  "inclusive": false,
+                  "end": {
+                    "IntLiteral": 10
+                  }
+                },
+                "body": {
+                  "id": 479,
+                  "statements": [
+                    {
+                      "Let": {
+                        "pattern": {
+                          "Identifier": {
+                            "id": 500,
+                            "name": 11
+                          }
+                        },
+                        "value": {
+                          "Identifier": {
+                            "id": 504,
+                            "module": null,
+                            "name": 30
+                          }
+                        },
+                        "except": "None"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
               "Return": {
                 "value": {
                   "Identifier": {
-                    "id": 477,
+                    "id": 524,
                     "module": null,
                     "name": 8
                   }
@@ -543,6 +584,12 @@
             "name": 25,
             "binding_type": "ValueDecl",
             "used": true
+          },
+          {
+            "id": 21,
+            "name": 30,
+            "binding_type": "ValueDecl",
+            "used": true
           }
         ]
       },
@@ -573,6 +620,17 @@
       {
         "parent": 12,
         "bindings": []
+      },
+      {
+        "parent": 6,
+        "bindings": [
+          {
+            "id": 22,
+            "name": 11,
+            "binding_type": "ValueDecl",
+            "used": false
+          }
+        ]
       }
     ],
     "current_scope": 0,
@@ -669,9 +727,25 @@
         "scope_id": 13,
         "scope_depth": 0
       },
-      "477": {
+      "474": {
         "scope_id": 6,
-        "scope_depth": 4
+        "scope_depth": 5
+      },
+      "479": {
+        "scope_id": 14,
+        "scope_depth": 0
+      },
+      "500": {
+        "scope_id": 14,
+        "scope_depth": 1
+      },
+      "504": {
+        "scope_id": 14,
+        "scope_depth": 1
+      },
+      "524": {
+        "scope_id": 6,
+        "scope_depth": 5
       },
       "9999999994": {
         "scope_id": 4,
@@ -699,7 +773,7 @@
       }
     },
     "id_tracker": {
-      "id": 21
+      "id": 23
     }
   }
 }

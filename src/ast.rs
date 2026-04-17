@@ -211,6 +211,13 @@ pub struct WhileStmt {
     pub body: BlockStmt,
 }
 
+#[derive(Debug, PartialEq, Serialize)]
+pub struct ForStmt {
+    pub binding: IdentifierExpr,
+    pub range: RangeExpr,
+    pub body: BlockStmt,
+}
+
 /// Statements in a block
 #[derive(Debug, PartialEq, Serialize)]
 pub enum Stmt {
@@ -224,6 +231,7 @@ pub enum Stmt {
     If(IfStmt),
     Loop(LoopStmt),
     While(WhileStmt),
+    For(ForStmt),
     Break,
     Continue,
 }
