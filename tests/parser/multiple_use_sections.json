@@ -149,6 +149,7 @@
             "binding_type": {
               "TypeDecl": "UInt8"
             },
+            "mutable": false,
             "used": true
           },
           {
@@ -157,6 +158,7 @@
             "binding_type": {
               "TypeDecl": "UInt16"
             },
+            "mutable": false,
             "used": true
           },
           {
@@ -165,6 +167,7 @@
             "binding_type": {
               "TypeDecl": "UInt32"
             },
+            "mutable": false,
             "used": true
           },
           {
@@ -173,6 +176,7 @@
             "binding_type": {
               "TypeDecl": "UInt64"
             },
+            "mutable": false,
             "used": true
           },
           {
@@ -181,6 +185,7 @@
             "binding_type": {
               "TypeDecl": "Int8"
             },
+            "mutable": false,
             "used": true
           },
           {
@@ -189,6 +194,7 @@
             "binding_type": {
               "TypeDecl": "Int16"
             },
+            "mutable": false,
             "used": true
           },
           {
@@ -197,6 +203,7 @@
             "binding_type": {
               "TypeDecl": "Int32"
             },
+            "mutable": false,
             "used": true
           },
           {
@@ -205,6 +212,7 @@
             "binding_type": {
               "TypeDecl": "Int64"
             },
+            "mutable": false,
             "used": true
           },
           {
@@ -213,6 +221,7 @@
             "binding_type": {
               "TypeDecl": "Float32"
             },
+            "mutable": false,
             "used": true
           },
           {
@@ -221,6 +230,7 @@
             "binding_type": {
               "TypeDecl": "Float64"
             },
+            "mutable": false,
             "used": true
           },
           {
@@ -229,6 +239,7 @@
             "binding_type": {
               "TypeDecl": "Bool"
             },
+            "mutable": false,
             "used": true
           },
           {
@@ -237,6 +248,7 @@
             "binding_type": {
               "TypeDecl": "String"
             },
+            "mutable": false,
             "used": true
           },
           {
@@ -252,6 +264,7 @@
                 }
               }
             },
+            "mutable": false,
             "used": false
           },
           {
@@ -267,6 +280,7 @@
                 }
               }
             },
+            "mutable": false,
             "used": false
           },
           {
@@ -282,6 +296,7 @@
                 }
               }
             },
+            "mutable": false,
             "used": true
           },
           {
@@ -295,6 +310,7 @@
                 }
               }
             },
+            "mutable": false,
             "used": false
           }
         ]
@@ -306,6 +322,7 @@
             "id": 13,
             "name": 18446744073709551595,
             "binding_type": "ValueDecl",
+            "mutable": false,
             "used": false
           }
         ]
@@ -321,6 +338,7 @@
             "id": 15,
             "name": 18446744073709551595,
             "binding_type": "ValueDecl",
+            "mutable": false,
             "used": false
           }
         ]
@@ -336,6 +354,7 @@
             "id": 17,
             "name": 9,
             "binding_type": "ValueDecl",
+            "mutable": false,
             "used": false
           }
         ]

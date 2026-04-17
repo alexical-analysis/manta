@@ -285,7 +285,7 @@
     "lexeme_id": 12
   },
   {
-    "kind": "LetKeyword",
+    "kind": "MutKeyword",
     "source_id": 463,
     "lexeme_id": 25
   },

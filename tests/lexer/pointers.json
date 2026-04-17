@@ -165,14 +165,14 @@
     "lexeme_id": 2
   },
   {
-    "kind": "LetKeyword",
+    "kind": "MutKeyword",
     "source_id": 104,
-    "lexeme_id": 12
+    "lexeme_id": 17
   },
   {
     "kind": "Identifier",
     "source_id": 108,
-    "lexeme_id": 17
+    "lexeme_id": 18
   },
   {
     "kind": "Equal",
@@ -182,7 +182,7 @@
   {
     "kind": "And",
     "source_id": 112,
-    "lexeme_id": 18
+    "lexeme_id": 19
   },
   {
     "kind": "Identifier",
@@ -207,12 +207,12 @@
   {
     "kind": "Star",
     "source_id": 131,
-    "lexeme_id": 19
+    "lexeme_id": 20
   },
   {
     "kind": "Identifier",
     "source_id": 132,
-    "lexeme_id": 17
+    "lexeme_id": 18
   },
   {
     "kind": "CloseParen",
@@ -227,12 +227,12 @@
   {
     "kind": "Star",
     "source_id": 139,
-    "lexeme_id": 19
+    "lexeme_id": 20
   },
   {
     "kind": "Identifier",
     "source_id": 140,
-    "lexeme_id": 17
+    "lexeme_id": 18
   },
   {
     "kind": "Equal",
@@ -242,7 +242,7 @@
   {
     "kind": "Int",
     "source_id": 144,
-    "lexeme_id": 20
+    "lexeme_id": 21
   },
   {
     "kind": "Semicolon",
@@ -277,7 +277,7 @@
   {
     "kind": "Identifier",
     "source_id": 171,
-    "lexeme_id": 17
+    "lexeme_id": 18
   },
   {
     "kind": "Equal",
@@ -287,7 +287,7 @@
   {
     "kind": "And",
     "source_id": 175,
-    "lexeme_id": 18
+    "lexeme_id": 19
   },
   {
     "kind": "Identifier",
@@ -302,12 +302,12 @@
   {
     "kind": "Star",
     "source_id": 182,
-    "lexeme_id": 19
+    "lexeme_id": 20
   },
   {
     "kind": "Identifier",
     "source_id": 183,
-    "lexeme_id": 17
+    "lexeme_id": 18
   },
   {
     "kind": "Equal",
@@ -317,22 +317,22 @@
   {
     "kind": "Star",
     "source_id": 187,
-    "lexeme_id": 19
+    "lexeme_id": 20
   },
   {
     "kind": "Identifier",
     "source_id": 188,
-    "lexeme_id": 17
+    "lexeme_id": 18
   },
   {
     "kind": "Slash",
     "source_id": 190,
-    "lexeme_id": 21
+    "lexeme_id": 22
   },
   {
     "kind": "Int",
     "source_id": 192,
-    "lexeme_id": 22
+    "lexeme_id": 23
   },
   {
     "kind": "Semicolon",
@@ -377,6 +377,6 @@
   {
     "kind": "Eof",
     "source_id": 217,
-    "lexeme_id": 23
+    "lexeme_id": 24
   }
 ]

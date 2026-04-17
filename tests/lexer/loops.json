@@ -45,7 +45,7 @@
     "lexeme_id": 6
   },
   {
-    "kind": "LetKeyword",
+    "kind": "MutKeyword",
     "source_id": 30,
     "lexeme_id": 7
   },
@@ -70,7 +70,7 @@
     "lexeme_id": 2
   },
   {
-    "kind": "LetKeyword",
+    "kind": "MutKeyword",
     "source_id": 44,
     "lexeme_id": 7
   },
@@ -322,12 +322,12 @@
   {
     "kind": "MutKeyword",
     "source_id": 337,
-    "lexeme_id": 24
+    "lexeme_id": 7
   },
   {
     "kind": "Identifier",
     "source_id": 341,
-    "lexeme_id": 25
+    "lexeme_id": 24
   },
   {
     "kind": "Equal",
@@ -347,12 +347,12 @@
   {
     "kind": "MutKeyword",
     "source_id": 354,
-    "lexeme_id": 24
+    "lexeme_id": 7
   },
   {
     "kind": "Identifier",
     "source_id": 358,
-    "lexeme_id": 26
+    "lexeme_id": 25
   },
   {
     "kind": "Equal",
@@ -362,7 +362,7 @@
   {
     "kind": "Float",
     "source_id": 362,
-    "lexeme_id": 27
+    "lexeme_id": 26
   },
   {
     "kind": "Semicolon",
@@ -372,12 +372,12 @@
   {
     "kind": "WhileKeyword",
     "source_id": 373,
-    "lexeme_id": 28
+    "lexeme_id": 27
   },
   {
     "kind": "Identifier",
     "source_id": 379,
-    "lexeme_id": 25
+    "lexeme_id": 24
   },
   {
     "kind": "OpenBrace",
@@ -387,7 +387,7 @@
   {
     "kind": "Identifier",
     "source_id": 391,
-    "lexeme_id": 26
+    "lexeme_id": 25
   },
   {
     "kind": "Equal",
@@ -397,7 +397,7 @@
   {
     "kind": "Identifier",
     "source_id": 395,
-    "lexeme_id": 26
+    "lexeme_id": 25
   },
   {
     "kind": "Plus",
@@ -407,7 +407,7 @@
   {
     "kind": "Float",
     "source_id": 399,
-    "lexeme_id": 27
+    "lexeme_id": 26
   },
   {
     "kind": "Semicolon",
@@ -422,7 +422,7 @@
   {
     "kind": "Identifier",
     "source_id": 418,
-    "lexeme_id": 26
+    "lexeme_id": 25
   },
   {
     "kind": "GreaterThan",
@@ -432,7 +432,7 @@
   {
     "kind": "Int",
     "source_id": 422,
-    "lexeme_id": 29
+    "lexeme_id": 28
   },
   {
     "kind": "OpenBrace",
@@ -442,7 +442,7 @@
   {
     "kind": "Identifier",
     "source_id": 439,
-    "lexeme_id": 25
+    "lexeme_id": 24
   },
   {
     "kind": "Equal",
@@ -482,17 +482,17 @@
   {
     "kind": "ForKeyword",
     "source_id": 470,
-    "lexeme_id": 30
+    "lexeme_id": 29
   },
   {
     "kind": "Identifier",
     "source_id": 474,
-    "lexeme_id": 31
+    "lexeme_id": 30
   },
   {
     "kind": "InKeyword",
     "source_id": 476,
-    "lexeme_id": 32
+    "lexeme_id": 31
   },
   {
     "kind": "Int",
@@ -502,12 +502,12 @@
   {
     "kind": "RangeExclusive",
     "source_id": 480,
-    "lexeme_id": 33
+    "lexeme_id": 32
   },
   {
     "kind": "Int",
     "source_id": 483,
-    "lexeme_id": 34
+    "lexeme_id": 33
   },
   {
     "kind": "OpenBrace",
@@ -517,7 +517,7 @@
   {
     "kind": "LetKeyword",
     "source_id": 496,
-    "lexeme_id": 7
+    "lexeme_id": 34
   },
   {
     "kind": "Identifier",
@@ -532,7 +532,7 @@
   {
     "kind": "Identifier",
     "source_id": 504,
-    "lexeme_id": 31
+    "lexeme_id": 30
   },
   {
     "kind": "Semicolon",
