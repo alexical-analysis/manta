@@ -7,6 +7,7 @@ mod index;
 mod literal;
 mod meta_type;
 mod module_access;
+mod ranges;
 mod struct_constructor;
 mod unary_operator;
 
@@ -29,6 +30,7 @@ use index::IndexParselet;
 use literal::LiteralParselet;
 use meta_type::MetaTypeParselet;
 use module_access::ModuleAccessParselet;
+use ranges::RangeOperatorParselet;
 use unary_operator::UnaryOperatorParselet;
 
 /// Trait for prefix expression parselets.
@@ -67,6 +69,7 @@ pub enum Precedence {
     BitwiseXor,
     BitwiseAnd,
     Equality,
+    Range,
     Comparison,
     Addition,
     Multiplication,
@@ -251,6 +254,14 @@ impl ExprParser {
         infix_parselets.insert(TokenKind::OpenSquare, Rc::new(IndexParselet));
         infix_parselets.insert(TokenKind::Dot, Rc::new(InfixDotAccessParselet));
         infix_parselets.insert(TokenKind::ColonColon, Rc::new(ModuleAccessParselet));
+        infix_parselets.insert(
+            TokenKind::RangeInclusive,
+            Rc::new(RangeOperatorParselet { inclusive: true }),
+        );
+        infix_parselets.insert(
+            TokenKind::RangeExclusive,
+            Rc::new(RangeOperatorParselet { inclusive: false }),
+        );
 
         // structs are not always allowed like normal expressions
         if allow_structs {
@@ -313,8 +324,8 @@ mod tests {
     use super::*;
     use crate::ast::{
         AllocExpr, ArrayType, BinaryExpr, BinaryOp, CallExpr, DotAccessExpr, Expr, FreeExpr,
-        IdentifierExpr, IndexExpr, MetaTypeExpr, NamedType, StructConstructor, StructValueField,
-        TypeSpec, UnaryExpr, UnaryOp,
+        IdentifierExpr, IndexExpr, MetaTypeExpr, NamedType, RangeExpr, StructConstructor,
+        StructValueField, TypeSpec, UnaryExpr, UnaryOp,
     };
     use crate::parser::lexer::{Lexer, SourceID};
     use crate::str_store::{StrID, StrStore};
@@ -953,6 +964,36 @@ mod tests {
                         name: StrID::from_usize(5)
                     })),
                 },
+            ),
+        },
+        parse_expression_range_index {
+            input: "data[two()..=5+10]",
+            want_var: Expr::Index(expr),
+            want_value: assert_eq!(
+                expr,
+                IndexExpr {
+                    target: Box::new(Expr::Identifier(IdentifierExpr {
+                        id: SourceID::from_usize(0),
+                        module: None,
+                        name: StrID::from_usize(0)
+                    })),
+                    index: Box::new(Expr::Range(RangeExpr {
+                        start: Box::new(Expr::Call(CallExpr {
+                            func: Box::new(Expr::Identifier(IdentifierExpr {
+                                id: SourceID::from_usize(5),
+                                module: None,
+                                name: StrID::from_usize(2)
+                            })),
+                            args: vec![],
+                        })),
+                        inclusive: true,
+                        end: Box::new(Expr::Binary(BinaryExpr {
+                            left: Box::new(Expr::IntLiteral(5)),
+                            operator: BinaryOp::Add,
+                            right: Box::new(Expr::IntLiteral(10)),
+                        })),
+                    }))
+                }
             ),
         },
         parse_expression_field_access {

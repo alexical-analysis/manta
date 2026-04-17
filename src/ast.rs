@@ -363,7 +363,7 @@ pub enum Expr {
     // Indexing for an expression
     Index(IndexExpr),
 
-    // Range expressions like 1:3
+    // Range expressions like 1..=3
     Range(RangeExpr),
 
     // Accessing a field for a struct or enum
@@ -441,6 +441,7 @@ pub struct IndexExpr {
 #[derive(Debug, PartialEq, Serialize)]
 pub struct RangeExpr {
     pub start: Box<Expr>,
+    pub inclusive: bool,
     pub end: Box<Expr>,
 }
 
