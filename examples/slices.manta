@@ -1,0 +1,8 @@
+mod main
+
+fn main() {
+    let test = []int{1, 2, 3, 4}
+
+    // sub will be []int{2, 3}
+    let sub = test[1..<3]
+}

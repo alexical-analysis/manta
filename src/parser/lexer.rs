@@ -55,6 +55,8 @@ pub enum TokenKind {
     CloseParen,
     OpenSquare,
     CloseSquare,
+    RangeExclusive,
+    RangeInclusive,
     Comma,
     Colon,
     ColonColon,
@@ -74,6 +76,7 @@ pub enum TokenKind {
     And,
     AndAnd,
     Dot,
+    DotDot,
     Star,
     Plus,
     Bang,
@@ -85,7 +88,6 @@ pub enum TokenKind {
     Underscore,
     SlashStar,
     StarSlash,
-    Arrow,
     Eof,
 }
 
@@ -475,38 +477,7 @@ impl<'a> Lexer<'a> {
     fn read_operator_or_punct(&mut self) -> Token {
         let start = self.pos;
         let ch = self.bump().unwrap();
-        let next = self.current_char();
 
-        // multi-char operators
-        if let Some(nc) = next {
-            let two = format!("{}{}", ch, nc);
-            let kind = match two.as_str() {
-                "==" => Some(TokenKind::EqualEqual),
-                "!=" => Some(TokenKind::NotEqual),
-                "<=" => Some(TokenKind::LessOrEqual),
-                ">=" => Some(TokenKind::GreaterOrEqual),
-                "=>" => Some(TokenKind::Arrow),
-                "&&" => Some(TokenKind::AndAnd),
-                "||" => Some(TokenKind::PipePipe),
-                "::" => Some(TokenKind::ColonColon),
-                "+=" => Some(TokenKind::PlusEqual),
-                "-=" => Some(TokenKind::MinusEqual),
-                _ => None,
-            };
-
-            if let Some(kind) = kind {
-                self.bump();
-                let end = self.pos;
-                let lexeme_id = self.str_store.get_id(&self.source[start..end]);
-                return Token {
-                    kind,
-                    source_id: SourceID::from_usize(start),
-                    lexeme_id,
-                };
-            }
-        }
-
-        // single char punctuation operator
         let kind = match ch {
             '(' => TokenKind::OpenParen,
             ')' => TokenKind::CloseParen,
@@ -516,22 +487,92 @@ impl<'a> Lexer<'a> {
             ']' => TokenKind::CloseSquare,
             ',' => TokenKind::Comma,
             ';' => TokenKind::Semicolon,
-            ':' => TokenKind::Colon,
-            '.' => TokenKind::Dot,
-            '=' => TokenKind::Equal,
-            '|' => TokenKind::Pipe,
-            '&' => TokenKind::And,
             '*' => TokenKind::Star,
-            '+' => TokenKind::Plus,
-            '!' => TokenKind::Bang,
-            '-' => TokenKind::Minus,
             '/' => TokenKind::Slash,
             '%' => TokenKind::Percent,
             '_' => TokenKind::Underscore,
-            '<' => TokenKind::LessThan,
-            '>' => TokenKind::GreaterThan,
             '^' => TokenKind::Caret,
             '@' => TokenKind::At,
+            '.' => match self.current_char() {
+                Some('.') => {
+                    self.bump().expect("failed to eat next char");
+                    match self.current_char() {
+                        Some('<') => {
+                            self.bump().expect("failed to eat next char");
+                            TokenKind::RangeExclusive
+                        }
+                        Some('=') => {
+                            self.bump().expect("failed to eat next char");
+                            TokenKind::RangeInclusive
+                        }
+                        _ => TokenKind::DotDot,
+                    }
+                }
+                _ => TokenKind::Dot,
+            },
+            ':' => match self.current_char() {
+                Some(':') => {
+                    self.bump().expect("failed to eat next char");
+                    TokenKind::ColonColon
+                }
+                _ => TokenKind::Colon,
+            },
+            '=' => match self.current_char() {
+                Some('=') => {
+                    self.bump().expect("failed to eat next char");
+                    TokenKind::EqualEqual
+                }
+                _ => TokenKind::Equal,
+            },
+            '|' => match self.current_char() {
+                Some('|') => {
+                    self.bump().expect("failed to eat next char");
+                    TokenKind::PipePipe
+                }
+                _ => TokenKind::Pipe,
+            },
+            '&' => match self.current_char() {
+                Some('&') => {
+                    self.bump().expect("failed to eat next char");
+                    TokenKind::AndAnd
+                }
+                _ => TokenKind::And,
+            },
+            '+' => match self.current_char() {
+                Some('=') => {
+                    self.bump().expect("failed to eat next char");
+                    TokenKind::PlusEqual
+                }
+                _ => TokenKind::Plus,
+            },
+            '!' => match self.current_char() {
+                Some('=') => {
+                    self.bump().expect("failed to eat next char");
+                    TokenKind::NotEqual
+                }
+                _ => TokenKind::Bang,
+            },
+            '-' => match self.current_char() {
+                Some('=') => {
+                    self.bump().expect("failed to eat next char");
+                    TokenKind::MinusEqual
+                }
+                _ => TokenKind::Minus,
+            },
+            '<' => match self.current_char() {
+                Some('=') => {
+                    self.bump().expect("failed to eat next char");
+                    TokenKind::LessOrEqual
+                }
+                _ => TokenKind::LessThan,
+            },
+            '>' => match self.current_char() {
+                Some('=') => {
+                    self.bump().expect("failed to eat next char");
+                    TokenKind::GreaterOrEqual
+                }
+                _ => TokenKind::GreaterThan,
+            },
             _ => panic!("Unknown character for single-char operator: {}", ch),
         };
 
@@ -703,6 +744,26 @@ mod tests {
                 Token{kind: TokenKind::Int, source_id: SourceID::from_usize(34), lexeme_id: StrID::from_usize(3)},
                 Token{kind: TokenKind::Semicolon, source_id: SourceID::from_usize(43), lexeme_id: StrID::from_usize(4)},
                 Token{kind: TokenKind::Eof, source_id: SourceID::from_usize(43), lexeme_id: StrID::from_usize(4)},
+            ],
+        },
+        lex_input_inclusive_range {
+            input: "0..=10",
+            want: vec![
+                Token{kind: TokenKind::Int, source_id: SourceID::from_usize(0), lexeme_id: StrID::from_usize(0)},
+                Token{kind: TokenKind::RangeInclusive, source_id: SourceID::from_usize(1), lexeme_id: StrID::from_usize(1)},
+                Token{kind: TokenKind::Int, source_id: SourceID::from_usize(4), lexeme_id: StrID::from_usize(2)},
+                Token{kind: TokenKind::Semicolon, source_id: SourceID::from_usize(6), lexeme_id: StrID::from_usize(3)},
+                Token{kind: TokenKind::Eof, source_id: SourceID::from_usize(6), lexeme_id: StrID::from_usize(3)},
+            ],
+        },
+        lex_input_exclusive_range {
+            input: "9..<20",
+            want: vec![
+                Token{kind: TokenKind::Int, source_id: SourceID::from_usize(0), lexeme_id: StrID::from_usize(0)},
+                Token{kind: TokenKind::RangeExclusive, source_id: SourceID::from_usize(1), lexeme_id: StrID::from_usize(1)},
+                Token{kind: TokenKind::Int, source_id: SourceID::from_usize(4), lexeme_id: StrID::from_usize(2)},
+                Token{kind: TokenKind::Semicolon, source_id: SourceID::from_usize(6), lexeme_id: StrID::from_usize(3)},
+                Token{kind: TokenKind::Eof, source_id: SourceID::from_usize(6), lexeme_id: StrID::from_usize(3)},
             ],
         },
         lex_input_ints_and_floats {

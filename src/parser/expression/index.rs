@@ -7,6 +7,7 @@ use crate::parser::lexer::{Lexer, Token, TokenKind};
 /// Parses index access expressions.
 ///
 /// Example: `array[0]`
+/// Example: `data[0:10]`
 pub struct IndexParselet;
 
 impl InfixExprParselet for IndexParselet {
@@ -19,14 +20,6 @@ impl InfixExprParselet for IndexParselet {
     ) -> Result<Expr, ParseError> {
         let index_expr = parser.parse(lexer, Precedence::Base)?;
 
-        let next = lexer.peek();
-        let end_expr = if next.kind == TokenKind::Colon {
-            lexer.next_token();
-            Some(parser.parse(lexer, Precedence::Base)?)
-        } else {
-            None
-        };
-
         let next = lexer.next_token();
         if next.kind != TokenKind::CloseSquare {
             return Err(ParseError::MissingExpression(
@@ -35,20 +28,10 @@ impl InfixExprParselet for IndexParselet {
             ));
         }
 
-        if let Some(end_expr) = end_expr {
-            Ok(Expr::Index(IndexExpr {
-                target: Box::new(left),
-                index: Box::new(Expr::Range(RangeExpr {
-                    start: Box::new(index_expr),
-                    end: Box::new(end_expr),
-                })),
-            }))
-        } else {
-            Ok(Expr::Index(IndexExpr {
-                target: Box::new(left),
-                index: Box::new(index_expr),
-            }))
-        }
+        Ok(Expr::Index(IndexExpr {
+            target: Box::new(left),
+            index: Box::new(index_expr),
+        }))
     }
 
     fn precedence(&self) -> Precedence {
