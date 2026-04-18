@@ -656,6 +656,9 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
         Pattern::IntLiteral(pat) => {
             node_tree.add_node(Node::Pattern(PatternNode::IntLiteral(*pat)))
         }
+        Pattern::UIntLiteral(pat) => {
+            node_tree.add_node(Node::Pattern(PatternNode::UIntLiteral(*pat)))
+        }
         Pattern::StringLiteral(pat) => {
             node_tree.add_node(Node::Pattern(PatternNode::StringLiteral(*pat)))
         }
@@ -1244,6 +1247,7 @@ fn node_wrap_expr(
 fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
     match expr {
         Expr::IntLiteral(expr) => node_tree.add_node(Node::IntLiteral(*expr)),
+        Expr::UIntLiteral(expr) => node_tree.add_node(Node::UIntLiteral(*expr)),
         Expr::FloatLiteral(expr) => node_tree.add_node(Node::FloatLiteral(*expr)),
         Expr::StringLiteral(expr) => node_tree.add_node(Node::StringLiteral(*expr)),
         Expr::BoolLiteral(expr) => node_tree.add_node(Node::BoolLiteral(*expr)),
@@ -2135,7 +2139,7 @@ mod tests {
         let mut store = NodeTree::new();
         let mut ids = Vec::new();
         for i in 0..10 {
-            let id = store.add_node(Node::IntLiteral(i as i64));
+            let id = store.add_node(Node::IntLiteral(i));
             ids.push(id);
         }
 
@@ -2151,7 +2155,7 @@ mod tests {
     fn test_add_many_root_nodes() {
         let mut store = NodeTree::new();
         for i in 0..20 {
-            store.add_root_node(Node::IntLiteral(i as i64));
+            store.add_root_node(Node::IntLiteral(i));
         }
         assert_eq!(store.roots.len(), 20);
         assert_eq!(store.nodes.len(), 20);

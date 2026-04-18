@@ -53,9 +53,11 @@ entry:
   %a = alloca i64, align 8
   %b = alloca i64, align 8
   %c = alloca i64, align 8
+  %d = alloca i64, align 8
   store i64 10, ptr %a, align 8
   store i64 20, ptr %b, align 8
   store i64 5, ptr %c, align 8
+  store i64 -9223372036854775617, ptr %d, align 8
   %load = load i64, ptr %a, align 8
   %load1 = load i64, ptr %b, align 8
   %iadd = add i64 %load, %load1

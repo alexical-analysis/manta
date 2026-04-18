@@ -192,6 +192,7 @@ impl Typer {
             Node::Invalid
             | Node::Pattern(_)
             | Node::IntLiteral(_)
+            | Node::UIntLiteral(_)
             | Node::FloatLiteral(_)
             | Node::StringLiteral(_)
             | Node::BoolLiteral(_)
@@ -226,6 +227,11 @@ impl Typer {
             }
             Node::IntLiteral(i) => {
                 let ts = TypeSpec::IntLiteral(i);
+                node_tree.type_map.add(node_id, ts.clone());
+                ts
+            }
+            Node::UIntLiteral(i) => {
+                let ts = TypeSpec::UIntLiteral(i);
                 node_tree.type_map.add(node_id, ts.clone());
                 ts
             }
@@ -606,6 +612,28 @@ impl Typer {
                 node_tree.type_map.add(node_id, ts.clone());
                 ts
             }
+            PatternNode::UIntLiteral(i) => {
+                let ts = TypeSpec::UIntLiteral(i);
+                let ts = match match_types(&target_type, &ts) {
+                    TypeMatch::ExactType => ts,
+                    TypeMatch::Inference(ts) => ts,
+                    TypeMatch::InferenceFailed => {
+                        panic!(
+                            "Inference Failed: invalid type for pattern {:?} vs {:?}",
+                            target_type, ts
+                        )
+                    }
+                    TypeMatch::Mismatch => {
+                        panic!(
+                            "Type Missmatch: invalid type for pattern {:?} vs {:?}",
+                            target_type, ts
+                        )
+                    }
+                };
+
+                node_tree.type_map.add(node_id, ts.clone());
+                ts
+            }
             PatternNode::StringLiteral(_) => {
                 let ts = TypeSpec::String;
                 let ts = match match_types(&target_type, &ts) {
@@ -760,6 +788,7 @@ fn is_numeric_type(ts: &TypeSpec) -> bool {
             | TypeSpec::Float32
             | TypeSpec::Float64
             | TypeSpec::IntLiteral(_)
+            | TypeSpec::UIntLiteral(_)
             | TypeSpec::FloatLiteral(_)
     )
 }
@@ -835,10 +864,23 @@ fn match_types(a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
 
     match (a, b) {
         // if both the left and right hand side are typed as literals, just conver the type to an
-        // int64 instead of trying to propogagte types through the graph
+        // sensible concereet type
         (TypeSpec::IntLiteral(_), TypeSpec::IntLiteral(_)) => TypeMatch::Inference(TypeSpec::Int64),
+        (TypeSpec::UIntLiteral(_), TypeSpec::UIntLiteral(_)) => {
+            TypeMatch::Inference(TypeSpec::UInt64)
+        }
+        (TypeSpec::FloatLiteral(_), TypeSpec::FloatLiteral(_)) => {
+            TypeMatch::Inference(TypeSpec::Float64)
+        }
+        (TypeSpec::InferredEnumExpr(_), TypeSpec::InferredEnumExpr(_)) => {
+            TypeMatch::InferenceFailed
+        }
+        (TypeSpec::InferredEnumPat(_), TypeSpec::InferredEnumPat(_)) => TypeMatch::InferenceFailed,
+
         (TypeSpec::IntLiteral(_), TypeSpec::Any) => TypeMatch::Inference(TypeSpec::Int64),
         (TypeSpec::Any, TypeSpec::IntLiteral(_)) => TypeMatch::Inference(TypeSpec::Int64),
+        (TypeSpec::UIntLiteral(_), TypeSpec::Any) => TypeMatch::Inference(TypeSpec::UInt64),
+        (TypeSpec::Any, TypeSpec::UIntLiteral(_)) => TypeMatch::Inference(TypeSpec::UInt64),
         // an integer literal matched against a float literal resolves to float64
         (TypeSpec::IntLiteral(_), TypeSpec::FloatLiteral(_)) => {
             TypeMatch::Inference(TypeSpec::Float64)
@@ -847,16 +889,18 @@ fn match_types(a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
             TypeMatch::Inference(TypeSpec::Float64)
         }
         (TypeSpec::IntLiteral(i), inner_b) => match inner_b {
-            TypeSpec::Int64 => match_int(i, i64::MIN, i64::MAX, TypeSpec::Int64),
+            // i is an i64 here so it can never fail inference
+            TypeSpec::Int64 => TypeMatch::Inference(TypeSpec::Int64),
             TypeSpec::Int32 => match_int(i, i32::MIN as i64, i32::MAX as i64, TypeSpec::Int32),
             TypeSpec::Int16 => match_int(i, i16::MIN as i64, i16::MAX as i64, TypeSpec::Int16),
             TypeSpec::Int8 => match_int(i, i8::MIN as i64, i8::MAX as i64, TypeSpec::Int8),
-            // TODO: in order to support u64 types we need the IntLiteral type to be a bit more
-            // complex because we can actually store the full range of a u64 in the current int
-            // literal type
-            TypeSpec::UInt32 => match_int(i, u32::MIN as i64, u32::MAX as i64, TypeSpec::UInt32),
-            TypeSpec::UInt16 => match_int(i, u16::MIN as i64, u16::MAX as i64, TypeSpec::UInt16),
-            TypeSpec::UInt8 => match_int(i, u8::MIN as i64, u8::MAX as i64, TypeSpec::UInt8),
+            TypeSpec::UInt64 => match *i >= 0 {
+                true => TypeMatch::Inference(TypeSpec::UInt64),
+                false => TypeMatch::InferenceFailed,
+            },
+            TypeSpec::UInt32 => match_int(i, 0, u32::MAX as i64, TypeSpec::UInt32),
+            TypeSpec::UInt16 => match_int(i, 0, u16::MAX as i64, TypeSpec::UInt16),
+            TypeSpec::UInt8 => match_int(i, 0, u8::MAX as i64, TypeSpec::UInt8),
             // integer literals can be coerced into float types
             TypeSpec::Float64 => match_float(&(*i as f64), f64::MIN, f64::MAX, TypeSpec::Float64),
             TypeSpec::Float32 => match_float(
@@ -865,20 +909,28 @@ fn match_types(a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
                 f32::MAX as f64,
                 TypeSpec::Float32,
             ),
+            TypeSpec::UIntLiteral(u) => {
+                if *u < i64::MAX as u64 && *i >= 0 {
+                    TypeMatch::Inference(TypeSpec::Int64)
+                } else {
+                    TypeMatch::InferenceFailed
+                }
+            }
             _ => TypeMatch::Mismatch,
         },
         (inner_a, TypeSpec::IntLiteral(i)) => match inner_a {
-            TypeSpec::Int64 => match_int(i, i64::MIN, i64::MAX, TypeSpec::Int64),
+            // i is an i64 here so it can never fail inference
+            TypeSpec::Int64 => TypeMatch::Inference(TypeSpec::Int64),
             TypeSpec::Int32 => match_int(i, i32::MIN as i64, i32::MAX as i64, TypeSpec::Int32),
             TypeSpec::Int16 => match_int(i, i16::MIN as i64, i16::MAX as i64, TypeSpec::Int16),
             TypeSpec::Int8 => match_int(i, i8::MIN as i64, i8::MAX as i64, TypeSpec::Int8),
-            // TODO: in order to correctly u64 types we need the IntLiteral type to be a bit more
-            // complex because we can actually store the full range of a u64 in the current int
-            // literal type
-            TypeSpec::UInt64 => match_int(i, u32::MIN as i64, u32::MAX as i64, TypeSpec::UInt64),
-            TypeSpec::UInt32 => match_int(i, u32::MIN as i64, u32::MAX as i64, TypeSpec::UInt32),
-            TypeSpec::UInt16 => match_int(i, u16::MIN as i64, u16::MAX as i64, TypeSpec::UInt16),
-            TypeSpec::UInt8 => match_int(i, u8::MIN as i64, u8::MAX as i64, TypeSpec::UInt8),
+            TypeSpec::UInt64 => match *i >= 0 {
+                true => TypeMatch::Inference(TypeSpec::UInt64),
+                false => TypeMatch::InferenceFailed,
+            },
+            TypeSpec::UInt32 => match_int(i, 0, u32::MAX as i64, TypeSpec::UInt32),
+            TypeSpec::UInt16 => match_int(i, 0, u16::MAX as i64, TypeSpec::UInt16),
+            TypeSpec::UInt8 => match_int(i, 0, u8::MAX as i64, TypeSpec::UInt8),
             // integer literals can be coerced into float types
             TypeSpec::Float64 => match_float(&(*i as f64), f64::MIN, f64::MAX, TypeSpec::Float64),
             TypeSpec::Float32 => match_float(
@@ -887,13 +939,77 @@ fn match_types(a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
                 f32::MAX as f64,
                 TypeSpec::Float32,
             ),
+            TypeSpec::UIntLiteral(u) => {
+                if *u < i64::MAX as u64 && *i >= 0 {
+                    TypeMatch::Inference(TypeSpec::Int64)
+                } else {
+                    TypeMatch::InferenceFailed
+                }
+            }
             _ => TypeMatch::Mismatch,
         },
-        // if both the left and right hand side are typed as literals, just conver the type to a
-        // float64 instead of trying to propogagte types through the graph
-        (TypeSpec::FloatLiteral(_), TypeSpec::FloatLiteral(_)) => {
-            TypeMatch::Inference(TypeSpec::Float64)
-        }
+        (TypeSpec::UIntLiteral(i), inner_b) => match inner_b {
+            TypeSpec::Int64 => match *i <= i64::MAX as u64 {
+                true => TypeMatch::Inference(TypeSpec::Int64),
+                false => TypeMatch::InferenceFailed,
+            },
+            // these are technically unreachable but they are included for correctness
+            TypeSpec::Int32 => match_uint(i, i32::MAX as u64, TypeSpec::Int32),
+            TypeSpec::Int16 => match_uint(i, i16::MAX as u64, TypeSpec::Int16),
+            TypeSpec::Int8 => match_uint(i, i8::MAX as u64, TypeSpec::Int8),
+            // UIntLiterals will always fit in a u64
+            TypeSpec::UInt64 => TypeMatch::Inference(TypeSpec::UInt64),
+            TypeSpec::UInt32 => match_uint(i, u32::MAX as u64, TypeSpec::UInt32),
+            TypeSpec::UInt16 => match_uint(i, u16::MAX as u64, TypeSpec::UInt16),
+            TypeSpec::UInt8 => match_uint(i, u8::MAX as u64, TypeSpec::UInt8),
+            // integer literals can be coerced into float types
+            TypeSpec::Float64 => match_float(&(*i as f64), f64::MIN, f64::MAX, TypeSpec::Float64),
+            TypeSpec::Float32 => match_float(
+                &(*i as f64),
+                f32::MIN as f64,
+                f32::MAX as f64,
+                TypeSpec::Float32,
+            ),
+            TypeSpec::IntLiteral(other) => {
+                if *i < i64::MAX as u64 && *other >= 0 {
+                    TypeMatch::Inference(TypeSpec::Int64)
+                } else {
+                    TypeMatch::InferenceFailed
+                }
+            }
+            _ => TypeMatch::Mismatch,
+        },
+        (inner_a, TypeSpec::UIntLiteral(i)) => match inner_a {
+            TypeSpec::Int64 => match *i <= i64::MAX as u64 {
+                true => TypeMatch::Inference(TypeSpec::Int64),
+                false => TypeMatch::InferenceFailed,
+            },
+            // these are technically unreachable but they are included for correctness
+            TypeSpec::Int32 => match_uint(i, i32::MAX as u64, TypeSpec::Int32),
+            TypeSpec::Int16 => match_uint(i, i16::MAX as u64, TypeSpec::Int16),
+            TypeSpec::Int8 => match_uint(i, i8::MAX as u64, TypeSpec::Int8),
+            // UIntLiterals will always fit in a u64
+            TypeSpec::UInt64 => TypeMatch::Inference(TypeSpec::UInt64),
+            TypeSpec::UInt32 => match_uint(i, u32::MAX as u64, TypeSpec::UInt32),
+            TypeSpec::UInt16 => match_uint(i, u16::MAX as u64, TypeSpec::UInt16),
+            TypeSpec::UInt8 => match_uint(i, u8::MAX as u64, TypeSpec::UInt8),
+            // integer literals can be coerced into float types
+            TypeSpec::Float64 => match_float(&(*i as f64), f64::MIN, f64::MAX, TypeSpec::Float64),
+            TypeSpec::Float32 => match_float(
+                &(*i as f64),
+                f32::MIN as f64,
+                f32::MAX as f64,
+                TypeSpec::Float32,
+            ),
+            TypeSpec::IntLiteral(other) => {
+                if *i < i64::MAX as u64 && *other >= 0 {
+                    TypeMatch::Inference(TypeSpec::Int64)
+                } else {
+                    TypeMatch::InferenceFailed
+                }
+            }
+            _ => TypeMatch::Mismatch,
+        },
         (TypeSpec::FloatLiteral(_), TypeSpec::Any) => TypeMatch::Inference(TypeSpec::Float64),
         (TypeSpec::Any, TypeSpec::FloatLiteral(_)) => TypeMatch::Inference(TypeSpec::Float64),
         (TypeSpec::FloatLiteral(f), inner_b) => match inner_b {
@@ -925,6 +1041,13 @@ fn match_types(a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
 
 fn match_int(target: &i64, min: i64, max: i64, ts: TypeSpec) -> TypeMatch {
     if *target >= min && *target <= max {
+        TypeMatch::Inference(ts)
+    } else {
+        TypeMatch::InferenceFailed
+    }
+}
+fn match_uint(target: &u64, max: u64, ts: TypeSpec) -> TypeMatch {
+    if *target <= max {
         TypeMatch::Inference(ts)
     } else {
         TypeMatch::InferenceFailed

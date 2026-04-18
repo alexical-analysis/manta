@@ -7,5 +7,9 @@ fn main() i64 {
   let b = 20
   let c = 5
 
+  // ensure large numbers get parsed correctly this number can
+  // only be stored in a u64
+  let d = 9_223_372_036_854_775_999
+
   return a + b - c
 }

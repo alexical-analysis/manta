@@ -600,6 +600,7 @@ impl Module {
     ) {
         match pat {
             Pattern::IntLiteral(_) => { /* no symbols to track */ }
+            Pattern::UIntLiteral(_) => { /* no symbols to track */ }
             Pattern::StringLiteral(_) => { /* no symbols to track */ }
             Pattern::BoolLiteral(_) => { /* no symbols to track */ }
             Pattern::FloatLiteral(_) => { /* no symbols to track */ }
@@ -638,6 +639,7 @@ impl Module {
     fn build_sym_table_expr(errors: &mut Vec<ParseError>, sym_table: &mut SymTable, expr: &Expr) {
         match expr {
             Expr::IntLiteral(_) => { /* nothing to do */ }
+            Expr::UIntLiteral(_) => { /* nothing to do */ }
             Expr::FloatLiteral(_) => { /* nothing to do */ }
             Expr::StringLiteral(_) => { /* nothing to do */ }
             Expr::BoolLiteral(_) => { /* nothing to do */ }

@@ -487,6 +487,7 @@ impl<'a> Blocker<'a> {
             Node::FunctionDecl { .. } => panic!("function decls are not valid statements"),
             Node::TypeDecl { .. } => panic!("type decls are not valid statements"),
             Node::IntLiteral(_) => panic!("int literals are expressions, not statements"),
+            Node::UIntLiteral(_) => panic!("int literals are expressions, not statements"),
             Node::FloatLiteral(_) => panic!("float literals are expressions, not statements"),
             Node::StringLiteral(_) => panic!("string literals are expressions, not statements"),
             Node::BoolLiteral(_) => panic!("bool literals are expressions, not statements"),
@@ -552,6 +553,25 @@ impl<'a> Blocker<'a> {
 
                     match_arms.push(SwitchArm {
                         target: ConstValue::Int(i as u64),
+                        jump: arm_block,
+                    });
+                }
+                PatternNode::UIntLiteral(i) => {
+                    // Int literal patterns can never have a payload so this is pretty easy
+                    let body = *body;
+                    let i = *i;
+                    let block = self.block_statement(arm_block, body);
+                    if let Some(b) = block {
+                        self.fn_builder.set_terminator(
+                            b,
+                            Terminator::Jump {
+                                target: merge_block,
+                            },
+                        );
+                    }
+
+                    match_arms.push(SwitchArm {
+                        target: ConstValue::Int(i),
                         jump: arm_block,
                     });
                 }
@@ -955,6 +975,15 @@ impl<'a> Blocker<'a> {
                 };
                 self.fn_builder.emit_const(block_id, ts, const_value)
             }
+            Node::UIntLiteral(i) => {
+                // This is necessary because int literals can technically be coerced into floating point types
+                // in certian situations.
+                let const_value = match ts {
+                    TypeSpec::F32 | TypeSpec::F64 => ConstValue::Float(i as f64),
+                    _ => ConstValue::Int(i),
+                };
+                self.fn_builder.emit_const(block_id, ts, const_value)
+            }
             Node::FloatLiteral(f) => self
                 .fn_builder
                 .emit_const(block_id, ts, ConstValue::Float(f)),
@@ -1139,6 +1168,7 @@ fn lower_type_spec(hir_ts: &hir::TypeSpec) -> TypeSpec {
         hir::TypeSpec::Function(ft) => lower_type_spec(&ft.return_type),
         hir::TypeSpec::Any
         | hir::TypeSpec::IntLiteral(_)
+        | hir::TypeSpec::UIntLiteral(_)
         | hir::TypeSpec::FloatLiteral(_)
         | hir::TypeSpec::InferredEnumExpr(_)
         | hir::TypeSpec::InferredEnumPat(_) => {
