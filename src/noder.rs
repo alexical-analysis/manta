@@ -7,8 +7,8 @@ use std::fmt::Debug;
 use std::ops::Deref;
 
 use crate::ast::{
-    self, BinaryOp, BlockStmt, Decl, Expr, LetExcept, LetStmt, Pattern, Payload, ReturnStmt, Stmt,
-    UnaryOp,
+    self, BinaryOp, BlockStmt, Decl, Expr, IdentifierExpr, LetExcept, LetStmt, Pattern, Payload,
+    ReturnStmt, Stmt, UnaryOp,
 };
 use crate::hir::{
     ArrayType, DefaultPat, EnumType, EnumVariant, EnumVariantPat, FunctionType, NamedType, Node,
@@ -407,20 +407,26 @@ fn node_block(node_tree: &mut NodeTree, module: &Module, block: &BlockStmt) -> N
 }
 
 /// Walk through leading dereferences to find the root identifier of an lvalue expression.
-/// Returns None for lvalues that have no root identifier binding to check — in those cases
-/// the mutability check is simply skipped.
-fn lvalue_root(expr: &ast::Expr) -> Option<&ast::IdentifierExpr> {
+/// Returns None for lvalues that have no root identifier binding to check
+fn lvalue_root(expr: &ast::Expr) -> Option<&IdentifierExpr> {
     match expr {
-        ast::Expr::Identifier(ident) => Some(ident),
-        ast::Expr::Unary(unary) if unary.operator == ast::UnaryOp::Dereference => {
+        Expr::Identifier(ident) => Some(ident),
+        Expr::Unary(unary) if unary.operator == ast::UnaryOp::Dereference => {
             lvalue_root(&unary.operand)
         }
-        // TODO: index (arr[i] = x) and field (s.field = x) lvalues — extract root identifier.
-        // A notable unhandled case is writing through a pointer returned directly from a call,
-        // e.g. `*slot() = 10`. Manta intentionally does not support this pattern: since there is
-        // no binding, there is nowhere to attach mutability. The workaround is a temporary:
+        Expr::Index(expr) => lvalue_root(&expr.target),
+        Expr::DotAccess(expr) => match &expr.target {
+            Some(target) => lvalue_root(target),
+            // Expressions like .Red = "blue" are invalid
+            None => None,
+        },
+        // All other epxressions will not have a root identifier so we can skip checking an just return
+        // none. An examples of expressions that might look valid but get caught here is is writing
+        // through a pointer returned directly from a call, e.g. `*slot() = 10`. Manta intentionally
+        // does not support this pattern: since there is no binding, there is nowhere to attach mutability.
+        // The workaround is a temporary:
         //   `mut p = slot(); *p = 10`
-        // This keeps the type system simple — mutability lives on bindings, not on types.
+        // This keeps the type system simple sinc mutability always lives solely on bindings.
         _ => None,
     }
 }
@@ -432,20 +438,21 @@ fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<Node
             // Enforce mutability: walk through the l_value expression to find the root
             // identifier, then check that it is mutable. This means `let p = &x` blocks
             // both `p = &y` and `*p = y` since both are mutations through the same binding.
-            // TODO: extend this to cover index assignment (arr[i] = x) and field assignment
-            // (s.field = x) by also handling Index and DotAccess lvalues here.
-            if let Some(ident) = lvalue_root(&stmt.lvalue) {
-                let scope_pos = module
-                    .get_scope_pos(ident.id)
-                    .expect("could not get scope for assignment lvalue");
-                let binding = module
-                    .find_binding(scope_pos, ident.name)
-                    .expect("failed to find binding for assignment lvalue");
-                if !binding.mutable {
-                    panic!("assignment to immutable variable");
+            match lvalue_root(&stmt.lvalue) {
+                Some(ident) => {
+                    let scope_pos = module
+                        .get_scope_pos(ident.id)
+                        .expect("could not get scope for assignment lvalue");
+                    let binding = module
+                        .find_binding(scope_pos, ident.name)
+                        .expect("failed to find binding for assignment lvalue");
+                    if !binding.mutable {
+                        panic!("assignment to immutable variable");
+                    }
                 }
-            } else {
-                eprintln!("TODO: not all identifier mutations are current checked")
+                None => panic!(
+                    "unsupported assignment: assignment target has no root binding as is therefore considered immutable"
+                ),
             }
 
             let l_id = node_expr(node_tree, module, &stmt.lvalue);
