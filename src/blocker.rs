@@ -2,7 +2,7 @@ mod builder;
 
 use std::collections::BTreeMap;
 
-use builder::{CFG, FunctionBuilder};
+use builder::{Cfg, FunctionBuilder};
 
 use crate::ast::{BinaryOp, UnaryOp};
 use crate::hir::{self, Node, NodeID, PatternNode};
@@ -265,7 +265,7 @@ impl<'a> Blocker<'a> {
                 let value = self.fn_builder.emit_const(
                     block_id,
                     TypeSpec::String,
-                    ConstValue::ConstString(str_store::UNDERSCORE),
+                    ConstValue::String(str_store::UNDERSCORE),
                 );
                 self.fn_builder
                     .set_terminator(block_id, Terminator::Panic { msg: value });
@@ -285,7 +285,7 @@ impl<'a> Blocker<'a> {
 
                 let merge_block = self.fn_builder.close_scope();
 
-                let cfg = CFG::new(&mut self.fn_builder, block_id);
+                let cfg = Cfg::new(&mut self.fn_builder, block_id);
                 if cfg.all_blocks_terminate(&self.fn_builder) {
                     None
                 } else {
@@ -454,10 +454,10 @@ impl<'a> Blocker<'a> {
                         .set_terminator(loop_end, Terminator::Jump { target: loop_start });
                 }
 
-                let loop_cfg = CFG::new(&mut self.fn_builder, loop_start);
+                let loop_cfg = Cfg::new(&mut self.fn_builder, loop_start);
                 loop_cfg.continue_to(&mut self.fn_builder, loop_start);
 
-                if loop_cfg.can_break(&mut self.fn_builder) {
+                if loop_cfg.can_break(&self.fn_builder) {
                     let break_block = self.fn_builder.add_block();
                     loop_cfg.break_to(&mut self.fn_builder, break_block);
 
@@ -505,7 +505,7 @@ impl<'a> Blocker<'a> {
             Node::Index { .. } => panic!("index expressions are not statements"),
             Node::Range { .. } => panic!("range expressions are not statements"),
             Node::FieldAccess { .. } => panic!("field access expressions are not statements"),
-            Node::MetaType { .. } => panic!("meta type expressions are not statements"),
+            Node::MetaType => panic!("meta type expressions are not statements"),
             Node::Alloc { .. } => panic!("alloc expressions are not statements"),
             Node::Pattern(_) => panic!("patterns must appear within match expressions"),
         }
@@ -551,7 +551,7 @@ impl<'a> Blocker<'a> {
                     }
 
                     match_arms.push(SwitchArm {
-                        target: ConstValue::ConstInt(i as u64),
+                        target: ConstValue::Int(i as u64),
                         jump: arm_block,
                     });
                 }
@@ -950,22 +950,20 @@ impl<'a> Blocker<'a> {
                 // This is necessary because int literals can technically be coerced into floating point types
                 // in certian situations.
                 let const_value = match ts {
-                    TypeSpec::F32 | TypeSpec::F64 => ConstValue::ConstFloat(i as f64),
-                    _ => ConstValue::ConstInt(i as u64),
+                    TypeSpec::F32 | TypeSpec::F64 => ConstValue::Float(i as f64),
+                    _ => ConstValue::Int(i as u64),
                 };
                 self.fn_builder.emit_const(block_id, ts, const_value)
             }
-            Node::FloatLiteral(f) => {
-                self.fn_builder
-                    .emit_const(block_id, ts, ConstValue::ConstFloat(f))
-            }
-            Node::BoolLiteral(b) => {
-                self.fn_builder
-                    .emit_const(block_id, ts, ConstValue::ConstBool(b))
-            }
+            Node::FloatLiteral(f) => self
+                .fn_builder
+                .emit_const(block_id, ts, ConstValue::Float(f)),
+            Node::BoolLiteral(b) => self
+                .fn_builder
+                .emit_const(block_id, ts, ConstValue::Bool(b)),
             Node::StringLiteral(s) => {
                 self.fn_builder
-                    .emit_const(block_id, ts, ConstValue::ConstString(s))
+                    .emit_const(block_id, ts, ConstValue::String(s))
             }
             Node::Identifier { .. } => {
                 let place = self.block_lvalue(block_id, node_id);
@@ -1076,10 +1074,10 @@ impl<'a> Blocker<'a> {
                 // `ts` is the lowered type of the value being allocated (e.g. I32 for @i32).
                 // Produce a const struct { sizeof: u64, alignof: u64, flags: u64 }.
                 let layout = type_layout(&ts, Arch::W64);
-                let meta_value = ConstValue::ConstStruct(vec![
-                    ConstValue::ConstInt(layout.size),
-                    ConstValue::ConstInt(layout.align),
-                    ConstValue::ConstInt(0), // flags reserved for future use
+                let meta_value = ConstValue::Struct(vec![
+                    ConstValue::Int(layout.size),
+                    ConstValue::Int(layout.align),
+                    ConstValue::Int(0), // flags reserved for future use
                 ]);
                 let meta_type = TypeSpec::Struct(vec![TypeSpec::U64, TypeSpec::U64, TypeSpec::U64]);
                 self.fn_builder.emit_const(block_id, meta_type, meta_value)
@@ -1162,10 +1160,6 @@ pub struct Layout {
 impl Layout {
     pub fn size(&self) -> u64 {
         self.size
-    }
-
-    pub fn align(&self) -> u64 {
-        self.align
     }
 }
 
@@ -1301,7 +1295,7 @@ fn get_variant_tag(type_spec: &hir::TypeSpec, variant_name: StrID) -> ConstValue
         hir::TypeSpec::Enum(e) => {
             for (i, v) in e.variants.iter().enumerate() {
                 if variant_name == v.name {
-                    return ConstValue::ConstInt(i as u64);
+                    return ConstValue::Int(i as u64);
                 }
             }
             panic!("missing variant!")
@@ -1538,7 +1532,7 @@ mod tests {
                     ],
                     entry_block: BlockId::from_u32(1),
                     instructions: vec![Instruction::Const {
-                        value: ConstValue::ConstInt(42),
+                        value: ConstValue::Int(42),
                     },],
                     value_types: vec![TypeSpec::I32],
                 }],
@@ -1609,7 +1603,7 @@ mod tests {
                     ],
                     entry_block: BlockId::from_u32(1),
                     instructions: vec![Instruction::Const {
-                        value: ConstValue::ConstBool(true)
+                        value: ConstValue::Bool(true)
                     }],
                     value_types: vec![TypeSpec::Bool],
                 }],
@@ -1680,7 +1674,7 @@ mod tests {
                     ],
                     entry_block: BlockId::from_u32(1),
                     instructions: vec![Instruction::Const {
-                        value: ConstValue::ConstBool(false)
+                        value: ConstValue::Bool(false)
                     }],
                     value_types: vec![TypeSpec::Bool],
                 }],
@@ -1751,7 +1745,7 @@ mod tests {
                     ],
                     entry_block: BlockId::from_u32(1),
                     instructions: vec![Instruction::Const {
-                        value: ConstValue::ConstFloat(3.45)
+                        value: ConstValue::Float(3.45)
                     }],
                     value_types: vec![TypeSpec::F64],
                 }],
@@ -1822,7 +1816,7 @@ mod tests {
                     ],
                     entry_block: BlockId::from_u32(1),
                     instructions: vec![Instruction::Const {
-                        value: ConstValue::ConstString(StrID::from_usize(99))
+                        value: ConstValue::String(StrID::from_usize(99))
                     }],
                     value_types: vec![TypeSpec::String],
                 }],

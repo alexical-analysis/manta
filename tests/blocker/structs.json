@@ -105,7 +105,7 @@
         {
           "Const": {
             "value": {
-              "ConstInt": 2
+              "Int": 2
             }
           }
         }
@@ -194,21 +194,21 @@
         {
           "Const": {
             "value": {
-              "ConstInt": 10
+              "Int": 10
             }
           }
         },
         {
           "Const": {
             "value": {
-              "ConstFloat": 20.0
+              "Float": 20.0
             }
           }
         },
         {
           "Const": {
             "value": {
-              "ConstInt": 30
+              "Int": 30
             }
           }
         },
@@ -235,7 +235,7 @@
         {
           "Const": {
             "value": {
-              "ConstInt": 128
+              "Int": 128
             }
           }
         },
@@ -256,7 +256,7 @@
         {
           "Const": {
             "value": {
-              "ConstInt": 5
+              "Int": 5
             }
           }
         },
@@ -302,7 +302,7 @@
         {
           "Const": {
             "value": {
-              "ConstInt": 2
+              "Int": 2
             }
           }
         },
@@ -327,7 +327,7 @@
         {
           "Const": {
             "value": {
-              "ConstFloat": 3.1415
+              "Float": 3.1415
             }
           }
         },
@@ -348,7 +348,7 @@
         {
           "Const": {
             "value": {
-              "ConstInt": 1000
+              "Int": 1000
             }
           }
         },

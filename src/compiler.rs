@@ -56,7 +56,7 @@ impl Compiler {
         result.map_err(|err| format!("failed to link module: {}", err))
     }
 
-    fn compile_module<'g, 'ctx>(&mut self, generator: &'g mut Codegen<'ctx>) -> Module<'ctx> {
+    fn compile_module<'ctx>(&mut self, generator: &mut Codegen<'ctx>) -> Module<'ctx> {
         println!("building ast module...");
         let parser = Parser::new(self.source.clone());
         let mut str_store = StrStore::new();
@@ -92,7 +92,7 @@ impl Compiler {
     ) -> Result<(), String> {
         println!("writing object file to dir {:?}...", object_file);
         target_machine
-            .write_to_file(&module, FileType::Object, object_file.as_path())
+            .write_to_file(module, FileType::Object, object_file.as_path())
             .expect("failed to write object file to tmp dir");
 
         let obj_path = object_file

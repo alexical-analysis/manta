@@ -363,7 +363,7 @@ impl Typer {
                 for (field, field_type) in fields.iter().zip(struct_type.fields.iter()) {
                     let got_type = self.type_expr_node(node_tree, *field);
                     let expect_type = &field_type.type_spec;
-                    match match_types(&expect_type, &got_type) {
+                    match match_types(expect_type, &got_type) {
                         TypeMatch::ExactType => {
                             // need to update the type for the inner field value as well
                             let value_id = match node_tree.get_node(*field).unwrap() {

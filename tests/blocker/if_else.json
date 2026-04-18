@@ -232,7 +232,7 @@
         {
           "Const": {
             "value": {
-              "ConstBool": true
+              "Bool": true
             }
           }
         },
@@ -260,7 +260,7 @@
         {
           "Const": {
             "value": {
-              "ConstString": 17
+              "String": 17
             }
           }
         },
@@ -275,7 +275,7 @@
         {
           "Const": {
             "value": {
-              "ConstInt": 9
+              "Int": 9
             }
           }
         },
@@ -303,7 +303,7 @@
         {
           "Const": {
             "value": {
-              "ConstInt": 10
+              "Int": 10
             }
           }
         },
@@ -316,7 +316,7 @@
         {
           "Const": {
             "value": {
-              "ConstString": 22
+              "String": 22
             }
           }
         },
@@ -331,7 +331,7 @@
         {
           "Const": {
             "value": {
-              "ConstString": 17
+              "String": 17
             }
           }
         },

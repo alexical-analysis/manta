@@ -29,7 +29,7 @@
       {
         "Const": {
           "value": {
-            "ConstFloat": 3.14
+            "Float": 3.14
           }
         }
       },
@@ -187,13 +187,13 @@
               "arms": [
                 {
                   "target": {
-                    "ConstInt": 0
+                    "Int": 0
                   },
                   "jump": 3
                 },
                 {
                   "target": {
-                    "ConstInt": 1
+                    "Int": 1
                   },
                   "jump": 5
                 }
@@ -470,14 +470,14 @@
         {
           "Const": {
             "value": {
-              "ConstFloat": 10.0
+              "Float": 10.0
             }
           }
         },
         {
           "MakeVariant": {
             "tag": {
-              "ConstInt": 1
+              "Int": 1
             },
             "payload": 1
           }
@@ -543,14 +543,14 @@
         {
           "Const": {
             "value": {
-              "ConstFloat": 3.0
+              "Float": 3.0
             }
           }
         },
         {
           "MakeVariant": {
             "tag": {
-              "ConstInt": 0
+              "Int": 0
             },
             "payload": 9
           }

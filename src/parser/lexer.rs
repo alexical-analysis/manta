@@ -395,19 +395,19 @@ impl<'a> Lexer<'a> {
         }
 
         // exponent part of the float
-        if let Some(ch) = self.current_char() {
-            if ch == 'e' || ch == 'E' {
-                seen_exp = true;
+        if let Some(ch) = self.current_char()
+            && (ch == 'e' || ch == 'E')
+        {
+            seen_exp = true;
+            self.bump();
+            if let Some(sign) = self.current_char()
+                && (sign == '+' || sign == '-')
+            {
                 self.bump();
-                if let Some(sign) = self.current_char() {
-                    if sign == '+' || sign == '-' {
-                        self.bump();
-                    }
-                }
-
-                // digits of the exponent
-                self.eat_while(|c| c.is_ascii_digit() || c == '_');
             }
+
+            // digits of the exponent
+            self.eat_while(|c| c.is_ascii_digit() || c == '_');
         }
 
         let end = self.pos;

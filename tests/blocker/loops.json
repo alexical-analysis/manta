@@ -396,7 +396,7 @@
         {
           "Const": {
             "value": {
-              "ConstInt": 0
+              "Int": 0
             }
           }
         },
@@ -414,7 +414,7 @@
         {
           "Const": {
             "value": {
-              "ConstBool": true
+              "Bool": true
             }
           }
         },
@@ -442,7 +442,7 @@
         {
           "Const": {
             "value": {
-              "ConstBool": false
+              "Bool": false
             }
           }
         },
@@ -470,7 +470,7 @@
         {
           "Const": {
             "value": {
-              "ConstInt": 1
+              "Int": 1
             }
           }
         },
@@ -504,7 +504,7 @@
         {
           "Const": {
             "value": {
-              "ConstInt": 255
+              "Int": 255
             }
           }
         },
@@ -517,7 +517,7 @@
         {
           "Const": {
             "value": {
-              "ConstBool": true
+              "Bool": true
             }
           }
         },
@@ -535,7 +535,7 @@
         {
           "Const": {
             "value": {
-              "ConstFloat": 3.1415
+              "Float": 3.1415
             }
           }
         },
@@ -578,7 +578,7 @@
         {
           "Const": {
             "value": {
-              "ConstFloat": 3.1415
+              "Float": 3.1415
             }
           }
         },
@@ -612,7 +612,7 @@
         {
           "Const": {
             "value": {
-              "ConstFloat": 30.0
+              "Float": 30.0
             }
           }
         },
@@ -625,7 +625,7 @@
         {
           "Const": {
             "value": {
-              "ConstBool": false
+              "Bool": false
             }
           }
         },
@@ -643,7 +643,7 @@
         {
           "Const": {
             "value": {
-              "ConstInt": 0
+              "Int": 0
             }
           }
         },
@@ -671,7 +671,7 @@
         {
           "Const": {
             "value": {
-              "ConstInt": 10
+              "Int": 10
             }
           }
         },
@@ -715,7 +715,7 @@
         {
           "Const": {
             "value": {
-              "ConstInt": 1
+              "Int": 1
             }
           }
         },

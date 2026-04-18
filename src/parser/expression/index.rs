@@ -1,5 +1,5 @@
 use super::Precedence;
-use crate::ast::{Expr, IndexExpr, RangeExpr};
+use crate::ast::{Expr, IndexExpr};
 use crate::parser::ParseError;
 use crate::parser::expression::{ExprParser, InfixExprParselet};
 use crate::parser::lexer::{Lexer, Token, TokenKind};

@@ -65,16 +65,16 @@ impl BlockBuilder {
 // control flow mechanisms. panic_cfg is the root CFG and all other CFG's are
 // a clone of that CFG
 struct DeferThreads {
-    panic_cfg: CFG,
-    return_cfg: CFG,
-    merge_cfg: CFG,
-    break_cfg: CFG,
-    continue_cfg: CFG,
+    panic_cfg: Cfg,
+    return_cfg: Cfg,
+    merge_cfg: Cfg,
+    break_cfg: Cfg,
+    continue_cfg: Cfg,
 }
 
 impl DeferThreads {
     fn new(fn_builder: &mut FunctionBuilder, b: BlockId) -> Self {
-        let panic_cfg = CFG::new(fn_builder, b);
+        let panic_cfg = Cfg::new(fn_builder, b);
         if panic_cfg.can_return(fn_builder) {
             panic!("can not return from inside defer blocks")
         }
@@ -86,16 +86,16 @@ impl DeferThreads {
         }
 
         let merge_defer = panic_cfg.clone(fn_builder);
-        let merge_cfg = CFG::new(fn_builder, merge_defer);
+        let merge_cfg = Cfg::new(fn_builder, merge_defer);
 
         let return_defer = panic_cfg.clone(fn_builder);
-        let return_cfg = CFG::new(fn_builder, return_defer);
+        let return_cfg = Cfg::new(fn_builder, return_defer);
 
         let break_defer = panic_cfg.clone(fn_builder);
-        let break_cfg = CFG::new(fn_builder, break_defer);
+        let break_cfg = Cfg::new(fn_builder, break_defer);
 
         let continue_defer = panic_cfg.clone(fn_builder);
-        let continue_cfg = CFG::new(fn_builder, continue_defer);
+        let continue_cfg = Cfg::new(fn_builder, continue_defer);
 
         DeferThreads {
             panic_cfg,
@@ -107,15 +107,15 @@ impl DeferThreads {
     }
 }
 
-pub struct CFG {
+pub struct Cfg {
     entry: BlockId,
     blocks: Vec<BlockId>,
 }
 
-impl CFG {
+impl Cfg {
     pub fn new(fn_builder: &mut FunctionBuilder, entry: BlockId) -> Self {
         let blocks = Self::visit_all_blocks(fn_builder, entry);
-        CFG { entry, blocks }
+        Cfg { entry, blocks }
     }
 
     fn visit_all_blocks(fn_builder: &mut FunctionBuilder, entry: BlockId) -> Vec<BlockId> {
@@ -426,7 +426,7 @@ impl FunctionBuilder {
         // String all the defer blocks together, we need distinct flows depending on how you
         // enterd the defer block, though a panic, a return statement, a normal scope close
         // (i.e. no explicit terminator), or a loop break/ continue
-        let block = CFG::new(self, scope.start);
+        let block = Cfg::new(self, scope.start);
         let mut defer_threads = match scope.defer.pop() {
             Some(b) => DeferThreads::new(self, b),
             None => {
@@ -1160,7 +1160,7 @@ mod tests {
         let entry = fb.add_block();
         fb.set_terminator(entry, Terminator::Return { value: None });
 
-        let cloned = CFG::new(&mut fb, entry).clone(&mut fb);
+        let cloned = Cfg::new(&mut fb, entry).clone(&mut fb);
 
         assert_ne!(entry, cloned);
         assert_eq!(
@@ -1179,7 +1179,7 @@ mod tests {
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(b, Terminator::Return { value: None });
 
-        let cloned_a = CFG::new(&mut fb, a).clone(&mut fb);
+        let cloned_a = Cfg::new(&mut fb, a).clone(&mut fb);
 
         assert_ne!(a, cloned_a);
         let cloned_b = match fb.get_block(cloned_a).terminator.clone() {
@@ -1204,7 +1204,7 @@ mod tests {
         let c = fb.add_block();
         // Use a placeholder ValueId — instructions are shared across clones so
         // the cond value doesn't need to be real for this test.
-        let cond = ValueId::from_u32(1);
+        let cond = ValueId::from_usize(1);
         fb.set_terminator(
             a,
             Terminator::Branch {
@@ -1216,7 +1216,7 @@ mod tests {
         fb.set_terminator(b, Terminator::Return { value: None });
         fb.set_terminator(c, Terminator::Return { value: None });
 
-        let cloned_a = CFG::new(&mut fb, a).clone(&mut fb);
+        let cloned_a = Cfg::new(&mut fb, a).clone(&mut fb);
 
         assert_ne!(a, cloned_a);
         match fb.get_block(cloned_a).terminator.clone() {
@@ -1249,14 +1249,14 @@ mod tests {
         let entry = fb.add_block();
         let default = fb.add_block();
         let arm_block = fb.add_block();
-        let discriminant = ValueId::from_u32(1);
+        let discriminant = ValueId::from_usize(1);
         fb.set_terminator(
             entry,
             Terminator::SwitchVariant {
                 discriminant,
                 default,
                 arms: vec![SwitchArm {
-                    target: ConstValue::ConstInt(0),
+                    target: ConstValue::Int(0),
                     jump: arm_block,
                 }],
             },
@@ -1264,7 +1264,7 @@ mod tests {
         fb.set_terminator(default, Terminator::Return { value: None });
         fb.set_terminator(arm_block, Terminator::Return { value: None });
 
-        let cloned_entry = CFG::new(&mut fb, entry).clone(&mut fb);
+        let cloned_entry = Cfg::new(&mut fb, entry).clone(&mut fb);
 
         assert_ne!(entry, cloned_entry);
         match fb.get_block(cloned_entry).terminator.clone() {
@@ -1277,7 +1277,7 @@ mod tests {
                 assert_ne!(default, cloned_default);
                 assert_eq!(cloned_arms.len(), 1);
                 assert_ne!(arm_block, cloned_arms[0].jump);
-                assert_eq!(cloned_arms[0].target, ConstValue::ConstInt(0));
+                assert_eq!(cloned_arms[0].target, ConstValue::Int(0));
                 assert_eq!(
                     fb.get_block(cloned_default).terminator,
                     Some(Terminator::Return { value: None })
@@ -1301,7 +1301,7 @@ mod tests {
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(b, Terminator::Jump { target: a });
 
-        let cloned_a = CFG::new(&mut fb, a).clone(&mut fb);
+        let cloned_a = Cfg::new(&mut fb, a).clone(&mut fb);
 
         assert_ne!(a, cloned_a);
         let cloned_b = match fb.get_block(cloned_a).terminator.clone() {
@@ -1325,7 +1325,7 @@ mod tests {
         let a = fb.add_block();
         fb.set_terminator(a, Terminator::Return { value: None });
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(did_terminate);
     }
@@ -1336,7 +1336,7 @@ mod tests {
         let a = fb.add_block();
         // no terminator set
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(!did_terminate);
     }
@@ -1355,7 +1355,7 @@ mod tests {
             let a = fb.add_block();
             fb.set_terminator(a, term);
 
-            let cfg = CFG::new(&mut fb, a);
+            let cfg = Cfg::new(&mut fb, a);
             let did_terminate = cfg.all_blocks_terminate(&fb);
             assert!(did_terminate);
         }
@@ -1369,7 +1369,7 @@ mod tests {
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(b, Terminator::Return { value: None });
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(did_terminate);
     }
@@ -1382,7 +1382,7 @@ mod tests {
         fb.set_terminator(a, Terminator::Jump { target: b });
         // b has no terminator
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(!did_terminate);
     }
@@ -1393,7 +1393,7 @@ mod tests {
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
-        let cond = ValueId::from_u32(1);
+        let cond = ValueId::from_usize(1);
         fb.set_terminator(
             a,
             Terminator::Branch {
@@ -1405,7 +1405,7 @@ mod tests {
         fb.set_terminator(b, Terminator::Return { value: None });
         fb.set_terminator(c, Terminator::Return { value: None });
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(did_terminate);
     }
@@ -1416,7 +1416,7 @@ mod tests {
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
-        let cond = ValueId::from_u32(1);
+        let cond = ValueId::from_usize(1);
         fb.set_terminator(
             a,
             Terminator::Branch {
@@ -1428,7 +1428,7 @@ mod tests {
         fb.set_terminator(b, Terminator::Return { value: None });
         // c has no terminator
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(!did_terminate);
     }
@@ -1439,14 +1439,14 @@ mod tests {
         let entry = fb.add_block();
         let default = fb.add_block();
         let arm_block = fb.add_block();
-        let discriminant = ValueId::from_u32(1);
+        let discriminant = ValueId::from_usize(1);
         fb.set_terminator(
             entry,
             Terminator::SwitchVariant {
                 discriminant,
                 default,
                 arms: vec![SwitchArm {
-                    target: ConstValue::ConstInt(0),
+                    target: ConstValue::Int(0),
                     jump: arm_block,
                 }],
             },
@@ -1454,7 +1454,7 @@ mod tests {
         fb.set_terminator(default, Terminator::Return { value: None });
         fb.set_terminator(arm_block, Terminator::Return { value: None });
 
-        let cfg = CFG::new(&mut fb, entry);
+        let cfg = Cfg::new(&mut fb, entry);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(did_terminate);
     }
@@ -1465,14 +1465,14 @@ mod tests {
         let entry = fb.add_block();
         let default = fb.add_block();
         let arm_block = fb.add_block();
-        let discriminant = ValueId::from_u32(1);
+        let discriminant = ValueId::from_usize(1);
         fb.set_terminator(
             entry,
             Terminator::SwitchVariant {
                 discriminant,
                 default,
                 arms: vec![SwitchArm {
-                    target: ConstValue::ConstInt(0),
+                    target: ConstValue::Int(0),
                     jump: arm_block,
                 }],
             },
@@ -1480,7 +1480,7 @@ mod tests {
         fb.set_terminator(default, Terminator::Return { value: None });
         // arm_block has no terminator
 
-        let cfg = CFG::new(&mut fb, entry);
+        let cfg = Cfg::new(&mut fb, entry);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(!did_terminate);
     }
@@ -1495,7 +1495,7 @@ mod tests {
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(b, Terminator::Jump { target: a });
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(did_terminate);
     }
@@ -1510,7 +1510,7 @@ mod tests {
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
-        let cond = ValueId::from_u32(1);
+        let cond = ValueId::from_usize(1);
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(
             b,
@@ -1522,7 +1522,7 @@ mod tests {
         );
         // c has no terminator
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         let did_terminate = cfg.all_blocks_terminate(&fb);
         assert!(!did_terminate);
     }
@@ -1535,7 +1535,7 @@ mod tests {
         let a = fb.add_block();
         fb.set_terminator(a, Terminator::Return { value: None });
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(can_return);
     }
@@ -1546,7 +1546,7 @@ mod tests {
         let a = fb.add_block();
         fb.set_terminator(a, Terminator::Unreachable);
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(!can_return);
     }
@@ -1562,7 +1562,7 @@ mod tests {
             },
         );
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(!can_return);
     }
@@ -1573,7 +1573,7 @@ mod tests {
         let a = fb.add_block();
         // no terminator set
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(!can_return);
     }
@@ -1586,7 +1586,7 @@ mod tests {
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(b, Terminator::Return { value: None });
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(can_return);
     }
@@ -1599,7 +1599,7 @@ mod tests {
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(b, Terminator::Unreachable);
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(!can_return);
     }
@@ -1611,7 +1611,7 @@ mod tests {
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
-        let cond = ValueId::from_u32(1);
+        let cond = ValueId::from_usize(1);
         fb.set_terminator(
             a,
             Terminator::Branch {
@@ -1623,7 +1623,7 @@ mod tests {
         fb.set_terminator(b, Terminator::Return { value: None });
         fb.set_terminator(c, Terminator::Unreachable);
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(can_return);
     }
@@ -1634,7 +1634,7 @@ mod tests {
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
-        let cond = ValueId::from_u32(1);
+        let cond = ValueId::from_usize(1);
         fb.set_terminator(
             a,
             Terminator::Branch {
@@ -1651,7 +1651,7 @@ mod tests {
             },
         );
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(!can_return);
     }
@@ -1662,14 +1662,14 @@ mod tests {
         let entry = fb.add_block();
         let default = fb.add_block();
         let arm_block = fb.add_block();
-        let discriminant = ValueId::from_u32(1);
+        let discriminant = ValueId::from_usize(1);
         fb.set_terminator(
             entry,
             Terminator::SwitchVariant {
                 discriminant,
                 default,
                 arms: vec![SwitchArm {
-                    target: ConstValue::ConstInt(0),
+                    target: ConstValue::Int(0),
                     jump: arm_block,
                 }],
             },
@@ -1677,7 +1677,7 @@ mod tests {
         fb.set_terminator(default, Terminator::Unreachable);
         fb.set_terminator(arm_block, Terminator::Return { value: None });
 
-        let cfg = CFG::new(&mut fb, entry);
+        let cfg = Cfg::new(&mut fb, entry);
         let can_return = cfg.can_return(&fb);
         assert!(can_return);
     }
@@ -1688,14 +1688,14 @@ mod tests {
         let entry = fb.add_block();
         let default = fb.add_block();
         let arm_block = fb.add_block();
-        let discriminant = ValueId::from_u32(1);
+        let discriminant = ValueId::from_usize(1);
         fb.set_terminator(
             entry,
             Terminator::SwitchVariant {
                 discriminant,
                 default,
                 arms: vec![SwitchArm {
-                    target: ConstValue::ConstInt(0),
+                    target: ConstValue::Int(0),
                     jump: arm_block,
                 }],
             },
@@ -1708,7 +1708,7 @@ mod tests {
             },
         );
 
-        let cfg = CFG::new(&mut fb, entry);
+        let cfg = Cfg::new(&mut fb, entry);
         let can_return = cfg.can_return(&fb);
         assert!(!can_return);
     }
@@ -1721,7 +1721,7 @@ mod tests {
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
-        let cond = ValueId::from_u32(1);
+        let cond = ValueId::from_usize(1);
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(
             b,
@@ -1733,7 +1733,7 @@ mod tests {
         );
         fb.set_terminator(c, Terminator::Return { value: None });
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(can_return);
     }
@@ -1746,7 +1746,7 @@ mod tests {
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
-        let cond = ValueId::from_u32(1);
+        let cond = ValueId::from_usize(1);
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(
             b,
@@ -1758,7 +1758,7 @@ mod tests {
         );
         fb.set_terminator(c, Terminator::Unreachable);
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         let can_return = cfg.can_return(&fb);
         assert!(!can_return);
     }
@@ -1773,7 +1773,7 @@ mod tests {
         let target = fb.add_block();
         fb.set_terminator(target, Terminator::Return { value: None });
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         cfg.jump_to(&mut fb, target);
 
         let a_terminator = fb.get_block(a).terminator.clone();
@@ -1796,7 +1796,7 @@ mod tests {
             fb.set_terminator(target, Terminator::Return { value: None });
             fb.set_terminator(a, term.clone());
 
-            let cfg = CFG::new(&mut fb, a);
+            let cfg = Cfg::new(&mut fb, a);
             cfg.jump_to(&mut fb, target);
 
             let a_terminator = fb.get_block(a).terminator.clone();
@@ -1816,7 +1816,7 @@ mod tests {
         fb.set_terminator(a, Terminator::Jump { target: b });
         // b has no terminator
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         cfg.jump_to(&mut fb, target);
 
         let a_terminator = fb.get_block(a).terminator.clone();
@@ -1834,7 +1834,7 @@ mod tests {
         let c = fb.add_block();
         let target = fb.add_block();
         fb.set_terminator(target, Terminator::Return { value: None });
-        let cond = ValueId::from_u32(1);
+        let cond = ValueId::from_usize(1);
         fb.set_terminator(
             a,
             Terminator::Branch {
@@ -1845,7 +1845,7 @@ mod tests {
         );
         // b and c have no terminators
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         cfg.jump_to(&mut fb, target);
 
         let b_terminator = fb.get_block(b).terminator.clone();
@@ -1863,7 +1863,7 @@ mod tests {
         let c = fb.add_block();
         let target = fb.add_block();
         fb.set_terminator(target, Terminator::Return { value: None });
-        let cond = ValueId::from_u32(1);
+        let cond = ValueId::from_usize(1);
         fb.set_terminator(
             a,
             Terminator::Branch {
@@ -1875,7 +1875,7 @@ mod tests {
         fb.set_terminator(b, Terminator::Return { value: None });
         // c has no terminator
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         cfg.jump_to(&mut fb, target);
 
         let b_terminator = fb.get_block(b).terminator.clone();
@@ -1894,7 +1894,7 @@ mod tests {
         let c = fb.add_block();
         let target = fb.add_block();
         fb.set_terminator(target, Terminator::Return { value: None });
-        let cond = ValueId::from_u32(1);
+        let cond = ValueId::from_usize(1);
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(
             b,
@@ -1906,7 +1906,7 @@ mod tests {
         );
         // c has no terminator
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         cfg.jump_to(&mut fb, target);
 
         let a_terminator = fb.get_block(a).terminator.clone();
@@ -1940,7 +1940,7 @@ mod tests {
             },
         );
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         cfg.panic_to(&mut fb, target);
 
         let a_terminator = fb.get_block(a).terminator.clone();
@@ -1957,7 +1957,7 @@ mod tests {
             fb.set_terminator(target, Terminator::Return { value: None });
             fb.set_terminator(a, term.clone());
 
-            let cfg = CFG::new(&mut fb, a);
+            let cfg = Cfg::new(&mut fb, a);
             cfg.panic_to(&mut fb, target);
 
             let a_terminator = fb.get_block(a).terminator.clone();
@@ -1981,7 +1981,7 @@ mod tests {
             },
         );
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         cfg.panic_to(&mut fb, target);
 
         let a_terminator = fb.get_block(a).terminator.clone();
@@ -1999,7 +1999,7 @@ mod tests {
         let c = fb.add_block();
         let target = fb.add_block();
         fb.set_terminator(target, Terminator::Return { value: None });
-        let cond = ValueId::from_u32(1);
+        let cond = ValueId::from_usize(1);
         fb.set_terminator(
             a,
             Terminator::Branch {
@@ -2021,7 +2021,7 @@ mod tests {
             },
         );
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         cfg.panic_to(&mut fb, target);
 
         let b_terminator = fb.get_block(b).terminator.clone();
@@ -2039,7 +2039,7 @@ mod tests {
         let c = fb.add_block();
         let target = fb.add_block();
         fb.set_terminator(target, Terminator::Return { value: None });
-        let cond = ValueId::from_u32(1);
+        let cond = ValueId::from_usize(1);
         fb.set_terminator(
             a,
             Terminator::Branch {
@@ -2056,7 +2056,7 @@ mod tests {
             },
         );
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         cfg.panic_to(&mut fb, target);
 
         let b_terminator = fb.get_block(b).terminator.clone();
@@ -2075,7 +2075,7 @@ mod tests {
         let c = fb.add_block();
         let target = fb.add_block();
         fb.set_terminator(target, Terminator::Return { value: None });
-        let cond = ValueId::from_u32(1);
+        let cond = ValueId::from_usize(1);
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(
             b,
@@ -2092,7 +2092,7 @@ mod tests {
             },
         );
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         cfg.panic_to(&mut fb, target);
 
         let a_terminator = fb.get_block(a).terminator.clone();
@@ -2121,7 +2121,7 @@ mod tests {
         fb.set_terminator(target, Terminator::Unreachable);
         fb.set_terminator(a, Terminator::Return { value: None });
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         cfg.return_to(&mut fb, target, None);
 
         let a_terminator = fb.get_block(a).terminator.clone();
@@ -2137,7 +2137,7 @@ mod tests {
         let a = fb.add_block();
         let target = fb.add_block();
         fb.set_terminator(target, Terminator::Unreachable);
-        let return_val = fb.emit_const(a, TypeSpec::I32, ConstValue::ConstInt(42));
+        let return_val = fb.emit_const(a, TypeSpec::I32, ConstValue::Int(42));
         let local = fb.add_local(StrID::from_usize(2), TypeSpec::I32);
         fb.set_terminator(
             a,
@@ -2146,7 +2146,7 @@ mod tests {
             },
         );
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         cfg.return_to(&mut fb, target, Some(local));
 
         let a_terminator = fb.get_block(a).terminator.clone();
@@ -2178,7 +2178,7 @@ mod tests {
             fb.set_terminator(target, Terminator::Unreachable);
             fb.set_terminator(a, term.clone());
 
-            let cfg = CFG::new(&mut fb, a);
+            let cfg = Cfg::new(&mut fb, a);
             cfg.return_to(&mut fb, target, None);
 
             let a_terminator = fb.get_block(a).terminator.clone();
@@ -2197,7 +2197,7 @@ mod tests {
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(b, Terminator::Return { value: None });
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         cfg.return_to(&mut fb, target, None);
 
         let a_terminator = fb.get_block(a).terminator.clone();
@@ -2215,7 +2215,7 @@ mod tests {
         let c = fb.add_block();
         let target = fb.add_block();
         fb.set_terminator(target, Terminator::Unreachable);
-        let cond = ValueId::from_u32(1);
+        let cond = ValueId::from_usize(1);
         fb.set_terminator(
             a,
             Terminator::Branch {
@@ -2227,7 +2227,7 @@ mod tests {
         fb.set_terminator(b, Terminator::Return { value: None });
         fb.set_terminator(c, Terminator::Return { value: None });
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         cfg.return_to(&mut fb, target, None);
 
         let b_terminator = fb.get_block(b).terminator.clone();
@@ -2245,7 +2245,7 @@ mod tests {
         let c = fb.add_block();
         let target = fb.add_block();
         fb.set_terminator(target, Terminator::Unreachable);
-        let cond = ValueId::from_u32(1);
+        let cond = ValueId::from_usize(1);
         fb.set_terminator(
             a,
             Terminator::Branch {
@@ -2262,7 +2262,7 @@ mod tests {
         );
         fb.set_terminator(c, Terminator::Return { value: None });
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         cfg.return_to(&mut fb, target, None);
 
         let b_terminator = fb.get_block(b).terminator.clone();
@@ -2286,7 +2286,7 @@ mod tests {
         let c = fb.add_block();
         let target = fb.add_block();
         fb.set_terminator(target, Terminator::Unreachable);
-        let cond = ValueId::from_u32(1);
+        let cond = ValueId::from_usize(1);
         fb.set_terminator(a, Terminator::Jump { target: b });
         fb.set_terminator(
             b,
@@ -2298,7 +2298,7 @@ mod tests {
         );
         fb.set_terminator(c, Terminator::Return { value: None });
 
-        let cfg = CFG::new(&mut fb, a);
+        let cfg = Cfg::new(&mut fb, a);
         cfg.return_to(&mut fb, target, None);
 
         let a_terminator = fb.get_block(a).terminator.clone();
