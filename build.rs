@@ -48,17 +48,15 @@ fn main() -> std::io::Result<()> {
         for entry in fs::read_dir(test_src)? {
             let entry = entry?;
             let path = entry.path();
-            if path.is_file() {
-                if let Some(ext) = path.extension().and_then(|s| s.to_str()) {
-                    if ext == "manta" {
-                        if let (Some(fname), Some(stem)) = (
-                            path.file_name().and_then(|s| s.to_str()),
-                            path.file_stem().and_then(|s| s.to_str()),
-                        ) {
-                            files.push((fname.to_string(), stem.to_string()));
-                        }
-                    }
-                }
+            if path.is_file()
+                && let Some(ext) = path.extension().and_then(|s| s.to_str())
+                && ext == "manta"
+                && let (Some(fname), Some(stem)) = (
+                    path.file_name().and_then(|s| s.to_str()),
+                    path.file_stem().and_then(|s| s.to_str()),
+                )
+            {
+                files.push((fname.to_string(), stem.to_string()));
             }
         }
     }

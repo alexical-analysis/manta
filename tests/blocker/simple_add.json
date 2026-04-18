@@ -132,7 +132,7 @@
         {
           "Const": {
             "value": {
-              "ConstInt": 10
+              "Int": 10
             }
           }
         },
@@ -150,7 +150,7 @@
         {
           "Const": {
             "value": {
-              "ConstInt": 20
+              "Int": 20
             }
           }
         },
@@ -168,7 +168,7 @@
         {
           "Const": {
             "value": {
-              "ConstInt": 5
+              "Int": 5
             }
           }
         },

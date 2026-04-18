@@ -136,7 +136,7 @@
         {
           "Const": {
             "value": {
-              "ConstString": 12
+              "String": 12
             }
           }
         },

@@ -124,7 +124,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstInt": 1
+              "Int": 1
             },
             "payload": null
           }
@@ -227,7 +227,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstInt": 1
+              "Int": 1
             },
             "payload": null
           }
@@ -434,7 +434,7 @@
               "arms": [
                 {
                   "target": {
-                    "ConstInt": 0
+                    "Int": 0
                   },
                   "jump": 3
                 }
@@ -524,7 +524,7 @@
               "arms": [
                 {
                   "target": {
-                    "ConstInt": 0
+                    "Int": 0
                   },
                   "jump": 17
                 }
@@ -803,7 +803,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstInt": 1
+              "Int": 1
             },
             "payload": 10
           }
@@ -829,15 +829,15 @@
         {
           "Const": {
             "value": {
-              "ConstStruct": [
+              "Struct": [
                 {
-                  "ConstInt": 24
+                  "Int": 24
                 },
                 {
-                  "ConstInt": 8
+                  "Int": 8
                 },
                 {
-                  "ConstInt": 0
+                  "Int": 0
                 }
               ]
             }
@@ -894,7 +894,7 @@
         {
           "Const": {
             "value": {
-              "ConstString": 18446744073709551595
+              "String": 18446744073709551595
             }
           }
         },
@@ -1026,7 +1026,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstInt": 2
+              "Int": 2
             },
             "payload": 33
           }
@@ -1034,7 +1034,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstInt": 0
+              "Int": 0
             },
             "payload": null
           }

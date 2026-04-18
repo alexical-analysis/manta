@@ -287,15 +287,15 @@
         {
           "Const": {
             "value": {
-              "ConstStruct": [
+              "Struct": [
                 {
-                  "ConstInt": 4
+                  "Int": 4
                 },
                 {
-                  "ConstInt": 4
+                  "Int": 4
                 },
                 {
-                  "ConstInt": 0
+                  "Int": 0
                 }
               ]
             }
@@ -352,14 +352,14 @@
         {
           "Const": {
             "value": {
-              "ConstString": 18446744073709551595
+              "String": 18446744073709551595
             }
           }
         },
         {
           "Const": {
             "value": {
-              "ConstInt": 42
+              "Int": 42
             }
           }
         },
@@ -389,7 +389,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstInt": 0
+              "Int": 0
             },
             "payload": 11
           }
@@ -397,7 +397,7 @@
         {
           "MakeVariant": {
             "tag": {
-              "ConstInt": 1
+              "Int": 1
             },
             "payload": null
           }
@@ -496,13 +496,13 @@
               "arms": [
                 {
                   "target": {
-                    "ConstInt": 0
+                    "Int": 0
                   },
                   "jump": 3
                 },
                 {
                   "target": {
-                    "ConstInt": 1
+                    "Int": 1
                   },
                   "jump": 5
                 }
@@ -569,7 +569,7 @@
         {
           "Const": {
             "value": {
-              "ConstBool": false
+              "Bool": false
             }
           }
         },
@@ -639,7 +639,7 @@
         {
           "Const": {
             "value": {
-              "ConstString": 35
+              "String": 35
             }
           }
         },

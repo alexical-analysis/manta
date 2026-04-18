@@ -73,7 +73,7 @@ impl PrefixStmtParselet for ForParselet {
         &self,
         parser: &StmtParser,
         lexer: &mut Lexer,
-        token: Token,
+        _token: Token,
     ) -> Result<Stmt, ParseError> {
         let token = lexer.peek();
         let binding = parser.parse_expression(lexer)?;

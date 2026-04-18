@@ -400,54 +400,54 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
         type_spec: &TypeSpec,
     ) -> BasicValueEnum<'ctx> {
         match (const_value, type_spec) {
-            (ConstValue::ConstInt(i), TypeSpec::I8) => {
+            (ConstValue::Int(i), TypeSpec::I8) => {
                 let value = self.context.i8_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::ConstInt(i), TypeSpec::I16) => {
+            (ConstValue::Int(i), TypeSpec::I16) => {
                 let value = self.context.i16_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::ConstInt(i), TypeSpec::I32) => {
+            (ConstValue::Int(i), TypeSpec::I32) => {
                 let value = self.context.i32_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::ConstInt(i), TypeSpec::I64) => {
+            (ConstValue::Int(i), TypeSpec::I64) => {
                 let value = self.context.i64_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::ConstInt(i), TypeSpec::U8) => {
+            (ConstValue::Int(i), TypeSpec::U8) => {
                 let value = self.context.i8_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::ConstInt(i), TypeSpec::U16) => {
+            (ConstValue::Int(i), TypeSpec::U16) => {
                 let value = self.context.i16_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::ConstInt(i), TypeSpec::U32) => {
+            (ConstValue::Int(i), TypeSpec::U32) => {
                 let value = self.context.i32_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::ConstInt(i), TypeSpec::U64) => {
+            (ConstValue::Int(i), TypeSpec::U64) => {
                 let value = self.context.i64_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::ConstFloat(f), TypeSpec::F32) => {
+            (ConstValue::Float(f), TypeSpec::F32) => {
                 let value = self.context.f32_type().const_float(*f);
                 value.into()
             }
-            (ConstValue::ConstFloat(f), TypeSpec::F64) => {
+            (ConstValue::Float(f), TypeSpec::F64) => {
                 let value = self.context.f64_type().const_float(*f);
                 value.into()
             }
-            (ConstValue::ConstBool(b), TypeSpec::Bool) => {
+            (ConstValue::Bool(b), TypeSpec::Bool) => {
                 let value = match b {
                     true => self.context.bool_type().const_int(1, false),
                     false => self.context.bool_type().const_zero(),
                 };
                 value.into()
             }
-            (ConstValue::ConstArray(values), TypeSpec::Array { elem, .. }) => {
+            (ConstValue::Array(values), TypeSpec::Array { elem, .. }) => {
                 let mut basic_values = vec![];
                 for value in values {
                     let const_value = self.convert_const(value, elem);

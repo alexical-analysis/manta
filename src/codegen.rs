@@ -932,7 +932,6 @@ impl<'ctx> Codegen<'ctx> {
                     }
                 }
             }
-            Instruction::CallTry { .. } => todo!("call_try instructions are not yet supported"),
             Instruction::VariantGetPayload { src } => {
                 // need to do this first to relase func_builder from the borrow
                 let payload_ts = inst_type_spec.clone();
@@ -988,7 +987,7 @@ impl<'ctx> Codegen<'ctx> {
                         };
 
                         let payload_ts = match tag {
-                            ConstValue::ConstInt(i) => variants
+                            ConstValue::Int(i) => variants
                                 .get(i as usize)
                                 .expect("failed to get tagged variant")
                                 .clone(),
@@ -1366,54 +1365,54 @@ impl<'ctx> Codegen<'ctx> {
         type_spec: &TypeSpec,
     ) -> BasicValueEnum<'ctx> {
         match (const_value, type_spec) {
-            (ConstValue::ConstInt(i), TypeSpec::I8) => {
+            (ConstValue::Int(i), TypeSpec::I8) => {
                 let value = self.context.i8_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::ConstInt(i), TypeSpec::I16) => {
+            (ConstValue::Int(i), TypeSpec::I16) => {
                 let value = self.context.i16_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::ConstInt(i), TypeSpec::I32) => {
+            (ConstValue::Int(i), TypeSpec::I32) => {
                 let value = self.context.i32_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::ConstInt(i), TypeSpec::I64) => {
+            (ConstValue::Int(i), TypeSpec::I64) => {
                 let value = self.context.i64_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::ConstInt(i), TypeSpec::U8) => {
+            (ConstValue::Int(i), TypeSpec::U8) => {
                 let value = self.context.i8_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::ConstInt(i), TypeSpec::U16) => {
+            (ConstValue::Int(i), TypeSpec::U16) => {
                 let value = self.context.i16_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::ConstInt(i), TypeSpec::U32) => {
+            (ConstValue::Int(i), TypeSpec::U32) => {
                 let value = self.context.i32_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::ConstInt(i), TypeSpec::U64) => {
+            (ConstValue::Int(i), TypeSpec::U64) => {
                 let value = self.context.i64_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::ConstFloat(f), TypeSpec::F32) => {
+            (ConstValue::Float(f), TypeSpec::F32) => {
                 let value = self.context.f32_type().const_float(*f);
                 value.into()
             }
-            (ConstValue::ConstFloat(f), TypeSpec::F64) => {
+            (ConstValue::Float(f), TypeSpec::F64) => {
                 let value = self.context.f64_type().const_float(*f);
                 value.into()
             }
-            (ConstValue::ConstBool(b), TypeSpec::Bool) => {
+            (ConstValue::Bool(b), TypeSpec::Bool) => {
                 let value = match b {
                     true => self.context.bool_type().const_int(1, false),
                     false => self.context.bool_type().const_zero(),
                 };
                 value.into()
             }
-            (ConstValue::ConstArray(values), TypeSpec::Array { elem, .. }) => {
+            (ConstValue::Array(values), TypeSpec::Array { elem, .. }) => {
                 let mut basic_values = vec![];
                 for value in values {
                     let const_value = self.gen_const(module, str_store, value, elem);
@@ -1446,7 +1445,7 @@ impl<'ctx> Codegen<'ctx> {
                     _ => todo!("TODO: not all array types are supported yet"),
                 }
             }
-            (ConstValue::ConstStruct(values), TypeSpec::Struct(ts)) => {
+            (ConstValue::Struct(values), TypeSpec::Struct(ts)) => {
                 let mut fields = vec![];
                 for (v, ts) in values.iter().zip(ts.iter()) {
                     let field_const = self.gen_const(module, str_store, v, ts);
@@ -1456,7 +1455,7 @@ impl<'ctx> Codegen<'ctx> {
                 let value = self.context.const_struct(&fields, false);
                 value.into()
             }
-            (ConstValue::ConstString(s), TypeSpec::String) => {
+            (ConstValue::String(s), TypeSpec::String) => {
                 let global_str = match self.global_strings.get(s) {
                     Some(global) => *global,
                     None => {

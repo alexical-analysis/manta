@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::fmt;
 
 use crate::hir::NodeID;
 use crate::str_store::StrID;
@@ -68,13 +69,7 @@ pub enum TypeSpec {
 pub struct ValueId(u32);
 
 impl ValueId {
-    /// Creates a ValueId from a raw u32. Panics if value is 0 (reserved as nil).
-    pub fn from_u32(id: u32) -> Self {
-        assert_ne!(id, 0, "ValueId(0) is reserved as nil");
-        ValueId(id)
-    }
-
-    /// Creates a ValueId from a raw usize
+    /// Creates a ValueId from a raw usize. Panics if value is 0 (reserved as nil).
     pub fn from_usize(id: usize) -> Self {
         ValueId(id as u32)
     }
@@ -85,25 +80,21 @@ impl ValueId {
         (self.0 - 1) as usize
     }
 
-    /// Returns the raw u32 value.
-    pub fn as_u32(self) -> u32 {
-        self.0
-    }
-
     /// Returns the nil ValueId (0).
     pub fn nil() -> Self {
         ValueId(0)
-    }
-
-    /// Checks if this is the nil ValueId.
-    pub fn is_nil(self) -> bool {
-        self.0 == 0
     }
 }
 
 /// A unique identifier for a block in the control-flow graph.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize)]
 pub struct BlockId(u32);
+
+impl fmt::Display for BlockId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Block_{:?}", self.0)
+    }
+}
 
 impl BlockId {
     /// Creates a BlockId from a raw u32. Panics if id is 0 (reserved as nil).
@@ -112,28 +103,15 @@ impl BlockId {
         BlockId(id)
     }
 
-    /// Returns the raw u32 value.
-    pub fn as_u32(self) -> u32 {
-        self.0
+    /// Creates a BlockId from a raw usize. Panics if id is 0 (reserved as nil).
+    pub fn from_usize(id: usize) -> Self {
+        assert_ne!(id, 0, "BlockId(0) is reserved as nil");
+        BlockId(id as u32)
     }
 
     /// Return the id as an index instead of an ID
     pub fn as_idx(self) -> usize {
         (self.0 - 1) as usize
-    }
-
-    /// Returns the nil BlockId (0).
-    pub fn nil() -> Self {
-        BlockId(0)
-    }
-
-    /// Checks if this is the nil BlockId.
-    pub fn is_nil(self) -> bool {
-        self.0 == 0
-    }
-
-    pub fn to_string(self) -> String {
-        format!("Block_{:?}", self.0)
     }
 }
 
@@ -142,35 +120,10 @@ impl BlockId {
 pub struct GlobalId(u32);
 
 impl GlobalId {
-    /// Creates a GlobalId from a raw u32. Panics if id is 0 (reserved as nil).
-    pub fn from_u32(id: u32) -> Self {
-        assert_ne!(id, 0, "GlobalId(0) is reserved as nil");
-        GlobalId(id)
-    }
-
+    /// Creates a GlobalId from a raw usize. Panics if id is 0 (reserved as nil).
     pub fn from_usize(id: usize) -> Self {
         assert_ne!(id, 0, "GlobalId(0) is reserved as nil");
         GlobalId(id as u32)
-    }
-
-    /// Returns the raw u32 value.
-    pub fn as_u32(self) -> u32 {
-        self.0
-    }
-
-    /// Return the id as an index instead of an ID
-    pub fn as_idx(self) -> usize {
-        (self.0 - 1) as usize
-    }
-
-    /// Returns the nil GlobalId (0).
-    pub fn nil() -> Self {
-        GlobalId(0)
-    }
-
-    /// Checks if this is the nil GlobalId.
-    pub fn is_nil(self) -> bool {
-        self.0 == 0
     }
 }
 
@@ -186,35 +139,15 @@ pub struct Global {
 pub struct LocalId(u32);
 
 impl LocalId {
-    /// Creates a LocalId from a raw u32. Panics if id is 0 (reserved as nil).
-    pub fn from_u32(id: u32) -> Self {
-        assert_ne!(id, 0, "LocalId(0) is reserved as nil");
-        LocalId(id)
-    }
-
+    /// Creates a LocalId from a raw usize. Panics if id is 0 (reserved as nil).
     pub fn from_usize(id: usize) -> Self {
         assert_ne!(id, 0, "LocalId(0) is reserved as nil");
         LocalId(id as u32)
     }
 
-    /// Returns the raw u32 value.
-    pub fn as_u32(self) -> u32 {
-        self.0
-    }
-
     /// Return the id as an index instead of an ID
     pub fn as_idx(self) -> usize {
         (self.0 - 1) as usize
-    }
-
-    /// Returns the nil LocalId (0).
-    pub fn nil() -> Self {
-        LocalId(0)
-    }
-
-    /// Checks if this is the nil LocalId.
-    pub fn is_nil(self) -> bool {
-        self.0 == 0
     }
 }
 
@@ -230,12 +163,12 @@ pub struct Local {
 /// directly to the MIR but I've added them now just in case
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum ConstValue {
-    ConstInt(u64),
-    ConstFloat(f64),
-    ConstBool(bool),
-    ConstArray(Vec<ConstValue>),
-    ConstString(StrID),
-    ConstStruct(Vec<ConstValue>),
+    Int(u64),
+    Float(f64),
+    Bool(bool),
+    Array(Vec<ConstValue>),
+    String(StrID),
+    Struct(Vec<ConstValue>),
 }
 
 /// A place identifies a storage location — a base (local or global) plus a chain of projections
@@ -303,16 +236,11 @@ pub enum Instruction {
     AddressOf {
         place: Place,
     },
+    // TODO: need to add a panic handler block so that panics can get propaged up correctly
     /// call(func, args...) -> ValueId
     Call {
         func: StrID, // Function name or identifier
         args: Vec<ValueId>,
-    },
-    /// call_try(func, args..., handler: BlockId) -> ValueId
-    CallTry {
-        func: StrID,
-        args: Vec<ValueId>,
-        handler: BlockId,
     },
     /// variant_get_payload(src: Place) -> ValueId
     /// variants can only ever contain a single value in Manta so there's no need to extract a
@@ -510,15 +438,6 @@ pub struct BasicBlock {
     pub terminator: Terminator,
 }
 
-impl BasicBlock {
-    pub fn new(instructions: Vec<ValueId>, terminator: Terminator) -> Self {
-        BasicBlock {
-            instructions,
-            terminator,
-        }
-    }
-}
-
 /// A function in MIR form.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct MirFunction {
@@ -569,7 +488,7 @@ impl MirFunction {
         let mut blocks = vec![];
         for (i, block) in self.blocks.iter().enumerate() {
             if let Some(block) = block {
-                let block_id = BlockId::from_u32((i + 1) as u32);
+                let block_id = BlockId::from_usize(i + 1);
                 blocks.push((block_id, block))
             }
         }

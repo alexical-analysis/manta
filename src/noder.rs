@@ -163,7 +163,7 @@ fn node_type_spec(node_tree: &NodeTree, module: &Module, type_spec: &ast::TypeSp
                 .find_binding(scope_pos, t.name)
                 .expect("missing binding for type identifier");
             let type_spec = match &binding.binding_type {
-                BindingType::TypeDecl(t) => t,
+                BindingType::Type(t) => t,
                 _ => panic!("this binding was not for a type"),
             };
             let name_id = node_tree
@@ -1209,7 +1209,7 @@ fn node_wrap_expr(
     // if the identifier is a declared enum type we know this is a valid enum expression
     if !matches!(
         binding.binding_type,
-        BindingType::TypeDecl(ast::TypeSpec::Enum(_))
+        BindingType::Type(ast::TypeSpec::Enum(_))
     ) {
         panic!("can only call wrap with enum types")
     }
@@ -1400,7 +1400,7 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
             };
 
             match binding.binding_type {
-                BindingType::TypeDecl(ast::TypeSpec::Enum(_)) => {
+                BindingType::Type(ast::TypeSpec::Enum(_)) => {
                     let enum_constructor_id = node_tree.add_node(Node::EnumConstructor {
                         target: Some(target_id),
                         variant: expr.field,

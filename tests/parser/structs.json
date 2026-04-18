@@ -352,7 +352,7 @@
             "id": 0,
             "name": 18446744073709551614,
             "binding_type": {
-              "TypeDecl": "UInt8"
+              "Type": "UInt8"
             },
             "mutable": false,
             "used": true
@@ -361,7 +361,7 @@
             "id": 1,
             "name": 18446744073709551613,
             "binding_type": {
-              "TypeDecl": "UInt16"
+              "Type": "UInt16"
             },
             "mutable": false,
             "used": true
@@ -370,7 +370,7 @@
             "id": 2,
             "name": 18446744073709551612,
             "binding_type": {
-              "TypeDecl": "UInt32"
+              "Type": "UInt32"
             },
             "mutable": false,
             "used": true
@@ -379,7 +379,7 @@
             "id": 3,
             "name": 18446744073709551611,
             "binding_type": {
-              "TypeDecl": "UInt64"
+              "Type": "UInt64"
             },
             "mutable": false,
             "used": true
@@ -388,7 +388,7 @@
             "id": 4,
             "name": 18446744073709551610,
             "binding_type": {
-              "TypeDecl": "Int8"
+              "Type": "Int8"
             },
             "mutable": false,
             "used": true
@@ -397,7 +397,7 @@
             "id": 5,
             "name": 18446744073709551609,
             "binding_type": {
-              "TypeDecl": "Int16"
+              "Type": "Int16"
             },
             "mutable": false,
             "used": true
@@ -406,7 +406,7 @@
             "id": 6,
             "name": 18446744073709551608,
             "binding_type": {
-              "TypeDecl": "Int32"
+              "Type": "Int32"
             },
             "mutable": false,
             "used": true
@@ -415,7 +415,7 @@
             "id": 7,
             "name": 18446744073709551607,
             "binding_type": {
-              "TypeDecl": "Int64"
+              "Type": "Int64"
             },
             "mutable": false,
             "used": true
@@ -424,7 +424,7 @@
             "id": 8,
             "name": 18446744073709551606,
             "binding_type": {
-              "TypeDecl": "Float32"
+              "Type": "Float32"
             },
             "mutable": false,
             "used": true
@@ -433,7 +433,7 @@
             "id": 9,
             "name": 18446744073709551605,
             "binding_type": {
-              "TypeDecl": "Float64"
+              "Type": "Float64"
             },
             "mutable": false,
             "used": true
@@ -442,7 +442,7 @@
             "id": 10,
             "name": 18446744073709551603,
             "binding_type": {
-              "TypeDecl": "Bool"
+              "Type": "Bool"
             },
             "mutable": false,
             "used": true
@@ -451,7 +451,7 @@
             "id": 11,
             "name": 18446744073709551604,
             "binding_type": {
-              "TypeDecl": "String"
+              "Type": "String"
             },
             "mutable": false,
             "used": true
@@ -460,7 +460,7 @@
             "id": 12,
             "name": 18446744073709551590,
             "binding_type": {
-              "FuncDecl": {
+              "Func": {
                 "Function": {
                   "params": [
                     "String"
@@ -476,7 +476,7 @@
             "id": 14,
             "name": 18446744073709551589,
             "binding_type": {
-              "FuncDecl": {
+              "Func": {
                 "Function": {
                   "params": [
                     "String"
@@ -492,7 +492,7 @@
             "id": 16,
             "name": 4,
             "binding_type": {
-              "TypeDecl": {
+              "Type": {
                 "Struct": {
                   "fields": [
                     {
@@ -518,7 +518,7 @@
             "id": 17,
             "name": 11,
             "binding_type": {
-              "TypeDecl": {
+              "Type": {
                 "Struct": {
                   "fields": [
                     {
@@ -540,7 +540,7 @@
             "id": 18,
             "name": 15,
             "binding_type": {
-              "FuncDecl": {
+              "Func": {
                 "Function": {
                   "params": [],
                   "return_type": "Int32"
@@ -554,7 +554,7 @@
             "id": 19,
             "name": 1,
             "binding_type": {
-              "FuncDecl": {
+              "Func": {
                 "Function": {
                   "params": [],
                   "return_type": "Int32"
@@ -572,7 +572,7 @@
           {
             "id": 13,
             "name": 18446744073709551595,
-            "binding_type": "ValueDecl",
+            "binding_type": "Value",
             "mutable": false,
             "used": false
           }
@@ -588,7 +588,7 @@
           {
             "id": 15,
             "name": 18446744073709551595,
-            "binding_type": "ValueDecl",
+            "binding_type": "Value",
             "mutable": false,
             "used": false
           }
@@ -616,21 +616,21 @@
           {
             "id": 20,
             "name": 21,
-            "binding_type": "ValueDecl",
+            "binding_type": "Value",
             "mutable": false,
             "used": true
           },
           {
             "id": 21,
             "name": 28,
-            "binding_type": "ValueDecl",
+            "binding_type": "Value",
             "mutable": false,
             "used": true
           },
           {
             "id": 22,
             "name": 33,
-            "binding_type": "ValueDecl",
+            "binding_type": "Value",
             "mutable": false,
             "used": true
           }
