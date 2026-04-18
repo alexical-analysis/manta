@@ -36,35 +36,35 @@ struct FuncData<'ctx> {
     return_type: TypeSpec,
 }
 
-pub struct Codegen<'ctx, 'str> {
-    str_store: &'str StrStore,
+pub struct Codegen<'ctx> {
     context: &'ctx Context,
-    module_name: String,
     global_map: BTreeMap<GlobalId, GlobalData<'ctx>>,
     global_strings: BTreeMap<StrID, GlobalString<'ctx>>,
     function_map: BTreeMap<StrID, FuncData<'ctx>>,
 }
 
-impl<'ctx, 'str> Codegen<'ctx, 'str> {
-    pub fn new(str_store: &'str StrStore, context: &'ctx Context, module_name: String) -> Self {
+impl<'ctx> Codegen<'ctx> {
+    pub fn new(context: &'ctx Context) -> Self {
         Codegen {
-            str_store,
             context,
-            module_name,
             global_map: BTreeMap::new(),
             global_strings: BTreeMap::new(),
             function_map: BTreeMap::new(),
         }
     }
 
-    pub fn gen_module(&mut self, module: MirModule) -> Module<'ctx> {
-        let llvm_module = self.context.create_module(&self.module_name);
+    pub fn gen_module(
+        &mut self,
+        str_store: &StrStore,
+        module_name: String,
+        module: MirModule,
+    ) -> Module<'ctx> {
+        let llvm_module = self.context.create_module(&module_name);
         let builder = self.context.create_builder();
 
         // add all the globals to the module
         for (global_id, global) in module.get_globals() {
-            let global_name = self
-                .str_store
+            let global_name = str_store
                 .get_string(global.name)
                 .expect("failed to get global name");
             let global_type = match self.convert_type_spec(&global.type_spec) {
@@ -152,7 +152,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
 
         // add function values for user-defined functions, skipping any already registered as builtins
         let init_func =
-            builder::build_func_value(self.context, &llvm_module, self.str_store, &module.init);
+            builder::build_func_value(self.context, &llvm_module, str_store, &module.init);
         self.function_map.insert(
             module.init.name,
             FuncData {
@@ -174,8 +174,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 continue;
             }
 
-            let func_value =
-                builder::build_func_value(self.context, &llvm_module, self.str_store, func);
+            let func_value = builder::build_func_value(self.context, &llvm_module, str_store, func);
             self.function_map.insert(
                 func.name,
                 FuncData {
@@ -186,14 +185,9 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
         }
 
         // code gen the init function
-        let mut func_builder = FuncBuilder::new(
-            self.context,
-            &builder,
-            &module.init,
-            init_func,
-            self.str_store,
-        );
-        self.gen_function(&llvm_module, &mut func_builder);
+        let mut func_builder =
+            FuncBuilder::new(self.context, &builder, &module.init, init_func, str_store);
+        self.gen_function(&llvm_module, str_store, &mut func_builder);
 
         // code gen user-defined functions, skipping builtins
         for func in module.functions {
@@ -210,9 +204,9 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 &builder,
                 &func,
                 func_value.function,
-                self.str_store,
+                str_store,
             );
-            self.gen_function(&llvm_module, &mut func_builder);
+            self.gen_function(&llvm_module, str_store, &mut func_builder);
         }
 
         if let Err(e) = llvm_module.verify() {
@@ -252,23 +246,25 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
     fn gen_function<'a>(
         &mut self,
         module: &Module<'ctx>,
+        str_store: &StrStore,
         func_builder: &mut FuncBuilder<'ctx, 'a>,
     ) {
         for (block_id, block) in func_builder.get_blocks() {
-            self.gen_block(module, func_builder, block_id, block)
+            self.gen_block(module, str_store, func_builder, block_id, block)
         }
     }
 
     fn gen_block<'a>(
         &mut self,
         module: &Module<'ctx>,
+        str_store: &StrStore,
         func_builder: &mut FuncBuilder<'ctx, 'a>,
         block_id: mir::BlockId,
         block: &mir::BasicBlock,
     ) {
         func_builder.position_at_block(block_id);
         for value_id in &block.instructions {
-            match self.gen_inst(module, func_builder, *value_id) {
+            match self.gen_inst(module, str_store, func_builder, *value_id) {
                 Some(v) => func_builder.insert_value(*value_id, v),
                 None => {
                     eprintln!("TODO: not all instructions are supported")
@@ -314,6 +310,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
     fn gen_inst<'a>(
         &mut self,
         module: &Module<'ctx>,
+        str_store: &StrStore,
         func_builder: &mut FuncBuilder<'ctx, 'a>,
         value_id: ValueId,
     ) -> Option<BasicValueEnum<'ctx>> {
@@ -322,7 +319,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
 
         match inst {
             Instruction::Const { value } => {
-                let value = self.gen_const(module, &value, inst_type_spec);
+                let value = self.gen_const(module, str_store, &value, inst_type_spec);
                 Some(value)
             }
             Instruction::Add { lhs, rhs } => match inst_type_spec {
@@ -914,8 +911,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     .get(&func)
                     .expect("failed to get function by name");
 
-                let func_name = self
-                    .str_store
+                let func_name = str_store
                     .get_string(func)
                     .expect("failed to get function name as string");
                 let func_name = func_name.as_str();
@@ -1030,7 +1026,9 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                     _ => panic!("type must be an enum"),
                 };
 
-                let const_tag = self.gen_const(module, &tag, &tag_ts).into_int_value();
+                let const_tag = self
+                    .gen_const(module, str_store, &tag, &tag_ts)
+                    .into_int_value();
                 let result = func_builder.build_insert_tag(poison_struct, const_tag);
 
                 let payload = match payload {
@@ -1363,6 +1361,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
     fn gen_const(
         &mut self,
         module: &Module<'ctx>,
+        str_store: &StrStore,
         const_value: &ConstValue,
         type_spec: &TypeSpec,
     ) -> BasicValueEnum<'ctx> {
@@ -1417,7 +1416,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             (ConstValue::ConstArray(values), TypeSpec::Array { elem, .. }) => {
                 let mut basic_values = vec![];
                 for value in values {
-                    let const_value = self.gen_const(module, value, elem);
+                    let const_value = self.gen_const(module, str_store, value, elem);
                     basic_values.push(const_value);
                 }
 
@@ -1450,7 +1449,7 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
             (ConstValue::ConstStruct(values), TypeSpec::Struct(ts)) => {
                 let mut fields = vec![];
                 for (v, ts) in values.iter().zip(ts.iter()) {
-                    let field_const = self.gen_const(module, v, ts);
+                    let field_const = self.gen_const(module, str_store, v, ts);
                     fields.push(field_const);
                 }
 
@@ -1461,10 +1460,8 @@ impl<'ctx, 'str> Codegen<'ctx, 'str> {
                 let global_str = match self.global_strings.get(s) {
                     Some(global) => *global,
                     None => {
-                        let const_str = self
-                            .str_store
-                            .get_string(*s)
-                            .expect("failed to get string data");
+                        let const_str =
+                            str_store.get_string(*s).expect("failed to get string data");
                         let bytes = const_str.as_bytes();
 
                         let str_bytes = self.context.const_string(bytes, false);
@@ -1536,8 +1533,8 @@ mod tests {
         let mir_module = blocker.build_module();
 
         let context = Context::create();
-        let mut codegen = Codegen::new(&str_store, &context, file_name.to_string());
-        let llvm_module = codegen.gen_module(mir_module);
+        let mut codegen = Codegen::new(&context);
+        let llvm_module = codegen.gen_module(&str_store, file_name.to_string(), mir_module);
 
         let ll_output = llvm_module.print_to_string().to_string();
 
