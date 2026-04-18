@@ -293,9 +293,10 @@ pub struct MatchArm {
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum Pattern {
     IntLiteral(i64),
-    StringLiteral(StrID),
-    BoolLiteral(bool),
+    UIntLiteral(u64),
     FloatLiteral(f64),
+    BoolLiteral(bool),
+    StringLiteral(StrID),
     TypeSpec(TypeSpecPat),
     EnumVariant(EnumVariantPat),
     ModuleIdentifier(ModuleIdentifierPat),
@@ -342,6 +343,7 @@ pub struct IdentifierPat {
 pub enum Expr {
     // Literals
     IntLiteral(i64),
+    UIntLiteral(u64),
     FloatLiteral(f64),
     StringLiteral(StrID),
     BoolLiteral(bool),

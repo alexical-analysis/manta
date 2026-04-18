@@ -79,6 +79,7 @@ pub enum Node {
 
     // Expressions
     IntLiteral(i64),
+    UIntLiteral(u64),
     FloatLiteral(f64),
     StringLiteral(StrID),
     BoolLiteral(bool),
@@ -152,6 +153,7 @@ pub enum Node {
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum PatternNode {
     IntLiteral(i64),
+    UIntLiteral(u64),
     StringLiteral(StrID),
     BoolLiteral(bool),
     FloatLiteral(f64),
@@ -186,6 +188,7 @@ pub enum TypeSpec {
     // These types are no actually concreet yet, instead they all represent partially typed values
     // that can have their types further refined by the context where there appear
     IntLiteral(i64),
+    UIntLiteral(u64),
     FloatLiteral(f64),
     InferredEnumExpr(InferredEnumExpr),
     InferredEnumPat(InferredEnumPat),

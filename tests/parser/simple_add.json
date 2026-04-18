@@ -106,6 +106,21 @@
               }
             },
             {
+              "Let": {
+                "mutable": false,
+                "pattern": {
+                  "Identifier": {
+                    "id": 222,
+                    "name": 15
+                  }
+                },
+                "value": {
+                  "UIntLiteral": 9223372036854775999
+                },
+                "except": "None"
+              }
+            },
+            {
               "Return": {
                 "value": {
                   "Binary": {
@@ -113,7 +128,7 @@
                       "Binary": {
                         "left": {
                           "Identifier": {
-                            "id": 133,
+                            "id": 262,
                             "module": null,
                             "name": 8
                           }
@@ -121,7 +136,7 @@
                         "operator": "Add",
                         "right": {
                           "Identifier": {
-                            "id": 137,
+                            "id": 266,
                             "module": null,
                             "name": 11
                           }
@@ -131,7 +146,7 @@
                     "operator": "Subtract",
                     "right": {
                       "Identifier": {
-                        "id": 141,
+                        "id": 270,
                         "module": null,
                         "name": 13
                       }
@@ -369,6 +384,13 @@
             "binding_type": "Value",
             "mutable": false,
             "used": true
+          },
+          {
+            "id": 20,
+            "name": 15,
+            "binding_type": "Value",
+            "mutable": false,
+            "used": false
           }
         ]
       }
@@ -395,17 +417,21 @@
         "scope_id": 6,
         "scope_depth": 3
       },
-      "133": {
+      "222": {
         "scope_id": 6,
-        "scope_depth": 3
+        "scope_depth": 4
       },
-      "137": {
+      "262": {
         "scope_id": 6,
-        "scope_depth": 3
+        "scope_depth": 4
       },
-      "141": {
+      "266": {
         "scope_id": 6,
-        "scope_depth": 3
+        "scope_depth": 4
+      },
+      "270": {
+        "scope_id": 6,
+        "scope_depth": 4
       },
       "9999999994": {
         "scope_id": 4,
@@ -433,7 +459,7 @@
       }
     },
     "id_tracker": {
-      "id": 20
+      "id": 21
     }
   }
 }

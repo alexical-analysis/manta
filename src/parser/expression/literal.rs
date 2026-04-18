@@ -35,12 +35,16 @@ fn parse_int(lexer: &mut Lexer, token: Token) -> Result<Expr, ParseError> {
     let integer_str = lexer.lexeme(token.lexeme_id);
     let integer_str = integer_str.replace("_", "");
 
-    match integer_str.parse() {
+    // try to parse as an i64 first and then fall back to a u64 after
+    match integer_str.parse::<i64>() {
         Ok(n) => Ok(Expr::IntLiteral(n)),
-        Err(e) => Err(ParseError::Custom(
-            token,
-            format!("invalid integer {:?}", e),
-        )),
+        Err(_) => match integer_str.parse::<u64>() {
+            Ok(n) => Ok(Expr::UIntLiteral(n)),
+            Err(e) => Err(ParseError::Custom(
+                token,
+                format!("invalid integer {:?}: {:?}", integer_str, e),
+            )),
+        },
     }
 }
 
