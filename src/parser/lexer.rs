@@ -10,10 +10,6 @@ impl SourceID {
     pub fn from_usize(id: usize) -> Self {
         SourceID(id)
     }
-
-    pub fn to_usize(self) -> usize {
-        self.0
-    }
 }
 
 /// The kind of Token produced by the lexer.
@@ -92,8 +88,8 @@ pub enum TokenKind {
     Eof,
 }
 
-/// A token produced by the lexer. `lexeme` contains raw text for ids/numbers/strings
-/// (strings are returned unescaped), or None for simple punctuation/EOF.
+/// A token produced by the lexer. `lexeme` contains raw text for ids/numbers, or the
+/// processed (escape-resolved) value for strings. Simple punctuation/EOF have no lexeme.
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize)]
 pub struct Token {
     pub kind: TokenKind,
@@ -433,13 +429,12 @@ impl<'a> Lexer<'a> {
         // consume the opening quote char
         let quote = self.bump().unwrap();
         debug_assert!(quote == '"');
+        let mut buf = String::new();
 
         while let Some(ch) = self.current_char() {
             self.bump();
             if ch == '"' {
-                let end = self.pos;
-                let string_content = &self.source[start + 1..end - 1];
-                let lexeme_id = self.str_store.get_id(string_content);
+                let lexeme_id = self.str_store.get_id(&buf);
                 return Token {
                     kind: TokenKind::Str,
                     source_id: SourceID::from_usize(start),
@@ -448,14 +443,21 @@ impl<'a> Lexer<'a> {
             }
             if ch == '\\' {
                 match self.current_char() {
-                    Some(_) => {
+                    Some(esc) => {
                         self.bump();
+                        buf.push(match esc {
+                            'n' => '\n',
+                            't' => '\t',
+                            'r' => '\r',
+                            '\\' => '\\',
+                            '"' => '"',
+                            '0' => '\0',
+                            _ => esc,
+                        });
                         continue;
                     }
                     None => {
-                        let end = self.pos;
-                        let malformed_str = &self.source[start + 1..end - 1];
-                        let lexeme_id = self.str_store.get_id(malformed_str);
+                        let lexeme_id = self.str_store.get_id(&buf);
                         return Token {
                             kind: TokenKind::MalformedStr,
                             source_id: SourceID::from_usize(self.pos),
@@ -464,11 +466,10 @@ impl<'a> Lexer<'a> {
                     }
                 }
             }
+            buf.push(ch);
         }
 
-        let end = self.pos;
-        let malformed_str = &self.source[start + 1..end - 1];
-        let lexeme_id = self.str_store.get_id(malformed_str);
+        let lexeme_id = self.str_store.get_id(&buf);
         Token {
             kind: TokenKind::MalformedStr,
             source_id: SourceID::from_usize(start),
