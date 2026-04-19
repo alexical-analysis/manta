@@ -17,12 +17,15 @@ impl PrefixPatternParselet for LiteralPatternParselet {
         match token.kind {
             TokenKind::TrueLiteral => Ok(Pattern::BoolLiteral(true)),
             TokenKind::FalseLiteral => Ok(Pattern::BoolLiteral(false)),
-            TokenKind::Int => match lexeme.replace("_", "").parse() {
+            TokenKind::Int => match lexeme.replace("_", "").parse::<i64>() {
                 Ok(n) => Ok(Pattern::IntLiteral(n)),
-                Err(e) => Err(ParseError::Custom(
-                    token,
-                    format!("Invalid integer pattern {:?}", e),
-                )),
+                Err(_) => match lexeme.replace("_", "").parse::<u64>() {
+                    Ok(n) => Ok(Pattern::UIntLiteral(n)),
+                    Err(e) => Err(ParseError::Custom(
+                        token,
+                        format!("Invalid integer pattern {:?}", e),
+                    )),
+                },
             },
             TokenKind::Float => match lexeme.replace("_", "").parse() {
                 Ok(f) => Ok(Pattern::FloatLiteral(f)),
