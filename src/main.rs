@@ -9,9 +9,9 @@ mod parser;
 mod str_store;
 
 use std::error::Error;
-use std::fs;
-use std::path::Path;
-use std::path::PathBuf;
+use std::fs::{self, File};
+use std::io::Write;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::Instant;
 
@@ -44,7 +44,7 @@ enum Commands {
         #[arg(short, long, value_name = "OUT_DIR")]
         out_file: Option<String>,
 
-        #[arg(short, long)]
+        #[arg(short, long, value_name = "DEBUG")]
         debug: bool,
 
         #[arg(value_name = "ARGS...")]
@@ -55,7 +55,11 @@ enum Commands {
         about = "Check complies the project but stops once all checks have been performed and reported"
     )]
     Check {},
-
+    #[command(about = "Init a new manta project in the current directory")]
+    Init {
+        #[arg(value_name = "MOD_NAME")]
+        mod_name: String,
+    },
     #[command(
         about = "Run complies the project and immediately executes the resulting artifact (use --out-dir to preserve the compile binary)"
     )]
@@ -170,6 +174,19 @@ fn main() -> Result<(), Box<dyn Error>> {
             if cleanup {
                 fs::remove_file(&out_path).ok();
             }
+        }
+        Commands::Init { mod_name } => {
+            // check if manta.mod already exists before we try to init the project
+            if Path::new("manta.mod").exists() {
+                println!("manta.mod file already exists");
+                return Ok(());
+            }
+
+            // TODO: need to actually track the correct semver here once I start using semver to
+            // track manta versions
+            let contents = format!("manta 0.0.0\n{}", mod_name);
+            let mut file = File::create("manta.mod")?;
+            file.write_all(contents.as_bytes())?;
         }
         Commands::Check {} => {
             println!(
