@@ -2,6 +2,7 @@ mod ast;
 mod blocker;
 mod codegen;
 mod compiler;
+mod file_set;
 mod hir;
 mod mir;
 mod noder;
