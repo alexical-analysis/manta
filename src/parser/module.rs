@@ -1,7 +1,9 @@
 use serde::Serialize;
 use std::collections::BTreeMap;
 
-use crate::ast::{BlockStmt, Decl, Expr, LetExcept, Pattern, Payload, Stmt, TypeSpec};
+use crate::ast::{
+    BlockStmt, Decl, Expr, FunctionType, LetExcept, Pattern, Payload, Stmt, TypeSpec,
+};
 use crate::parser::ParseError;
 use crate::parser::lexer::{Token, TokenKind};
 use crate::str_store::{self, StrID, StrStore};
@@ -78,6 +80,7 @@ impl Scope {
             (str_store::F32, TypeSpec::Float32),
             (str_store::F64, TypeSpec::Float64),
             (str_store::BOOL, TypeSpec::Bool),
+            (str_store::STR, TypeSpec::String),
         ];
 
         for (name, type_spec) in builtin_types {
@@ -90,13 +93,32 @@ impl Scope {
             })
         }
 
-        bindings.push(Binding {
-            id: id_tracker.next_id(),
-            name: str_store::STR,
-            binding_type: BindingType::Type(TypeSpec::String),
-            mutable: false,
-            used: true, // don't warn if we don't use the str type
-        });
+        let builtin_funcs = vec![
+            (
+                str_store::PRINT,
+                TypeSpec::Function(FunctionType {
+                    params: vec![TypeSpec::String],
+                    return_type: Box::new(TypeSpec::Unit),
+                }),
+            ),
+            (
+                str_store::EPRINT,
+                TypeSpec::Function(FunctionType {
+                    params: vec![TypeSpec::String],
+                    return_type: Box::new(TypeSpec::Unit),
+                }),
+            ),
+        ];
+
+        for (name, func_type) in builtin_funcs {
+            bindings.push(Binding {
+                id: id_tracker.next_id(),
+                name,
+                binding_type: BindingType::Func(func_type),
+                mutable: false,
+                used: true, // don't warn on unused builtin types
+            })
+        }
 
         Scope {
             parent: None,
@@ -166,7 +188,13 @@ impl SymTable {
         }
     }
 
-    fn add_binding(&mut self, name: StrID, binding_type: BindingType, mutable: bool) {
+    fn add_binding(
+        &mut self,
+        name: StrID,
+        source_id: SourceID,
+        binding_type: BindingType,
+        mutable: bool,
+    ) {
         let b = Binding {
             id: self.id_tracker.next_id(),
             name,
@@ -177,6 +205,8 @@ impl SymTable {
 
         let current_scope = self.get_current_scope_mut();
         current_scope.bindings.push(b);
+
+        self.add_scope_pos(source_id);
     }
 
     fn find_binding(&mut self, name: StrID) -> Option<&mut Binding> {
@@ -326,6 +356,14 @@ impl Module {
         self.sym_table.find_binding_in_scope(scope_pos, name)
     }
 
+    // TODO: remove when builtin functions are removed
+    pub fn find_builtin_binding(&self, name: StrID) -> Option<&Binding> {
+        self.sym_table.scopes[0]
+            .bindings
+            .iter()
+            .rfind(|b| b.name == name)
+    }
+
     pub fn get_errors(&self) -> &Vec<ParseError> {
         &self.errors
     }
@@ -410,19 +448,42 @@ impl Module {
 
     fn build_sym_table(errors: &mut Vec<ParseError>, decls: &[Decl]) -> SymTable {
         let mut sym_table = SymTable::new();
+
+        // pre-process the decls to make sure top level decls can refer to each other in their definitions
         for decl in decls {
             match decl {
                 Decl::Function(decl) => {
-                    // TODO: should add_binding and add_scope_pos always be coupled? Or maybe
-                    // just for identifier declarations? In theory though all bindings are
-                    // declarations right?
                     sym_table.add_binding(
                         decl.name,
+                        decl.id,
                         BindingType::Func(TypeSpec::Function(decl.function_type.clone())),
                         false,
                     );
-                    sym_table.add_scope_pos(decl.id);
+                }
+                Decl::Type(decl) => {
+                    sym_table.add_binding(
+                        decl.name,
+                        decl.id,
+                        BindingType::Type(decl.type_spec.clone()),
+                        false,
+                    );
+                }
+                Decl::Const(decl) => {
+                    sym_table.add_binding(decl.name, decl.id, BindingType::Value, false);
+                }
+                Decl::Var(decl) => {
+                    sym_table.add_binding(decl.name, decl.id, BindingType::Value, true);
+                }
+                Decl::Use(_) => { /* nothing to do */ }
+                Decl::Mod(_) => { /* nothing to do */ }
+                Decl::Invalid => { /* nothing to do */ }
+            }
+        }
 
+        // now process all the decl bodies
+        for decl in decls {
+            match decl {
+                Decl::Function(decl) => {
                     Self::build_sym_table_type_spec(
                         errors,
                         &mut sym_table,
@@ -435,8 +496,7 @@ impl Module {
                         // TODO: should add_binding and add_scope_pos always be coupled? Or maybe
                         // just for identifier declarations? In theory though all bindings are
                         // declarations right?
-                        sym_table.add_binding(param.name, BindingType::Value, false);
-                        sym_table.add_scope_pos(param.id);
+                        sym_table.add_binding(param.name, param.id, BindingType::Value, false);
                     }
 
                     Self::build_sym_table_block(errors, &mut sym_table, &decl.body);
@@ -446,106 +506,24 @@ impl Module {
                 Decl::Type(decl) => {
                     match &decl.type_spec {
                         TypeSpec::Named(t) => {
-                            if let Some(_module) = t.module {
-                                // TODO: modules are not yet supported just skip things for now
-                                continue;
+                            if t.module.is_some() {
+                                panic!("type decl names can not have a module");
                             }
 
                             match sym_table.find_binding(t.name) {
                                 Some(b) => b.used = true,
                                 None => panic!("unknown type (return this error)"),
                             }
-
-                            sym_table.add_binding(
-                                decl.name,
-                                BindingType::Type(decl.type_spec.clone()),
-                                false,
-                            );
-                            sym_table.add_scope_pos(t.id);
                         }
-                        TypeSpec::Pointer(p) => {
-                            sym_table.add_binding(
-                                decl.name,
-                                BindingType::Type(decl.type_spec.clone()),
-                                false,
-                            );
-
-                            Self::build_sym_table_type_spec(errors, &mut sym_table, p);
-                        }
-                        TypeSpec::Slice(s) => {
-                            sym_table.add_binding(
-                                decl.name,
-                                BindingType::Type(decl.type_spec.clone()),
-                                false,
-                            );
-
-                            Self::build_sym_table_type_spec(errors, &mut sym_table, s);
-                        }
-                        TypeSpec::Array(a) => {
-                            sym_table.add_binding(
-                                decl.name,
-                                BindingType::Type(decl.type_spec.clone()),
-                                false,
-                            );
-
-                            Self::build_sym_table_type_spec(errors, &mut sym_table, &a.type_spec);
-                        }
-                        TypeSpec::Struct(s) => {
-                            sym_table.add_binding(
-                                decl.name,
-                                BindingType::Type(decl.type_spec.clone()),
-                                false,
-                            );
-
-                            for field in &s.fields {
-                                Self::build_sym_table_type_spec(
-                                    errors,
-                                    &mut sym_table,
-                                    &field.type_spec,
-                                );
-                            }
-                        }
-                        TypeSpec::Enum(e) => {
-                            sym_table.add_binding(
-                                decl.name,
-                                BindingType::Type(decl.type_spec.clone()),
-                                false,
-                            );
-
-                            for variant in &e.variants {
-                                if let Some(payload) = &variant.payload {
-                                    Self::build_sym_table_type_spec(
-                                        errors,
-                                        &mut sym_table,
-                                        payload,
-                                    );
-                                }
-                            }
-                        }
-                        TypeSpec::String => {
-                            sym_table.add_binding(
-                                decl.name,
-                                BindingType::Type(decl.type_spec.clone()),
-                                false,
-                            );
-                        }
-                        _ => {
-                            sym_table.add_binding(
-                                decl.name,
-                                BindingType::Type(decl.type_spec.clone()),
-                                false,
-                            );
-                        }
+                        ts => Self::build_sym_table_type_spec(errors, &mut sym_table, ts),
                     }
                     sym_table.add_scope_pos(decl.id);
                 }
                 Decl::Const(decl) => {
-                    sym_table.add_binding(decl.name, BindingType::Value, false);
-                    sym_table.add_scope_pos(decl.id);
+                    Self::build_sym_table_expr(errors, &mut sym_table, &decl.value);
                 }
                 Decl::Var(decl) => {
-                    sym_table.add_binding(decl.name, BindingType::Value, true);
-                    sym_table.add_scope_pos(decl.id);
+                    Self::build_sym_table_expr(errors, &mut sym_table, &decl.value);
                 }
                 Decl::Use(_) => { /* nothing to do */ }
                 Decl::Mod(_) => { /* nothing to do */ }
@@ -581,8 +559,7 @@ impl Module {
                         sym_table.open_scope(*id);
 
                         if let Some(binding) = binding {
-                            sym_table.add_binding(*binding, BindingType::Value, false);
-                            sym_table.add_scope_pos(*id);
+                            sym_table.add_binding(*binding, *id, BindingType::Value, false);
                         }
 
                         Self::build_sym_table_block(errors, sym_table, body);
@@ -641,8 +618,12 @@ impl Module {
                 Self::build_sym_table_block(errors, sym_table, &stmt.body);
             }
             Stmt::For(stmt) => {
-                sym_table.add_binding(stmt.binding.name, BindingType::Value, false);
-                sym_table.add_scope_pos(stmt.binding.id);
+                sym_table.add_binding(
+                    stmt.binding.name,
+                    stmt.binding.id,
+                    BindingType::Value,
+                    false,
+                );
 
                 Self::build_sym_table_block(errors, sym_table, &stmt.body);
             }
@@ -668,8 +649,7 @@ impl Module {
             Pattern::TypeSpec(pat) => {
                 match pat.payload {
                     Payload::Some(payload) => {
-                        sym_table.add_binding(payload, BindingType::Value, mutable);
-                        sym_table.add_scope_pos(pat.id);
+                        sym_table.add_binding(payload, pat.id, BindingType::Value, mutable);
                     }
                     Payload::Default => { /*default patterns can just be ignored*/ }
                     Payload::None => panic!("type specs must have a payload"),
@@ -683,14 +663,13 @@ impl Module {
                 }
 
                 if let Payload::Some(payload) = pat.payload {
-                    sym_table.add_binding(payload, BindingType::Value, mutable);
+                    sym_table.add_binding(payload, pat.id, BindingType::Value, mutable);
                 }
 
                 sym_table.add_scope_pos(pat.id);
             }
             Pattern::Identifier(pat) => {
-                sym_table.add_binding(pat.name, BindingType::Value, mutable);
-                sym_table.add_scope_pos(pat.id);
+                sym_table.add_binding(pat.name, pat.id, BindingType::Value, mutable);
             }
         }
     }

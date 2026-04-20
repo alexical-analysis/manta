@@ -15,50 +15,6 @@
       }
     },
     {
-      "Function": {
-        "id": 9999999999,
-        "name": 18446744073709551590,
-        "params": [
-          {
-            "id": 9999999998,
-            "name": 18446744073709551595
-          }
-        ],
-        "body": {
-          "id": 9999999997,
-          "statements": []
-        },
-        "function_type": {
-          "params": [
-            "String"
-          ],
-          "return_type": "Unit"
-        }
-      }
-    },
-    {
-      "Function": {
-        "id": 9999999996,
-        "name": 18446744073709551589,
-        "params": [
-          {
-            "id": 9999999995,
-            "name": 18446744073709551595
-          }
-        ],
-        "body": {
-          "id": 9999999994,
-          "statements": []
-        },
-        "function_type": {
-          "params": [
-            "String"
-          ],
-          "return_type": "Unit"
-        }
-      }
-    },
-    {
       "Const": {
         "id": 131,
         "name": 9,
@@ -572,10 +528,10 @@
               }
             },
             "mutable": false,
-            "used": false
+            "used": true
           },
           {
-            "id": 14,
+            "id": 13,
             "name": 18446744073709551589,
             "binding_type": {
               "Func": {
@@ -588,17 +544,17 @@
               }
             },
             "mutable": false,
-            "used": false
+            "used": true
           },
           {
-            "id": 16,
+            "id": 14,
             "name": 9,
             "binding_type": "Value",
             "mutable": false,
             "used": true
           },
           {
-            "id": 17,
+            "id": 15,
             "name": 13,
             "binding_type": {
               "Func": {
@@ -614,7 +570,7 @@
             "used": true
           },
           {
-            "id": 19,
+            "id": 16,
             "name": 18,
             "binding_type": {
               "Type": {
@@ -636,7 +592,7 @@
             "used": true
           },
           {
-            "id": 20,
+            "id": 17,
             "name": 22,
             "binding_type": {
               "Func": {
@@ -658,7 +614,7 @@
             "used": true
           },
           {
-            "id": 24,
+            "id": 18,
             "name": 1,
             "binding_type": {
               "Func": {
@@ -677,8 +633,8 @@
         "parent": 0,
         "bindings": [
           {
-            "id": 13,
-            "name": 18446744073709551595,
+            "id": 19,
+            "name": 14,
             "binding_type": "Value",
             "mutable": false,
             "used": false
@@ -693,11 +649,11 @@
         "parent": 0,
         "bindings": [
           {
-            "id": 15,
-            "name": 18446744073709551595,
+            "id": 20,
+            "name": 23,
             "binding_type": "Value",
             "mutable": false,
-            "used": false
+            "used": true
           }
         ]
       },
@@ -706,14 +662,14 @@
         "bindings": []
       },
       {
-        "parent": 0,
+        "parent": 4,
         "bindings": [
           {
-            "id": 18,
-            "name": 14,
+            "id": 21,
+            "name": 26,
             "binding_type": "Value",
             "mutable": false,
-            "used": false
+            "used": true
           }
         ]
       },
@@ -722,10 +678,10 @@
         "bindings": []
       },
       {
-        "parent": 0,
+        "parent": 4,
         "bindings": [
           {
-            "id": 21,
+            "id": 22,
             "name": 23,
             "binding_type": "Value",
             "mutable": false,
@@ -738,67 +694,35 @@
         "bindings": []
       },
       {
-        "parent": 8,
-        "bindings": [
-          {
-            "id": 22,
-            "name": 26,
-            "binding_type": "Value",
-            "mutable": false,
-            "used": true
-          }
-        ]
-      },
-      {
-        "parent": 9,
-        "bindings": []
-      },
-      {
-        "parent": 8,
-        "bindings": [
-          {
-            "id": 23,
-            "name": 23,
-            "binding_type": "Value",
-            "mutable": false,
-            "used": true
-          }
-        ]
-      },
-      {
-        "parent": 11,
-        "bindings": []
-      },
-      {
         "parent": 0,
         "bindings": []
       },
       {
-        "parent": 13,
+        "parent": 9,
         "bindings": [
           {
-            "id": 25,
+            "id": 23,
             "name": 31,
             "binding_type": "Value",
             "mutable": false,
             "used": true
           },
           {
-            "id": 26,
+            "id": 24,
             "name": 33,
             "binding_type": "Value",
             "mutable": false,
             "used": true
           },
           {
-            "id": 27,
+            "id": 25,
             "name": 34,
             "binding_type": "Value",
             "mutable": false,
             "used": true
           },
           {
-            "id": 28,
+            "id": 26,
             "name": 36,
             "binding_type": "Value",
             "mutable": false,
@@ -814,168 +738,144 @@
         "scope_depth": 15
       },
       "209": {
-        "scope_id": 5,
+        "scope_id": 1,
         "scope_depth": 0
       },
       "224": {
-        "scope_id": 5,
+        "scope_id": 1,
         "scope_depth": 1
       },
       "231": {
-        "scope_id": 6,
+        "scope_id": 2,
         "scope_depth": 0
       },
       "300": {
         "scope_id": 0,
-        "scope_depth": 17
+        "scope_depth": 19
       },
       "393": {
-        "scope_id": 7,
+        "scope_id": 3,
         "scope_depth": 0
       },
       "401": {
-        "scope_id": 7,
+        "scope_id": 3,
         "scope_depth": 1
       },
       "403": {
         "scope_id": 0,
-        "scope_depth": 18
+        "scope_depth": 19
       },
       "414": {
-        "scope_id": 8,
-        "scope_depth": 0
-      },
-      "490": {
-        "scope_id": 8,
-        "scope_depth": 0
-      },
-      "502": {
-        "scope_id": 9,
-        "scope_depth": 1
-      },
-      "513": {
-        "scope_id": 10,
-        "scope_depth": 0
-      },
-      "522": {
-        "scope_id": 10,
-        "scope_depth": 0
-      },
-      "532": {
-        "scope_id": 10,
-        "scope_depth": 0
-      },
-      "536": {
-        "scope_id": 10,
-        "scope_depth": 0
-      },
-      "548": {
-        "scope_id": 11,
-        "scope_depth": 1
-      },
-      "559": {
-        "scope_id": 12,
-        "scope_depth": 0
-      },
-      "568": {
-        "scope_id": 12,
-        "scope_depth": 0
-      },
-      "572": {
-        "scope_id": 12,
-        "scope_depth": 0
-      },
-      "585": {
-        "scope_id": 13,
-        "scope_depth": 0
-      },
-      "595": {
-        "scope_id": 14,
-        "scope_depth": 0
-      },
-      "605": {
-        "scope_id": 14,
-        "scope_depth": 1
-      },
-      "614": {
-        "scope_id": 14,
-        "scope_depth": 1
-      },
-      "639": {
-        "scope_id": 14,
-        "scope_depth": 2
-      },
-      "653": {
-        "scope_id": 14,
-        "scope_depth": 2
-      },
-      "658": {
-        "scope_id": 14,
-        "scope_depth": 2
-      },
-      "670": {
-        "scope_id": 14,
-        "scope_depth": 2
-      },
-      "682": {
-        "scope_id": 14,
-        "scope_depth": 2
-      },
-      "704": {
-        "scope_id": 14,
-        "scope_depth": 3
-      },
-      "713": {
-        "scope_id": 14,
-        "scope_depth": 3
-      },
-      "737": {
-        "scope_id": 14,
-        "scope_depth": 4
-      },
-      "751": {
-        "scope_id": 14,
-        "scope_depth": 4
-      },
-      "756": {
-        "scope_id": 14,
-        "scope_depth": 4
-      },
-      "768": {
-        "scope_id": 14,
-        "scope_depth": 4
-      },
-      "780": {
-        "scope_id": 14,
-        "scope_depth": 4
-      },
-      "9999999994": {
         "scope_id": 4,
         "scope_depth": 0
       },
-      "9999999995": {
-        "scope_id": 3,
+      "490": {
+        "scope_id": 4,
+        "scope_depth": 0
+      },
+      "502": {
+        "scope_id": 5,
         "scope_depth": 1
       },
-      "9999999996": {
-        "scope_id": 3,
+      "513": {
+        "scope_id": 6,
         "scope_depth": 0
       },
-      "9999999997": {
-        "scope_id": 2,
+      "522": {
+        "scope_id": 6,
         "scope_depth": 0
       },
-      "9999999998": {
-        "scope_id": 1,
+      "532": {
+        "scope_id": 6,
+        "scope_depth": 0
+      },
+      "536": {
+        "scope_id": 6,
+        "scope_depth": 0
+      },
+      "548": {
+        "scope_id": 7,
         "scope_depth": 1
       },
-      "9999999999": {
-        "scope_id": 1,
+      "559": {
+        "scope_id": 8,
         "scope_depth": 0
+      },
+      "568": {
+        "scope_id": 8,
+        "scope_depth": 0
+      },
+      "572": {
+        "scope_id": 8,
+        "scope_depth": 0
+      },
+      "585": {
+        "scope_id": 9,
+        "scope_depth": 0
+      },
+      "595": {
+        "scope_id": 10,
+        "scope_depth": 0
+      },
+      "605": {
+        "scope_id": 10,
+        "scope_depth": 1
+      },
+      "614": {
+        "scope_id": 10,
+        "scope_depth": 1
+      },
+      "639": {
+        "scope_id": 10,
+        "scope_depth": 2
+      },
+      "653": {
+        "scope_id": 10,
+        "scope_depth": 2
+      },
+      "658": {
+        "scope_id": 10,
+        "scope_depth": 2
+      },
+      "670": {
+        "scope_id": 10,
+        "scope_depth": 2
+      },
+      "682": {
+        "scope_id": 10,
+        "scope_depth": 2
+      },
+      "704": {
+        "scope_id": 10,
+        "scope_depth": 3
+      },
+      "713": {
+        "scope_id": 10,
+        "scope_depth": 3
+      },
+      "737": {
+        "scope_id": 10,
+        "scope_depth": 4
+      },
+      "751": {
+        "scope_id": 10,
+        "scope_depth": 4
+      },
+      "756": {
+        "scope_id": 10,
+        "scope_depth": 4
+      },
+      "768": {
+        "scope_id": 10,
+        "scope_depth": 4
+      },
+      "780": {
+        "scope_id": 10,
+        "scope_depth": 4
       }
     },
     "id_tracker": {
-      "id": 29
+      "id": 27
     }
   }
 }

@@ -3,50 +3,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 18446744073709551595
-      }
-    },
-    {
-      "VarDecl": {
-        "ident": 0
-      }
-    },
-    {
-      "Identifier": {
-        "module": null,
         "name": 18446744073709551590
-      }
-    },
-    {
-      "Return": {
-        "value": null
-      }
-    },
-    {
-      "Block": {
-        "statements": [
-          3
-        ]
-      }
-    },
-    {
-      "FunctionDecl": {
-        "ident": 2,
-        "params": [
-          1
-        ],
-        "body": 4
-      }
-    },
-    {
-      "Identifier": {
-        "module": null,
-        "name": 18446744073709551595
-      }
-    },
-    {
-      "VarDecl": {
-        "ident": 6
       }
     },
     {
@@ -56,24 +13,27 @@
       }
     },
     {
-      "Return": {
-        "value": null
+      "Identifier": {
+        "module": null,
+        "name": 8
       }
     },
     {
-      "Block": {
-        "statements": [
-          9
-        ]
+      "Identifier": {
+        "module": null,
+        "name": 13
       }
     },
     {
-      "FunctionDecl": {
-        "ident": 8,
-        "params": [
-          7
-        ],
-        "body": 10
+      "Identifier": {
+        "module": null,
+        "name": 17
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 1
       }
     },
     {
@@ -84,13 +44,7 @@
     },
     {
       "VarDecl": {
-        "ident": 12
-      }
-    },
-    {
-      "Identifier": {
-        "module": null,
-        "name": 8
+        "ident": 6
       }
     },
     {
@@ -101,28 +55,22 @@
     {
       "Block": {
         "statements": [
-          15
+          8
         ]
       }
     },
     {
       "FunctionDecl": {
-        "ident": 14,
+        "ident": 2,
         "params": [
-          13
+          7
         ],
-        "body": 16
-      }
-    },
-    {
-      "Identifier": {
-        "module": null,
-        "name": 13
+        "body": 9
       }
     },
     {
       "TypeDecl": {
-        "ident": 18
+        "ident": 3
       }
     },
     {
@@ -133,7 +81,7 @@
     },
     {
       "VarDecl": {
-        "ident": 20
+        "ident": 12
       }
     },
     {
@@ -144,13 +92,7 @@
     },
     {
       "VarDecl": {
-        "ident": 22
-      }
-    },
-    {
-      "Identifier": {
-        "module": null,
-        "name": 17
+        "ident": 14
       }
     },
     {
@@ -158,9 +100,9 @@
     },
     {
       "Binary": {
-        "left": 22,
+        "left": 14,
         "operator": "Equal",
-        "right": 25
+        "right": 16
       }
     },
     {
@@ -172,20 +114,20 @@
     },
     {
       "Return": {
-        "value": 27
+        "value": 18
       }
     },
     {
       "Block": {
         "statements": [
-          28
+          19
         ]
       }
     },
     {
       "If": {
-        "condition": 26,
-        "then_block": 29,
+        "condition": 17,
+        "then_block": 20,
         "else_block": null
       }
     },
@@ -193,43 +135,37 @@
       "EnumConstructor": {
         "target": null,
         "variant": 15,
-        "payload": 32
+        "payload": 23
       }
     },
     {
       "Binary": {
-        "left": 20,
+        "left": 12,
         "operator": "Divide",
-        "right": 22
+        "right": 14
       }
     },
     {
       "Return": {
-        "value": 31
+        "value": 22
       }
     },
     {
       "Block": {
         "statements": [
-          30,
-          33
+          21,
+          24
         ]
       }
     },
     {
       "FunctionDecl": {
-        "ident": 24,
+        "ident": 4,
         "params": [
-          21,
-          23
+          13,
+          15
         ],
-        "body": 34
-      }
-    },
-    {
-      "Identifier": {
-        "module": null,
-        "name": 1
+        "body": 25
       }
     },
     {
@@ -240,10 +176,10 @@
     },
     {
       "Call": {
-        "func": 24,
+        "func": 4,
         "args": [
-          37,
-          38
+          27,
+          28
         ]
       }
     },
@@ -255,13 +191,13 @@
     },
     {
       "VarDecl": {
-        "ident": 40
+        "ident": 30
       }
     },
     {
       "Assign": {
-        "target": 40,
-        "value": 39
+        "target": 30,
+        "value": 29
       }
     },
     {
@@ -275,7 +211,7 @@
         "EnumVariant": {
           "enum_name": null,
           "variant": 15,
-          "payload": 43
+          "payload": 33
         }
       }
     },
@@ -284,23 +220,23 @@
     },
     {
       "Call": {
-        "func": 14,
+        "func": 2,
         "args": [
-          45
+          35
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          46
+          36
         ]
       }
     },
     {
       "MatchArm": {
-        "pattern": 44,
-        "body": 47
+        "pattern": 34,
+        "body": 37
       }
     },
     {
@@ -317,31 +253,31 @@
     },
     {
       "Call": {
-        "func": 14,
+        "func": 2,
         "args": [
-          50
+          40
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          51
+          41
         ]
       }
     },
     {
       "MatchArm": {
-        "pattern": 49,
-        "body": 52
+        "pattern": 39,
+        "body": 42
       }
     },
     {
       "Match": {
-        "target": 40,
+        "target": 30,
         "arms": [
-          48,
-          53
+          38,
+          43
         ]
       }
     },
@@ -353,134 +289,137 @@
     {
       "Block": {
         "statements": [
-          41,
-          42,
-          54,
-          55
+          31,
+          32,
+          44,
+          45
         ]
       }
     },
     {
       "FunctionDecl": {
-        "ident": 36,
+        "ident": 5,
         "params": [],
-        "body": 56
+        "body": 46
       }
     }
   ],
   "roots": [
-    5,
+    10,
     11,
-    17,
-    19,
-    35,
-    57
+    26,
+    47
   ],
   "type_map": {
     "keys": {
       "0": 0,
-      "1": 16,
-      "2": 1,
-      "3": 18,
-      "4": 17,
-      "5": 2,
-      "6": 3,
-      "7": 19,
-      "8": 4,
-      "9": 21,
-      "10": 20,
-      "11": 5,
-      "12": 6,
-      "13": 22,
-      "14": 7,
-      "15": 24,
-      "16": 23,
-      "17": 8,
-      "18": 25,
-      "19": 9,
-      "20": 10,
-      "21": 26,
-      "22": 11,
-      "23": 27,
-      "24": 12,
-      "25": 30,
-      "26": 31,
-      "27": 34,
-      "28": 33,
-      "29": 32,
-      "30": 29,
-      "31": 37,
-      "32": 36,
-      "33": 35,
-      "34": 28,
-      "35": 13,
-      "36": 14,
-      "37": 41,
-      "38": 42,
-      "39": 43,
-      "40": 44,
-      "41": 39,
-      "42": 40,
-      "43": 46,
-      "44": 47,
-      "45": 50,
-      "46": 51,
-      "47": 49,
-      "48": 48,
-      "49": 52,
-      "50": 55,
-      "51": 56,
-      "52": 54,
-      "53": 53,
-      "54": 45,
-      "55": 57,
-      "56": 38,
-      "57": 15
+      "1": 1,
+      "2": 2,
+      "3": 15,
+      "4": 3,
+      "5": 4,
+      "6": 5,
+      "7": 12,
+      "8": 14,
+      "9": 13,
+      "10": 6,
+      "11": 7,
+      "12": 8,
+      "13": 16,
+      "14": 9,
+      "15": 17,
+      "16": 20,
+      "17": 21,
+      "18": 24,
+      "19": 23,
+      "20": 22,
+      "21": 19,
+      "22": 27,
+      "23": 26,
+      "24": 25,
+      "25": 18,
+      "26": 10,
+      "27": 31,
+      "28": 32,
+      "29": 33,
+      "30": 34,
+      "31": 29,
+      "32": 30,
+      "33": 36,
+      "34": 37,
+      "35": 40,
+      "36": 41,
+      "37": 39,
+      "38": 38,
+      "39": 42,
+      "40": 45,
+      "41": 46,
+      "42": 44,
+      "43": 43,
+      "44": 35,
+      "45": 47,
+      "46": 28,
+      "47": 11
     },
     "values": [
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": "Unit"
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": "Unit"
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": "Unit"
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            "Int32",
+            "Int32"
+          ],
+          "return_type": {
+            "Named": {
+              "name": 3,
+              "type_spec": {
+                "Enum": {
+                  "variants": [
+                    {
+                      "name": 15,
+                      "payload": "Int32"
+                    },
+                    {
+                      "name": 16,
+                      "payload": null
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "Function": {
+          "params": [],
+          "return_type": "Unit"
+        }
+      },
       "String",
-      {
-        "Function": {
-          "params": [
-            "String"
-          ],
-          "return_type": "Unit"
-        }
-      },
-      {
-        "Function": {
-          "params": [
-            "String"
-          ],
-          "return_type": "Unit"
-        }
-      },
-      "String",
-      {
-        "Function": {
-          "params": [
-            "String"
-          ],
-          "return_type": "Unit"
-        }
-      },
-      {
-        "Function": {
-          "params": [
-            "String"
-          ],
-          "return_type": "Unit"
-        }
-      },
-      "String",
-      {
-        "Function": {
-          "params": [
-            "String"
-          ],
-          "return_type": "Unit"
-        }
-      },
       {
         "Function": {
           "params": [
@@ -513,34 +452,7 @@
           ],
           "return_type": {
             "Named": {
-              "name": 18,
-              "type_spec": {
-                "Enum": {
-                  "variants": [
-                    {
-                      "name": 15,
-                      "payload": "Int32"
-                    },
-                    {
-                      "name": 16,
-                      "payload": null
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        }
-      },
-      {
-        "Function": {
-          "params": [
-            "Int32",
-            "Int32"
-          ],
-          "return_type": {
-            "Named": {
-              "name": 18,
+              "name": 3,
               "type_spec": {
                 "Enum": {
                   "variants": [
@@ -565,24 +477,12 @@
           "return_type": "Unit"
         }
       },
-      {
-        "Function": {
-          "params": [],
-          "return_type": "Unit"
-        }
-      },
-      "Unit",
-      "Unit",
-      "Unit",
-      "Unit",
-      "Unit",
-      "Unit",
       "Unit",
       "Unit",
       "Unit",
       {
         "Named": {
-          "name": 18,
+          "name": 3,
           "type_spec": {
             "Enum": {
               "variants": [
@@ -609,7 +509,7 @@
       "Unit",
       {
         "Named": {
-          "name": 18,
+          "name": 3,
           "type_spec": {
             "Enum": {
               "variants": [
@@ -630,7 +530,7 @@
       "Int32",
       {
         "Named": {
-          "name": 18,
+          "name": 3,
           "type_spec": {
             "Enum": {
               "variants": [
@@ -654,7 +554,7 @@
       "Int32",
       {
         "Named": {
-          "name": 18,
+          "name": 3,
           "type_spec": {
             "Enum": {
               "variants": [
@@ -673,7 +573,7 @@
       },
       {
         "Named": {
-          "name": 18,
+          "name": 3,
           "type_spec": {
             "Enum": {
               "variants": [
@@ -694,7 +594,7 @@
       "Int32",
       {
         "Named": {
-          "name": 18,
+          "name": 3,
           "type_spec": {
             "Enum": {
               "variants": [
@@ -713,7 +613,7 @@
       },
       {
         "Named": {
-          "name": 18,
+          "name": 3,
           "type_spec": {
             "Enum": {
               "variants": [
@@ -735,7 +635,7 @@
       "Unit",
       {
         "Named": {
-          "name": 18,
+          "name": 3,
           "type_spec": {
             "Enum": {
               "variants": [
@@ -754,7 +654,7 @@
       },
       {
         "Named": {
-          "name": 18,
+          "name": 3,
           "type_spec": {
             "Enum": {
               "variants": [
@@ -779,34 +679,30 @@
   },
   "symbol_map": {
     "keys": {
-      "12": 1,
-      "13": 0,
-      "14": 3,
-      "15": 2,
-      "16": 5,
-      "17": 4,
+      "12": 0,
+      "13": 1,
+      "14": 2,
+      "15": 3,
+      "16": 4,
+      "17": 5,
       "18": 6,
-      "19": 9,
-      "20": 7,
-      "21": 8,
-      "22": 10,
-      "23": 11,
-      "24": 12
+      "19": 7,
+      "20": 8,
+      "21": 9,
+      "22": 10
     },
     "values": [
       0,
+      1,
       2,
+      3,
+      4,
+      5,
       6,
-      8,
       12,
       14,
-      18,
-      20,
-      22,
-      24,
-      36,
-      40,
-      43
+      30,
+      33
     ]
   },
   "within_loop": false
