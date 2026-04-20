@@ -1477,6 +1477,7 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use crate::ast::{BinaryOp, ConstDecl, TypeDecl, UnaryOp, VarDecl};
+    use crate::file_set::{File, FileSet};
     use crate::parser::Parser;
     use crate::parser::lexer::SourceID;
     use crate::parser::module::File as ParserFile;
@@ -1525,9 +1526,8 @@ mod tests {
         };
 
         let mut str_store = StrStore::new();
-        let file = crate::file_set::File::new(file_name.to_string(), source);
-        let file_set =
-            crate::file_set::FileSet::new_from_files(std::path::PathBuf::new(), vec![file]);
+        let file = File::new(file_name.to_string(), source);
+        let file_set = FileSet::new_from_files(std::path::PathBuf::new(), vec![file]);
         let parser = Parser::new(&file_set);
         let module = parser.parse_module(&mut str_store);
 

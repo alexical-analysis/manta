@@ -222,7 +222,7 @@ mod test {
                 #[test]
                 fn $case() {
                     let mut str_store = StrStore::new();
-                    let mut lexer = Lexer::new($input, &mut str_store);
+                    let mut lexer = Lexer::new($input, &mut str_store, 0);
                     let parser = StmtParser::new();
 
                     let stmt = parser.parse(&mut lexer).unwrap();

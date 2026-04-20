@@ -125,7 +125,7 @@ mod test {
                 fn $case() {
                     let parser = PatternParser::new();
                     let mut str_store = StrStore::new();
-                    let mut lexer = Lexer::new($input, &mut str_store);
+                    let mut lexer = Lexer::new($input, &mut str_store, 0);
                     let pattern = parser.parse(&mut lexer).unwrap();
                     assert_eq!(pattern, $want)
                 }
@@ -365,7 +365,7 @@ mod test {
     #[test]
     fn parse_pattern_invalid() {
         let mut str_store = StrStore::new();
-        let mut lexer = Lexer::new("+ ", &mut str_store);
+        let mut lexer = Lexer::new("+ ", &mut str_store, 0);
         let parser = PatternParser::new();
         let result = parser.parse(&mut lexer);
         assert!(result.is_err());
