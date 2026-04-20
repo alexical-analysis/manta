@@ -8,6 +8,16 @@ pub struct File {
     base: u32,
 }
 
+impl File {
+    pub fn new(name: String, source: String) -> Self {
+        File {
+            name,
+            source,
+            base: 0,
+        }
+    }
+}
+
 pub struct FileSet {
     root_dir: PathBuf,
     files: Vec<File>,
@@ -52,8 +62,41 @@ impl FileSet {
         })
     }
 
+    pub fn new_from_files(root_dir: PathBuf, files: Vec<File>) -> Self {
+        let mut files = files;
+        let mut base = 0u32;
+
+        // update all the file bases so things are aligned and the caller dosen't need to think about
+        // sourc lengths for stuff to be set up correctly
+        for file in &mut files {
+            file.base = base;
+
+            let size = file.source.len() as u32;
+
+            // +1 here represents the files EOF even though that's not technically
+            // a byte from the file. It makes it possible to track the correct file
+            // in the FileSet down using only a SourceId
+            base += size + 1;
+        }
+
+        FileSet { root_dir, files }
+    }
+
     pub fn files(&self) -> &Vec<File> {
         &self.files
+    }
+
+    pub fn line_count(&self) -> usize {
+        self.files
+            .iter()
+            .map(|f| {
+                f.source
+                    .lines()
+                    .filter(|l| !l.trim().is_empty())
+                    .filter(|l| !l.trim_start().starts_with("//"))
+                    .count()
+            })
+            .sum()
     }
 }
 

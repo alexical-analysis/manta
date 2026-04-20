@@ -1,18 +1,5 @@
 {
   "name": 18446744073709551615,
-  "using_modules": [],
-  "errors": [
-    {
-      "Custom": [
-        {
-          "kind": "Identifier",
-          "source_id": 0,
-          "lexeme_id": 0
-        },
-        "first declaration in a file must be the module name"
-      ]
-    }
-  ],
   "decls": [
     {
       "Use": {
@@ -124,6 +111,29 @@
       }
     }
   ],
+  "errors": [
+    {
+      "Custom": [
+        {
+          "kind": "Identifier",
+          "source_id": 0,
+          "lexeme_id": 0
+        },
+        "file is missing module name"
+      ]
+    },
+    {
+      "Custom": [
+        {
+          "kind": "Identifier",
+          "source_id": 0,
+          "lexeme_id": 0
+        },
+        "first declaration in a file must be the module name"
+      ]
+    }
+  ],
+  "using_modules": [],
   "sym_table": {
     "scopes": [
       {

@@ -1,20 +1,5 @@
 {
   "name": 1,
-  "using_modules": [
-    5
-  ],
-  "errors": [
-    {
-      "Custom": [
-        {
-          "kind": "Identifier",
-          "source_id": 0,
-          "lexeme_id": 0
-        },
-        "only a single import section allowed per file, and it must be right below the module name"
-      ]
-    }
-  ],
   "decls": [
     {
       "Mod": {
@@ -137,6 +122,21 @@
         ]
       }
     }
+  ],
+  "errors": [
+    {
+      "Custom": [
+        {
+          "kind": "Identifier",
+          "source_id": 0,
+          "lexeme_id": 0
+        },
+        "only a single import section allowed per file, and it must be right below the module name"
+      ]
+    }
+  ],
+  "using_modules": [
+    5
   ],
   "sym_table": {
     "scopes": [
