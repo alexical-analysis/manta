@@ -56,6 +56,13 @@ impl Compiler {
         result.map_err(|err| format!("failed to link module: {}", err))
     }
 
+    pub fn check(&mut self) {
+        let context = Context::create();
+        let mut generator = Codegen::new(&context);
+
+        self.compile_module(&mut generator);
+    }
+
     fn compile_module<'ctx>(&mut self, generator: &mut Codegen<'ctx>) -> Module<'ctx> {
         println!("building ast module...");
         let parser = Parser::new(self.source.clone());
