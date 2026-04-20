@@ -48,14 +48,17 @@ enum Commands {
         #[arg(short, long, value_name = "DEBUG")]
         debug: bool,
 
-        #[arg(value_name = "ARGS...")]
-        args: Vec<String>,
+        #[arg(value_name = "TARGET_FILE")]
+        target_file: String,
     },
 
     #[command(
         about = "Check complies the project but stops once all checks have been performed and reported"
     )]
-    Check {},
+    Check {
+        #[arg(value_name = "TARGET_FILE")]
+        target_file: String,
+    },
     #[command(about = "Init a new manta project in the current directory")]
     Init {
         #[arg(value_name = "MOD_NAME")]
@@ -127,15 +130,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     match &cli.command {
         Commands::Build {
             debug,
+            target_file,
             out_file,
-            args,
         } => {
-            let in_file = match args.first() {
-                Some(f) => f,
-                None => panic!("missing file to compile"),
-            };
-
-            build(*debug, in_file, out_file);
+            build(*debug, target_file, out_file);
         }
         Commands::Run { out_file, args } => {
             let in_file = match args.first() {
@@ -176,6 +174,17 @@ fn main() -> Result<(), Box<dyn Error>> {
                 fs::remove_file(&out_path).ok();
             }
         }
+        Commands::Check { target_file } => {
+            if !target_file.ends_with(".manta") {
+                panic!("can only compile .manta files")
+            }
+
+            let source = fs::read_to_string(target_file).expect("failed to read input file");
+
+            println!("checking file {:?}", target_file);
+            let mut compiler = Compiler::new(source);
+            compiler.check();
+        }
         Commands::Init { mod_name } => {
             // check if manta.mod already exists before we try to init the project
             if Path::new("manta.mod").exists() {
@@ -185,21 +194,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             // TODO: need to actually track the correct semver here once I start using semver to
             // track manta versions
-            let contents = format!("manta 0.0.0\n{}", mod_name);
+            let contents = format!("manta 0.0.0\n{}\n", mod_name);
             let mut file = File::create("manta.mod")?;
             file.write_all(contents.as_bytes())?;
         }
-        Commands::Check {} => {
-            println!(
-                "stub: check -> workspace={:?}, verbose={}",
-                workspace, cli.verbose
-            );
-        }
-        Commands::Fmt { write, inputs } => {
-            println!(
-                "stub: fmt -> workspace={:?}, write={}, inputs={:?}, verbose={}",
-                workspace, write, inputs, cli.verbose
-            );
+        Commands::Fmt { .. } => {
+            todo!("format command");
         }
     }
 

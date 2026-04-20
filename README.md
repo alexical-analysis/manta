@@ -1,8 +1,7 @@
 # Manta
 
-Manta is a small, systems-style programming language implemented in Rust. It features manual memory management, `defer`-based cleanup, enum pattern matching, and a Go-inspired syntax. The compiler produces native binaries by emitting LLVM IR via [Inkwell](https://github.com/TheDan64/inkwell) and linking with clang.
+Manta is a small, systems-style programming language implemented in Rust. It features manual memory management, `defer`-based cleanup, enum pattern matching, and a Go-inspired syntax. The compiler produces native binaries by emitting LLVM IR via [Inkwell](https://github.com/TheDan64/inkwell) and linking with `cc`.
 
-Example error handling:
 ```manta
 mod main
 
