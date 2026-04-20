@@ -49,15 +49,15 @@ impl<'fs> Parser<'fs> {
         let mut files = vec![];
 
         for file in self.file_set.files() {
-            let file = self.parse_file(str_store, &file.source);
-            files.push(file)
+            let parsed = self.parse_file(str_store, &file.source, file.base());
+            files.push(parsed)
         }
 
         Module::new(files)
     }
 
-    fn parse_file(&self, str_store: &mut StrStore, source: &String) -> File {
-        let mut lexer = Lexer::new(source, str_store);
+    fn parse_file(&self, str_store: &mut StrStore, source: &String, base: usize) -> File {
+        let mut lexer = Lexer::new(source, str_store, base);
 
         let mut declarations = vec![];
 
@@ -178,6 +178,7 @@ impl<'fs> Parser<'fs> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::file_set::File;
     use pretty_assertions::assert_eq;
     use std::fs;
     use std::path::Path;
@@ -200,9 +201,8 @@ mod tests {
         };
 
         let mut str_store = StrStore::new();
-        let file = crate::file_set::File::new(file_name.to_string(), source);
-        let file_set =
-            crate::file_set::FileSet::new_from_files(std::path::PathBuf::new(), vec![file]);
+        let file = File::new(file_name.to_string(), source);
+        let file_set = FileSet::new_from_files(std::path::PathBuf::new(), vec![file]);
         let parser = Parser::new(&file_set);
         let ast = parser.parse_module(&mut str_store);
 

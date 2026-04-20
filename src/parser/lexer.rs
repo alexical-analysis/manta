@@ -101,6 +101,7 @@ pub struct Token {
 pub struct Lexer<'a> {
     source: &'a str,
     pos: usize,
+    base: usize,
     prev_kind: TokenKind,
     next: Token,
     str_store: &'a mut StrStore,
@@ -108,10 +109,13 @@ pub struct Lexer<'a> {
 
 impl<'a> Lexer<'a> {
     /// Create a new lexer from source text.
-    pub fn new(source: &'a str, str_store: &'a mut StrStore) -> Self {
+    /// `base` is the offset of this file in the FileSet's virtual address space;
+    /// all SourceIDs emitted will be relative to that base.
+    pub fn new(source: &'a str, str_store: &'a mut StrStore, base: usize) -> Self {
         let mut lexer = Lexer {
             source,
             pos: 0,
+            base,
             prev_kind: TokenKind::Identifier,
             next: Token {
                 kind: TokenKind::Identifier,
@@ -158,14 +162,14 @@ impl<'a> Lexer<'a> {
             if self.is_end_of_statement() {
                 return Token {
                     kind: TokenKind::Semicolon,
-                    source_id: SourceID::from_usize(self.pos),
+                    source_id: SourceID::from_usize(self.pos + self.base),
                     lexeme_id,
                 };
             }
 
             return Token {
                 kind: TokenKind::Eof,
-                source_id: SourceID::from_usize(self.pos),
+                source_id: SourceID::from_usize(self.pos + self.base),
                 lexeme_id,
             };
         }
@@ -179,7 +183,7 @@ impl<'a> Lexer<'a> {
 
             return Token {
                 kind: TokenKind::Semicolon,
-                source_id: SourceID::from_usize(source_id),
+                source_id: SourceID::from_usize(source_id + self.base),
                 lexeme_id,
             };
         }
@@ -189,7 +193,7 @@ impl<'a> Lexer<'a> {
 
             return Token {
                 kind: TokenKind::Semicolon,
-                source_id: SourceID::from_usize(self.pos),
+                source_id: SourceID::from_usize(self.pos + self.base),
                 lexeme_id,
             };
         }
@@ -361,7 +365,7 @@ impl<'a> Lexer<'a> {
         let lexeme_id = self.str_store.get_id(&self.source[start..end]);
         Token {
             kind,
-            source_id: SourceID::from_usize(start),
+            source_id: SourceID::from_usize(start + self.base),
             lexeme_id,
         }
     }
@@ -419,7 +423,7 @@ impl<'a> Lexer<'a> {
         let lexeme_id = self.str_store.get_id(&self.source[start..end]);
         Token {
             kind,
-            source_id: SourceID::from_usize(start),
+            source_id: SourceID::from_usize(start + self.base),
             lexeme_id,
         }
     }
@@ -437,7 +441,7 @@ impl<'a> Lexer<'a> {
                 let lexeme_id = self.str_store.get_id(&buf);
                 return Token {
                     kind: TokenKind::Str,
-                    source_id: SourceID::from_usize(start),
+                    source_id: SourceID::from_usize(start + self.base),
                     lexeme_id,
                 };
             }
@@ -460,7 +464,7 @@ impl<'a> Lexer<'a> {
                         let lexeme_id = self.str_store.get_id(&buf);
                         return Token {
                             kind: TokenKind::MalformedStr,
-                            source_id: SourceID::from_usize(self.pos),
+                            source_id: SourceID::from_usize(self.pos + self.base),
                             lexeme_id,
                         };
                     }
@@ -472,7 +476,7 @@ impl<'a> Lexer<'a> {
         let lexeme_id = self.str_store.get_id(&buf);
         Token {
             kind: TokenKind::MalformedStr,
-            source_id: SourceID::from_usize(start),
+            source_id: SourceID::from_usize(start + self.base),
             lexeme_id,
         }
     }
@@ -584,7 +588,7 @@ impl<'a> Lexer<'a> {
         // otherwise treat as operator
         Token {
             kind,
-            source_id: SourceID::from_usize(start),
+            source_id: SourceID::from_usize(start + self.base),
             lexeme_id,
         }
     }
@@ -625,7 +629,7 @@ mod tests {
         };
 
         let mut str_store = StrStore::new();
-        let mut lexer = Lexer::new(&source, &mut str_store);
+        let mut lexer = Lexer::new(&source, &mut str_store, 0);
         let mut tokens = vec![];
         loop {
             let token = lexer.peek();
@@ -676,7 +680,7 @@ mod tests {
                 fn $case() {
                     let source = $input;
                     let mut str_store = StrStore::new();
-                    let mut lexer = Lexer::new(source, &mut str_store);
+                    let mut lexer = Lexer::new(source, &mut str_store, 0);
                     let mut toks = vec![];
                     loop {
                         let token = lexer.peek();

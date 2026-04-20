@@ -16,6 +16,10 @@ impl File {
             base: 0,
         }
     }
+
+    pub fn base(&self) -> usize {
+        self.base as usize
+    }
 }
 
 pub struct FileSet {

@@ -1503,6 +1503,7 @@ mod tests {
     use std::path::Path;
 
     use crate::blocker::Blocker;
+    use crate::file_set::{File, FileSet};
     use crate::noder::node_module;
     use crate::parser::Parser;
     use crate::str_store::StrStore;
@@ -1524,9 +1525,8 @@ mod tests {
         };
 
         let mut str_store = StrStore::new();
-        let file = crate::file_set::File::new(file_name.to_string(), source);
-        let file_set =
-            crate::file_set::FileSet::new_from_files(std::path::PathBuf::new(), vec![file]);
+        let file = File::new(file_name.to_string(), source);
+        let file_set = FileSet::new_from_files(std::path::PathBuf::new(), vec![file]);
         let parser = Parser::new(&file_set);
         let module = parser.parse_module(&mut str_store);
 

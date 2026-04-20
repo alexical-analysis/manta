@@ -134,7 +134,7 @@ mod tests {
                 #[test]
                 fn $case() {
                     let mut str_store = StrStore::new();
-                    let mut lexer = Lexer::new($input, &mut str_store);
+                    let mut lexer = Lexer::new($input, &mut str_store, 0);
                     let token = lexer.next_token();
                     let type_spec = parse_type(&mut lexer, token).unwrap();
                     assert_eq!(type_spec, $want);
