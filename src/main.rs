@@ -16,9 +16,8 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::Instant;
 
-use compiler::Compiler;
-
 use clap::{Parser, Subcommand};
+use compiler::Compiler;
 
 /// The CLI for the Manta programming language
 #[derive(Parser, Debug)]
@@ -27,10 +26,6 @@ use clap::{Parser, Subcommand};
 struct Cli {
     #[arg(short, long, action = clap::ArgAction::Count)]
     verbose: u8,
-
-    /// Path to the project or file to operate on (defaults to current directory)
-    #[arg(short, long, value_name = "PATH")]
-    path: Option<PathBuf>,
 
     #[command(subcommand)]
     command: Commands,
@@ -48,16 +43,16 @@ enum Commands {
         #[arg(short, long, value_name = "DEBUG")]
         debug: bool,
 
-        #[arg(value_name = "TARGET_FILE")]
-        target_file: String,
+        #[arg(value_name = "TARGET_DIR")]
+        target_dir: Option<PathBuf>,
     },
 
     #[command(
         about = "Check complies the project but stops once all checks have been performed and reported"
     )]
     Check {
-        #[arg(value_name = "TARGET_FILE")]
-        target_file: String,
+        #[arg(value_name = "TARGET_DIR")]
+        target_dir: Option<PathBuf>,
     },
     #[command(about = "Init a new manta project in the current directory")]
     Init {
@@ -70,6 +65,9 @@ enum Commands {
     Run {
         #[arg(short, long, value_name = "OUT_DIR")]
         out_file: Option<String>,
+
+        #[arg(value_name = "TARGET_DIR")]
+        target_dir: Option<PathBuf>,
 
         #[arg(value_name = "ARGS...")]
         args: Vec<String>,
@@ -85,22 +83,47 @@ enum Commands {
     },
 }
 
-fn build(debug: bool, in_file: &String, out_file: &Option<String>) {
-    if !in_file.ends_with(".manta") {
-        panic!("can only compile .manta files")
-    }
-
-    let source = fs::read_to_string(in_file).expect("failed to read input file");
-    let out_file = match out_file {
-        Some(f) => f.clone(),
-        None => Path::new(in_file)
-            .file_stem()
-            .and_then(|s| s.to_str())
-            .expect("failed to get output file name")
-            .to_string(),
+fn build(
+    debug: bool,
+    target_dir: &Option<PathBuf>,
+    out_file: &Option<String>,
+) -> Result<(), Box<dyn Error>> {
+    let workspace = match target_dir {
+        Some(dir) => match dir.is_dir() {
+            true => dir.clone(),
+            false => return Err(String::from("target dir must be a valid directory").into()),
+        },
+        None => env::current_dir()?,
     };
 
-    println!("compiling file {:?}", in_file);
+    if !workspace.join("manta.mod").exists() {
+        return Err(String::from("path does not contain manta.mod file").into());
+    }
+
+    let modules = file_set::gather_file_sets(workspace.clone())?;
+
+    let out_file = match out_file {
+        Some(f) => f.clone(),
+        None => match workspace.file_name() {
+            Some(dir) => dir.to_string_lossy().to_string(),
+            None => "main".to_string(),
+        },
+    };
+
+    // TODO: need to actually compile all the modules, for now just compile main.manta from the main_mod
+    let mut source = None;
+    for file in modules.first().expect("missing main mod").files() {
+        if file.name == "main.manta" {
+            source = Some(&file.source)
+        }
+    }
+
+    let source = match source {
+        Some(s) => s.clone(),
+        None => return Err(String::from("failed to find main.manta").into()),
+    };
+
+    println!("compiling file main.manta");
     let line_count = source
         .lines()
         .filter(|l| !l.trim().is_empty())
@@ -117,40 +140,32 @@ fn build(debug: bool, in_file: &String, out_file: &Option<String>) {
 
     let total_time = start.elapsed().as_secs_f64();
     println!("compiled {:?} lines in {:.4}s", line_count, total_time);
+
+    Ok(())
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
-    let workspace = match cli.path {
-        Some(p) => p,
-        None => env::current_dir()?,
-    };
-
     match &cli.command {
         Commands::Build {
             debug,
-            target_file,
+            target_dir,
             out_file,
         } => {
-            build(*debug, target_file, out_file);
+            build(*debug, target_dir, out_file)?;
         }
-        Commands::Run { out_file, args } => {
-            let in_file = match args.first() {
-                Some(f) => f,
-                None => panic!("missing file to compile"),
-            };
-
+        Commands::Run {
+            out_file,
+            target_dir,
+            args,
+        } => {
             // if out_file is provided, use it and leave it on disk; otherwise write to a temp path
-            // derived from the input file stem and clean it up after running
+            // and clean it up after running
             let (out_path, cleanup) = match out_file {
                 Some(f) => (f.clone(), false),
                 None => {
-                    let stem = Path::new(in_file)
-                        .file_stem()
-                        .and_then(|s| s.to_str())
-                        .expect("failed to get output file name");
-                    let path = env::temp_dir().join(stem);
+                    let path = env::temp_dir().join("tmp");
                     (
                         path.to_str()
                             .expect("failed to build temp path")
@@ -160,10 +175,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             };
 
-            build(false, in_file, &Some(out_path.clone()));
+            build(false, target_dir, &Some(out_path.clone()))?;
 
             let output = Command::new(&out_path)
-                .args(args.iter().skip(1))
+                .args(args.iter())
                 .output()
                 .expect("failed to run");
 
@@ -174,14 +189,37 @@ fn main() -> Result<(), Box<dyn Error>> {
                 fs::remove_file(&out_path).ok();
             }
         }
-        Commands::Check { target_file } => {
-            if !target_file.ends_with(".manta") {
-                panic!("can only compile .manta files")
+        Commands::Check { target_dir } => {
+            let workspace = match target_dir {
+                Some(dir) => match dir.is_dir() {
+                    true => dir.clone(),
+                    false => {
+                        return Err(String::from("target dir must be a valid directory").into());
+                    }
+                },
+                None => env::current_dir()?,
+            };
+
+            if !workspace.join("manta.mod").exists() {
+                return Err(String::from("path does not contain manta.mod file").into());
             }
 
-            let source = fs::read_to_string(target_file).expect("failed to read input file");
+            let modules = file_set::gather_file_sets(workspace.clone())?;
 
-            println!("checking file {:?}", target_file);
+            // TODO: need to actually compile all the modules, for now just compile main.manta from the main_mod
+            let mut source = None;
+            for file in modules.first().expect("missing main mod").files() {
+                if file.name == "main.manta" {
+                    source = Some(&file.source)
+                }
+            }
+
+            let source = match source {
+                Some(s) => s.clone(),
+                None => return Err(String::from("failed to find main.manta").into()),
+            };
+
+            println!("checking file manta.main");
             let mut compiler = Compiler::new(source);
             compiler.check();
         }
