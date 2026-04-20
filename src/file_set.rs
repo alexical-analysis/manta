@@ -1,12 +1,14 @@
+use std::error::Error;
 use std::io;
 use std::{fs, path::PathBuf};
 
-struct File {
-    name: String,
-    source: String,
+pub struct File {
+    pub name: String,
+    pub source: String,
     base: u32,
 }
-struct FileSet {
+
+pub struct FileSet {
     root_dir: PathBuf,
     files: Vec<File>,
 }
@@ -49,6 +51,34 @@ impl FileSet {
             files,
         })
     }
+
+    pub fn files(&self) -> &Vec<File> {
+        &self.files
+    }
+}
+
+pub fn gather_file_sets(root_dir: PathBuf) -> Result<Vec<FileSet>, Box<dyn Error>> {
+    let mut file_sets = vec![];
+
+    for entry in fs::read_dir(&root_dir)? {
+        let entry = entry?;
+        let path = entry.path();
+        if path.is_dir() {
+            let mut nested = gather_file_sets(path)?;
+            file_sets.append(&mut nested);
+        }
+    }
+
+    let root = FileSet::new_from_dir(root_dir)?;
+    file_sets.push(root);
+
+    // filter out any empty file sets
+    let file_sets = file_sets
+        .into_iter()
+        .filter(|fs| !fs.files.is_empty())
+        .collect();
+
+    Ok(file_sets)
 }
 
 #[cfg(test)]
@@ -134,5 +164,77 @@ mod tests {
         let dir = make_project(&[]);
         let fs = FileSet::new_from_dir(dir.path().to_path_buf()).unwrap();
         assert!(fs.files.is_empty());
+    }
+
+    #[test]
+    fn test_gather_file_sets_flat() {
+        let dir = make_project(&[("main.manta", "fn main() {}")]);
+        let sets = gather_file_sets(dir.path().to_path_buf()).unwrap();
+        assert_eq!(sets.len(), 1);
+        assert_eq!(sets[0].files.len(), 1);
+        assert_eq!(sets[0].files[0].name, "main.manta");
+    }
+
+    #[test]
+    fn test_gather_file_sets_nested() {
+        let dir = make_project(&[
+            ("main.manta", "fn main() {}"),
+            ("sub/util.manta", "fn util() {}"),
+            ("sub/helper.manta", "fn helper() {}"),
+        ]);
+        let sets = gather_file_sets(dir.path().to_path_buf()).unwrap();
+        assert_eq!(sets.len(), 2);
+
+        let total_files: usize = sets.iter().map(|s| s.files.len()).sum();
+        assert_eq!(total_files, 3);
+
+        let has_main = sets
+            .iter()
+            .any(|s| s.files.iter().any(|f| f.name == "main.manta"));
+        let has_util = sets
+            .iter()
+            .any(|s| s.files.iter().any(|f| f.name == "util.manta"));
+        assert!(has_main);
+        assert!(has_util);
+    }
+
+    #[test]
+    fn test_gather_file_sets_deeply_nested() {
+        let dir = make_project(&[
+            ("a.manta", "fn a() {}"),
+            ("sub/b.manta", "fn b() {}"),
+            ("sub/deep/c.manta", "fn c() {}"),
+        ]);
+        let sets = gather_file_sets(dir.path().to_path_buf()).unwrap();
+        assert_eq!(sets.len(), 3);
+
+        let total_files: usize = sets.iter().map(|s| s.files.len()).sum();
+        assert_eq!(total_files, 3);
+    }
+
+    #[test]
+    fn test_gather_file_sets_excludes_empty_dirs() {
+        // Only the root and "full" subdirs have .manta files; "empty" has none.
+        let dir = make_project(&[
+            ("root.manta", "fn root() {}"),
+            ("full/mod.manta", "fn mod_fn() {}"),
+            ("empty/README.md", "not manta"),
+        ]);
+        let sets = gather_file_sets(dir.path().to_path_buf()).unwrap();
+        // "empty" dir should be excluded; only root and "full" remain
+        assert_eq!(sets.len(), 2);
+        for s in &sets {
+            assert!(!s.files.is_empty());
+        }
+    }
+
+    #[test]
+    fn test_gather_file_sets_all_empty_returns_empty() {
+        let dir = make_project(&[
+            ("sub1/notes.txt", "nothing"),
+            ("sub2/readme.md", "also nothing"),
+        ]);
+        let sets = gather_file_sets(dir.path().to_path_buf()).unwrap();
+        assert!(sets.is_empty());
     }
 }
