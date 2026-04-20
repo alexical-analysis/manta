@@ -7,12 +7,13 @@ pub mod statement;
 pub mod types;
 
 use crate::ast::{BlockStmt, Decl, FunctionDecl, FunctionType, Parameter, TypeSpec};
+use crate::file_set::FileSet;
 use crate::parser::lexer::SourceID;
 use crate::str_store::{self, StrStore};
 
 use declaration::DeclParser;
 use lexer::{Lexer, Token, TokenKind};
-use module::Module;
+use module::{File, Module};
 use serde::Serialize;
 
 /// Parse error type for the parser core.
@@ -29,23 +30,34 @@ pub enum ParseError {
 /// A minimal Parser core scaffolding. This implements a buffered token stream
 /// with lookahead and simple parselet registration. The parselet registries
 /// are intentionally simple (Vec-based) to avoid requiring `TokenKind: Hash`.
-pub struct Parser {
-    source: String,
+pub struct Parser<'fs> {
+    file_set: &'fs FileSet,
     decl_parser: DeclParser,
 }
 
-impl Parser {
+impl<'fs> Parser<'fs> {
     /// Create a new parser for a piece of source code
-    pub fn new(source: String) -> Self {
+    pub fn new(file_set: &'fs FileSet) -> Self {
         Parser {
-            source,
+            file_set,
             decl_parser: DeclParser::new(),
         }
     }
 
     /// Parse a Manta module
     pub fn parse_module(&self, str_store: &mut StrStore) -> Module {
-        let mut lexer = Lexer::new(&self.source, str_store);
+        let mut files = vec![];
+
+        for file in self.file_set.files() {
+            let file = self.parse_file(str_store, &file.source);
+            files.push(file)
+        }
+
+        Module::new(files)
+    }
+
+    fn parse_file(&self, str_store: &mut StrStore, source: &String) -> File {
+        let mut lexer = Lexer::new(source, str_store);
 
         let mut declarations = vec![];
 
@@ -159,7 +171,7 @@ impl Parser {
             }
         }
 
-        Module::new(errors, declarations)
+        File::new(errors, declarations)
     }
 }
 
@@ -188,7 +200,10 @@ mod tests {
         };
 
         let mut str_store = StrStore::new();
-        let parser = Parser::new(source);
+        let file = crate::file_set::File::new(file_name.to_string(), source);
+        let file_set =
+            crate::file_set::FileSet::new_from_files(std::path::PathBuf::new(), vec![file]);
+        let parser = Parser::new(&file_set);
         let ast = parser.parse_module(&mut str_store);
 
         let json_output =

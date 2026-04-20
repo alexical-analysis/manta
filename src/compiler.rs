@@ -5,6 +5,7 @@ use std::process::Command;
 use crate::blocker::Blocker;
 use crate::codegen::Codegen;
 use crate::codegen::optimizer;
+use crate::file_set::FileSet;
 use crate::noder::node_module;
 use crate::parser::Parser;
 use crate::str_store::StrStore;
@@ -13,13 +14,13 @@ use inkwell::context::Context;
 use inkwell::module::Module;
 use inkwell::targets::{FileType, TargetMachine};
 
-pub struct Compiler {
-    source: String,
+pub struct Compiler<'fs> {
+    file_set: &'fs FileSet,
 }
 
-impl Compiler {
-    pub fn new(source: String) -> Self {
-        Compiler { source }
+impl<'fs> Compiler<'fs> {
+    pub fn new(file_set: &'fs FileSet) -> Self {
+        Compiler { file_set }
     }
 
     /// Compiles the source to a binary at `output_file`. When `debug` is true, the intermediate
@@ -65,7 +66,7 @@ impl Compiler {
 
     fn compile_module<'ctx>(&mut self, generator: &mut Codegen<'ctx>) -> Module<'ctx> {
         println!("building ast module...");
-        let parser = Parser::new(self.source.clone());
+        let parser = Parser::new(self.file_set);
         let mut str_store = StrStore::new();
         let module = parser.parse_module(&mut str_store);
 

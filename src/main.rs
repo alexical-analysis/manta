@@ -110,27 +110,13 @@ fn build(
         },
     };
 
-    // TODO: need to actually compile all the modules, for now just compile main.manta from the main_mod
-    let mut source = None;
-    for file in modules.first().expect("missing main mod").files() {
-        if file.name == "main.manta" {
-            source = Some(&file.source)
-        }
-    }
+    // TODO: need to actually compile all the modules, for now just compile the root module
+    let root_module = modules.first().expect("missing main mod");
 
-    let source = match source {
-        Some(s) => s.clone(),
-        None => return Err(String::from("failed to find main.manta").into()),
-    };
+    println!("compiling file main module");
+    let line_count = root_module.line_count();
 
-    println!("compiling file main.manta");
-    let line_count = source
-        .lines()
-        .filter(|l| !l.trim().is_empty())
-        .filter(|l| !l.trim_start().starts_with("//"))
-        .count();
-
-    let mut compiler = Compiler::new(source);
+    let mut compiler = Compiler::new(root_module);
     let start = Instant::now();
 
     match compiler.compile(out_file, debug) {
@@ -206,21 +192,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let modules = file_set::gather_file_sets(workspace.clone())?;
 
-            // TODO: need to actually compile all the modules, for now just compile main.manta from the main_mod
-            let mut source = None;
-            for file in modules.first().expect("missing main mod").files() {
-                if file.name == "main.manta" {
-                    source = Some(&file.source)
-                }
-            }
+            // TODO: need to actually compile all the modules, for now just compile the root module
+            let root_module = modules.first().expect("missing main mod");
 
-            let source = match source {
-                Some(s) => s.clone(),
-                None => return Err(String::from("failed to find main.manta").into()),
-            };
-
-            println!("checking file manta.main");
-            let mut compiler = Compiler::new(source);
+            let mut compiler = Compiler::new(root_module);
             compiler.check();
         }
         Commands::Init { mod_name } => {

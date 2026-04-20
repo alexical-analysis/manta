@@ -238,31 +238,78 @@ impl SymTable {
     }
 }
 
+/// A file in a manta module
+#[derive(Debug, Serialize)]
+pub struct File {
+    errors: Vec<ParseError>,
+    decls: Vec<Decl>,
+}
+
+impl File {
+    pub fn new(errors: Vec<ParseError>, decls: Vec<Decl>) -> Self {
+        File { errors, decls }
+    }
+}
+
 /// A module in a manta program
 #[derive(Debug, Serialize)]
 pub struct Module {
     name: StrID,
-    using_modules: Vec<StrID>,
-    errors: Vec<ParseError>,
     decls: Vec<Decl>,
+    errors: Vec<ParseError>,
+    using_modules: Vec<StrID>,
     sym_table: SymTable,
 }
 
 impl Module {
-    pub fn new(mut errors: Vec<ParseError>, decls: Vec<Decl>) -> Self {
-        let (name, mut mod_errors) = Self::get_module(&decls);
-        errors.append(&mut mod_errors);
+    pub fn new(mut files: Vec<File>) -> Self {
+        let mut decls = vec![];
+        let mut errors = vec![];
+        let mut using_modules = vec![];
 
-        let (using_modules, mut use_errors) = Self::get_using(&decls);
-        errors.append(&mut use_errors);
+        let mut module = None;
+        for file in &mut files {
+            // every file needs a module declaration
+            let (file_module, mut mod_errors) = Self::get_module(&file.decls);
+            errors.append(&mut mod_errors);
+
+            match module {
+                Some(m) => {
+                    if file_module != m {
+                        errors.push(ParseError::Custom(
+                            // TODO: need to get the actual tokens here
+                            Token {
+                                kind: TokenKind::Identifier,
+                                source_id: SourceID::from_usize(0),
+                                lexeme_id: StrID::from_usize(0),
+                            },
+                            "multiple modules names in a single dir is not allowed".to_string(),
+                        ))
+                    }
+                }
+                None => module = Some(file_module),
+            }
+
+            let (mut using, mut use_errors) = Self::get_using(&file.decls);
+            using_modules.append(&mut using);
+            errors.append(&mut use_errors);
+
+            decls.append(&mut file.decls);
+            errors.append(&mut file.errors);
+        }
+
+        let name = match module {
+            Some(n) => n,
+            None => str_store::NIL,
+        };
 
         let sym_table = Self::build_sym_table(&mut errors, &decls);
 
         Module {
             name,
-            using_modules,
-            errors,
             decls,
+            errors,
+            using_modules,
             sym_table,
         }
     }
@@ -308,6 +355,18 @@ impl Module {
                     ));
                 }
             }
+        }
+
+        if module_name == str_store::NIL {
+            errors.push(ParseError::Custom(
+                // TODO: need to get the actual tokens here
+                Token {
+                    kind: TokenKind::Identifier,
+                    source_id: SourceID::from_usize(0),
+                    lexeme_id: StrID::from_usize(0),
+                },
+                "file is missing module name".to_string(),
+            ));
         }
 
         (module_name, errors)

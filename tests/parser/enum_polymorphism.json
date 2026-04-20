@@ -1,10 +1,5 @@
 {
   "name": 1,
-  "using_modules": [
-    5,
-    6
-  ],
-  "errors": [],
   "decls": [
     {
       "Mod": {
@@ -444,6 +439,11 @@
         }
       }
     }
+  ],
+  "errors": [],
+  "using_modules": [
+    5,
+    6
   ],
   "sym_table": {
     "scopes": [

@@ -1,7 +1,5 @@
 {
   "name": 1,
-  "using_modules": [],
-  "errors": [],
   "decls": [
     {
       "Mod": {
@@ -383,6 +381,8 @@
       }
     }
   ],
+  "errors": [],
+  "using_modules": [],
   "sym_table": {
     "scopes": [
       {
