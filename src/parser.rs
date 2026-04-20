@@ -61,13 +61,13 @@ impl<'fs> Parser<'fs> {
 
         let mut declarations = vec![];
 
-        let mut builtins_injected = false;
         let mut errors = vec![];
         loop {
             let token_kind = lexer.peek().kind;
             if token_kind == TokenKind::Eof {
                 break;
             }
+
             // TODO: the parse method should return both the Decl as well as a vector of errors. We
             // want to try and compile no matter what so having some of the declaration info is
             // important and for decls like a function its possible to have way more than a single
@@ -79,96 +79,8 @@ impl<'fs> Parser<'fs> {
                     Decl::Invalid
                 }
             };
-            match decl {
-                Decl::Mod(_) => {
-                    declarations.push(decl);
-                }
-                Decl::Use(_) => {
-                    declarations.push(decl);
 
-                    if !builtins_injected {
-                        builtins_injected = true;
-                        // TODO: remove these temporary builtin functions when we have support for modules and can
-                        // move them into the std lib, for now these are just placeholders that will get swapped
-                        // out durring LLVM IR construction
-                        declarations.push(Decl::Function(FunctionDecl {
-                            id: SourceID::from_usize(9_999_999_999),
-                            name: str_store::PRINT,
-                            params: vec![Parameter {
-                                id: SourceID::from_usize(9_999_999_998),
-                                name: str_store::UNDERSCORE,
-                            }],
-                            body: BlockStmt {
-                                id: SourceID::from_usize(9_999_999_997),
-                                statements: vec![],
-                            },
-                            function_type: FunctionType {
-                                params: vec![TypeSpec::String],
-                                return_type: Box::new(TypeSpec::Unit),
-                            },
-                        }));
-                        declarations.push(Decl::Function(FunctionDecl {
-                            id: SourceID::from_usize(9_999_999_996),
-                            name: str_store::EPRINT,
-                            params: vec![Parameter {
-                                id: SourceID::from_usize(9_999_999_995),
-                                name: str_store::UNDERSCORE,
-                            }],
-                            body: BlockStmt {
-                                id: SourceID::from_usize(9_999_999_994),
-                                statements: vec![],
-                            },
-                            function_type: FunctionType {
-                                params: vec![TypeSpec::String],
-                                return_type: Box::new(TypeSpec::Unit),
-                            },
-                        }));
-                    }
-                }
-                _ => {
-                    if !builtins_injected {
-                        builtins_injected = true;
-
-                        // TODO: remove these temporary builtin functions when we have support for modules and can
-                        // move them into the std lib, for now these are just placeholders that will get swapped
-                        // out durring LLVM IR construction
-                        declarations.push(Decl::Function(FunctionDecl {
-                            id: SourceID::from_usize(9_999_999_999),
-                            name: str_store::PRINT,
-                            params: vec![Parameter {
-                                id: SourceID::from_usize(9_999_999_998),
-                                name: str_store::UNDERSCORE,
-                            }],
-                            body: BlockStmt {
-                                id: SourceID::from_usize(9_999_999_997),
-                                statements: vec![],
-                            },
-                            function_type: FunctionType {
-                                params: vec![TypeSpec::String],
-                                return_type: Box::new(TypeSpec::Unit),
-                            },
-                        }));
-                        declarations.push(Decl::Function(FunctionDecl {
-                            id: SourceID::from_usize(9_999_999_996),
-                            name: str_store::EPRINT,
-                            params: vec![Parameter {
-                                id: SourceID::from_usize(9_999_999_995),
-                                name: str_store::UNDERSCORE,
-                            }],
-                            body: BlockStmt {
-                                id: SourceID::from_usize(9_999_999_994),
-                                statements: vec![],
-                            },
-                            function_type: FunctionType {
-                                params: vec![TypeSpec::String],
-                                return_type: Box::new(TypeSpec::Unit),
-                            },
-                        }));
-                    }
-
-                    declarations.push(decl);
-                }
-            }
+            declarations.push(decl);
         }
 
         File::new(errors, declarations)

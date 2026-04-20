@@ -22,76 +22,16 @@
   },
   "functions": [
     {
-      "name": 18446744073709551590,
-      "params": [
-        1
-      ],
-      "return_type": "Unit",
-      "local_map": {
-        "0": 1
-      },
-      "locals": [
-        {
-          "type_spec": "String",
-          "name": 18446744073709551595
-        }
-      ],
-      "blocks": [
-        {
-          "instructions": [],
-          "terminator": {
-            "Return": {
-              "value": null
-            }
-          }
-        },
-        null
-      ],
-      "entry_block": 1,
-      "instructions": [],
-      "value_types": []
-    },
-    {
-      "name": 18446744073709551589,
-      "params": [
-        1
-      ],
-      "return_type": "Unit",
-      "local_map": {
-        "6": 1
-      },
-      "locals": [
-        {
-          "type_spec": "String",
-          "name": 18446744073709551595
-        }
-      ],
-      "blocks": [
-        {
-          "instructions": [],
-          "terminator": {
-            "Return": {
-              "value": null
-            }
-          }
-        },
-        null
-      ],
-      "entry_block": 1,
-      "instructions": [],
-      "value_types": []
-    },
-    {
       "name": 1,
       "params": [],
       "return_type": "I64",
       "local_map": {
-        "14": 1,
-        "18": 2,
-        "45": 3,
-        "49": 4,
-        "67": 5,
-        "79": 6
+        "4": 1,
+        "8": 2,
+        "35": 3,
+        "39": 4,
+        "57": 5,
+        "69": 6
       },
       "locals": [
         {

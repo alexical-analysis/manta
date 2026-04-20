@@ -22,66 +22,6 @@
   },
   "functions": [
     {
-      "name": 18446744073709551590,
-      "params": [
-        1
-      ],
-      "return_type": "Unit",
-      "local_map": {
-        "0": 1
-      },
-      "locals": [
-        {
-          "type_spec": "String",
-          "name": 18446744073709551595
-        }
-      ],
-      "blocks": [
-        {
-          "instructions": [],
-          "terminator": {
-            "Return": {
-              "value": null
-            }
-          }
-        },
-        null
-      ],
-      "entry_block": 1,
-      "instructions": [],
-      "value_types": []
-    },
-    {
-      "name": 18446744073709551589,
-      "params": [
-        1
-      ],
-      "return_type": "Unit",
-      "local_map": {
-        "6": 1
-      },
-      "locals": [
-        {
-          "type_spec": "String",
-          "name": 18446744073709551595
-        }
-      ],
-      "blocks": [
-        {
-          "instructions": [],
-          "terminator": {
-            "Return": {
-              "value": null
-            }
-          }
-        },
-        null
-      ],
-      "entry_block": 1,
-      "instructions": [],
-      "value_types": []
-    },
-    {
       "name": 17,
       "params": [
         1
@@ -98,7 +38,7 @@
         }
       },
       "local_map": {
-        "16": 1
+        "12": 1
       },
       "locals": [
         {
@@ -151,7 +91,7 @@
       ],
       "return_type": "Unit",
       "local_map": {
-        "23": 1
+        "18": 1
       },
       "locals": [
         {
@@ -192,8 +132,8 @@
         }
       },
       "local_map": {
-        "31": 1,
-        "33": 2
+        "24": 1,
+        "26": 2
       },
       "locals": [
         {
@@ -279,16 +219,16 @@
         }
       },
       "local_map": {
-        "42": 1,
-        "46": 4,
-        "48": 2,
-        "53": 5,
-        "65": 7,
-        "67": 6,
-        "73": 8,
-        "85": 11,
-        "87": 9,
-        "92": 12
+        "33": 1,
+        "36": 4,
+        "38": 2,
+        "43": 5,
+        "55": 7,
+        "57": 6,
+        "63": 8,
+        "75": 11,
+        "77": 9,
+        "82": 12
       },
       "locals": [
         {

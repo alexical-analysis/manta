@@ -111,7 +111,7 @@ fn build(
     };
 
     // TODO: need to actually compile all the modules, for now just compile the root module
-    let root_module = modules.first().expect("missing main mod");
+    let root_module = modules.last().expect("missing main mod");
 
     println!("compiling file main module");
     let line_count = root_module.line_count();
@@ -193,7 +193,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             let modules = file_set::gather_file_sets(workspace.clone())?;
 
             // TODO: need to actually compile all the modules, for now just compile the root module
-            let root_module = modules.first().expect("missing main mod");
+            let root_module = modules.last().expect("missing main mod");
 
             let mut compiler = Compiler::new(root_module);
             compiler.check();

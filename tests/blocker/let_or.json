@@ -22,66 +22,6 @@
   },
   "functions": [
     {
-      "name": 18446744073709551590,
-      "params": [
-        1
-      ],
-      "return_type": "Unit",
-      "local_map": {
-        "0": 1
-      },
-      "locals": [
-        {
-          "type_spec": "String",
-          "name": 18446744073709551595
-        }
-      ],
-      "blocks": [
-        {
-          "instructions": [],
-          "terminator": {
-            "Return": {
-              "value": null
-            }
-          }
-        },
-        null
-      ],
-      "entry_block": 1,
-      "instructions": [],
-      "value_types": []
-    },
-    {
-      "name": 18446744073709551589,
-      "params": [
-        1
-      ],
-      "return_type": "Unit",
-      "local_map": {
-        "6": 1
-      },
-      "locals": [
-        {
-          "type_spec": "String",
-          "name": 18446744073709551595
-        }
-      ],
-      "blocks": [
-        {
-          "instructions": [],
-          "terminator": {
-            "Return": {
-              "value": null
-            }
-          }
-        },
-        null
-      ],
-      "entry_block": 1,
-      "instructions": [],
-      "value_types": []
-    },
-    {
       "name": 19,
       "params": [
         1
@@ -98,7 +38,7 @@
         }
       },
       "local_map": {
-        "16": 1
+        "14": 1
       },
       "locals": [
         {
@@ -151,7 +91,7 @@
       ],
       "return_type": "Unit",
       "local_map": {
-        "23": 1
+        "20": 1
       },
       "locals": [
         {
@@ -191,7 +131,7 @@
         }
       },
       "local_map": {
-        "31": 1
+        "26": 1
       },
       "locals": [
         {
@@ -244,7 +184,7 @@
       ],
       "return_type": "Unit",
       "local_map": {
-        "38": 1
+        "32": 1
       },
       "locals": [
         {
@@ -301,13 +241,13 @@
         }
       },
       "local_map": {
-        "46": 1,
-        "50": 4,
-        "52": 2,
-        "57": 5,
-        "68": 8,
-        "70": 6,
-        "75": 9
+        "38": 1,
+        "41": 4,
+        "43": 2,
+        "48": 5,
+        "59": 8,
+        "61": 6,
+        "66": 9
       },
       "locals": [
         {
@@ -1069,12 +1009,12 @@
       "params": [],
       "return_type": "Unit",
       "local_map": {
-        "89": 3,
-        "91": 1,
-        "96": 4,
-        "107": 7,
-        "109": 5,
-        "115": 8
+        "79": 3,
+        "81": 1,
+        "86": 4,
+        "97": 7,
+        "99": 5,
+        "105": 8
       },
       "locals": [
         {
