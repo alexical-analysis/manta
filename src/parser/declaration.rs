@@ -455,10 +455,12 @@ mod tests {
                     type_spec: TypeSpec::Struct(StructType {
                         fields: vec![
                             StructTypeField {
+                                public: false,
                                 name: StrID::from_usize(4),
                                 type_spec: TypeSpec::Int32,
                             },
                             StructTypeField {
+                                public: false,
                                 name: StrID::from_usize(6),
                                 type_spec: TypeSpec::Int32,
                             },
@@ -661,5 +663,92 @@ mod tests {
                 }
             ),
         },
+        parse_decl_struct_single_pub_field {
+            // type Foo struct { pub x i32 }
+            // StrIDs: type=0, Foo=1, struct=2, {=3, pub=4, x=5
+            input: "type Foo struct { pub x i32 }",
+            want_var: Decl::Type(decl),
+            want_value: assert_eq!(
+                decl,
+                TypeDecl {
+                    public: false,
+                    id: SourceID::from_usize(5),
+                    name: StrID::from_usize(1),
+                    type_spec: TypeSpec::Struct(StructType {
+                        fields: vec![StructTypeField {
+                            public: true,
+                            name: StrID::from_usize(5),
+                            type_spec: TypeSpec::Int32,
+                        }]
+                    }),
+                }
+            ),
+        },
+        parse_decl_struct_all_pub_fields {
+            // type Bar struct { pub x i32; pub y i32 }
+            // StrIDs: type=0, Bar=1, struct=2, {=3, pub=4, x=5, ;=6, y=7
+            input: "type Bar struct { pub x i32; pub y i32 }",
+            want_var: Decl::Type(decl),
+            want_value: assert_eq!(
+                decl,
+                TypeDecl {
+                    public: false,
+                    id: SourceID::from_usize(5),
+                    name: StrID::from_usize(1),
+                    type_spec: TypeSpec::Struct(StructType {
+                        fields: vec![
+                            StructTypeField {
+                                public: true,
+                                name: StrID::from_usize(5),
+                                type_spec: TypeSpec::Int32,
+                            },
+                            StructTypeField {
+                                public: true,
+                                name: StrID::from_usize(7),
+                                type_spec: TypeSpec::Int32,
+                            },
+                        ]
+                    }),
+                }
+            ),
+        },
+        parse_decl_struct_mixed_pub_fields {
+            // type Baz struct { x i32; pub y i32 }
+            // StrIDs: type=0, Baz=1, struct=2, {=3, x=4, ;=5, pub=6, y=7
+            input: "type Baz struct { x i32; pub y i32 }",
+            want_var: Decl::Type(decl),
+            want_value: assert_eq!(
+                decl,
+                TypeDecl {
+                    public: false,
+                    id: SourceID::from_usize(5),
+                    name: StrID::from_usize(1),
+                    type_spec: TypeSpec::Struct(StructType {
+                        fields: vec![
+                            StructTypeField {
+                                public: false,
+                                name: StrID::from_usize(4),
+                                type_spec: TypeSpec::Int32,
+                            },
+                            StructTypeField {
+                                public: true,
+                                name: StrID::from_usize(7),
+                                type_spec: TypeSpec::Int32,
+                            },
+                        ]
+                    }),
+                }
+            ),
+        },
     );
+
+    #[test]
+    fn parse_struct_anon_field_pub_error() {
+        let mut str_store = StrStore::new();
+        // pub fields are not allow on anonymous structs
+        let mut lexer = Lexer::new("struct{ pub x i32 }{}", &mut str_store, 0);
+        let parser = DeclParser::new();
+        let result = parser.parse_expression(&mut lexer);
+        assert!(result.is_err());
+    }
 }

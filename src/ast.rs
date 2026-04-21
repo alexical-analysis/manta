@@ -155,6 +155,7 @@ pub struct StructType {
 
 #[derive(Debug, PartialEq, Clone, Serialize)]
 pub struct StructTypeField {
+    pub public: bool,
     pub name: StrID,
     pub type_spec: TypeSpec,
 }

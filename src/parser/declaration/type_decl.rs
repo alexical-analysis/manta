@@ -178,6 +178,14 @@ fn parse_struct_fields(lexer: &mut Lexer) -> Result<Vec<StructTypeField>, ParseE
     }
 
     loop {
+        // check for a leading 'pub' keyword
+        let mut public = false;
+        let pub_token = lexer.peek();
+        if pub_token.kind == TokenKind::PubKeyword {
+            lexer.next_token();
+            public = true;
+        }
+
         let token = lexer.next_token();
         if token.kind != TokenKind::Identifier {
             return Err(ParseError::UnexpectedToken(
@@ -190,7 +198,11 @@ fn parse_struct_fields(lexer: &mut Lexer) -> Result<Vec<StructTypeField>, ParseE
         let token = lexer.next_token();
         let type_spec = types::parse_type(lexer, token)?;
 
-        fields.push(StructTypeField { name, type_spec });
+        fields.push(StructTypeField {
+            public,
+            name,
+            type_spec,
+        });
 
         let token = lexer.next_token();
         if token.kind != TokenKind::Semicolon {
@@ -204,6 +216,7 @@ fn parse_struct_fields(lexer: &mut Lexer) -> Result<Vec<StructTypeField>, ParseE
         match lexer.peek().kind {
             TokenKind::CloseBrace => break,
             TokenKind::Identifier => continue,
+            TokenKind::PubKeyword => continue,
             _ => {
                 return Err(ParseError::UnexpectedToken(
                     lexer.peek(),

@@ -51,7 +51,7 @@ impl InfixExprParselet for StructConstructorParselet {
 /// Parses anonymous struct constructor expressions
 ///
 /// Examples:
-/// struct{x: i32, y: i32}{x: 10, y: 20}
+/// struct{x i32; y i32}{x: 10, y: 20}
 /// struct{}{}
 pub struct AnonymousStructConstructorParselet;
 
@@ -64,32 +64,93 @@ impl PrefixExprParselet for AnonymousStructConstructorParselet {
     ) -> Result<Expr, ParseError> {
         let mut fields = vec![];
 
+        let open = lexer.next_token();
+        if open.kind != TokenKind::OpenBrace {
+            return Err(ParseError::UnexpectedToken(
+                open,
+                "missing open brace for struct type".to_string(),
+            ));
+        }
+
+        // Check for empty field list
+        if lexer.peek().kind == TokenKind::CloseBrace {
+            lexer.next_token(); // take the closing brace
+
+            // take the leading open brace since parse_struct_constructor expects that token to already
+            // be consumed before it's run
+            let open = lexer.next_token();
+            if open.kind != TokenKind::OpenBrace {
+                return Err(ParseError::UnexpectedToken(
+                    open,
+                    "missing open brace for struct value".to_string(),
+                ));
+            }
+
+            let struct_type = TypeSpec::Struct(StructType { fields });
+            return parse_struct_constructor(parser, lexer, struct_type);
+        }
+
         loop {
             let field = lexer.next_token();
-            if field.kind != TokenKind::Identifier {
-                return Err(ParseError::UnexpectedToken(
-                    field,
-                    "field names must be identifiers".to_string(),
-                ));
+            match field.kind {
+                TokenKind::PubKeyword => {
+                    return Err(ParseError::UnexpectedToken(
+                        field,
+                        "fields on anonymous structs can not be public".to_string(),
+                    ));
+                }
+                TokenKind::Identifier => { /* ok */ }
+                _ => {
+                    return Err(ParseError::UnexpectedToken(
+                        field,
+                        "field names must be identifiers".to_string(),
+                    ));
+                }
             }
 
             let type_token = lexer.next_token();
             let type_spec = types::parse_type(lexer, type_token)?;
 
             fields.push(StructTypeField {
+                public: false,
                 name: field.lexeme_id,
                 type_spec,
             });
 
-            let close = lexer.peek();
-            if close.kind == TokenKind::CloseBrace {
-                lexer.next_token();
-                break;
+            let token = lexer.next_token();
+            if token.kind != TokenKind::Semicolon {
+                return Err(ParseError::UnexpectedToken(
+                    token,
+                    "Expected ';' after enum variant".to_string(),
+                ));
             }
+
+            // Check if there are more fields
+            match lexer.peek().kind {
+                TokenKind::CloseBrace => break,
+                TokenKind::Identifier => continue,
+                TokenKind::PubKeyword => continue,
+                _ => {
+                    return Err(ParseError::UnexpectedToken(
+                        lexer.peek(),
+                        "Expected field name or '}' in struct body".to_string(),
+                    ));
+                }
+            }
+        }
+        lexer.next_token(); // take the closing brace
+
+        // take the leading open brace since parse_struct_constructor expects that token to already
+        // be consumed before it's run
+        let open = lexer.next_token();
+        if open.kind != TokenKind::OpenBrace {
+            return Err(ParseError::UnexpectedToken(
+                open,
+                "missing open paren for struct value".to_string(),
+            ));
         }
 
         let struct_type = TypeSpec::Struct(StructType { fields });
-
         parse_struct_constructor(parser, lexer, struct_type)
     }
 }
