@@ -627,5 +627,39 @@ mod tests {
                 },
             ),
         },
+        parse_decl_pub_fn {
+            input: "pub fn foo() {}",
+            want_var: Decl::Function(decl),
+            want_value: assert_eq!(
+                decl,
+                FunctionDecl {
+                    public: true,
+                    id: SourceID::from_usize(4),
+                    name: StrID::from_usize(2),
+                    params: vec![],
+                    function_type: FunctionType {
+                        params: vec![],
+                        return_type: Box::new(TypeSpec::Unit),
+                    },
+                    body: BlockStmt {
+                        id: SourceID::from_usize(13),
+                        statements: vec![],
+                    },
+                }
+            ),
+        },
+        parse_decl_pub_const {
+            input: "pub const MAX = 100",
+            want_var: Decl::Const(decl),
+            want_value: assert_eq!(
+                decl,
+                ConstDecl {
+                    public: true,
+                    id: SourceID::from_usize(10),
+                    name: StrID::from_usize(2),
+                    value: Expr::IntLiteral(100),
+                }
+            ),
+        },
     );
 }
