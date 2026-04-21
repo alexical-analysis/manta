@@ -325,7 +325,7 @@ mod tests {
     use crate::ast::{
         AllocExpr, ArrayType, BinaryExpr, BinaryOp, CallExpr, DotAccessExpr, Expr, FreeExpr,
         IdentifierExpr, IndexExpr, MetaTypeExpr, NamedType, RangeExpr, StructConstructor,
-        StructValueField, TypeSpec, UnaryExpr, UnaryOp,
+        StructType, StructTypeField, StructValueField, TypeSpec, UnaryExpr, UnaryOp,
     };
     use crate::parser::lexer::{Lexer, SourceID};
     use crate::str_store::{StrID, StrStore};
@@ -1392,6 +1392,54 @@ mod tests {
                                 module: None,
                                 name: StrID::from_usize(9),
                             })),
+                        },
+                    ],
+                }
+            ),
+        },
+        parse_expression_anon_struct_empty {
+            // struct{}{} — exercises the empty-type early-return path
+            // StrIDs: struct=0, {=1, }=2
+            input: "struct{}{}",
+            want_var: Expr::StructConstructor(expr),
+            want_value: assert_eq!(
+                expr,
+                StructConstructor {
+                    type_spec: TypeSpec::Struct(StructType { fields: vec![] }),
+                    fields: vec![],
+                }
+            ),
+        },
+        parse_expression_anon_struct_with_fields {
+            // struct{ x i32; y i32 }{ x: 10, y: 20 }
+            // StrIDs: struct=0, {=1, x=2, i32=const, ;=3, y=4, ""(ASI)=5, }=6
+            input: "struct{ x i32; y i32 }{ x: 10, y: 20 }",
+            want_var: Expr::StructConstructor(expr),
+            want_value: assert_eq!(
+                expr,
+                StructConstructor {
+                    type_spec: TypeSpec::Struct(StructType {
+                        fields: vec![
+                            StructTypeField {
+                                public: false,
+                                name: StrID::from_usize(2),
+                                type_spec: TypeSpec::Int32,
+                            },
+                            StructTypeField {
+                                public: false,
+                                name: StrID::from_usize(4),
+                                type_spec: TypeSpec::Int32,
+                            },
+                        ]
+                    }),
+                    fields: vec![
+                        StructValueField {
+                            name: StrID::from_usize(2),
+                            value: Box::new(Expr::IntLiteral(10)),
+                        },
+                        StructValueField {
+                            name: StrID::from_usize(4),
+                            value: Box::new(Expr::IntLiteral(20)),
                         },
                     ],
                 }

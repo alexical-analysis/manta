@@ -15,14 +15,17 @@
           "Struct": {
             "fields": [
               {
+                "public": false,
                 "name": 7,
                 "type_spec": "Int32"
               },
               {
+                "public": false,
                 "name": 8,
                 "type_spec": "Float64"
               },
               {
+                "public": false,
                 "name": 9,
                 "type_spec": "UInt64"
               }
@@ -40,10 +43,12 @@
           "Struct": {
             "fields": [
               {
+                "public": false,
                 "name": 7,
                 "type_spec": "UInt8"
               },
               {
+                "public": false,
                 "name": 8,
                 "type_spec": "Int32"
               }
@@ -456,14 +461,17 @@
                 "Struct": {
                   "fields": [
                     {
+                      "public": false,
                       "name": 7,
                       "type_spec": "Int32"
                     },
                     {
+                      "public": false,
                       "name": 8,
                       "type_spec": "Float64"
                     },
                     {
+                      "public": false,
                       "name": 9,
                       "type_spec": "UInt64"
                     }
@@ -482,10 +490,12 @@
                 "Struct": {
                   "fields": [
                     {
+                      "public": false,
                       "name": 7,
                       "type_spec": "UInt8"
                     },
                     {
+                      "public": false,
                       "name": 8,
                       "type_spec": "Int32"
                     }

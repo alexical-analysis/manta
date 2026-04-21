@@ -2030,10 +2030,12 @@ mod tests {
                 type_spec: ast::TypeSpec::Struct(ast::StructType {
                     fields: vec![
                         ast::StructTypeField {
+                            public: false,
                             name: StrID::from_usize(2),
                             type_spec: ast::TypeSpec::Int32
                         },
                         ast::StructTypeField {
+                            public: false,
                             name: StrID::from_usize(3),
                             type_spec: ast::TypeSpec::Int32
                         },
