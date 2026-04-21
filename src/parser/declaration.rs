@@ -1,6 +1,7 @@
 mod const_decl;
 mod function_declaration;
 mod mod_declaration;
+mod pub_decl;
 mod type_decl;
 mod use_decl;
 mod var_decl;
@@ -16,6 +17,7 @@ use crate::parser::{Lexer, Token, TokenKind};
 use const_decl::ConstDeclParselet;
 use function_declaration::FunctionDeclParselet;
 use mod_declaration::ModDeclParselet;
+use pub_decl::PubParselet;
 use type_decl::TypeDeclParselet;
 use use_decl::UseDeclParselet;
 use var_decl::VarDeclParselet;
@@ -39,12 +41,25 @@ pub struct DeclParser {
 impl DeclParser {
     pub fn new() -> Self {
         let mut parselets: HashMap<TokenKind, Rc<dyn DeclParselet>> = HashMap::new();
-        parselets.insert(TokenKind::FnKeyword, Rc::new(FunctionDeclParselet));
-        parselets.insert(TokenKind::TypeKeyword, Rc::new(TypeDeclParselet));
-        parselets.insert(TokenKind::ConstKeyword, Rc::new(ConstDeclParselet));
-        parselets.insert(TokenKind::VarKeyword, Rc::new(VarDeclParselet));
+        parselets.insert(
+            TokenKind::FnKeyword,
+            Rc::new(FunctionDeclParselet { public: false }),
+        );
+        parselets.insert(
+            TokenKind::TypeKeyword,
+            Rc::new(TypeDeclParselet { public: false }),
+        );
+        parselets.insert(
+            TokenKind::ConstKeyword,
+            Rc::new(ConstDeclParselet { public: false }),
+        );
+        parselets.insert(
+            TokenKind::VarKeyword,
+            Rc::new(VarDeclParselet { public: false }),
+        );
         parselets.insert(TokenKind::UseKeyword, Rc::new(UseDeclParselet));
         parselets.insert(TokenKind::ModKeyword, Rc::new(ModDeclParselet));
+        parselets.insert(TokenKind::PubKeyword, Rc::new(PubParselet::new()));
 
         let statement_parser = StmtParser::new();
         DeclParser {
@@ -130,6 +145,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
+                    public: false,
                     id: SourceID::from_usize(0),
                     name: StrID::from_usize(1),
                     params: vec![
@@ -177,6 +193,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
+                    public: false,
                     id: SourceID::from_usize(0),
                     name: StrID::from_usize(1),
                     params: vec![],
@@ -212,6 +229,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
+                    public: false,
                     id: SourceID::from_usize(0),
                     name: StrID::from_usize(1),
                     params: vec![
@@ -245,6 +263,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
+                    public: false,
                     id: SourceID::from_usize(0),
                     name: StrID::from_usize(1),
                     params: vec![Parameter {
@@ -287,6 +306,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
+                    public: false,
                     id: SourceID::from_usize(0),
                     name: StrID::from_usize(1),
                     params: vec![
@@ -354,6 +374,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
+                    public: false,
                     id: SourceID::from_usize(0),
                     name: StrID::from_usize(1),
                     params: vec![],
@@ -387,6 +408,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 FunctionDecl {
+                    public: false,
                     id: SourceID::from_usize(0),
                     name: StrID::from_usize(1),
                     params: vec![Parameter {
@@ -427,6 +449,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 TypeDecl {
+                    public: false,
                     id: SourceID::from_usize(5),
                     name: StrID::from_usize(1),
                     type_spec: TypeSpec::Struct(StructType {
@@ -453,6 +476,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 TypeDecl {
+                    public: false,
                     id: SourceID::from_usize(5),
                     name: StrID::from_usize(1),
                     type_spec: TypeSpec::Enum(EnumType {
@@ -480,6 +504,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 TypeDecl {
+                    public: false,
                     id: SourceID::from_usize(5),
                     name: StrID::from_usize(1),
                     type_spec: TypeSpec::Enum(EnumType {
@@ -509,6 +534,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 TypeDecl {
+                    public: false,
                     id: SourceID::from_usize(5),
                     name: StrID::from_usize(1),
                     type_spec: TypeSpec::Struct(StructType { fields: vec![] }),
@@ -521,6 +547,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 ConstDecl {
+                    public: false,
                     id: SourceID::from_usize(6),
                     name: StrID::from_usize(1),
                     value: Expr::FloatLiteral(3.45),
@@ -533,6 +560,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 ConstDecl {
+                    public: false,
                     id: SourceID::from_usize(6),
                     name: StrID::from_usize(1),
                     value: Expr::IntLiteral(1024),
@@ -545,6 +573,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 ConstDecl {
+                    public: false,
                     id: SourceID::from_usize(6),
                     name: StrID::from_usize(1),
                     value: Expr::Binary(BinaryExpr {
@@ -561,6 +590,7 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 ConstDecl {
+                    public: false,
                     id: SourceID::from_usize(6),
                     name: StrID::from_usize(1),
                     value: Expr::StringLiteral(StrID::from_usize(3)),

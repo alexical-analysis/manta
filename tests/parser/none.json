@@ -16,6 +16,7 @@
     },
     {
       "Function": {
+        "public": false,
         "id": 133,
         "name": 9,
         "params": [
@@ -40,6 +41,7 @@
     },
     {
       "Function": {
+        "public": false,
         "id": 163,
         "name": 14,
         "params": [
@@ -62,6 +64,7 @@
     },
     {
       "Type": {
+        "public": false,
         "id": 194,
         "name": 17,
         "type_spec": {
@@ -88,6 +91,7 @@
     },
     {
       "Function": {
+        "public": false,
         "id": 319,
         "name": 22,
         "params": [
@@ -213,6 +217,7 @@
     },
     {
       "Function": {
+        "public": false,
         "id": 567,
         "name": 1,
         "params": [],

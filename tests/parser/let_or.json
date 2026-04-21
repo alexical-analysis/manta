@@ -17,6 +17,7 @@
     },
     {
       "Type": {
+        "public": false,
         "id": 144,
         "name": 10,
         "type_spec": {
@@ -28,6 +29,7 @@
     },
     {
       "Type": {
+        "public": false,
         "id": 229,
         "name": 14,
         "type_spec": {
@@ -54,6 +56,7 @@
     },
     {
       "Function": {
+        "public": false,
         "id": 341,
         "name": 19,
         "params": [
@@ -93,6 +96,7 @@
     },
     {
       "Function": {
+        "public": false,
         "id": 464,
         "name": 23,
         "params": [
@@ -121,6 +125,7 @@
     },
     {
       "Type": {
+        "public": false,
         "id": 565,
         "name": 25,
         "type_spec": {
@@ -141,6 +146,7 @@
     },
     {
       "Function": {
+        "public": false,
         "id": 694,
         "name": 26,
         "params": [
@@ -186,6 +192,7 @@
     },
     {
       "Function": {
+        "public": false,
         "id": 837,
         "name": 27,
         "params": [
@@ -208,6 +215,7 @@
     },
     {
       "Type": {
+        "public": false,
         "id": 926,
         "name": 29,
         "type_spec": {
@@ -244,6 +252,7 @@
     },
     {
       "Function": {
+        "public": false,
         "id": 1051,
         "name": 32,
         "params": [
@@ -415,6 +424,7 @@
     },
     {
       "Function": {
+        "public": false,
         "id": 1261,
         "name": 1,
         "params": [],

@@ -10,6 +10,7 @@
     },
     {
       "Function": {
+        "public": false,
         "id": 87,
         "name": 6,
         "params": [
@@ -32,6 +33,7 @@
     },
     {
       "Function": {
+        "public": false,
         "id": 113,
         "name": 10,
         "params": [],

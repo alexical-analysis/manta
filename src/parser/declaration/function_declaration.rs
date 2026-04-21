@@ -8,7 +8,9 @@ use crate::str_store::StrID;
 /// Parses top-level function declarations
 ///
 /// Example: `fn add(a, b i32) i32 { return a + b }`
-pub struct FunctionDeclParselet;
+pub struct FunctionDeclParselet {
+    pub public: bool,
+}
 
 impl DeclParselet for FunctionDeclParselet {
     fn parse(
@@ -79,6 +81,7 @@ impl DeclParselet for FunctionDeclParselet {
         }
 
         Ok(Decl::Function(FunctionDecl {
+            public: self.public,
             id: token.source_id,
             name,
             params,

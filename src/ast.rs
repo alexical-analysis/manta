@@ -25,6 +25,7 @@ pub enum Decl {
 /// ```
 #[derive(Debug, PartialEq, Serialize)]
 pub struct FunctionDecl {
+    pub public: bool,
     pub id: SourceID,
     pub name: StrID,
     pub params: Vec<Parameter>,
@@ -34,6 +35,7 @@ pub struct FunctionDecl {
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct TypeDecl {
+    pub public: bool,
     pub id: SourceID,
     pub name: StrID,
     pub type_spec: TypeSpec,
@@ -54,6 +56,7 @@ pub struct Parameter {
 /// ```
 #[derive(Debug, PartialEq, Serialize)]
 pub struct ConstDecl {
+    pub public: bool,
     pub id: SourceID,
     pub name: StrID,
     pub value: Expr,
@@ -67,6 +70,7 @@ pub struct ConstDecl {
 /// ```
 #[derive(Debug, PartialEq, Serialize)]
 pub struct VarDecl {
+    pub public: bool,
     pub id: SourceID,
     pub name: StrID,
     pub value: Expr,

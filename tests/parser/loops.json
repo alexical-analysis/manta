@@ -8,6 +8,7 @@
     },
     {
       "Function": {
+        "public": false,
         "id": 10,
         "name": 1,
         "params": [],

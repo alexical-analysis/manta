@@ -6,7 +6,9 @@ use crate::parser::lexer::{Lexer, Token, TokenKind};
 /// Parses top-level const declarations
 ///
 /// Example: `var status = "OK"`
-pub struct VarDeclParselet;
+pub struct VarDeclParselet {
+    pub public: bool,
+}
 
 impl DeclParselet for VarDeclParselet {
     fn parse(
@@ -35,6 +37,7 @@ impl DeclParselet for VarDeclParselet {
         let value = parser.parse_expression(lexer)?;
 
         Ok(Decl::Var(VarDecl {
+            public: self.public,
             id: ident.source_id,
             name: ident.lexeme_id,
             value,
