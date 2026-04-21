@@ -5,7 +5,9 @@ use crate::parser::lexer::{Lexer, Token, TokenKind};
 use crate::parser::types;
 
 /// Dispatcher for type declarations - routes to struct or enum parselets
-pub struct TypeDeclParselet;
+pub struct TypeDeclParselet {
+    pub public: bool,
+}
 
 impl DeclParselet for TypeDeclParselet {
     fn parse(
@@ -24,8 +26,8 @@ impl DeclParselet for TypeDeclParselet {
 
         let token = lexer.next_token();
         match token.kind {
-            TokenKind::StructKeyword => parse_struct(lexer, name),
-            TokenKind::EnumKeyword => parse_enum(lexer, name),
+            TokenKind::StructKeyword => parse_struct(lexer, name, self.public),
+            TokenKind::EnumKeyword => parse_enum(lexer, name, self.public),
             _ => Err(ParseError::UnexpectedToken(
                 token,
                 "Expected 'struct' or 'enum' after type name".to_string(),
@@ -34,7 +36,7 @@ impl DeclParselet for TypeDeclParselet {
     }
 }
 
-fn parse_enum(lexer: &mut Lexer, token: Token) -> Result<Decl, ParseError> {
+fn parse_enum(lexer: &mut Lexer, token: Token, public: bool) -> Result<Decl, ParseError> {
     let open = lexer.next_token();
     if open.kind != TokenKind::OpenBrace {
         return Err(ParseError::UnexpectedToken(
@@ -55,6 +57,7 @@ fn parse_enum(lexer: &mut Lexer, token: Token) -> Result<Decl, ParseError> {
     }
 
     Ok(Decl::Type(TypeDecl {
+        public,
         id: token.source_id,
         name: token.lexeme_id,
         type_spec: TypeSpec::Enum(EnumType { variants }),
@@ -135,7 +138,7 @@ fn parse_enum_variants(lexer: &mut Lexer) -> Result<Vec<EnumVariant>, ParseError
 }
 
 /// Parse struct declaration after 'type' keyword has been consumed
-fn parse_struct(lexer: &mut Lexer, token: Token) -> Result<Decl, ParseError> {
+fn parse_struct(lexer: &mut Lexer, token: Token, public: bool) -> Result<Decl, ParseError> {
     // Expect opening brace
     let open = lexer.next_token();
     if open.kind != TokenKind::OpenBrace {
@@ -156,6 +159,7 @@ fn parse_struct(lexer: &mut Lexer, token: Token) -> Result<Decl, ParseError> {
     }
 
     Ok(Decl::Type(TypeDecl {
+        public,
         id: token.source_id,
         name: token.lexeme_id,
         type_spec: TypeSpec::Struct(StructType { fields }),

@@ -8,6 +8,7 @@
     },
     {
       "Type": {
+        "public": false,
         "id": 15,
         "name": 4,
         "type_spec": {
@@ -32,6 +33,7 @@
     },
     {
       "Type": {
+        "public": false,
         "id": 67,
         "name": 11,
         "type_spec": {
@@ -52,6 +54,7 @@
     },
     {
       "Function": {
+        "public": false,
         "id": 96,
         "name": 15,
         "params": [],
@@ -75,6 +78,7 @@
     },
     {
       "Function": {
+        "public": false,
         "id": 127,
         "name": 1,
         "params": [],

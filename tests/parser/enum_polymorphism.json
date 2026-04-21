@@ -16,6 +16,7 @@
     },
     {
       "Const": {
+        "public": false,
         "id": 131,
         "name": 9,
         "value": {
@@ -25,6 +26,7 @@
     },
     {
       "Function": {
+        "public": false,
         "id": 209,
         "name": 13,
         "params": [
@@ -47,6 +49,7 @@
     },
     {
       "Type": {
+        "public": false,
         "id": 300,
         "name": 18,
         "type_spec": {
@@ -67,6 +70,7 @@
     },
     {
       "Function": {
+        "public": false,
         "id": 393,
         "name": 22,
         "params": [
@@ -203,6 +207,7 @@
     },
     {
       "Function": {
+        "public": false,
         "id": 585,
         "name": 1,
         "params": [],

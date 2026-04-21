@@ -6,7 +6,9 @@ use crate::parser::lexer::{Lexer, Token, TokenKind};
 /// Parses top-level const declarations
 ///
 /// Example: `const PI = 3.14159`
-pub struct ConstDeclParselet;
+pub struct ConstDeclParselet {
+    pub public: bool,
+}
 
 impl DeclParselet for ConstDeclParselet {
     fn parse(
@@ -37,6 +39,7 @@ impl DeclParselet for ConstDeclParselet {
         let value = parser.parse_expression(lexer)?;
 
         Ok(Decl::Const(ConstDecl {
+            public: self.public,
             id: ident.source_id,
             name,
             value,
