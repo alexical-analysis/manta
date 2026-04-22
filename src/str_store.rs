@@ -1,11 +1,12 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// A type alias for string identifiers. Used to efficiently reference interned strings
 /// without storing duplicate string data.
 /// StrID types are safe to compare like strings since the same string will always map to the
 /// same StrID
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(transparent)]
 pub struct StrID(usize);
 
 impl StrID {
@@ -154,6 +155,7 @@ pub fn constant_id_str(id: StrID) -> Option<&'static str> {
 /// let id2 = store.get_id("hello"); // Returns the same ID without storing "hello" twice
 /// assert_eq!(id1, id2);
 /// ```
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StrStore {
     // TODO: I'd like to not copy every string twice like this but ownership is such a headach
     // right now that i'm going to leave this as is.
@@ -198,6 +200,14 @@ impl StrStore {
                 self.reverse_strings.push(s.to_string());
                 id
             }
+        }
+    }
+
+    /// Returns the interned ID for a given string if it exists in the store.
+    pub fn find_id(&self, s: &str) -> Option<StrID> {
+        match constant_str_id(s) {
+            Some(id) => Some(id),
+            None => self.strings.get(s).cloned(),
         }
     }
 

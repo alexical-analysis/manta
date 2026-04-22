@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::ast::{BinaryOp, UnaryOp};
 use crate::str_store::StrID;
@@ -8,7 +8,7 @@ use crate::str_store::StrID;
 // It removes syntactic sugar and represents all code uniformly as a tree of nodes.
 
 /// NodeID is the unique identifier for a gien node in the HIR tree
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Copy, Clone, Serialize)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Copy, Clone, Serialize, Deserialize)]
 pub struct NodeID(usize);
 
 impl NodeID {
@@ -183,7 +183,7 @@ pub struct TypeSpecPat {
     pub payload: Option<NodeID>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum TypeSpec {
     // These types are no actually concreet yet, instead they all represent partially typed values
     // that can have their types further refined by the context where there appear
@@ -223,21 +223,21 @@ pub enum TypeSpec {
     Unit,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct InferredEnumExpr {
     pub variant_name: StrID,
     // TODO: Should actual be a custom enum since we need None, Some, and Default options
     pub payload: Option<Box<TypeSpec>>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct InferredEnumPat {
     pub variant_name: StrID,
     pub payload: Option<NodeID>,
 }
 
 /// Named type including the underalying type information
-#[derive(Debug, PartialEq, Clone, Serialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct NamedType {
     // This is always an identifier expression
     pub name: NodeID,
@@ -245,38 +245,38 @@ pub struct NamedType {
 }
 
 /// Array type with size
-#[derive(Debug, PartialEq, Clone, Serialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct ArrayType {
     pub type_spec: Box<TypeSpec>,
     pub size: usize,
 }
 
 /// Struct type with named fields
-#[derive(Debug, PartialEq, Clone, Serialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct StructType {
     pub fields: Vec<StructTypeField>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct StructTypeField {
     pub name: StrID,
     pub type_spec: TypeSpec,
 }
 
 /// Enum type with named variants
-#[derive(Debug, PartialEq, Clone, Serialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct EnumType {
     pub variants: Vec<EnumVariant>,
 }
 
 /// Function types with arguments
-#[derive(Debug, PartialEq, Clone, Serialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct FunctionType {
     pub params: Vec<TypeSpec>,
     pub return_type: Box<TypeSpec>,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct EnumVariant {
     pub name: StrID,
     // TODO: Should actual be a custom enum since we need None, Some, and Default options

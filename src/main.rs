@@ -7,6 +7,7 @@ mod hir;
 mod mir;
 mod noder;
 mod parser;
+mod pub_mod;
 mod str_store;
 
 use std::error::Error;

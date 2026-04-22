@@ -3,9 +3,9 @@ use std::fmt;
 
 use crate::hir::NodeID;
 use crate::str_store::StrID;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum TagSize {
     U8,
     U16,
@@ -15,7 +15,7 @@ pub enum TagSize {
 
 /// MIR-level type: all variants are concrete and map directly to LLVM types.
 /// No inference artifacts or HIR back-references.
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum TypeSpec {
     I8,
     I16,
