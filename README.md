@@ -135,37 +135,63 @@ These documents were used to author the test programs in `tests/src/` and should
 
 ## Command-line interface
 
-> **Note:** `manta check`, `manta run`, and `manta fmt` are currently stubs — they parse flags but do not yet perform real work. `manta build` is implemented for files but can not yet build modules.
+> **Note:** `manta fmt` is currently a stub — it parses flags but does not yet perform real work.
 
 The CLI executable is named `manta` and supports the following subcommands:
 
 ### `manta build`
 
-Compiles a `.manta` source file to a native binary. Requires `clang` to be installed and on `PATH` for linking.
+Compiles a `.manta` source file to a native binary. Requires `clang` to be installed and on `PATH` for linking. The project directory must contain a `manta.mod` file.
 
 ```bash
-./target/release/manta build hello.manta
-./target/release/manta build hello.manta -o hello
+./target/release/manta build
+./target/release/manta build -o hello
+./target/release/manta build ./path/to/project
 ```
 
 Flags:
-- `-o, --out-file <OUT_FILE>` — output binary name (defaults to the input file's stem)
+- `-o, --out-file <OUT_FILE>` — output binary name (defaults to the project directory name)
+- `-d, --debug` — preserve intermediate object files in the current directory
 
 ### `manta check`
 
-Runs checks and reports results without producing build artifacts. *(stub)*
+Validates the project and reports errors without producing build artifacts. The project directory must contain a `manta.mod` file.
 
 ```bash
 ./target/release/manta check
+./target/release/manta check ./path/to/project
+```
+
+### `manta init`
+
+Creates a `manta.mod` file in the current directory, initializing a new Manta project. If a `manta.mod` already exists, the command exits without overwriting it.
+
+```bash
+./target/release/manta init myproject
+```
+
+Arguments:
+- `<MOD_NAME>` — the module name to write into `manta.mod`
+
+The generated `manta.mod` records the Manta version and module name:
+
+```
+manta 0.0.0
+myproject
 ```
 
 ### `manta run`
 
-Builds and immediately executes the program. *(stub)*
+Builds the project and immediately executes the resulting binary. If no output file is specified, the binary is written to a temporary path and cleaned up after execution.
 
 ```bash
 ./target/release/manta run
+./target/release/manta run -o hello
+./target/release/manta run -- arg1 arg2
 ```
+
+Flags:
+- `-o, --out-file <OUT_FILE>` — preserve the compiled binary at this path (otherwise discarded after running)
 
 ### `manta fmt`
 
