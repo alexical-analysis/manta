@@ -2,7 +2,7 @@ pub mod typer;
 
 use serde::Serialize;
 use std::cmp::Ord;
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt::Debug;
 use std::ops::Deref;
 
@@ -16,7 +16,7 @@ use crate::hir::{
 };
 use crate::noder::typer::{Typer, resolve_type};
 use crate::parser::module::{BindingType, Module, SymID};
-use crate::str_store;
+use crate::str_store::{self, StrID, StrStore};
 
 #[derive(Serialize)]
 pub(crate) struct SideTable<K, V> {
@@ -65,6 +65,7 @@ impl<K: Ord + Debug, V: Debug> SideTable<K, V> {
 pub struct NodeTree {
     pub(crate) nodes: Vec<Node>,
     pub roots: Vec<NodeID>,
+    pub public_decls: HashMap<StrID, NodeID>,
     // the type_map maps each node in the node tree to it's type (if it has one)
     // TODO: we're going to have a type for every node so maybe we can use a slot map or something
     // to pack these more tightly withouth a lookup/ performance cost. right now the side
@@ -83,6 +84,7 @@ impl NodeTree {
         NodeTree {
             nodes: vec![],
             roots: vec![],
+            public_decls: HashMap::new(),
             type_map: SideTable::new(),
             symbol_map: SideTable::new(),
             within_loop: false,
@@ -117,6 +119,16 @@ impl NodeTree {
 
     pub fn get_type(&self, node_id: NodeID) -> Option<&TypeSpec> {
         self.type_map.get(node_id)
+    }
+
+    pub fn get_public_types(&self) -> HashMap<StrID, TypeSpec> {
+        let mut type_map = HashMap::new();
+        for (str_id, node_id) in &self.public_decls {
+            let type_spec = self.get_type(*node_id).expect("failed to find node type");
+            type_map.insert(*str_id, type_spec.clone());
+        }
+
+        type_map
     }
 }
 
@@ -174,7 +186,11 @@ fn node_decl_name(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
 
             let func_type = ast::TypeSpec::Function(decl.function_type.clone());
             let func_type = node_type_spec(node_tree, module, &func_type);
-            node_tree.type_map.add(ident_id, func_type);
+            node_tree.type_map.add(ident_id, func_type.clone());
+
+            if decl.public {
+                node_tree.public_decls.insert(decl.name, ident_id);
+            }
         }
         Decl::Type(decl) => {
             let ident_id = node_tree.add_node(Node::Identifier {
@@ -188,6 +204,10 @@ fn node_decl_name(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 .find_binding(scope_pos, decl.name)
                 .expect("missing binding for type decl in pre-pass");
             node_tree.symbol_map.add(binding.id, ident_id);
+
+            if decl.public {
+                node_tree.public_decls.insert(decl.name, ident_id);
+            }
         }
         Decl::Const(decl) => {
             let ident_id = node_tree.add_node(Node::Identifier {
@@ -201,6 +221,10 @@ fn node_decl_name(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 .find_binding(scope_pos, decl.name)
                 .expect("missing binding for type decl in pre-pass");
             node_tree.symbol_map.add(binding.id, ident_id);
+
+            if decl.public {
+                node_tree.public_decls.insert(decl.name, ident_id);
+            }
         }
         Decl::Var(decl) => {
             let ident_id = node_tree.add_node(Node::Identifier {
@@ -214,6 +238,10 @@ fn node_decl_name(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 .find_binding(scope_pos, decl.name)
                 .expect("missing binding for type decl in pre-pass");
             node_tree.symbol_map.add(binding.id, ident_id);
+
+            if decl.public {
+                node_tree.public_decls.insert(decl.name, ident_id);
+            }
         }
         _ => {}
     }
@@ -1737,6 +1765,7 @@ mod tests {
                     },
                 ],
                 roots: vec![NodeID::from_usize(3), NodeID::from_usize(5)],
+                public_decls: HashMap::from([]),
                 type_map: SideTable {
                     // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
                     // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), Int64), (NodeID(2), Int64)
@@ -1790,6 +1819,7 @@ mod tests {
                     Node::Invalid,
                 ],
                 roots: vec![NodeID::from_usize(2)],
+                public_decls: HashMap::from([]),
                 type_map: SideTable {
                     // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
                     // typer assigns Panic to the Invalid node (NodeID(2))
@@ -1850,6 +1880,7 @@ mod tests {
                     },
                 ],
                 roots: vec![NodeID::from_usize(3), NodeID::from_usize(5)],
+                public_decls: HashMap::from([]),
                 type_map: SideTable {
                     // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
                     // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), Bool), (NodeID(2), Bool)
@@ -1920,6 +1951,7 @@ mod tests {
                     },
                 ],
                 roots: vec![NodeID::from_usize(3), NodeID::from_usize(5)],
+                public_decls: HashMap::from([]),
                 type_map: SideTable {
                     // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
                     // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), Float64), (NodeID(2), Float64)
@@ -1985,6 +2017,7 @@ mod tests {
                     },
                 ],
                 roots: vec![NodeID::from_usize(3)],
+                public_decls: HashMap::from([]),
                 type_map: SideTable {
                     // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
                     // inserted by noder: (NodeID(3), Int64)
@@ -2063,6 +2096,7 @@ mod tests {
                     },
                 ],
                 roots: vec![NodeID::from_usize(3)],
+                public_decls: HashMap::from([]),
                 type_map: SideTable {
                     // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
                     // noder adds NodeID(3) with the struct type spec
@@ -2155,6 +2189,7 @@ mod tests {
                     },
                 ],
                 roots: vec![NodeID::from_usize(3), NodeID::from_usize(5)],
+                public_decls: HashMap::from([]),
                 type_map: SideTable {
                     // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
                     // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), String), (NodeID(2), String)

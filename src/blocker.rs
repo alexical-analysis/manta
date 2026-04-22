@@ -1340,7 +1340,7 @@ fn get_variant_tag(type_spec: &hir::TypeSpec, variant_name: StrID) -> ConstValue
 mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
-    use std::collections::BTreeMap;
+    use std::collections::{BTreeMap, HashMap};
     use std::fs;
     use std::path::Path;
 
@@ -1524,6 +1524,7 @@ mod tests {
                     },
                 ],
                 roots: vec![NodeID::from_usize(4)],
+                public_decls: HashMap::from([]),
                 type_map: SideTable {
                     keys: BTreeMap::from([(NodeID::from_usize(1), 0), (NodeID::from_usize(4), 1),]),
                     values: vec![hir::TypeSpec::Int32, hir::TypeSpec::Int32],
@@ -1595,6 +1596,7 @@ mod tests {
                     },
                 ],
                 roots: vec![NodeID::from_usize(4)],
+                public_decls: HashMap::from([]),
                 type_map: SideTable {
                     keys: BTreeMap::from([(NodeID::from_usize(1), 0), (NodeID::from_usize(4), 1)]),
                     values: vec![hir::TypeSpec::Bool, hir::TypeSpec::Bool],
@@ -1666,6 +1668,7 @@ mod tests {
                     },
                 ],
                 roots: vec![NodeID::from_usize(4)],
+                public_decls: HashMap::from([]),
                 type_map: SideTable {
                     keys: BTreeMap::from([(NodeID::from_usize(1), 0), (NodeID::from_usize(4), 1)]),
                     values: vec![hir::TypeSpec::Bool, hir::TypeSpec::Bool],
@@ -1737,6 +1740,7 @@ mod tests {
                     },
                 ],
                 roots: vec![NodeID::from_usize(4)],
+                public_decls: HashMap::from([]),
                 type_map: SideTable {
                     keys: BTreeMap::from([(NodeID::from_usize(1), 0), (NodeID::from_usize(4), 1)]),
                     values: vec![hir::TypeSpec::Float64, hir::TypeSpec::Float64],
@@ -1808,6 +1812,7 @@ mod tests {
                     },
                 ],
                 roots: vec![NodeID::from_usize(4)],
+                public_decls: HashMap::from([]),
                 type_map: SideTable {
                     keys: BTreeMap::from([(NodeID::from_usize(1), 0), (NodeID::from_usize(4), 1)]),
                     values: vec![hir::TypeSpec::String, hir::TypeSpec::String],

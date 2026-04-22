@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
@@ -8,6 +9,7 @@ use crate::codegen::optimizer;
 use crate::file_set::FileSet;
 use crate::noder::node_module;
 use crate::parser::Parser;
+use crate::pub_mod::PubMod;
 use crate::str_store::StrStore;
 
 use inkwell::context::Context;
@@ -30,7 +32,7 @@ impl<'fs> Compiler<'fs> {
         let context = Context::create();
         let mut generator = Codegen::new(&context);
 
-        let module = self.compile_module(&mut generator);
+        let (module, _) = self.compile_module(&mut generator);
 
         let target_triple = TargetMachine::get_default_triple();
         let target_machine = optimizer::create_target_machine(target_triple);
@@ -64,7 +66,7 @@ impl<'fs> Compiler<'fs> {
         self.compile_module(&mut generator);
     }
 
-    fn compile_module<'ctx>(&mut self, generator: &mut Codegen<'ctx>) -> Module<'ctx> {
+    fn compile_module<'ctx>(&mut self, generator: &mut Codegen<'ctx>) -> (Module<'ctx>, PubMod) {
         println!("building ast module...");
         let parser = Parser::new(self.file_set);
         let mut str_store = StrStore::new();
@@ -84,9 +86,13 @@ impl<'fs> Compiler<'fs> {
         let blocker = Blocker::new(&node_tree);
         let mir_module = blocker.build_module();
 
+        let pub_mod = PubMod::new(str_store.clone(), node_tree.get_public_types());
+
         // build the llvm module from the MIR
         println!("building llvm module...");
-        generator.gen_module(&str_store, module_name, mir_module)
+        let llvm_module = generator.gen_module(&str_store, module_name, mir_module);
+
+        (llvm_module, pub_mod)
     }
 
     /// links the module by writing the .o file to the object_file and then calling the system
