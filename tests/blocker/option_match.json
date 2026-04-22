@@ -62,7 +62,7 @@
           "tag_size": "U8",
           "variants": [
             "I32",
-            null
+            "Unit"
           ]
         }
       },
@@ -198,7 +198,7 @@
             "tag_size": "U8",
             "variants": [
               "I32",
-              null
+              "Unit"
             ]
           }
         },
@@ -210,7 +210,7 @@
             "tag_size": "U8",
             "variants": [
               "I32",
-              null
+              "Unit"
             ]
           }
         }
@@ -231,7 +231,7 @@
               "tag_size": "U8",
               "variants": [
                 "I32",
-                null
+                "Unit"
               ]
             }
           },
@@ -438,7 +438,7 @@
             "tag_size": "U8",
             "variants": [
               "I32",
-              null
+              "Unit"
             ]
           }
         },
@@ -448,7 +448,7 @@
             "tag_size": "U8",
             "variants": [
               "I32",
-              null
+              "Unit"
             ]
           }
         },

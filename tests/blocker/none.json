@@ -95,8 +95,8 @@
             {
               "Ptr": "I32"
             },
-            null,
-            null
+            "Unit",
+            "Unit"
           ]
         }
       },
@@ -372,8 +372,8 @@
               {
                 "Ptr": "I32"
               },
-              null,
-              null
+              "Unit",
+              "Unit"
             ]
           }
         },
@@ -384,8 +384,8 @@
               {
                 "Ptr": "I32"
               },
-              null,
-              null
+              "Unit",
+              "Unit"
             ]
           }
         }
@@ -407,8 +407,8 @@
                 {
                   "Ptr": "I32"
                 },
-                null,
-                null
+                "Unit",
+                "Unit"
               ]
             }
           },
@@ -601,8 +601,8 @@
               {
                 "Ptr": "I32"
               },
-              null,
-              null
+              "Unit",
+              "Unit"
             ]
           }
         },

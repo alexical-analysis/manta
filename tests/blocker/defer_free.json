@@ -33,7 +33,7 @@
             {
               "Struct": []
             },
-            null
+            "Unit"
           ]
         }
       },
@@ -78,7 +78,7 @@
               {
                 "Struct": []
               },
-              null
+              "Unit"
             ]
           }
         }
@@ -127,7 +127,7 @@
           "tag_size": "U8",
           "variants": [
             "U64",
-            null
+            "Unit"
           ]
         }
       },
@@ -179,7 +179,7 @@
             "tag_size": "U8",
             "variants": [
               "U64",
-              null
+              "Unit"
             ]
           }
         }
@@ -194,7 +194,7 @@
         "Enum": {
           "tag_size": "U8",
           "variants": [
-            null,
+            "Unit",
             {
               "Enum": {
                 "tag_size": "U8",
@@ -202,7 +202,7 @@
                   {
                     "Struct": []
                   },
-                  null
+                  "Unit"
                 ]
               }
             },
@@ -211,7 +211,7 @@
                 "tag_size": "U8",
                 "variants": [
                   "U64",
-                  null
+                  "Unit"
                 ]
               }
             }
@@ -249,7 +249,7 @@
                 {
                   "Struct": []
                 },
-                null
+                "Unit"
               ]
             }
           },
@@ -269,7 +269,7 @@
                 {
                   "Struct": []
                 },
-                null
+                "Unit"
               ]
             }
           },
@@ -305,7 +305,7 @@
               "tag_size": "U8",
               "variants": [
                 "U64",
-                null
+                "Unit"
               ]
             }
           },
@@ -321,7 +321,7 @@
               "tag_size": "U8",
               "variants": [
                 "U64",
-                null
+                "Unit"
               ]
             }
           },
@@ -332,7 +332,7 @@
             "Enum": {
               "tag_size": "U8",
               "variants": [
-                null,
+                "Unit",
                 {
                   "Enum": {
                     "tag_size": "U8",
@@ -340,7 +340,7 @@
                       {
                         "Struct": []
                       },
-                      null
+                      "Unit"
                     ]
                   }
                 },
@@ -349,7 +349,7 @@
                     "tag_size": "U8",
                     "variants": [
                       "U64",
-                      null
+                      "Unit"
                     ]
                   }
                 }
@@ -1032,7 +1032,7 @@
               {
                 "Struct": []
               },
-              null
+              "Unit"
             ]
           }
         },
@@ -1054,7 +1054,7 @@
               {
                 "Struct": []
               },
-              null
+              "Unit"
             ]
           }
         },
@@ -1062,7 +1062,7 @@
           "Enum": {
             "tag_size": "U8",
             "variants": [
-              null,
+              "Unit",
               {
                 "Enum": {
                   "tag_size": "U8",
@@ -1070,7 +1070,7 @@
                     {
                       "Struct": []
                     },
-                    null
+                    "Unit"
                   ]
                 }
               },
@@ -1079,7 +1079,7 @@
                   "tag_size": "U8",
                   "variants": [
                     "U64",
-                    null
+                    "Unit"
                   ]
                 }
               }
@@ -1124,7 +1124,7 @@
             "tag_size": "U8",
             "variants": [
               "U64",
-              null
+              "Unit"
             ]
           }
         },
@@ -1140,7 +1140,7 @@
             "tag_size": "U8",
             "variants": [
               "U64",
-              null
+              "Unit"
             ]
           }
         },
@@ -1148,7 +1148,7 @@
           "Enum": {
             "tag_size": "U8",
             "variants": [
-              null,
+              "Unit",
               {
                 "Enum": {
                   "tag_size": "U8",
@@ -1156,7 +1156,7 @@
                     {
                       "Struct": []
                     },
-                    null
+                    "Unit"
                   ]
                 }
               },
@@ -1165,7 +1165,7 @@
                   "tag_size": "U8",
                   "variants": [
                     "U64",
-                    null
+                    "Unit"
                   ]
                 }
               }
@@ -1176,7 +1176,7 @@
           "Enum": {
             "tag_size": "U8",
             "variants": [
-              null,
+              "Unit",
               {
                 "Enum": {
                   "tag_size": "U8",
@@ -1184,7 +1184,7 @@
                     {
                       "Struct": []
                     },
-                    null
+                    "Unit"
                   ]
                 }
               },
@@ -1193,7 +1193,7 @@
                   "tag_size": "U8",
                   "variants": [
                     "U64",
-                    null
+                    "Unit"
                   ]
                 }
               }
@@ -1207,7 +1207,7 @@
           "Enum": {
             "tag_size": "U8",
             "variants": [
-              null,
+              "Unit",
               {
                 "Enum": {
                   "tag_size": "U8",
@@ -1215,7 +1215,7 @@
                     {
                       "Struct": []
                     },
-                    null
+                    "Unit"
                   ]
                 }
               },
@@ -1224,7 +1224,7 @@
                   "tag_size": "U8",
                   "variants": [
                     "U64",
-                    null
+                    "Unit"
                   ]
                 }
               }
