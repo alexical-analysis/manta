@@ -60,7 +60,7 @@ pub enum TypeSpec {
         tag_size: TagSize,
         // TODO: this is optional because the payload might be missing but really we should just
         // use a unit type here so we should fix that
-        variants: Vec<Option<TypeSpec>>,
+        variants: Vec<TypeSpec>,
     },
 }
 

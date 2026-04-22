@@ -1046,7 +1046,7 @@ pub fn convert_type_spec<'ctx>(
             };
 
             let mut max_size = 0;
-            for payload in variants.iter().flatten() {
+            for payload in variants {
                 // TODO: need to actually respect the target arch width
                 let layout = blocker::type_layout(payload, Arch::W64);
                 if layout.size() > max_size {

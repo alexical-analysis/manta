@@ -33,7 +33,7 @@
             {
               "Struct": []
             },
-            null
+            "Unit"
           ]
         }
       },
@@ -78,7 +78,7 @@
               {
                 "Struct": []
               },
-              null
+              "Unit"
             ]
           }
         }
@@ -126,7 +126,7 @@
           "tag_size": "U8",
           "variants": [
             "String",
-            null
+            "Unit"
           ]
         }
       },
@@ -171,7 +171,7 @@
             "tag_size": "U8",
             "variants": [
               "String",
-              null
+              "Unit"
             ]
           }
         }
@@ -224,7 +224,7 @@
                   {
                     "Struct": []
                   },
-                  null
+                  "Unit"
                 ]
               }
             },
@@ -233,7 +233,7 @@
                 "tag_size": "U8",
                 "variants": [
                   "String",
-                  null
+                  "Unit"
                 ]
               }
             }
@@ -268,7 +268,7 @@
                 {
                   "Struct": []
                 },
-                null
+                "Unit"
               ]
             }
           },
@@ -288,7 +288,7 @@
                 {
                   "Struct": []
                 },
-                null
+                "Unit"
               ]
             }
           },
@@ -304,7 +304,7 @@
               "tag_size": "U8",
               "variants": [
                 "String",
-                null
+                "Unit"
               ]
             }
           },
@@ -320,7 +320,7 @@
               "tag_size": "U8",
               "variants": [
                 "String",
-                null
+                "Unit"
               ]
             }
           },
@@ -339,7 +339,7 @@
                       {
                         "Struct": []
                       },
-                      null
+                      "Unit"
                     ]
                   }
                 },
@@ -348,7 +348,7 @@
                     "tag_size": "U8",
                     "variants": [
                       "String",
-                      null
+                      "Unit"
                     ]
                   }
                 }
@@ -828,7 +828,7 @@
               {
                 "Struct": []
               },
-              null
+              "Unit"
             ]
           }
         },
@@ -850,7 +850,7 @@
               {
                 "Struct": []
               },
-              null
+              "Unit"
             ]
           }
         },
@@ -866,7 +866,7 @@
                     {
                       "Struct": []
                     },
-                    null
+                    "Unit"
                   ]
                 }
               },
@@ -875,7 +875,7 @@
                   "tag_size": "U8",
                   "variants": [
                     "String",
-                    null
+                    "Unit"
                   ]
                 }
               }
@@ -894,7 +894,7 @@
             "tag_size": "U8",
             "variants": [
               "String",
-              null
+              "Unit"
             ]
           }
         },
@@ -910,7 +910,7 @@
             "tag_size": "U8",
             "variants": [
               "String",
-              null
+              "Unit"
             ]
           }
         },
@@ -926,7 +926,7 @@
                     {
                       "Struct": []
                     },
-                    null
+                    "Unit"
                   ]
                 }
               },
@@ -935,7 +935,7 @@
                   "tag_size": "U8",
                   "variants": [
                     "String",
-                    null
+                    "Unit"
                   ]
                 }
               }
@@ -955,7 +955,7 @@
                     {
                       "Struct": []
                     },
-                    null
+                    "Unit"
                   ]
                 }
               },
@@ -964,7 +964,7 @@
                   "tag_size": "U8",
                   "variants": [
                     "String",
-                    null
+                    "Unit"
                   ]
                 }
               }
@@ -986,7 +986,7 @@
                     {
                       "Struct": []
                     },
-                    null
+                    "Unit"
                   ]
                 }
               },
@@ -995,7 +995,7 @@
                   "tag_size": "U8",
                   "variants": [
                     "String",
-                    null
+                    "Unit"
                   ]
                 }
               }
@@ -1034,7 +1034,7 @@
                       {
                         "Struct": []
                       },
-                      null
+                      "Unit"
                     ]
                   }
                 },
@@ -1043,7 +1043,7 @@
                     "tag_size": "U8",
                     "variants": [
                       "String",
-                      null
+                      "Unit"
                     ]
                   }
                 }
@@ -1069,7 +1069,7 @@
                       {
                         "Struct": []
                       },
-                      null
+                      "Unit"
                     ]
                   }
                 },
@@ -1078,7 +1078,7 @@
                     "tag_size": "U8",
                     "variants": [
                       "String",
-                      null
+                      "Unit"
                     ]
                   }
                 }
@@ -1104,7 +1104,7 @@
                       {
                         "Struct": []
                       },
-                      null
+                      "Unit"
                     ]
                   }
                 },
@@ -1113,7 +1113,7 @@
                     "tag_size": "U8",
                     "variants": [
                       "String",
-                      null
+                      "Unit"
                     ]
                   }
                 }
@@ -1139,7 +1139,7 @@
                       {
                         "Struct": []
                       },
-                      null
+                      "Unit"
                     ]
                   }
                 },
@@ -1148,7 +1148,7 @@
                     "tag_size": "U8",
                     "variants": [
                       "String",
-                      null
+                      "Unit"
                     ]
                   }
                 }
@@ -1528,7 +1528,7 @@
                     {
                       "Struct": []
                     },
-                    null
+                    "Unit"
                   ]
                 }
               },
@@ -1537,7 +1537,7 @@
                   "tag_size": "U8",
                   "variants": [
                     "String",
-                    null
+                    "Unit"
                   ]
                 }
               }
@@ -1568,7 +1568,7 @@
                     {
                       "Struct": []
                     },
-                    null
+                    "Unit"
                   ]
                 }
               },
@@ -1577,7 +1577,7 @@
                   "tag_size": "U8",
                   "variants": [
                     "String",
-                    null
+                    "Unit"
                   ]
                 }
               }

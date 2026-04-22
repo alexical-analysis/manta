@@ -1159,7 +1159,10 @@ fn lower_type_spec(hir_ts: &hir::TypeSpec) -> TypeSpec {
             variants: et
                 .variants
                 .iter()
-                .map(|v| v.payload.as_ref().map(lower_type_spec))
+                .map(|v| match v.payload.as_ref() {
+                    Some(ts) => lower_type_spec(ts),
+                    None => TypeSpec::Unit,
+                })
                 .collect(),
         },
         hir::TypeSpec::Named(nt) => lower_type_spec(&nt.type_spec),
@@ -1249,14 +1252,13 @@ pub fn type_layout(ts: &TypeSpec, arch: Arch) -> Layout {
                 TagSize::U32 => 4,
                 TagSize::U64 => 8,
             };
-            let payload = variants
-                .iter()
-                .filter_map(|v| v.as_ref())
-                .map(|v| type_layout(v, arch))
-                .fold(Layout { size: 0, align: 0 }, |acc, l| Layout {
+            let payload = variants.iter().map(|v| type_layout(v, arch)).fold(
+                Layout { size: 0, align: 0 },
+                |acc, l| Layout {
                     size: acc.size.max(l.size),
                     align: acc.align.max(l.align),
-                });
+                },
+            );
             let align = payload.align.max(tag_bytes);
             let size = align_up(Layout {
                 size: tag_bytes + payload.size,

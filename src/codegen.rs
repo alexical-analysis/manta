@@ -994,13 +994,6 @@ impl<'ctx> Codegen<'ctx> {
                             _ => panic!("invalid tag value, must be uint"),
                         };
 
-                        // TODO: we can remove this once we update the enum type spec to use Unit
-                        // types instead of optional types
-                        let payload_ts = match payload_ts {
-                            Some(t) => t.clone(),
-                            None => TypeSpec::Unit,
-                        };
-
                         (tag_ts, payload_ts)
                     }
                     _ => panic!("type must be an enum"),
@@ -1009,7 +1002,7 @@ impl<'ctx> Codegen<'ctx> {
                 let opaque_ts = match &variant_type {
                     TypeSpec::Enum { variants, .. } => {
                         let mut bytes = 0;
-                        for ts in variants.iter().flatten() {
+                        for ts in variants {
                             // TODO: actually repsect the correct arch here
                             let layout = blocker::type_layout(ts, Arch::W64);
                             if layout.size() > bytes {
