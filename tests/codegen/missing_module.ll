@@ -49,14 +49,14 @@ entry:
   ret void
 }
 
-define void @fmt_println({ i64, ptr } %0) {
+define internal void @fmt_println({ i64, ptr } %0) {
 entry:
   %s = alloca { i64, ptr }, align 8
   store { i64, ptr } %0, ptr %s, align 8
   ret void
 }
 
-define void @main() {
+define internal void @main() {
 entry:
   call void @fmt_println({ i64, ptr } { i64 21, ptr @const_str })
   ret void

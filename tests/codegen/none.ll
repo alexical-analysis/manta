@@ -50,21 +50,21 @@ entry:
   ret void
 }
 
-define void @fmt_println_ptr(ptr %0) {
+define internal void @fmt_println_ptr(ptr %0) {
 entry:
   %p = alloca ptr, align 8
   store ptr %0, ptr %p, align 8
   ret void
 }
 
-define void @fmt_println({ i64, ptr } %0) {
+define internal void @fmt_println({ i64, ptr } %0) {
 entry:
   %s = alloca { i64, ptr }, align 8
   store { i64, ptr } %0, ptr %s, align 8
   ret void
 }
 
-define { i8, [8 x i8] } @maybe_alloc(i1 %0) {
+define internal { i8, [8 x i8] } @maybe_alloc(i1 %0) {
 entry:
   %tmp = alloca [8 x i8], align 1
   %cond = alloca i1, align 1
@@ -107,7 +107,7 @@ Block_7:                                          ; preds = %Block_2
   unreachable
 }
 
-define void @main() {
+define internal void @main() {
 entry:
   %"<match target>" = alloca { i8, [8 x i8] }, align 8
   %p = alloca ptr, align 8

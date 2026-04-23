@@ -49,21 +49,21 @@ entry:
   ret void
 }
 
-define { i8, [0 x i8] } @os_open({ i64, ptr } %0) {
+define internal { i8, [0 x i8] } @os_open({ i64, ptr } %0) {
 entry:
   %path = alloca { i64, ptr }, align 8
   store { i64, ptr } %0, ptr %path, align 8
   ret { i8, [0 x i8] } { i8 1, [0 x i8] undef }
 }
 
-define void @os_close({} %0) {
+define internal void @os_close({} %0) {
 entry:
   %f = alloca {}, align 8
   store {} %0, ptr %f, align 1
   ret void
 }
 
-define { i8, [8 x i8] } @os_write({} %0, { i64, i64, ptr } %1) {
+define internal { i8, [8 x i8] } @os_write({} %0, { i64, i64, ptr } %1) {
 entry:
   %f = alloca {}, align 8
   %buf = alloca { i64, i64, ptr }, align 8
@@ -72,7 +72,7 @@ entry:
   ret { i8, [8 x i8] } { i8 1, [8 x i8] undef }
 }
 
-define { i8, [16 x i8] } @write_and_cleanup({ i64, ptr } %0) {
+define internal { i8, [16 x i8] } @write_and_cleanup({ i64, ptr } %0) {
 entry:
   %tmp21 = alloca [16 x i8], align 1
   %tmp = alloca [16 x i8], align 1

@@ -72,7 +72,25 @@ impl<'ctx> Codegen<'ctx> {
                 None => panic!("can not have global values with unit type"),
             };
 
+            let linkage = match global.public {
+                true => Linkage::External,
+                false => Linkage::Internal,
+            };
+
             let global_value = llvm_module.add_global(global_type, None, global_name.as_str());
+            global_value.set_linkage(linkage);
+            // TODO: need to check if the value is a constant so we don't waste an initalizer when it's
+            // not needed
+            let zero_init: BasicValueEnum = match global_type {
+                BasicTypeEnum::IntType(t) => t.const_zero().into(),
+                BasicTypeEnum::FloatType(t) => t.const_zero().into(),
+                BasicTypeEnum::StructType(t) => t.const_zero().into(),
+                BasicTypeEnum::ArrayType(t) => t.const_zero().into(),
+                BasicTypeEnum::PointerType(t) => t.const_null().into(),
+                BasicTypeEnum::VectorType(t) => t.const_zero().into(),
+                BasicTypeEnum::ScalableVectorType(_) => unreachable!("scalable vectors not used"),
+            };
+            global_value.set_initializer(&zero_init);
             self.global_map.insert(
                 global_id,
                 GlobalData {

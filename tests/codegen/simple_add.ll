@@ -48,7 +48,7 @@ entry:
   ret void
 }
 
-define i64 @main() {
+define internal i64 @main() {
 entry:
   %a = alloca i64, align 8
   %b = alloca i64, align 8

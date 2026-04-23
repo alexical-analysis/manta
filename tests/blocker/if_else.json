@@ -1,6 +1,7 @@
 {
   "globals": [],
   "init": {
+    "public": true,
     "name": 18446744073709551596,
     "params": [],
     "return_type": "Unit",
@@ -22,6 +23,7 @@
   },
   "functions": [
     {
+      "public": false,
       "name": 8,
       "params": [
         1
@@ -52,6 +54,7 @@
       "value_types": []
     },
     {
+      "public": false,
       "name": 1,
       "params": [],
       "return_type": "Unit",

@@ -384,6 +384,7 @@ struct Scope {
 }
 
 pub struct FunctionBuilder {
+    public: bool,
     name: StrID,
     params: Vec<LocalId>,
     return_type: TypeSpec,
@@ -396,8 +397,24 @@ pub struct FunctionBuilder {
 }
 
 impl FunctionBuilder {
-    pub fn new(name: StrID, return_type: TypeSpec) -> Self {
+    pub fn new_public(name: StrID, return_type: TypeSpec) -> Self {
         FunctionBuilder {
+            public: true,
+            name,
+            return_type,
+            params: vec![],
+            locals: vec![],
+            local_map: BTreeMap::new(),
+            blocks: vec![],
+            scopes: vec![],
+            instructions: vec![],
+            value_types: vec![],
+        }
+    }
+
+    pub fn new_private(name: StrID, return_type: TypeSpec) -> Self {
+        FunctionBuilder {
+            public: false,
             name,
             return_type,
             params: vec![],
@@ -1118,6 +1135,7 @@ impl FunctionBuilder {
         }
 
         MirFunction {
+            public: self.public,
             name: self.name,
             params: self.params.clone(),
             return_type: self.return_type.clone(),
@@ -1149,7 +1167,7 @@ mod tests {
     use crate::str_store::StrID;
 
     fn test_builder() -> FunctionBuilder {
-        FunctionBuilder::new(StrID::from_usize(1), TypeSpec::Unit)
+        FunctionBuilder::new_private(StrID::from_usize(1), TypeSpec::Unit)
     }
 
     // A single block with a Return terminator should be cloned to a new block
@@ -2133,7 +2151,7 @@ mod tests {
     // A value return should be replaced with a store to the local followed by a Jump.
     #[test]
     fn test_return_to_value_return_single_block() {
-        let mut fb = FunctionBuilder::new(StrID::from_usize(1), TypeSpec::I32);
+        let mut fb = FunctionBuilder::new_private(StrID::from_usize(1), TypeSpec::I32);
         let a = fb.add_block();
         let target = fb.add_block();
         fb.set_terminator(target, Terminator::Unreachable);

@@ -26,6 +26,7 @@ impl NodeID {
 pub enum Node {
     Invalid,
     FunctionDecl {
+        public: bool,
         // ident is always an identifier node
         ident: NodeID,
         // params are just VarDecl nodes
@@ -40,6 +41,7 @@ pub enum Node {
         statements: Vec<NodeID>,
     },
     VarDecl {
+        public: bool,
         // ident is always an identifier node
         ident: NodeID,
         // no value here because HIR declares variables first and then

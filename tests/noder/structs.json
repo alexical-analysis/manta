@@ -63,6 +63,7 @@
     },
     {
       "FunctionDecl": {
+        "public": false,
         "ident": 4,
         "params": [],
         "body": 10
@@ -112,6 +113,7 @@
     },
     {
       "VarDecl": {
+        "public": false,
         "ident": 19
       }
     },
@@ -168,6 +170,7 @@
     },
     {
       "VarDecl": {
+        "public": false,
         "ident": 29
       }
     },
@@ -260,6 +263,7 @@
     },
     {
       "VarDecl": {
+        "public": false,
         "ident": 45
       }
     },
@@ -295,6 +299,7 @@
     },
     {
       "FunctionDecl": {
+        "public": false,
         "ident": 5,
         "params": [],
         "body": 50
