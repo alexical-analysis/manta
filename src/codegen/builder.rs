@@ -53,12 +53,17 @@ pub fn build_func_value<'ctx>(
         .get_string(function.name)
         .expect("failed to get function name");
 
-    let linkage = match function.public {
-        true => Some(Linkage::External),
-        false => Some(Linkage::Internal),
-    };
-
-    module.add_function(function_name.as_str(), func_type, linkage)
+    match function.public_prefix {
+        Some(prefix) => {
+            // external functions need to be prefixed with the module name so there are no linking collisions
+            let function_prefix = str_store
+                .get_string(prefix)
+                .expect("failed to get function prefix");
+            let function_name = function_prefix + function_name.as_str();
+            module.add_function(function_name.as_str(), func_type, Some(Linkage::External))
+        }
+        None => module.add_function(function_name.as_str(), func_type, Some(Linkage::Internal)),
+    }
 }
 
 pub fn build_c_deps<'ctx>(

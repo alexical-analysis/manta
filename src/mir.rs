@@ -442,7 +442,7 @@ pub struct BasicBlock {
 /// A function in MIR form.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct MirFunction {
-    pub public: bool,
+    pub public_prefix: Option<StrID>,
     pub name: StrID,
     pub params: Vec<LocalId>,
     pub return_type: TypeSpec,

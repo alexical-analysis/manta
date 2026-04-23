@@ -619,6 +619,7 @@
     92
   ],
   "public_decls": {},
+  "public_prefix": 42,
   "type_map": {
     "keys": {
       "0": 0,

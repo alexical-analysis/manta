@@ -1511,7 +1511,7 @@ mod tests {
     use inkwell::context::Context;
     use pretty_assertions::assert_eq;
     use std::fs;
-    use std::path::Path;
+    use std::path::{Path, PathBuf};
 
     use crate::blocker::Blocker;
     use crate::file_set::{File, FileSet};
@@ -1537,8 +1537,9 @@ mod tests {
 
         let mut str_store = StrStore::new();
         let file = File::new(file_name.to_string(), source);
-        let file_set = FileSet::new_from_files(std::path::PathBuf::new(), vec![file]);
-        let parser = Parser::new(&file_set);
+        let file_set = FileSet::new_from_files(PathBuf::new(), vec![file]);
+        let use_path_dir = PathBuf::from("test");
+        let parser = Parser::new(&use_path_dir, &file_set);
         let module = parser.parse_module(&mut str_store);
 
         let node_tree = node_module(&module);
