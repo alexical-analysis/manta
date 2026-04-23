@@ -19,6 +19,8 @@ use std::time::Instant;
 
 use clap::{Parser, Subcommand};
 use compiler::Compiler;
+use inkwell::object_file;
+use tempfile::TempDir;
 
 /// The CLI for the Manta programming language
 #[derive(Parser, Debug)]
@@ -101,7 +103,36 @@ fn build(
         return Err(String::from("path does not contain manta.mod file").into());
     }
 
+    let obj_dir = match debug {
+        true => workspace.join("debug"),
+        false => env::temp_dir(),
+    };
+
     let modules = file_set::gather_file_sets(workspace.clone())?;
+
+    let mut line_count = 0;
+    let start = Instant::now();
+
+    let mut object_files = vec![];
+    for module in &modules {
+        line_count += module.line_count();
+        let mut compiler = Compiler::new(module);
+
+        let root = module.root_dir().strip_prefix(&workspace)?;
+        let root = obj_dir.join(root);
+        fs::create_dir_all(&root)?;
+
+        let mod_name = root.file_name().expect("failed to get module name");
+        let mod_name = mod_name.to_string_lossy().to_string();
+
+        let object_file = root.join(mod_name + ".o");
+
+        compiler
+            .compile(&object_file)
+            .expect("failed to compile module");
+
+        object_files.push(object_file)
+    }
 
     let out_file = match out_file {
         Some(f) => f.clone(),
@@ -111,18 +142,13 @@ fn build(
         },
     };
 
-    // TODO: need to actually compile all the modules, for now just compile the root module
-    let root_module = modules.last().expect("missing main mod");
+    compiler::link_module(&object_files, &out_file)?;
 
-    println!("compiling file main module");
-    let line_count = root_module.line_count();
-
-    let mut compiler = Compiler::new(root_module);
-    let start = Instant::now();
-
-    match compiler.compile(out_file, debug) {
-        Ok(_) => {}
-        Err(err) => panic!("{}", err),
+    if !debug {
+        for f in object_files {
+            // removal is best effort since they're written to a tmp dir
+            fs::remove_file(&f).ok();
+        }
     }
 
     let total_time = start.elapsed().as_secs_f64();
