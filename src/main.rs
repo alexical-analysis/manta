@@ -48,14 +48,6 @@ enum Commands {
         #[arg(value_name = "TARGET_DIR")]
         target_dir: Option<PathBuf>,
     },
-
-    #[command(
-        about = "Check complies the project but stops once all checks have been performed and reported"
-    )]
-    Check {
-        #[arg(value_name = "TARGET_DIR")]
-        target_dir: Option<PathBuf>,
-    },
     #[command(about = "Init a new manta project in the current directory")]
     Init {
         #[arg(value_name = "MOD_NAME")]
@@ -208,29 +200,6 @@ fn main() -> Result<(), Box<dyn Error>> {
             if cleanup {
                 fs::remove_file(&out_path).ok();
             }
-        }
-        Commands::Check { target_dir } => {
-            let workspace = match target_dir {
-                Some(dir) => match dir.is_dir() {
-                    true => dir.clone(),
-                    false => {
-                        return Err(String::from("target dir must be a valid directory").into());
-                    }
-                },
-                None => env::current_dir()?,
-            };
-
-            if !workspace.join("manta.mod").exists() {
-                return Err(String::from("path does not contain manta.mod file").into());
-            }
-
-            let modules = file_set::gather_file_sets(workspace.clone())?;
-
-            // TODO: need to actually compile all the modules, for now just compile the root module
-            let root_module = modules.last().expect("missing main mod");
-
-            let mut _compiler = Compiler::new(root_module);
-            // compiler.check();
         }
         Commands::Init { mod_name } => {
             // check if manta.mod already exists before we try to init the project
