@@ -349,45 +349,29 @@ impl<'ctx> Codegen<'ctx> {
                 | TypeSpec::U16
                 | TypeSpec::U32
                 | TypeSpec::U64 => {
-                    let lhs = func_builder.get_llvm_value(lhs);
-                    let lhs = match lhs {
-                        Some(lhs) => lhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let lhs = func_builder
+                        .get_llvm_value(lhs)
+                        .expect("failed to get lhs of addition expr")
+                        .into_int_value();
 
-                    let rhs = func_builder.get_llvm_value(rhs);
-                    let rhs = match rhs {
-                        Some(rhs) => rhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let rhs = func_builder
+                        .get_llvm_value(rhs)
+                        .expect("failed to get rhs of addition expr")
+                        .into_int_value();
 
                     let value = func_builder.build_int_add(lhs, rhs);
                     Some(value)
                 }
                 TypeSpec::F32 | TypeSpec::F64 => {
-                    let lhs = func_builder.get_llvm_value(lhs);
-                    let lhs = match lhs {
-                        Some(lhs) => lhs.into_float_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let lhs = func_builder
+                        .get_llvm_value(lhs)
+                        .expect("failed to get lhs of addition expr")
+                        .into_float_value();
 
-                    let rhs = func_builder.get_llvm_value(rhs);
-                    let rhs = match rhs {
-                        Some(rhs) => rhs.into_float_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let rhs = func_builder
+                        .get_llvm_value(rhs)
+                        .expect("failed to get rhs of addition expr")
+                        .into_float_value();
 
                     let value = func_builder.build_float_add(lhs, rhs);
                     Some(value)
@@ -404,45 +388,29 @@ impl<'ctx> Codegen<'ctx> {
                 | TypeSpec::U16
                 | TypeSpec::U32
                 | TypeSpec::U64 => {
-                    let lhs = func_builder.get_llvm_value(lhs);
-                    let lhs = match lhs {
-                        Some(lhs) => lhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let lhs = func_builder
+                        .get_llvm_value(lhs)
+                        .expect("failed to get lhs of subtraction expr")
+                        .into_int_value();
 
-                    let rhs = func_builder.get_llvm_value(rhs);
-                    let rhs = match rhs {
-                        Some(rhs) => rhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let rhs = func_builder
+                        .get_llvm_value(rhs)
+                        .expect("failed to get rhs of subtraction expr")
+                        .into_int_value();
 
                     let value = func_builder.build_int_sub(lhs, rhs);
                     Some(value)
                 }
                 TypeSpec::F32 | TypeSpec::F64 => {
-                    let lhs = func_builder.get_llvm_value(lhs);
-                    let lhs = match lhs {
-                        Some(lhs) => lhs.into_float_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let lhs = func_builder
+                        .get_llvm_value(lhs)
+                        .expect("failed to get lhs of subtraction expr")
+                        .into_float_value();
 
-                    let rhs = func_builder.get_llvm_value(rhs);
-                    let rhs = match rhs {
-                        Some(rhs) => rhs.into_float_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let rhs = func_builder
+                        .get_llvm_value(rhs)
+                        .expect("failed to get rhs of subtraction expr")
+                        .into_float_value();
 
                     let value = func_builder.build_float_sub(lhs, rhs);
                     Some(value)
@@ -451,45 +419,29 @@ impl<'ctx> Codegen<'ctx> {
             },
             Instruction::SDiv { lhs, rhs } => match inst_type_spec {
                 TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
-                    let lhs = func_builder.get_llvm_value(lhs);
-                    let lhs = match lhs {
-                        Some(lhs) => lhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let lhs = func_builder
+                        .get_llvm_value(lhs)
+                        .expect("failed to get lhs of division expr")
+                        .into_int_value();
 
-                    let rhs = func_builder.get_llvm_value(rhs);
-                    let rhs = match rhs {
-                        Some(rhs) => rhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let rhs = func_builder
+                        .get_llvm_value(rhs)
+                        .expect("failed to get rhs of division expr")
+                        .into_int_value();
 
                     let value = func_builder.build_int_signed_div(lhs, rhs);
                     Some(value)
                 }
                 TypeSpec::F32 | TypeSpec::F64 => {
-                    let lhs = func_builder.get_llvm_value(lhs);
-                    let lhs = match lhs {
-                        Some(lhs) => lhs.into_float_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let lhs = func_builder
+                        .get_llvm_value(lhs)
+                        .expect("failed to get lhs of division expr")
+                        .into_float_value();
 
-                    let rhs = func_builder.get_llvm_value(rhs);
-                    let rhs = match rhs {
-                        Some(rhs) => rhs.into_float_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let rhs = func_builder
+                        .get_llvm_value(rhs)
+                        .expect("failed to get rhs of division expr")
+                        .into_float_value();
 
                     let value = func_builder.build_float_div(lhs, rhs);
                     Some(value)
@@ -498,23 +450,15 @@ impl<'ctx> Codegen<'ctx> {
             },
             Instruction::UDiv { lhs, rhs } => match inst_type_spec {
                 TypeSpec::U8 | TypeSpec::U16 | TypeSpec::U32 | TypeSpec::U64 => {
-                    let lhs = func_builder.get_llvm_value(lhs);
-                    let lhs = match lhs {
-                        Some(lhs) => lhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let lhs = func_builder
+                        .get_llvm_value(lhs)
+                        .expect("failed to get lhs of division expr")
+                        .into_int_value();
 
-                    let rhs = func_builder.get_llvm_value(rhs);
-                    let rhs = match rhs {
-                        Some(rhs) => rhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let rhs = func_builder
+                        .get_llvm_value(rhs)
+                        .expect("failed to get rhs of division expr")
+                        .into_int_value();
 
                     let value = func_builder.build_int_unsigned_div(lhs, rhs);
                     Some(value)
@@ -530,45 +474,29 @@ impl<'ctx> Codegen<'ctx> {
                 | TypeSpec::U16
                 | TypeSpec::U32
                 | TypeSpec::U64 => {
-                    let lhs = func_builder.get_llvm_value(lhs);
-                    let lhs = match lhs {
-                        Some(lhs) => lhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let lhs = func_builder
+                        .get_llvm_value(lhs)
+                        .expect("failed to get lhs for multiplication expr")
+                        .into_int_value();
 
-                    let rhs = func_builder.get_llvm_value(rhs);
-                    let rhs = match rhs {
-                        Some(rhs) => rhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let rhs = func_builder
+                        .get_llvm_value(rhs)
+                        .expect("failed to get rhs for multiplication expr")
+                        .into_int_value();
 
                     let value = func_builder.build_int_mul(lhs, rhs);
                     Some(value)
                 }
                 TypeSpec::F32 | TypeSpec::F64 => {
-                    let lhs = func_builder.get_llvm_value(lhs);
-                    let lhs = match lhs {
-                        Some(lhs) => lhs.into_float_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let lhs = func_builder
+                        .get_llvm_value(lhs)
+                        .expect("failed to get lhs for multiplication expr")
+                        .into_float_value();
 
-                    let rhs = func_builder.get_llvm_value(rhs);
-                    let rhs = match rhs {
-                        Some(rhs) => rhs.into_float_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let rhs = func_builder
+                        .get_llvm_value(rhs)
+                        .expect("failed to get rhs for multiplication expr")
+                        .into_float_value();
 
                     let value = func_builder.build_float_mul(lhs, rhs);
                     Some(value)
@@ -577,23 +505,15 @@ impl<'ctx> Codegen<'ctx> {
             },
             Instruction::SMod { lhs, rhs } => match inst_type_spec {
                 TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
-                    let lhs = func_builder.get_llvm_value(lhs);
-                    let lhs = match lhs {
-                        Some(lhs) => lhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let lhs = func_builder
+                        .get_llvm_value(lhs)
+                        .expect("failed to get lhs for modulo expr")
+                        .into_int_value();
 
-                    let rhs = func_builder.get_llvm_value(rhs);
-                    let rhs = match rhs {
-                        Some(rhs) => rhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let rhs = func_builder
+                        .get_llvm_value(rhs)
+                        .expect("failed to get rhs for modulo expr")
+                        .into_int_value();
 
                     let value = func_builder.build_int_signed_rem(lhs, rhs);
                     Some(value)
@@ -602,23 +522,15 @@ impl<'ctx> Codegen<'ctx> {
             },
             Instruction::UMod { lhs, rhs } => match inst_type_spec {
                 TypeSpec::U8 | TypeSpec::U16 | TypeSpec::U32 | TypeSpec::U64 => {
-                    let lhs = func_builder.get_llvm_value(lhs);
-                    let lhs = match lhs {
-                        Some(lhs) => lhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let lhs = func_builder
+                        .get_llvm_value(lhs)
+                        .expect("failed to get lhs for modulo expr")
+                        .into_int_value();
 
-                    let rhs = func_builder.get_llvm_value(rhs);
-                    let rhs = match rhs {
-                        Some(rhs) => rhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let rhs = func_builder
+                        .get_llvm_value(rhs)
+                        .expect("failed to get rhs for modulo expr")
+                        .into_int_value();
 
                     let value = func_builder.build_int_unsigned_rem(lhs, rhs);
                     Some(value)
@@ -787,45 +699,29 @@ impl<'ctx> Codegen<'ctx> {
                 }
             }
             Instruction::LogicalAnd { lhs, rhs } => {
-                let lhs = func_builder.get_llvm_value(lhs);
-                let lhs = match lhs {
-                    Some(lhs) => lhs.into_int_value(),
-                    None => {
-                        eprintln!("TODO: not all instructions are supported yet");
-                        return None;
-                    }
-                };
+                let lhs = func_builder
+                    .get_llvm_value(lhs)
+                    .expect("failed to get lhs for logical-and expr")
+                    .into_int_value();
 
-                let rhs = func_builder.get_llvm_value(rhs);
-                let rhs = match rhs {
-                    Some(rhs) => rhs.into_int_value(),
-                    None => {
-                        eprintln!("TODO: not all instructions are supported yet");
-                        return None;
-                    }
-                };
+                let rhs = func_builder
+                    .get_llvm_value(rhs)
+                    .expect("failed to get rhs for logical-and expr")
+                    .into_int_value();
 
                 let value = func_builder.build_and(lhs, rhs);
                 Some(value)
             }
             Instruction::LogicalOr { lhs, rhs } => {
-                let lhs = func_builder.get_llvm_value(lhs);
-                let lhs = match lhs {
-                    Some(lhs) => lhs.into_int_value(),
-                    None => {
-                        eprintln!("TODO: not all instructions are supported yet");
-                        return None;
-                    }
-                };
+                let lhs = func_builder
+                    .get_llvm_value(lhs)
+                    .expect("failed to get lhs for logical-or expr")
+                    .into_int_value();
 
-                let rhs = func_builder.get_llvm_value(rhs);
-                let rhs = match rhs {
-                    Some(rhs) => rhs.into_int_value(),
-                    None => {
-                        eprintln!("TODO: not all instructions are supported yet");
-                        return None;
-                    }
-                };
+                let rhs = func_builder
+                    .get_llvm_value(rhs)
+                    .expect("failed to get rhs for logical-or expr")
+                    .into_int_value();
 
                 let value = func_builder.build_or(lhs, rhs);
                 Some(value)
@@ -867,16 +763,9 @@ impl<'ctx> Codegen<'ctx> {
                     }
                 };
 
-                let value = func_builder.get_llvm_value(value);
-                let value = match value {
-                    Some(v) => v,
-                    None => {
-                        eprintln!(
-                            "TODO: not all instructions are supported yet skipping store for now"
-                        );
-                        return None;
-                    }
-                };
+                let value = func_builder
+                    .get_llvm_value(value)
+                    .expect("failed to find global value for store");
 
                 func_builder.build_store(&current_type, ptr, *value);
                 None
@@ -911,17 +800,11 @@ impl<'ctx> Codegen<'ctx> {
             Instruction::Call { func, args } => {
                 let mut llvm_args = vec![];
                 for arg in args {
-                    let llvm_value = func_builder.get_llvm_value(arg);
-                    let llvm_value = match llvm_value {
-                        Some(v) => *v,
-                        None => {
-                            eprintln!("TODO: not all instructions are supported yet");
-                            return None;
-                        }
-                    };
+                    let llvm_value = *func_builder
+                        .get_llvm_value(arg)
+                        .expect("failed to get llvm value for call");
 
-                    let llvm_value = llvm_value.into();
-                    llvm_args.push(llvm_value)
+                    llvm_args.push(llvm_value.into())
                 }
 
                 let func_data = self
@@ -1093,23 +976,15 @@ impl<'ctx> Codegen<'ctx> {
                 | TypeSpec::U16
                 | TypeSpec::U32
                 | TypeSpec::U64 => {
-                    let lhs = func_builder.get_llvm_value(lhs);
-                    let lhs = match lhs {
-                        Some(lhs) => lhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let lhs = func_builder
+                        .get_llvm_value(lhs)
+                        .expect("failed to get lhs for bitwise-and expr")
+                        .into_int_value();
 
-                    let rhs = func_builder.get_llvm_value(rhs);
-                    let rhs = match rhs {
-                        Some(rhs) => rhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let rhs = func_builder
+                        .get_llvm_value(rhs)
+                        .expect("failed to get rhs for bitwise-and expr")
+                        .into_int_value();
 
                     let value = func_builder.build_and(lhs, rhs);
                     Some(value)
@@ -1125,23 +1000,15 @@ impl<'ctx> Codegen<'ctx> {
                 | TypeSpec::U16
                 | TypeSpec::U32
                 | TypeSpec::U64 => {
-                    let lhs = func_builder.get_llvm_value(lhs);
-                    let lhs = match lhs {
-                        Some(lhs) => lhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let lhs = func_builder
+                        .get_llvm_value(lhs)
+                        .expect("failed to get lhs for bitwise-or expr")
+                        .into_int_value();
 
-                    let rhs = func_builder.get_llvm_value(rhs);
-                    let rhs = match rhs {
-                        Some(rhs) => rhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let rhs = func_builder
+                        .get_llvm_value(rhs)
+                        .expect("failed to get rhs for bitwise-or expr")
+                        .into_int_value();
 
                     let value = func_builder.build_or(lhs, rhs);
                     Some(value)
@@ -1157,23 +1024,15 @@ impl<'ctx> Codegen<'ctx> {
                 | TypeSpec::U16
                 | TypeSpec::U32
                 | TypeSpec::U64 => {
-                    let lhs = func_builder.get_llvm_value(lhs);
-                    let lhs = match lhs {
-                        Some(lhs) => lhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let lhs = func_builder
+                        .get_llvm_value(lhs)
+                        .expect("failed to get lhs for bitwise-xor expr")
+                        .into_int_value();
 
-                    let rhs = func_builder.get_llvm_value(rhs);
-                    let rhs = match rhs {
-                        Some(rhs) => rhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let rhs = func_builder
+                        .get_llvm_value(rhs)
+                        .expect("failed to get rhs for bitwise-xor expr")
+                        .into_int_value();
 
                     let value = func_builder.build_xor(lhs, rhs);
                     Some(value)
@@ -1182,14 +1041,10 @@ impl<'ctx> Codegen<'ctx> {
             },
             Instruction::BoolNot { op } => match inst_type_spec {
                 TypeSpec::Bool => {
-                    let op = func_builder.get_llvm_value(op);
-                    let op = match op {
-                        Some(lhs) => lhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let op = func_builder
+                        .get_llvm_value(op)
+                        .expect("failed to get op for boolean not expr")
+                        .into_int_value();
 
                     let value = func_builder.build_not(op);
                     Some(value)
@@ -1198,27 +1053,19 @@ impl<'ctx> Codegen<'ctx> {
             },
             Instruction::Negate { op } => match inst_type_spec {
                 TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
-                    let op = func_builder.get_llvm_value(op);
-                    let op = match op {
-                        Some(lhs) => lhs.into_int_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let op = func_builder
+                        .get_llvm_value(op)
+                        .expect("failed to get op for numeric negation expr")
+                        .into_int_value();
 
                     let value = func_builder.build_int_neg(op);
                     Some(value)
                 }
                 TypeSpec::F32 | TypeSpec::F64 => {
-                    let op = func_builder.get_llvm_value(op);
-                    let op = match op {
-                        Some(lhs) => lhs.into_float_value(),
-                        None => {
-                            eprintln!("TODO: not all instructions are supported");
-                            return None;
-                        }
-                    };
+                    let op = func_builder
+                        .get_llvm_value(op)
+                        .expect("failed to get op for numeric negation expr")
+                        .into_float_value();
 
                     let value = func_builder.build_float_neg(op);
                     Some(value)
@@ -1317,23 +1164,15 @@ impl<'ctx> Codegen<'ctx> {
         lhs: ValueId,
         rhs: ValueId,
     ) -> Option<BasicValueEnum<'ctx>> {
-        let lhs = func_builder.get_llvm_value(lhs);
-        let lhs = match lhs {
-            Some(lhs) => lhs.into_int_value(),
-            None => {
-                eprintln!("TODO: not all instructions are supported");
-                return None;
-            }
-        };
+        let lhs = func_builder
+            .get_llvm_value(lhs)
+            .expect("failed to get lhs for comparison expr")
+            .into_int_value();
 
-        let rhs = func_builder.get_llvm_value(rhs);
-        let rhs = match rhs {
-            Some(rhs) => rhs.into_int_value(),
-            None => {
-                eprintln!("TODO: not all instructions are supported");
-                return None;
-            }
-        };
+        let rhs = func_builder
+            .get_llvm_value(rhs)
+            .expect("failed to get rhs for comparision expr")
+            .into_int_value();
 
         let value = func_builder.build_int_compare(op, lhs, rhs);
         Some(value)
@@ -1346,23 +1185,15 @@ impl<'ctx> Codegen<'ctx> {
         lhs: ValueId,
         rhs: ValueId,
     ) -> Option<BasicValueEnum<'ctx>> {
-        let lhs = func_builder.get_llvm_value(lhs);
-        let lhs = match lhs {
-            Some(lhs) => lhs.into_float_value(),
-            None => {
-                eprintln!("TODO: not all instructions are supported");
-                return None;
-            }
-        };
+        let lhs = func_builder
+            .get_llvm_value(lhs)
+            .expect("failed to get lhs for comparison expr")
+            .into_float_value();
 
-        let rhs = func_builder.get_llvm_value(rhs);
-        let rhs = match rhs {
-            Some(rhs) => rhs.into_float_value(),
-            None => {
-                eprintln!("TODO: not all instructions are supported");
-                return None;
-            }
-        };
+        let rhs = func_builder
+            .get_llvm_value(rhs)
+            .expect("failed to get rhs for comparision expr")
+            .into_float_value();
 
         let value = func_builder.build_float_compare(op, lhs, rhs);
         Some(value)
