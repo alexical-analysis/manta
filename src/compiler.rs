@@ -28,11 +28,15 @@ impl<'fs> Compiler<'fs> {
     }
 
     /// Compiles the source to a .o file and write the result to the object_file path.
-    pub fn compile(&mut self, object_file: &PathBuf) -> Result<PubMod, Box<dyn Error>> {
+    pub fn compile(
+        &mut self,
+        mod_map: &HashMap<String, PubMod>,
+        object_file: &PathBuf,
+    ) -> Result<PubMod, Box<dyn Error>> {
         let context = Context::create();
         let mut generator = Codegen::new(&context);
 
-        let (module, pub_mod) = self.compile_module(&mut generator);
+        let (module, pub_mod) = self.compile_module(mod_map, &mut generator);
 
         let target_triple = TargetMachine::get_default_triple();
         let target_machine = optimizer::create_target_machine(target_triple);
@@ -46,44 +50,52 @@ impl<'fs> Compiler<'fs> {
         Ok(pub_mod)
     }
 
-    pub fn check(&mut self) {
+    pub fn check(&mut self, mod_map: &HashMap<String, PubMod>) {
         let context = Context::create();
         let mut generator = Codegen::new(&context);
 
-        self.compile_module(&mut generator);
+        self.compile_module(mod_map, &mut generator);
     }
 
-    fn compile_module<'ctx>(&mut self, generator: &mut Codegen<'ctx>) -> (Module<'ctx>, PubMod) {
+    fn compile_module<'ctx>(
+        &mut self,
+        mod_map: &HashMap<String, PubMod>,
+        generator: &mut Codegen<'ctx>,
+    ) -> (Module<'ctx>, PubMod) {
         println!("building ast module...");
         let parser = Parser::new(self.file_set);
         let mut str_store = StrStore::new();
         let module = parser.parse_module(&mut str_store);
 
-        let module_name = module.get_name(&str_store);
         if !module.get_errors().is_empty() {
             panic!("errors in the parser: {:?}", module.get_errors())
         }
 
         // build the HIR from the AST
         println!("building hir module...");
-        let node_tree = node_module(module);
+        let node_tree = node_module(&module);
 
         // build the MIR from the HIR
         println!("building mir module...");
         let blocker = Blocker::new(&node_tree);
         let mir_module = blocker.build_module();
 
-        let pub_mod = PubMod::new(str_store.clone(), node_tree.get_public_types());
+        let pub_mod = PubMod::new(
+            str_store.clone(),
+            module.name(),
+            node_tree.get_public_types(),
+        );
 
         // build the llvm module from the MIR
         println!("building llvm module...");
+        let module_name = module.get_name(&str_store);
         let llvm_module = generator.gen_module(&str_store, module_name, mir_module);
 
         (llvm_module, pub_mod)
     }
 }
 
-/// uses the linker to linke the given object file writing the result to the output file
+/// uses the linker to link the given object file writing the result to the output file
 pub fn link_module(object_files: &[PathBuf], output_file: &String) -> Result<(), Box<dyn Error>> {
     let mut object_files: Vec<&str> = object_files
         .iter()

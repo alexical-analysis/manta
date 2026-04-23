@@ -12,15 +12,27 @@ pub struct PubMod {
     // module is trying to use these types. We can probably slim down the StrStore to only contain referenced
     // types so that it serializes well but it needs to be a copy, not a reference
     str_store: StrStore,
+    mod_name: StrID,
     hir_types: HashMap<StrID, hir::TypeSpec>,
 }
 
 impl PubMod {
-    pub fn new(str_store: StrStore, hir_types: HashMap<StrID, hir::TypeSpec>) -> Self {
+    pub fn new(
+        str_store: StrStore,
+        mod_name: StrID,
+        hir_types: HashMap<StrID, hir::TypeSpec>,
+    ) -> Self {
         PubMod {
             str_store,
+            mod_name,
             hir_types,
         }
+    }
+
+    pub fn name(&self) -> String {
+        self.str_store
+            .get_string(self.mod_name)
+            .expect("failed to get module name")
     }
 }
 

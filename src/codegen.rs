@@ -1523,7 +1523,7 @@ mod tests {
         let parser = Parser::new(&file_set);
         let module = parser.parse_module(&mut str_store);
 
-        let node_tree = node_module(module);
+        let node_tree = node_module(&module);
         let blocker = Blocker::new(&node_tree);
         let mir_module = blocker.build_module();
 

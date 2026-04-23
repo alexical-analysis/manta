@@ -6,10 +6,9 @@ pub mod pattern;
 pub mod statement;
 pub mod types;
 
-use crate::ast::{BlockStmt, Decl, FunctionDecl, FunctionType, Parameter, TypeSpec};
+use crate::ast::Decl;
 use crate::file_set::FileSet;
-use crate::parser::lexer::SourceID;
-use crate::str_store::{self, StrStore};
+use crate::str_store::StrStore;
 
 use declaration::DeclParser;
 use lexer::{Lexer, Token, TokenKind};

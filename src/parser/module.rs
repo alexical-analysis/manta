@@ -343,6 +343,9 @@ impl Module {
             sym_table,
         }
     }
+    pub fn name(&self) -> StrID {
+        self.name
+    }
 
     pub fn get_scope_pos(&self, source_id: SourceID) -> Option<ScopePos> {
         self.sym_table.scope_map.get(&source_id).copied()
