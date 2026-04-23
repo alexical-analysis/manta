@@ -153,15 +153,6 @@ Flags:
 - `-o, --out-file <OUT_FILE>` — output binary name (defaults to the project directory name)
 - `-d, --debug` — preserve intermediate object files in the current directory
 
-### `manta check`
-
-Validates the project and reports errors without producing build artifacts. The project directory must contain a `manta.mod` file.
-
-```bash
-./target/release/manta check
-./target/release/manta check ./path/to/project
-```
-
 ### `manta init`
 
 Creates a `manta.mod` file in the current directory, initializing a new Manta project. If a `manta.mod` already exists, the command exits without overwriting it.
