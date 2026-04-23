@@ -132,7 +132,7 @@ impl NodeTree {
     }
 }
 
-pub fn node_module(module: Module) -> NodeTree {
+pub fn node_module(module: &Module) -> NodeTree {
     // Should these types be owned by the Noder type?
     let mut node_tree = NodeTree::new();
 
@@ -1635,7 +1635,7 @@ mod tests {
         let parser = Parser::new(&file_set);
         let module = parser.parse_module(&mut str_store);
 
-        let node_tree = node_module(module);
+        let node_tree = node_module(&module);
 
         let total = node_tree.nodes.len();
         let untyped: Vec<usize> = (0..total)
@@ -1717,7 +1717,7 @@ mod tests {
                     let decl = $decl;
                     let module = Module::new(vec![ParserFile::new(vec![], vec![decl])]);
 
-                    let node_tree = node_module(module);
+                    let node_tree = node_module(&module);
 
                     let expected = $expected;
 

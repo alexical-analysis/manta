@@ -10,6 +10,7 @@ mod parser;
 mod pub_mod;
 mod str_store;
 
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs::{self, File};
 use std::io::Write;
@@ -19,8 +20,6 @@ use std::time::Instant;
 
 use clap::{Parser, Subcommand};
 use compiler::Compiler;
-use inkwell::object_file;
-use tempfile::TempDir;
 
 /// The CLI for the Manta programming language
 #[derive(Parser, Debug)]
@@ -43,8 +42,8 @@ enum Commands {
         #[arg(short, long, value_name = "OUT_DIR")]
         out_file: Option<String>,
 
-        #[arg(short, long, value_name = "DEBUG")]
-        debug: bool,
+        #[arg(short, long, value_name = "SAVE_TEMPS")]
+        save_temps: bool,
 
         #[arg(value_name = "TARGET_DIR")]
         target_dir: Option<PathBuf>,
@@ -87,7 +86,7 @@ enum Commands {
 }
 
 fn build(
-    debug: bool,
+    save_temps: bool,
     target_dir: &Option<PathBuf>,
     out_file: &Option<String>,
 ) -> Result<(), Box<dyn Error>> {
@@ -103,8 +102,13 @@ fn build(
         return Err(String::from("path does not contain manta.mod file").into());
     }
 
-    let obj_dir = match debug {
-        true => workspace.join("debug"),
+    let obj_dir = match save_temps {
+        true => {
+            let artifacts_dir = workspace.join(".artifacts");
+            // try to remove existing artifacts to prevent old files from getting linked
+            fs::remove_dir_all(&artifacts_dir).ok();
+            artifacts_dir
+        }
         false => env::temp_dir(),
     };
 
@@ -113,13 +117,14 @@ fn build(
     let mut line_count = 0;
     let start = Instant::now();
 
+    let mut mod_map = HashMap::new();
     let mut object_files = vec![];
     for module in &modules {
         line_count += module.line_count();
         let mut compiler = Compiler::new(module);
 
         let root = module.root_dir().strip_prefix(&workspace)?;
-        let root = obj_dir.join(root);
+        let root = obj_dir.join("root").join(root);
         fs::create_dir_all(&root)?;
 
         let mod_name = root.file_name().expect("failed to get module name");
@@ -127,9 +132,11 @@ fn build(
 
         let object_file = root.join(mod_name + ".o");
 
-        compiler
-            .compile(&object_file)
+        let pub_mod = compiler
+            .compile(&mod_map, &object_file)
             .expect("failed to compile module");
+
+        mod_map.insert(pub_mod.name(), pub_mod);
 
         object_files.push(object_file)
     }
@@ -144,7 +151,7 @@ fn build(
 
     compiler::link_module(&object_files, &out_file)?;
 
-    if !debug {
+    if !save_temps {
         for f in object_files {
             // removal is best effort since they're written to a tmp dir
             fs::remove_file(&f).ok();
@@ -162,11 +169,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     match &cli.command {
         Commands::Build {
-            debug,
+            save_temps,
             target_dir,
             out_file,
         } => {
-            build(*debug, target_dir, out_file)?;
+            build(*save_temps, target_dir, out_file)?;
         }
         Commands::Run {
             out_file,
@@ -222,8 +229,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             // TODO: need to actually compile all the modules, for now just compile the root module
             let root_module = modules.last().expect("missing main mod");
 
-            let mut compiler = Compiler::new(root_module);
-            compiler.check();
+            let mut _compiler = Compiler::new(root_module);
+            // compiler.check();
         }
         Commands::Init { mod_name } => {
             // check if manta.mod already exists before we try to init the project
