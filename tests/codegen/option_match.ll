@@ -50,14 +50,14 @@ entry:
   ret void
 }
 
-define void @fmt_println({ i64, ptr } %0) {
+define internal void @fmt_println({ i64, ptr } %0) {
 entry:
   %s = alloca { i64, ptr }, align 8
   store { i64, ptr } %0, ptr %s, align 8
   ret void
 }
 
-define { i8, [4 x i8] } @div(i32 %0, i32 %1) {
+define internal { i8, [4 x i8] } @div(i32 %0, i32 %1) {
 entry:
   %tmp = alloca [4 x i8], align 1
   %a = alloca i32, align 4
@@ -81,7 +81,7 @@ Block_3:                                          ; preds = %entry
   ret { i8, [4 x i8] } %set_pay
 }
 
-define void @main() {
+define internal void @main() {
 entry:
   %r = alloca { i8, [4 x i8] }, align 8
   %v = alloca i32, align 4

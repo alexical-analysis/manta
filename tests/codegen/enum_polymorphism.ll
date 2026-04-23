@@ -1,7 +1,7 @@
 ; ModuleID = 'enum_polymorphism'
 source_filename = "enum_polymorphism"
 
-@MATH_PI = external global double
+@MATH_PI = internal global double 0.000000e+00
 @panic_msg = private unnamed_addr constant [24 x i8] c"Panic reached! exiting!\00", align 1
 
 declare ptr @malloc(i64)
@@ -50,14 +50,14 @@ entry:
   ret void
 }
 
-define void @fmt_println(double %0) {
+define internal void @fmt_println(double %0) {
 entry:
   %i = alloca double, align 8
   store double %0, ptr %i, align 8
   ret void
 }
 
-define double @area({ i8, [8 x i8] } %0) {
+define internal double @area({ i8, [8 x i8] } %0) {
 entry:
   %s = alloca { i8, [8 x i8] }, align 8
   %r = alloca double, align 8
@@ -94,7 +94,7 @@ Block_7:                                          ; preds = %entry
   unreachable
 }
 
-define void @main() {
+define internal void @main() {
 entry:
   %tmp3 = alloca [8 x i8], align 1
   %tmp = alloca [8 x i8], align 1

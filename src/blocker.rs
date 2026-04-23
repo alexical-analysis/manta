@@ -24,8 +24,9 @@ pub struct Blocker<'a> {
 
 impl<'a> Blocker<'a> {
     pub fn new(node_tree: &'a NodeTree) -> Self {
-        // create the init function builder to start
-        let fn_builder = FunctionBuilder::new(str_store::INIT, TypeSpec::Unit);
+        // create the init function builder to start, it needs to be public so it can be run from the
+        // main projects init function
+        let fn_builder = FunctionBuilder::new_public(str_store::INIT, TypeSpec::Unit);
         Blocker {
             globals: vec![],
             global_map: BTreeMap::new(),
@@ -69,6 +70,7 @@ impl<'a> Blocker<'a> {
 
         match node {
             Node::FunctionDecl {
+                public,
                 ident,
                 params,
                 body,
@@ -79,7 +81,11 @@ impl<'a> Blocker<'a> {
                     None => panic!("missing type for function decl"),
                 };
 
-                let mut fn_builder = FunctionBuilder::new(name, return_type);
+                let mut fn_builder = match public {
+                    true => FunctionBuilder::new_public(name, return_type),
+                    false => FunctionBuilder::new_private(name, return_type),
+                };
+
                 for param in params {
                     let param = self
                         .node_tree
@@ -87,7 +93,7 @@ impl<'a> Blocker<'a> {
                         .expect("missing node for param");
 
                     let ident = match param {
-                        Node::VarDecl { ident } => ident,
+                        Node::VarDecl { ident, .. } => ident,
                         _ => panic!("param was not a VarDecl"),
                     };
 
@@ -145,7 +151,7 @@ impl<'a> Blocker<'a> {
                 // type decls do not need to be represented in the MIR
                 Some(block_id)
             }
-            Node::VarDecl { ident } => {
+            Node::VarDecl { public, ident } => {
                 let name = self.get_ident_name(ident);
                 let ts = self
                     .node_tree
@@ -153,7 +159,7 @@ impl<'a> Blocker<'a> {
                     .expect("missing type for identifier");
                 let ts = lower_type_spec(ts);
 
-                self.add_global(ident, name, ts);
+                self.add_global(ident, public, name, ts);
 
                 Some(block_id)
             }
@@ -171,8 +177,12 @@ impl<'a> Blocker<'a> {
         }
     }
 
-    fn add_global(&mut self, node: NodeID, name: StrID, type_spec: TypeSpec) {
-        let global = Global { name, type_spec };
+    fn add_global(&mut self, node: NodeID, public: bool, name: StrID, type_spec: TypeSpec) {
+        let global = Global {
+            public,
+            name,
+            type_spec,
+        };
         self.globals.push(global);
 
         let global_id = GlobalId::from_usize(self.globals.len());
@@ -292,7 +302,7 @@ impl<'a> Blocker<'a> {
                     Some(merge_block)
                 }
             }
-            Node::VarDecl { ident } => {
+            Node::VarDecl { ident, .. } => {
                 let name = self.get_ident_name(ident);
                 let ts = self
                     .node_tree
@@ -1517,6 +1527,7 @@ mod tests {
                         statements: vec![NodeID::from_usize(2)]
                     }, // NodeID(3)
                     Node::FunctionDecl {
+                        public: false,
                         // NodeID(4)
                         ident: NodeID::from_usize(0),
                         params: vec![],
@@ -1538,6 +1549,7 @@ mod tests {
             want: MirModule {
                 globals: vec![],
                 init: MirFunction {
+                    public: true,
                     blocks: vec![Some(BasicBlock {
                         instructions: vec![],
                         terminator: Terminator::Return { value: None },
@@ -1552,6 +1564,7 @@ mod tests {
                     value_types: vec![],
                 },
                 functions: vec![MirFunction {
+                    public: false,
                     name: StrID::from_usize(1),
                     params: vec![],
                     return_type: TypeSpec::I32,
@@ -1589,6 +1602,7 @@ mod tests {
                         statements: vec![NodeID::from_usize(2)]
                     }, // NodeID(3)
                     Node::FunctionDecl {
+                        public: false,
                         // NodeID(4)
                         ident: NodeID::from_usize(0),
                         params: vec![],
@@ -1610,6 +1624,7 @@ mod tests {
             want: MirModule {
                 globals: vec![],
                 init: MirFunction {
+                    public: true,
                     name: str_store::INIT,
                     params: vec![],
                     return_type: TypeSpec::Unit,
@@ -1624,6 +1639,7 @@ mod tests {
                     value_types: vec![],
                 },
                 functions: vec![MirFunction {
+                    public: false,
                     name: StrID::from_usize(1),
                     params: vec![],
                     return_type: TypeSpec::Bool,
@@ -1661,6 +1677,7 @@ mod tests {
                         statements: vec![NodeID::from_usize(2)]
                     }, // NodeID(3)
                     Node::FunctionDecl {
+                        public: false,
                         // NodeID(4)
                         ident: NodeID::from_usize(0),
                         params: vec![],
@@ -1682,6 +1699,7 @@ mod tests {
             want: MirModule {
                 globals: vec![],
                 init: MirFunction {
+                    public: true,
                     name: str_store::INIT,
                     params: vec![],
                     return_type: TypeSpec::Unit,
@@ -1696,6 +1714,7 @@ mod tests {
                     value_types: vec![],
                 },
                 functions: vec![MirFunction {
+                    public: false,
                     name: StrID::from_usize(1),
                     params: vec![],
                     return_type: TypeSpec::Bool,
@@ -1733,6 +1752,7 @@ mod tests {
                         statements: vec![NodeID::from_usize(2)]
                     }, // NodeID(3)
                     Node::FunctionDecl {
+                        public: false,
                         // NodeID(4)
                         ident: NodeID::from_usize(0),
                         params: vec![],
@@ -1754,6 +1774,7 @@ mod tests {
             want: MirModule {
                 globals: vec![],
                 init: MirFunction {
+                    public: true,
                     name: str_store::INIT,
                     params: vec![],
                     return_type: TypeSpec::Unit,
@@ -1768,6 +1789,7 @@ mod tests {
                     value_types: vec![],
                 },
                 functions: vec![MirFunction {
+                    public: false,
                     name: StrID::from_usize(1),
                     params: vec![],
                     return_type: TypeSpec::F64,
@@ -1805,6 +1827,7 @@ mod tests {
                         statements: vec![NodeID::from_usize(2)]
                     }, // NodeID(3)
                     Node::FunctionDecl {
+                        public: false,
                         // NodeID(4)
                         ident: NodeID::from_usize(0),
                         params: vec![],
@@ -1826,6 +1849,7 @@ mod tests {
             want: MirModule {
                 globals: vec![],
                 init: MirFunction {
+                    public: true,
                     name: str_store::INIT,
                     params: vec![],
                     return_type: TypeSpec::Unit,
@@ -1840,6 +1864,7 @@ mod tests {
                     value_types: vec![],
                 },
                 functions: vec![MirFunction {
+                    public: false,
                     name: StrID::from_usize(1),
                     params: vec![],
                     return_type: TypeSpec::String,

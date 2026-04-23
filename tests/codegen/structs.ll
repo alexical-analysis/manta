@@ -48,12 +48,12 @@ entry:
   ret void
 }
 
-define i32 @two() {
+define internal i32 @two() {
 entry:
   ret i32 2
 }
 
-define i32 @main() {
+define internal i32 @main() {
 entry:
   %a = alloca { i32, double, i64 }, align 8
   %b = alloca { i8, i32 }, align 8

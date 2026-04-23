@@ -52,35 +52,35 @@ entry:
   ret void
 }
 
-define { i8, [0 x i8] } @os_open({ i64, ptr } %0) {
+define internal { i8, [0 x i8] } @os_open({ i64, ptr } %0) {
 entry:
   %path = alloca { i64, ptr }, align 8
   store { i64, ptr } %0, ptr %path, align 8
   ret { i8, [0 x i8] } { i8 1, [0 x i8] undef }
 }
 
-define void @os_close({} %0) {
+define internal void @os_close({} %0) {
 entry:
   %f = alloca {}, align 8
   store {} %0, ptr %f, align 1
   ret void
 }
 
-define { i8, [16 x i8] } @io_read_to_string({} %0) {
+define internal { i8, [16 x i8] } @io_read_to_string({} %0) {
 entry:
   %f = alloca {}, align 8
   store {} %0, ptr %f, align 1
   ret { i8, [16 x i8] } { i8 1, [16 x i8] undef }
 }
 
-define void @fmt_println({ i64, ptr } %0) {
+define internal void @fmt_println({ i64, ptr } %0) {
 entry:
   %s = alloca { i64, ptr }, align 8
   store { i64, ptr } %0, ptr %s, align 8
   ret void
 }
 
-define { i8, [24 x i8] } @read_file({ i64, ptr } %0) {
+define internal { i8, [24 x i8] } @read_file({ i64, ptr } %0) {
 entry:
   %tmp19 = alloca [24 x i8], align 1
   %tmp12 = alloca [24 x i8], align 1
@@ -174,7 +174,7 @@ Block_23:                                         ; preds = %Block_17
   ret { i8, [24 x i8] } %load23
 }
 
-define void @main() {
+define internal void @main() {
 entry:
   %content = alloca { i64, ptr }, align 8
   %"<match target>" = alloca { i8, [24 x i8] }, align 8

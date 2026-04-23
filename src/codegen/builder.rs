@@ -53,7 +53,12 @@ pub fn build_func_value<'ctx>(
         .get_string(function.name)
         .expect("failed to get function name");
 
-    module.add_function(function_name.as_str(), func_type, None)
+    let linkage = match function.public {
+        true => Some(Linkage::External),
+        false => Some(Linkage::Internal),
+    };
+
+    module.add_function(function_name.as_str(), func_type, linkage)
 }
 
 pub fn build_c_deps<'ctx>(

@@ -360,7 +360,10 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                     module: None,
                     name: param.name,
                 });
-                let param_id = node_tree.add_node(Node::VarDecl { ident: ident_id });
+                let param_id = node_tree.add_node(Node::VarDecl {
+                    public: false,
+                    ident: ident_id,
+                });
                 params.push(param_id);
 
                 let type_spec = node_type_spec(node_tree, module, param_type);
@@ -393,6 +396,7 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
 
             let body_id = node_fn_body(node_tree, module, &decl.body, return_type);
             let func_id = node_tree.add_root_node(Node::FunctionDecl {
+                public: decl.public,
                 ident: ident_id,
                 params,
                 body: body_id,
@@ -432,7 +436,10 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 .get(binding.id)
                 .expect("const not pre-registered in symbol_map");
 
-            node_tree.add_root_node(Node::VarDecl { ident: ident_id });
+            node_tree.add_root_node(Node::VarDecl {
+                public: decl.public,
+                ident: ident_id,
+            });
             let value_node = node_expr(node_tree, module, &decl.value);
             node_tree.add_root_node(Node::Assign {
                 target: ident_id,
@@ -451,7 +458,10 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 .get(binding.id)
                 .expect("var not pre-registered in symbol_map");
 
-            node_tree.add_root_node(Node::VarDecl { ident: ident_id });
+            node_tree.add_root_node(Node::VarDecl {
+                public: decl.public,
+                ident: ident_id,
+            });
             let value_node = node_expr(node_tree, module, &decl.value);
             node_tree.add_root_node(Node::Assign {
                 target: ident_id,
@@ -663,7 +673,10 @@ fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<Node
                 module: None,
                 name: stmt.binding.name,
             });
-            let var_decl_id = node_tree.add_node(Node::VarDecl { ident: binding_id });
+            let var_decl_id = node_tree.add_node(Node::VarDecl {
+                public: false,
+                ident: binding_id,
+            });
 
             let scope_pos = module
                 .get_scope_pos(stmt.binding.id)
@@ -909,7 +922,10 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                     name: pay,
                     module: None,
                 });
-                nodes.push(node_tree.add_node(Node::VarDecl { ident: outer_ident }));
+                nodes.push(node_tree.add_node(Node::VarDecl {
+                    public: false,
+                    ident: outer_ident,
+                }));
 
                 let assign_id = node_tree.add_node(Node::Assign {
                     target: outer_ident,
@@ -968,7 +984,10 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                 name: ident.name,
                 module: None,
             });
-            nodes.push(node_tree.add_node(Node::VarDecl { ident: ident_id }));
+            nodes.push(node_tree.add_node(Node::VarDecl {
+                public: false,
+                ident: ident_id,
+            }));
 
             let scope_pos = module
                 .get_scope_pos(ident.id)
@@ -1020,7 +1039,10 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                         name: pay,
                         module: None,
                     });
-                    nodes.push(node_tree.add_node(Node::VarDecl { ident: outer_ident }));
+                    nodes.push(node_tree.add_node(Node::VarDecl {
+                        public: false,
+                        ident: outer_ident,
+                    }));
 
                     let assign_id = node_tree.add_node(Node::Assign {
                         target: outer_ident,
@@ -1756,6 +1778,7 @@ mod tests {
                         module: None
                     },
                     Node::VarDecl {
+                        public: false,
                         ident: NodeID::from_usize(2)
                     },
                     Node::IntLiteral(42),
@@ -1871,6 +1894,7 @@ mod tests {
                         module: None
                     },
                     Node::VarDecl {
+                        public: false,
                         ident: NodeID::from_usize(2)
                     },
                     Node::BoolLiteral(true),
@@ -1942,6 +1966,7 @@ mod tests {
                         module: None
                     },
                     Node::VarDecl {
+                        public: false,
                         ident: NodeID::from_usize(2)
                     },
                     Node::FloatLiteral(3.45),
@@ -2180,6 +2205,7 @@ mod tests {
                         module: None
                     },
                     Node::VarDecl {
+                        public: false,
                         ident: NodeID::from_usize(2)
                     },
                     Node::StringLiteral(StrID::from_usize(3)),
@@ -2421,6 +2447,7 @@ mod tests {
             module: None,
         });
         let id = store.add_node(Node::FunctionDecl {
+            public: false,
             ident: ident_id,
             params: vec![],
             body: NodeID::from_usize(0),

@@ -90,6 +90,7 @@
     },
     {
       "VarDecl": {
+        "public": false,
         "ident": 14
       }
     },
@@ -114,6 +115,7 @@
     },
     {
       "FunctionDecl": {
+        "public": false,
         "ident": 4,
         "params": [
           15
@@ -129,6 +131,7 @@
     },
     {
       "VarDecl": {
+        "public": false,
         "ident": 20
       }
     },
@@ -146,6 +149,7 @@
     },
     {
       "FunctionDecl": {
+        "public": false,
         "ident": 5,
         "params": [
           21
@@ -166,6 +170,7 @@
     },
     {
       "VarDecl": {
+        "public": false,
         "ident": 26
       }
     },
@@ -190,6 +195,7 @@
     },
     {
       "FunctionDecl": {
+        "public": false,
         "ident": 7,
         "params": [
           27
@@ -205,6 +211,7 @@
     },
     {
       "VarDecl": {
+        "public": false,
         "ident": 32
       }
     },
@@ -222,6 +229,7 @@
     },
     {
       "FunctionDecl": {
+        "public": false,
         "ident": 8,
         "params": [
           33
@@ -242,6 +250,7 @@
     },
     {
       "VarDecl": {
+        "public": false,
         "ident": 38
       }
     },
@@ -276,6 +285,7 @@
     },
     {
       "VarDecl": {
+        "public": false,
         "ident": 43
       }
     },
@@ -396,6 +406,7 @@
     },
     {
       "VarDecl": {
+        "public": false,
         "ident": 61
       }
     },
@@ -491,6 +502,7 @@
     },
     {
       "FunctionDecl": {
+        "public": false,
         "ident": 10,
         "params": [
           39
@@ -532,6 +544,7 @@
     },
     {
       "VarDecl": {
+        "public": false,
         "ident": 81
       }
     },
@@ -648,6 +661,7 @@
     },
     {
       "VarDecl": {
+        "public": false,
         "ident": 99
       }
     },
@@ -750,6 +764,7 @@
     },
     {
       "FunctionDecl": {
+        "public": false,
         "ident": 11,
         "params": [],
         "body": 114

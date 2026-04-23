@@ -1,6 +1,7 @@
 {
   "globals": [],
   "init": {
+    "public": true,
     "name": 18446744073709551596,
     "params": [],
     "return_type": "Unit",
@@ -22,6 +23,7 @@
   },
   "functions": [
     {
+      "public": false,
       "name": 19,
       "params": [
         1
@@ -85,6 +87,7 @@
       ]
     },
     {
+      "public": false,
       "name": 23,
       "params": [
         1
@@ -117,6 +120,7 @@
       "value_types": []
     },
     {
+      "public": false,
       "name": 26,
       "params": [
         1
@@ -178,6 +182,7 @@
       ]
     },
     {
+      "public": false,
       "name": 27,
       "params": [
         1
@@ -208,6 +213,7 @@
       "value_types": []
     },
     {
+      "public": false,
       "name": 32,
       "params": [
         1
@@ -1005,6 +1011,7 @@
       ]
     },
     {
+      "public": false,
       "name": 1,
       "params": [],
       "return_type": "Unit",
