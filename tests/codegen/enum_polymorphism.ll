@@ -44,7 +44,7 @@ entry:
   ret void
 }
 
-define void @"<init>"() {
+define void @"manta_test_<init>"() {
 entry:
   store double 3.140000e+00, ptr @MATH_PI, align 8
   ret void

@@ -113,19 +113,21 @@ fn build(
     let mut object_files = vec![];
     for module in &modules {
         line_count += module.line_count();
-        let mut compiler = Compiler::new(module);
 
-        let root = module.root_dir().strip_prefix(&workspace)?;
-        let root = obj_dir.join("root").join(root);
+        let import_path = module.root_dir().strip_prefix(&workspace)?;
+        let mut compiler = Compiler::new(import_path.into(), module);
+
+        let root = obj_dir.join("root").join(import_path);
         fs::create_dir_all(&root)?;
 
         let mod_name = root.file_name().expect("failed to get module name");
         let mod_name = mod_name.to_string_lossy().to_string();
+        println!("building module {:?}", &mod_name);
 
         let object_file = root.join(mod_name + ".o");
 
         let pub_mod = compiler
-            .compile(&mod_map, &object_file)
+            .compile(&mod_map, &object_file, save_temps)
             .expect("failed to compile module");
 
         mod_map.insert(pub_mod.name(), pub_mod);

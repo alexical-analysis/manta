@@ -19,12 +19,16 @@ use inkwell::targets::{FileType, TargetMachine};
 
 /// Compiler compiles a single module into a .o file and returns the public interface to that module
 pub struct Compiler<'fs> {
+    import_path: PathBuf,
     file_set: &'fs FileSet,
 }
 
 impl<'fs> Compiler<'fs> {
-    pub fn new(file_set: &'fs FileSet) -> Self {
-        Compiler { file_set }
+    pub fn new(import_path: PathBuf, file_set: &'fs FileSet) -> Self {
+        Compiler {
+            import_path,
+            file_set,
+        }
     }
 
     /// Compiles the source to a .o file and write the result to the object_file path.
@@ -32,11 +36,17 @@ impl<'fs> Compiler<'fs> {
         &mut self,
         mod_map: &HashMap<String, PubMod>,
         object_file: &PathBuf,
+        save_temps: bool,
     ) -> Result<PubMod, Box<dyn Error>> {
         let context = Context::create();
         let mut generator = Codegen::new(&context);
 
         let (module, pub_mod) = self.compile_module(mod_map, &mut generator);
+        if save_temps {
+            let mut ll_file = object_file.clone();
+            ll_file.set_extension("ll");
+            module.print_to_file(ll_file)?;
+        }
 
         let target_triple = TargetMachine::get_default_triple();
         let target_machine = optimizer::create_target_machine(target_triple);
@@ -50,20 +60,13 @@ impl<'fs> Compiler<'fs> {
         Ok(pub_mod)
     }
 
-    pub fn check(&mut self, mod_map: &HashMap<String, PubMod>) {
-        let context = Context::create();
-        let mut generator = Codegen::new(&context);
-
-        self.compile_module(mod_map, &mut generator);
-    }
-
     fn compile_module<'ctx>(
         &mut self,
         mod_map: &HashMap<String, PubMod>,
         generator: &mut Codegen<'ctx>,
     ) -> (Module<'ctx>, PubMod) {
         println!("building ast module...");
-        let parser = Parser::new(self.file_set);
+        let parser = Parser::new(&self.import_path, self.file_set);
         let mut str_store = StrStore::new();
         let module = parser.parse_module(&mut str_store);
 
@@ -102,7 +105,8 @@ pub fn link_module(object_files: &[PathBuf], output_file: &String) -> Result<(),
         .map(|p| p.to_str().expect("failed to get object file path"))
         .collect();
 
-    // run clang (eventually this will be lld but we're just using clang for now)
+    // run cc (eventually this will be lld directly but we're just using cc to making finding lld on
+    // the system easier for now)
     println!(
         "running cc to link {:?} (output {:?})",
         object_files, output_file

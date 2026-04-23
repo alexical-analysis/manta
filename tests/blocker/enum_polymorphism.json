@@ -7,7 +7,7 @@
     }
   ],
   "init": {
-    "public": true,
+    "public_prefix": 37,
     "name": 18446744073709551596,
     "params": [],
     "return_type": "Unit",
@@ -54,7 +54,7 @@
   },
   "functions": [
     {
-      "public": false,
+      "public_prefix": null,
       "name": 13,
       "params": [
         1
@@ -85,7 +85,7 @@
       "value_types": []
     },
     {
-      "public": false,
+      "public_prefix": null,
       "name": 22,
       "params": [
         1
@@ -338,7 +338,7 @@
       ]
     },
     {
-      "public": false,
+      "public_prefix": null,
       "name": 1,
       "params": [],
       "return_type": "Unit",

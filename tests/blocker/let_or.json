@@ -1,7 +1,7 @@
 {
   "globals": [],
   "init": {
-    "public": true,
+    "public_prefix": 45,
     "name": 18446744073709551596,
     "params": [],
     "return_type": "Unit",
@@ -23,7 +23,7 @@
   },
   "functions": [
     {
-      "public": false,
+      "public_prefix": null,
       "name": 19,
       "params": [
         1
@@ -87,7 +87,7 @@
       ]
     },
     {
-      "public": false,
+      "public_prefix": null,
       "name": 23,
       "params": [
         1
@@ -120,7 +120,7 @@
       "value_types": []
     },
     {
-      "public": false,
+      "public_prefix": null,
       "name": 26,
       "params": [
         1
@@ -182,7 +182,7 @@
       ]
     },
     {
-      "public": false,
+      "public_prefix": null,
       "name": 27,
       "params": [
         1
@@ -213,7 +213,7 @@
       "value_types": []
     },
     {
-      "public": false,
+      "public_prefix": null,
       "name": 32,
       "params": [
         1
@@ -1011,7 +1011,7 @@
       ]
     },
     {
-      "public": false,
+      "public_prefix": null,
       "name": 1,
       "params": [],
       "return_type": "Unit",

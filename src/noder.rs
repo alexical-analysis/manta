@@ -66,6 +66,7 @@ pub struct NodeTree {
     pub(crate) nodes: Vec<Node>,
     pub roots: Vec<NodeID>,
     pub public_decls: HashMap<StrID, NodeID>,
+    pub public_prefix: StrID,
     // the type_map maps each node in the node tree to it's type (if it has one)
     // TODO: we're going to have a type for every node so maybe we can use a slot map or something
     // to pack these more tightly withouth a lookup/ performance cost. right now the side
@@ -80,11 +81,12 @@ pub struct NodeTree {
 
 impl NodeTree {
     /// Create a new NodeTree
-    pub fn new() -> Self {
+    pub fn new(public_prefix: StrID) -> Self {
         NodeTree {
             nodes: vec![],
             roots: vec![],
             public_decls: HashMap::new(),
+            public_prefix,
             type_map: SideTable::new(),
             symbol_map: SideTable::new(),
             within_loop: false,
@@ -134,7 +136,7 @@ impl NodeTree {
 
 pub fn node_module(module: &Module) -> NodeTree {
     // Should these types be owned by the Noder type?
-    let mut node_tree = NodeTree::new();
+    let mut node_tree = NodeTree::new(module.public_prefix());
 
     // TODO: remove when these builtin functions are removed
     for builtin_name in [str_store::PRINT, str_store::EPRINT] {
@@ -1597,7 +1599,7 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
 mod tests {
     use super::*;
     use std::fs;
-    use std::path::Path;
+    use std::path::{Path, PathBuf};
 
     use pretty_assertions::assert_eq;
 
@@ -1654,7 +1656,8 @@ mod tests {
         let mut str_store = StrStore::new();
         let file = File::new(file_name.to_string(), source);
         let file_set = FileSet::new_from_files(std::path::PathBuf::new(), vec![file]);
-        let parser = Parser::new(&file_set);
+        let test_use_path = PathBuf::from("test");
+        let parser = Parser::new(&test_use_path, &file_set);
         let module = parser.parse_module(&mut str_store);
 
         let node_tree = node_module(&module);
@@ -1737,7 +1740,7 @@ mod tests {
                 fn $case() {
                     // Build module from provided declaration
                     let decl = $decl;
-                    let module = Module::new(vec![ParserFile::new(vec![], vec![decl])]);
+                    let module = Module::new(StrID::from_usize(10), vec![ParserFile::new(vec![], vec![decl])]);
 
                     let node_tree = node_module(&module);
 
@@ -1789,6 +1792,7 @@ mod tests {
                 ],
                 roots: vec![NodeID::from_usize(3), NodeID::from_usize(5)],
                 public_decls: HashMap::from([]),
+                public_prefix: StrID::from_usize(10),
                 type_map: SideTable {
                     // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
                     // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), Int64), (NodeID(2), Int64)
@@ -1843,6 +1847,7 @@ mod tests {
                 ],
                 roots: vec![NodeID::from_usize(2)],
                 public_decls: HashMap::from([]),
+                public_prefix: StrID::from_usize(10),
                 type_map: SideTable {
                     // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
                     // typer assigns Panic to the Invalid node (NodeID(2))
@@ -1905,6 +1910,7 @@ mod tests {
                 ],
                 roots: vec![NodeID::from_usize(3), NodeID::from_usize(5)],
                 public_decls: HashMap::from([]),
+                public_prefix: StrID::from_usize(10),
                 type_map: SideTable {
                     // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
                     // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), Bool), (NodeID(2), Bool)
@@ -1977,6 +1983,7 @@ mod tests {
                 ],
                 roots: vec![NodeID::from_usize(3), NodeID::from_usize(5)],
                 public_decls: HashMap::from([]),
+                public_prefix: StrID::from_usize(10),
                 type_map: SideTable {
                     // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
                     // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), Float64), (NodeID(2), Float64)
@@ -2043,6 +2050,7 @@ mod tests {
                 ],
                 roots: vec![NodeID::from_usize(3)],
                 public_decls: HashMap::from([]),
+                public_prefix: StrID::from_usize(10),
                 type_map: SideTable {
                     // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
                     // inserted by noder: (NodeID(3), Int64)
@@ -2122,6 +2130,7 @@ mod tests {
                 ],
                 roots: vec![NodeID::from_usize(3)],
                 public_decls: HashMap::from([]),
+                public_prefix: StrID::from_usize(10),
                 type_map: SideTable {
                     // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
                     // noder adds NodeID(3) with the struct type spec
@@ -2216,6 +2225,7 @@ mod tests {
                 ],
                 roots: vec![NodeID::from_usize(3), NodeID::from_usize(5)],
                 public_decls: HashMap::from([]),
+                public_prefix: StrID::from_usize(10),
                 type_map: SideTable {
                     // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
                     // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), String), (NodeID(2), String)
@@ -2257,14 +2267,14 @@ mod tests {
 
     #[test]
     fn test_new_store_is_empty() {
-        let store = NodeTree::new();
+        let store = NodeTree::new(StrID::from_usize(10));
         assert_eq!(store.nodes.len(), 0);
         assert_eq!(store.roots.len(), 0);
     }
 
     #[test]
     fn test_add_node_returns_correct_id() {
-        let mut store = NodeTree::new();
+        let mut store = NodeTree::new(StrID::from_usize(10));
         let node = Node::Invalid;
         let id = store.add_node(node);
         assert_eq!(id, NodeID::from_usize(0));
@@ -2272,7 +2282,7 @@ mod tests {
 
     #[test]
     fn test_add_multiple_nodes() {
-        let mut store = NodeTree::new();
+        let mut store = NodeTree::new(StrID::from_usize(10));
         let id1 = store.add_node(Node::Invalid);
         let id2 = store.add_node(Node::BoolLiteral(true));
         let id3 = store.add_node(Node::IntLiteral(42));
@@ -2285,14 +2295,14 @@ mod tests {
 
     #[test]
     fn test_add_node_does_not_add_to_roots() {
-        let mut store = NodeTree::new();
+        let mut store = NodeTree::new(StrID::from_usize(10));
         store.add_node(Node::Invalid);
         assert_eq!(store.roots.len(), 0);
     }
 
     #[test]
     fn test_add_root_node_returns_correct_id() {
-        let mut store = NodeTree::new();
+        let mut store = NodeTree::new(StrID::from_usize(10));
         let node = Node::Invalid;
         let id = store.add_root_node(node);
         assert_eq!(id, NodeID::from_usize(0));
@@ -2300,7 +2310,7 @@ mod tests {
 
     #[test]
     fn test_add_root_node_adds_to_roots() {
-        let mut store = NodeTree::new();
+        let mut store = NodeTree::new(StrID::from_usize(10));
         let id = store.add_root_node(Node::BoolLiteral(true));
         assert_eq!(store.roots.len(), 1);
         assert_eq!(store.roots[0], id);
@@ -2308,7 +2318,7 @@ mod tests {
 
     #[test]
     fn test_add_multiple_root_nodes() {
-        let mut store = NodeTree::new();
+        let mut store = NodeTree::new(StrID::from_usize(10));
         let id1 = store.add_root_node(Node::IntLiteral(1));
         let id2 = store.add_root_node(Node::IntLiteral(2));
         let id3 = store.add_root_node(Node::IntLiteral(3));
@@ -2321,7 +2331,7 @@ mod tests {
 
     #[test]
     fn test_mix_nodes_and_root_nodes() {
-        let mut store = NodeTree::new();
+        let mut store = NodeTree::new(StrID::from_usize(10));
         let regular_id = store.add_node(Node::Invalid);
         let root_id = store.add_root_node(Node::BoolLiteral(true));
         let another_regular = store.add_node(Node::IntLiteral(42));
@@ -2335,21 +2345,21 @@ mod tests {
 
     #[test]
     fn test_add_int_literal() {
-        let mut store = NodeTree::new();
+        let mut store = NodeTree::new(StrID::from_usize(10));
         let id = store.add_node(Node::IntLiteral(100));
         assert_eq!(store.nodes[id.to_usize()], Node::IntLiteral(100));
     }
 
     #[test]
     fn test_add_float_literal() {
-        let mut store = NodeTree::new();
+        let mut store = NodeTree::new(StrID::from_usize(10));
         let id = store.add_node(Node::FloatLiteral(3.45));
         assert_eq!(store.nodes[id.to_usize()], Node::FloatLiteral(3.45));
     }
 
     #[test]
     fn test_add_string_literal() {
-        let mut store = NodeTree::new();
+        let mut store = NodeTree::new(StrID::from_usize(10));
         let id = store.add_node(Node::StringLiteral(StrID::from_usize(0)));
         assert_eq!(
             store.nodes[id.to_usize()],
@@ -2359,7 +2369,7 @@ mod tests {
 
     #[test]
     fn test_add_bool_literal() {
-        let mut store = NodeTree::new();
+        let mut store = NodeTree::new(StrID::from_usize(10));
         let id_true = store.add_node(Node::BoolLiteral(true));
         let id_false = store.add_node(Node::BoolLiteral(false));
 
@@ -2369,7 +2379,7 @@ mod tests {
 
     #[test]
     fn test_add_identifier() {
-        let mut store = NodeTree::new();
+        let mut store = NodeTree::new(StrID::from_usize(10));
         let id = store.add_node(Node::Identifier {
             name: StrID::from_usize(10),
             module: None,
@@ -2385,7 +2395,7 @@ mod tests {
 
     #[test]
     fn test_add_block_node() {
-        let mut store = NodeTree::new();
+        let mut store = NodeTree::new(StrID::from_usize(10));
         let id = store.add_node(Node::Block {
             statements: vec![
                 NodeID::from_usize(0),
@@ -2407,7 +2417,7 @@ mod tests {
 
     #[test]
     fn test_add_binary_operation() {
-        let mut store = NodeTree::new();
+        let mut store = NodeTree::new(StrID::from_usize(10));
         let id = store.add_node(Node::Binary {
             left: NodeID::from_usize(0),
             operator: BinaryOp::Add,
@@ -2425,7 +2435,7 @@ mod tests {
 
     #[test]
     fn test_add_unary_operation() {
-        let mut store = NodeTree::new();
+        let mut store = NodeTree::new(StrID::from_usize(10));
         let id = store.add_node(Node::Unary {
             operator: UnaryOp::Negate,
             operand: NodeID::from_usize(0),
@@ -2441,7 +2451,7 @@ mod tests {
 
     #[test]
     fn test_add_function_declaration() {
-        let mut store = NodeTree::new();
+        let mut store = NodeTree::new(StrID::from_usize(10));
         let ident_id = store.add_node(Node::Identifier {
             name: StrID::from_usize(20),
             module: None,
@@ -2462,7 +2472,7 @@ mod tests {
 
     #[test]
     fn test_sequential_ids_are_unique() {
-        let mut store = NodeTree::new();
+        let mut store = NodeTree::new(StrID::from_usize(10));
         let mut ids = Vec::new();
         for i in 0..10 {
             let id = store.add_node(Node::IntLiteral(i));
@@ -2479,7 +2489,7 @@ mod tests {
 
     #[test]
     fn test_add_many_root_nodes() {
-        let mut store = NodeTree::new();
+        let mut store = NodeTree::new(StrID::from_usize(10));
         for i in 0..20 {
             store.add_root_node(Node::IntLiteral(i));
         }
