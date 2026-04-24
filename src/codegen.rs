@@ -290,11 +290,10 @@ impl<'ctx> Codegen<'ctx> {
     ) {
         func_builder.position_at_block(block_id);
         for value_id in &block.instructions {
-            match self.gen_inst(module, str_store, func_builder, *value_id) {
-                Some(v) => func_builder.insert_value(*value_id, v),
-                None => {
-                    eprintln!("TODO: not all instructions are supported")
-                }
+            let value = self.gen_inst(module, str_store, func_builder, *value_id);
+            // not all instructions produce values
+            if let Some(v) = value {
+                func_builder.insert_value(*value_id, v)
             }
         }
 
