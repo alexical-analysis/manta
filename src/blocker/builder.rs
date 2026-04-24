@@ -384,7 +384,7 @@ struct Scope {
 }
 
 pub struct FunctionBuilder {
-    public_prefix: Option<StrID>,
+    public: bool,
     name: StrID,
     params: Vec<LocalId>,
     return_type: TypeSpec,
@@ -397,9 +397,9 @@ pub struct FunctionBuilder {
 }
 
 impl FunctionBuilder {
-    pub fn new_public(public_prefix: StrID, name: StrID, return_type: TypeSpec) -> Self {
+    pub fn new_public(name: StrID, return_type: TypeSpec) -> Self {
         FunctionBuilder {
-            public_prefix: Some(public_prefix),
+            public: true,
             name,
             return_type,
             params: vec![],
@@ -414,7 +414,7 @@ impl FunctionBuilder {
 
     pub fn new_private(name: StrID, return_type: TypeSpec) -> Self {
         FunctionBuilder {
-            public_prefix: None,
+            public: false,
             name,
             return_type,
             params: vec![],
@@ -1135,7 +1135,7 @@ impl FunctionBuilder {
         }
 
         MirFunction {
-            public_prefix: self.public_prefix,
+            public: self.public,
             name: self.name,
             params: self.params.clone(),
             return_type: self.return_type.clone(),

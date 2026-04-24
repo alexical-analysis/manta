@@ -43,7 +43,7 @@ entry:
   ret void
 }
 
-define void @"manta_test_<init>"() {
+define void @"manta_<init>"() {
 entry:
   ret void
 }

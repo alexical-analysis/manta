@@ -31,17 +31,15 @@ pub enum ParseError {
 /// A minimal Parser core scaffolding. This implements a buffered token stream
 /// with lookahead and simple parselet registration. The parselet registries
 /// are intentionally simple (Vec-based) to avoid requiring `TokenKind: Hash`.
-pub struct Parser<'s, 'fs> {
-    import_path: &'s PathBuf,
+pub struct Parser<'fs> {
     file_set: &'fs FileSet,
     decl_parser: DeclParser,
 }
 
-impl<'s, 'fs> Parser<'s, 'fs> {
+impl<'fs> Parser<'fs> {
     /// Create a new parser for a piece of source code
-    pub fn new(import_path: &'s PathBuf, file_set: &'fs FileSet) -> Self {
+    pub fn new(file_set: &'fs FileSet) -> Self {
         Parser {
-            import_path,
             file_set,
             decl_parser: DeclParser::new(),
         }
@@ -56,26 +54,7 @@ impl<'s, 'fs> Parser<'s, 'fs> {
             files.push(parsed)
         }
 
-        // TODO: this is probably not the right place to compute the public prefix. It would maybe be
-        // better to pipe the import_path through the pipeline and then compute the prefix durring codegen
-        // that's tricy though since I try to inter all my strings early so the str_store does not need
-        // to be mutated after lexing/parsing. It's fine to keep this here for now and we'll maybe rethink
-        // this approach in the future
-
-        // create an escaped use path that can be inserted into exported symbols
-        let mut import_path = self.import_path.to_string_lossy().to_string();
-
-        // escape the import path if it's non-empty
-        if !import_path.is_empty() {
-            import_path = import_path.replace("_", "_0");
-            import_path = import_path.replace("/", "__");
-            import_path = import_path + "_";
-        }
-
-        let public_prefix = "manta_".to_string() + import_path.as_str();
-
-        let public_prefix_id = str_store.get_id(&public_prefix);
-        Module::new(public_prefix_id, files)
+        Module::new(files)
     }
 
     fn parse_file(&self, str_store: &mut StrStore, source: &String, base: usize) -> File {
@@ -137,8 +116,7 @@ mod tests {
         let mut str_store = StrStore::new();
         let file = File::new(file_name.to_string(), source);
         let file_set = FileSet::new_from_files(std::path::PathBuf::new(), vec![file]);
-        let test_use_path = PathBuf::from("test");
-        let parser = Parser::new(&test_use_path, &file_set);
+        let parser = Parser::new(&file_set);
         let ast = parser.parse_module(&mut str_store);
 
         let json_output =

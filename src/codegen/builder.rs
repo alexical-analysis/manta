@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, HashMap};
+use std::path::PathBuf;
 
 use inkwell::basic_block::BasicBlock;
 use inkwell::builder::Builder;
@@ -23,6 +24,7 @@ pub fn build_func_value<'ctx>(
     context: &'ctx Context,
     module: &Module<'ctx>,
     str_store: &StrStore,
+    import_path: &PathBuf,
     function: &MirFunction,
 ) -> FunctionValue<'ctx> {
     // build the function value
@@ -53,16 +55,20 @@ pub fn build_func_value<'ctx>(
         .get_string(function.name)
         .expect("failed to get function name");
 
-    match function.public_prefix {
-        Some(prefix) => {
+    match function.public {
+        true => {
             // external functions need to be prefixed with the module name so there are no linking collisions
-            let function_prefix = str_store
-                .get_string(prefix)
-                .expect("failed to get function prefix");
+            let mut function_prefix = String::from("manta_");
+            let import_path = import_path.to_string_lossy().to_string();
+            if !import_path.is_empty() {
+                let import_path = import_path.replace("_", "_0").replace("/", "_") + "_";
+                function_prefix = function_prefix + &import_path;
+            }
+
             let function_name = function_prefix + function_name.as_str();
             module.add_function(function_name.as_str(), func_type, Some(Linkage::External))
         }
-        None => module.add_function(function_name.as_str(), func_type, Some(Linkage::Internal)),
+        false => module.add_function(function_name.as_str(), func_type, Some(Linkage::Internal)),
     }
 }
 

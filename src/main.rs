@@ -115,8 +115,6 @@ fn build(
         line_count += module.line_count();
 
         let import_path = module.root_dir().strip_prefix(&workspace)?;
-        let mut compiler = Compiler::new(import_path.into(), module);
-
         let root = obj_dir.join("root").join(import_path);
         fs::create_dir_all(&root)?;
 
@@ -124,8 +122,9 @@ fn build(
         let mod_name = mod_name.to_string_lossy().to_string();
         println!("building module {:?}", &mod_name);
 
-        let object_file = root.join(mod_name + ".o");
+        let object_file = root.join(mod_name.clone() + ".o");
 
+        let mut compiler = Compiler::new(import_path.into(), mod_name, module);
         let pub_mod = compiler
             .compile(&mod_map, &object_file, save_temps)
             .expect("failed to compile module");

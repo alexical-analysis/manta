@@ -26,8 +26,7 @@ impl<'a> Blocker<'a> {
     pub fn new(node_tree: &'a NodeTree) -> Self {
         // create the init function builder to start, it needs to be public so it can be run from the
         // main projects init function
-        let fn_builder =
-            FunctionBuilder::new_public(node_tree.public_prefix, str_store::INIT, TypeSpec::Unit);
+        let fn_builder = FunctionBuilder::new_public(str_store::INIT, TypeSpec::Unit);
         Blocker {
             globals: vec![],
             global_map: BTreeMap::new(),
@@ -83,9 +82,7 @@ impl<'a> Blocker<'a> {
                 };
 
                 let mut fn_builder = match public {
-                    true => {
-                        FunctionBuilder::new_public(self.node_tree.public_prefix, name, return_type)
-                    }
+                    true => FunctionBuilder::new_public(name, return_type),
                     false => FunctionBuilder::new_private(name, return_type),
                 };
 
@@ -1383,8 +1380,7 @@ mod tests {
         let mut str_store = StrStore::new();
         let file = File::new(file_name.to_string(), source);
         let file_set = FileSet::new_from_files(PathBuf::new(), vec![file]);
-        let use_path_dir = PathBuf::from("test");
-        let parser = Parser::new(&use_path_dir, &file_set);
+        let parser = Parser::new(&file_set);
         let module = parser.parse_module(&mut str_store);
 
         let node_tree = node_module(&module);
@@ -1540,7 +1536,6 @@ mod tests {
                 ],
                 roots: vec![NodeID::from_usize(4)],
                 public_decls: HashMap::from([]),
-                public_prefix: StrID::from_usize(10),
                 type_map: SideTable {
                     keys: BTreeMap::from([(NodeID::from_usize(1), 0), (NodeID::from_usize(4), 1),]),
                     values: vec![hir::TypeSpec::Int32, hir::TypeSpec::Int32],
@@ -1554,7 +1549,7 @@ mod tests {
             want: MirModule {
                 globals: vec![],
                 init: MirFunction {
-                    public_prefix: Some(StrID::from_usize(10)),
+                    public: true,
                     blocks: vec![Some(BasicBlock {
                         instructions: vec![],
                         terminator: Terminator::Return { value: None },
@@ -1569,7 +1564,7 @@ mod tests {
                     value_types: vec![],
                 },
                 functions: vec![MirFunction {
-                    public_prefix: None,
+                    public: false,
                     name: StrID::from_usize(1),
                     params: vec![],
                     return_type: TypeSpec::I32,
@@ -1616,7 +1611,6 @@ mod tests {
                 ],
                 roots: vec![NodeID::from_usize(4)],
                 public_decls: HashMap::from([]),
-                public_prefix: StrID::from_usize(10),
                 type_map: SideTable {
                     keys: BTreeMap::from([(NodeID::from_usize(1), 0), (NodeID::from_usize(4), 1)]),
                     values: vec![hir::TypeSpec::Bool, hir::TypeSpec::Bool],
@@ -1630,7 +1624,7 @@ mod tests {
             want: MirModule {
                 globals: vec![],
                 init: MirFunction {
-                    public_prefix: Some(StrID::from_usize(10)),
+                    public: true,
                     name: str_store::INIT,
                     params: vec![],
                     return_type: TypeSpec::Unit,
@@ -1645,7 +1639,7 @@ mod tests {
                     value_types: vec![],
                 },
                 functions: vec![MirFunction {
-                    public_prefix: None,
+                    public: false,
                     name: StrID::from_usize(1),
                     params: vec![],
                     return_type: TypeSpec::Bool,
@@ -1692,7 +1686,6 @@ mod tests {
                 ],
                 roots: vec![NodeID::from_usize(4)],
                 public_decls: HashMap::from([]),
-                public_prefix: StrID::from_usize(10),
                 type_map: SideTable {
                     keys: BTreeMap::from([(NodeID::from_usize(1), 0), (NodeID::from_usize(4), 1)]),
                     values: vec![hir::TypeSpec::Bool, hir::TypeSpec::Bool],
@@ -1706,7 +1699,7 @@ mod tests {
             want: MirModule {
                 globals: vec![],
                 init: MirFunction {
-                    public_prefix: Some(StrID::from_usize(10)),
+                    public: true,
                     name: str_store::INIT,
                     params: vec![],
                     return_type: TypeSpec::Unit,
@@ -1721,7 +1714,7 @@ mod tests {
                     value_types: vec![],
                 },
                 functions: vec![MirFunction {
-                    public_prefix: None,
+                    public: false,
                     name: StrID::from_usize(1),
                     params: vec![],
                     return_type: TypeSpec::Bool,
@@ -1768,7 +1761,6 @@ mod tests {
                 ],
                 roots: vec![NodeID::from_usize(4)],
                 public_decls: HashMap::from([]),
-                public_prefix: StrID::from_usize(10),
                 type_map: SideTable {
                     keys: BTreeMap::from([(NodeID::from_usize(1), 0), (NodeID::from_usize(4), 1)]),
                     values: vec![hir::TypeSpec::Float64, hir::TypeSpec::Float64],
@@ -1782,7 +1774,7 @@ mod tests {
             want: MirModule {
                 globals: vec![],
                 init: MirFunction {
-                    public_prefix: Some(StrID::from_usize(10)),
+                    public: true,
                     name: str_store::INIT,
                     params: vec![],
                     return_type: TypeSpec::Unit,
@@ -1797,7 +1789,7 @@ mod tests {
                     value_types: vec![],
                 },
                 functions: vec![MirFunction {
-                    public_prefix: None,
+                    public: false,
                     name: StrID::from_usize(1),
                     params: vec![],
                     return_type: TypeSpec::F64,
@@ -1844,7 +1836,6 @@ mod tests {
                 ],
                 roots: vec![NodeID::from_usize(4)],
                 public_decls: HashMap::from([]),
-                public_prefix: StrID::from_usize(10),
                 type_map: SideTable {
                     keys: BTreeMap::from([(NodeID::from_usize(1), 0), (NodeID::from_usize(4), 1)]),
                     values: vec![hir::TypeSpec::String, hir::TypeSpec::String],
@@ -1858,7 +1849,7 @@ mod tests {
             want: MirModule {
                 globals: vec![],
                 init: MirFunction {
-                    public_prefix: Some(StrID::from_usize(10)),
+                    public: true,
                     name: str_store::INIT,
                     params: vec![],
                     return_type: TypeSpec::Unit,
@@ -1873,7 +1864,7 @@ mod tests {
                     value_types: vec![],
                 },
                 functions: vec![MirFunction {
-                    public_prefix: None,
+                    public: false,
                     name: StrID::from_usize(1),
                     params: vec![],
                     return_type: TypeSpec::String,
