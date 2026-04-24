@@ -28,10 +28,15 @@ impl DeclParselet for TypeDeclParselet {
         match token.kind {
             TokenKind::StructKeyword => parse_struct(lexer, name, self.public),
             TokenKind::EnumKeyword => parse_enum(lexer, name, self.public),
-            _ => Err(ParseError::UnexpectedToken(
-                token,
-                "Expected 'struct' or 'enum' after type name".to_string(),
-            )),
+            _ => {
+                let type_spec = types::parse_type(lexer, token)?;
+                Ok(Decl::Type(TypeDecl {
+                    public: self.public,
+                    id: name.source_id,
+                    name: name.lexeme_id,
+                    type_spec,
+                }))
+            }
         }
     }
 }
