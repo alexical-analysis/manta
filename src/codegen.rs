@@ -2,6 +2,7 @@ mod builder;
 pub mod optimizer;
 
 use std::collections::{BTreeMap, HashSet};
+use std::path::PathBuf;
 
 use inkwell::context::Context;
 use inkwell::module::{Linkage, Module};
@@ -56,7 +57,8 @@ impl<'ctx> Codegen<'ctx> {
     pub fn gen_module(
         &mut self,
         str_store: &StrStore,
-        module_name: String,
+        module_name: &String,
+        import_path: &PathBuf,
         module: MirModule,
     ) -> Module<'ctx> {
         let llvm_module = self.context.create_module(&module_name);
@@ -169,8 +171,13 @@ impl<'ctx> Codegen<'ctx> {
         );
 
         // add function values for user-defined functions, skipping any already registered as builtins
-        let init_func =
-            builder::build_func_value(self.context, &llvm_module, str_store, &module.init);
+        let init_func = builder::build_func_value(
+            self.context,
+            &llvm_module,
+            str_store,
+            import_path,
+            &module.init,
+        );
         self.function_map.insert(
             module.init.name,
             FuncData {
@@ -192,7 +199,8 @@ impl<'ctx> Codegen<'ctx> {
                 continue;
             }
 
-            let func_value = builder::build_func_value(self.context, &llvm_module, str_store, func);
+            let func_value =
+                builder::build_func_value(self.context, &llvm_module, str_store, import_path, func);
             self.function_map.insert(
                 func.name,
                 FuncData {
@@ -1369,8 +1377,7 @@ mod tests {
         let mut str_store = StrStore::new();
         let file = File::new(file_name.to_string(), source);
         let file_set = FileSet::new_from_files(PathBuf::new(), vec![file]);
-        let use_path_dir = PathBuf::from("test");
-        let parser = Parser::new(&use_path_dir, &file_set);
+        let parser = Parser::new(&file_set);
         let module = parser.parse_module(&mut str_store);
 
         let node_tree = node_module(&module);
@@ -1379,7 +1386,10 @@ mod tests {
 
         let context = Context::create();
         let mut codegen = Codegen::new(&context);
-        let llvm_module = codegen.gen_module(&str_store, file_name.to_string(), mir_module);
+        let mod_name = file_name.to_string();
+        let import_path = PathBuf::new();
+
+        let llvm_module = codegen.gen_module(&str_store, &mod_name, &import_path, mir_module);
 
         let ll_output = llvm_module.print_to_string().to_string();
 

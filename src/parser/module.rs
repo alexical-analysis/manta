@@ -285,7 +285,6 @@ impl File {
 #[derive(Debug, Serialize)]
 pub struct Module {
     name: StrID,
-    public_prefix: StrID,
     decls: Vec<Decl>,
     errors: Vec<ParseError>,
     using_modules: Vec<StrID>,
@@ -293,7 +292,7 @@ pub struct Module {
 }
 
 impl Module {
-    pub fn new(public_prefix: StrID, mut files: Vec<File>) -> Self {
+    pub fn new(mut files: Vec<File>) -> Self {
         let mut decls = vec![];
         let mut errors = vec![];
         let mut using_modules = vec![];
@@ -338,16 +337,11 @@ impl Module {
 
         Module {
             name,
-            public_prefix,
             decls,
             errors,
             using_modules,
             sym_table,
         }
-    }
-
-    pub fn public_prefix(&self) -> StrID {
-        self.public_prefix
     }
 
     pub fn name(&self) -> StrID {
@@ -376,12 +370,6 @@ impl Module {
 
     pub fn get_errors(&self) -> &Vec<ParseError> {
         &self.errors
-    }
-
-    pub fn get_name(&self, str_store: &StrStore) -> String {
-        str_store
-            .get_string(self.name)
-            .expect("failed to get module name")
     }
 
     fn get_module(decls: &[Decl]) -> (StrID, Vec<ParseError>) {

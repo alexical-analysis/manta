@@ -1,7 +1,7 @@
 {
   "globals": [],
   "init": {
-    "public_prefix": 13,
+    "public": true,
     "name": 18446744073709551596,
     "params": [],
     "return_type": "Unit",
@@ -23,7 +23,7 @@
   },
   "functions": [
     {
-      "public_prefix": null,
+      "public": false,
       "name": 6,
       "params": [
         1
@@ -54,7 +54,7 @@
       "value_types": []
     },
     {
-      "public_prefix": null,
+      "public": false,
       "name": 10,
       "params": [],
       "return_type": "Unit",

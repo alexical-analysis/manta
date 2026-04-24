@@ -20,13 +20,15 @@ use inkwell::targets::{FileType, TargetMachine};
 /// Compiler compiles a single module into a .o file and returns the public interface to that module
 pub struct Compiler<'fs> {
     import_path: PathBuf,
+    module_name: String,
     file_set: &'fs FileSet,
 }
 
 impl<'fs> Compiler<'fs> {
-    pub fn new(import_path: PathBuf, file_set: &'fs FileSet) -> Self {
+    pub fn new(import_path: PathBuf, module_name: String, file_set: &'fs FileSet) -> Self {
         Compiler {
             import_path,
+            module_name,
             file_set,
         }
     }
@@ -66,7 +68,7 @@ impl<'fs> Compiler<'fs> {
         generator: &mut Codegen<'ctx>,
     ) -> (Module<'ctx>, PubMod) {
         println!("building ast module...");
-        let parser = Parser::new(&self.import_path, self.file_set);
+        let parser = Parser::new(self.file_set);
         let mut str_store = StrStore::new();
         let module = parser.parse_module(&mut str_store);
 
@@ -91,8 +93,8 @@ impl<'fs> Compiler<'fs> {
 
         // build the llvm module from the MIR
         println!("building llvm module...");
-        let module_name = module.get_name(&str_store);
-        let llvm_module = generator.gen_module(&str_store, module_name, mir_module);
+        let llvm_module =
+            generator.gen_module(&str_store, &self.module_name, &self.import_path, mir_module);
 
         (llvm_module, pub_mod)
     }
