@@ -6,7 +6,7 @@ use crate::ast::{
 };
 use crate::parser::ParseError;
 use crate::parser::lexer::{Token, TokenKind};
-use crate::str_store::{self, StrID, StrStore};
+use crate::str_store::{self, StrID};
 
 use super::lexer::SourceID;
 
@@ -679,20 +679,23 @@ impl Module {
             Expr::FloatLiteral(_) => { /* nothing to do */ }
             Expr::StringLiteral(_) => { /* nothing to do */ }
             Expr::BoolLiteral(_) => { /* nothing to do */ }
-            Expr::Identifier(expr) => match sym_table.find_binding(expr.name) {
-                Some(b) => {
-                    b.used = true;
-                    sym_table.add_scope_pos(expr.id);
-                }
-                None => errors.push(ParseError::Custom(
-                    // TODO: need the acutal token here, not just this placeholder
-                    Token {
-                        kind: TokenKind::Identifier,
-                        source_id: SourceID::from_usize(0),
-                        lexeme_id: StrID::from_usize(0),
-                    },
-                    "use of unknown identifier".to_string(),
-                )),
+            Expr::Identifier(expr) => match expr.module {
+                Some(_) => { /* module expressions don't apper in this modules symbol table */ }
+                None => match sym_table.find_binding(expr.name) {
+                    Some(b) => {
+                        b.used = true;
+                        sym_table.add_scope_pos(expr.id);
+                    }
+                    None => errors.push(ParseError::Custom(
+                        // TODO: need the acutal token here, not just this placeholder
+                        Token {
+                            kind: TokenKind::Identifier,
+                            source_id: SourceID::from_usize(0),
+                            lexeme_id: StrID::from_usize(0),
+                        },
+                        format!("use of unknown identifier {:?}", expr).to_string(),
+                    )),
+                },
             },
             Expr::Binary(expr) => {
                 Self::build_sym_table_expr(errors, sym_table, &expr.left);
