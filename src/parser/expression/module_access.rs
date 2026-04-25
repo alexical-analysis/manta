@@ -19,18 +19,18 @@ impl InfixExprParselet for ModuleAccessParselet {
     ) -> Result<Expr, ParseError> {
         match left {
             Expr::Identifier(left) => {
-                let module = lexer.next_token();
-                if module.kind != TokenKind::Identifier {
+                let right = lexer.next_token();
+                if right.kind != TokenKind::Identifier {
                     return Err(ParseError::InvalidExpression(
-                        module,
+                        right,
                         "expected module name to be an identifier".to_string(),
                     ));
                 }
 
                 Ok(Expr::Identifier(IdentifierExpr {
                     id: left.id,
-                    name: left.name,
-                    module: Some(module.lexeme_id),
+                    name: right.lexeme_id,
+                    module: Some(left.name),
                 }))
             }
             _ => Err(ParseError::InvalidExpression(

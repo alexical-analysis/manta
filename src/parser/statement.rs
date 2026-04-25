@@ -1100,8 +1100,8 @@ mod test {
                 ExprStmt {
                     expr: Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(0),
-                        module: Some(StrID::from_usize(2)),
-                        name: StrID::from_usize(0)
+                        module: Some(StrID::from_usize(0)),
+                        name: StrID::from_usize(2)
                     }),
                 }
             ),
@@ -1115,8 +1115,8 @@ mod test {
                     expr: Expr::Call(CallExpr {
                         func: Box::new(Expr::Identifier(IdentifierExpr {
                             id: SourceID::from_usize(0),
-                            module: Some(StrID::from_usize(2)),
-                            name: StrID::from_usize(0)
+                            module: Some(StrID::from_usize(0)),
+                            name: StrID::from_usize(2)
                         })),
                         args: vec![Expr::StringLiteral(StrID::from_usize(4))],
                     }),
@@ -1131,8 +1131,8 @@ mod test {
                 ExprStmt {
                     expr: Expr::Identifier(IdentifierExpr {
                         id: SourceID::from_usize(0),
-                        module: Some(StrID::from_usize(2)),
-                        name: StrID::from_usize(0)
+                        module: Some(StrID::from_usize(0)),
+                        name: StrID::from_usize(2)
                     }),
                 }
             ),
