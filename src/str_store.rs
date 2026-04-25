@@ -1,6 +1,141 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::{collections::HashMap, u32};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub struct MStr {
+    id: u32,
+}
+
+pub const STR: MStr = MStr { id: u32::MAX };
+pub const TRUE: MStr = MStr { id: u32::MAX - 1 };
+pub const FALSE: MStr = MStr { id: u32::MAX - 2 };
+pub const FN: MStr = MStr { id: u32::MAX - 3 };
+pub const IF: MStr = MStr { id: u32::MAX - 4 };
+pub const IN: MStr = MStr { id: u32::MAX - 5 };
+pub const RETURN: MStr = MStr { id: u32::MAX - 6 };
+pub const ELSE: MStr = MStr { id: u32::MAX - 7 };
+pub const WHILE: MStr = MStr { id: u32::MAX - 8 };
+pub const FOR: MStr = MStr { id: u32::MAX - 9 };
+pub const LOOP: MStr = MStr { id: u32::MAX - 10 };
+pub const BREAK: MStr = MStr { id: u32::MAX - 11 };
+pub const CONTINUE: MStr = MStr { id: u32::MAX - 12 };
+pub const DEFER: MStr = MStr { id: u32::MAX - 13 };
+pub const STRUCT: MStr = MStr { id: u32::MAX - 14 };
+pub const ENUM: MStr = MStr { id: u32::MAX - 15 };
+pub const SWITCH: MStr = MStr { id: u32::MAX - 16 };
+pub const MATCH: MStr = MStr { id: u32::MAX - 17 };
+pub const LET: MStr = MStr { id: u32::MAX - 18 };
+pub const CONST: MStr = MStr { id: u32::MAX - 19 };
+pub const TYPE: MStr = MStr { id: u32::MAX - 20 };
+pub const PUB: MStr = MStr { id: u32::MAX - 21 };
+pub const MOD: MStr = MStr { id: u32::MAX - 22 };
+pub const USE: MStr = MStr { id: u32::MAX - 23 };
+pub const MUT: MStr = MStr { id: u32::MAX - 24 };
+pub const VAR: MStr = MStr { id: u32::MAX - 25 };
+pub const OR: MStr = MStr { id: u32::MAX - 26 };
+pub const WRAP: MStr = MStr { id: u32::MAX - 27 };
+pub const U8: MStr = MStr { id: u32::MAX - 28 };
+pub const U16: MStr = MStr { id: u32::MAX - 29 };
+pub const U32: MStr = MStr { id: u32::MAX - 30 };
+pub const U64: MStr = MStr { id: u32::MAX - 31 };
+pub const I8: MStr = MStr { id: u32::MAX - 32 };
+pub const I16: MStr = MStr { id: u32::MAX - 33 };
+pub const I32: MStr = MStr { id: u32::MAX - 34 };
+pub const I64: MStr = MStr { id: u32::MAX - 35 };
+pub const F32: MStr = MStr { id: u32::MAX - 36 };
+pub const F64: MStr = MStr { id: u32::MAX - 37 };
+pub const BOOL: MStr = MStr { id: u32::MAX - 38 };
+pub const PANIC: MStr = MStr { id: u32::MAX - 39 };
+pub const SIZEOF: MStr = MStr { id: u32::MAX - 40 };
+pub const ALIGNOF: MStr = MStr { id: u32::MAX - 41 };
+pub const INNER_LET: MStr = MStr { id: u32::MAX - 42 };
+pub const INIT: MStr = MStr { id: u32::MAX - 43 };
+pub const UNDERSCORE: MStr = MStr { id: u32::MAX - 44 };
+pub const FREE: MStr = MStr { id: u32::MAX - 45 };
+pub const ALLOC: MStr = MStr { id: u32::MAX - 46 };
+pub const MATCH_TARGET: MStr = MStr { id: u32::MAX - 47 };
+pub const PRINT: MStr = MStr { id: u32::MAX - 48 };
+pub const EPRINT: MStr = MStr { id: u32::MAX - 49 };
+
+pub struct MStrBuilder<'s> {
+    str_map: HashMap<&'s str, u32>,
+    next_id: u32,
+}
+
+impl<'s> MStrBuilder<'s> {
+    pub fn new() -> Self {
+        MStrBuilder {
+            str_map: HashMap::new(),
+            next_id: 0,
+        }
+    }
+
+    pub fn get_mstr(&mut self, s: &'s str) -> MStr {
+        match self.str_map.get(s) {
+            Some(id) => MStr { id: *id },
+            None => {
+                self.str_map.insert(s, self.next_id);
+                self.next_id += 1;
+
+                MStr {
+                    id: self.next_id - 1,
+                }
+            }
+        }
+    }
+}
+
+pub struct StrStore {
+    offsets: Vec<u32>,
+    str_data: String,
+}
+
+impl<const N: usize> From<[(&'static str, u32); N]> for StrStore {
+    fn from(pairs: [(&'static str, u32); N]) -> Self {
+        for (s, _) in pairs {
+            store.get_id(s);
+        }
+        store
+    }
+}
+
+impl StrStore {
+    pub fn new(builder: &MStrBuilder) -> Self {
+        let mut len_vec = vec![0; builder.next_id as usize];
+        let mut str_vec = vec![None; builder.next_id as usize];
+
+        for (ptr, id) in &builder.str_map {
+            len_vec[*id as usize] = ptr.len();
+            str_vec[*id as usize] = Some(*ptr)
+        }
+
+        let mut offsets = vec![];
+        let mut current_offset = 0u32;
+        let mut str_data = String::new();
+        for (len, ptr) in len_vec.iter().zip(str_vec.iter()) {
+            offsets.push(current_offset);
+            current_offset += *len as u32;
+
+            let s = ptr.expect("failed to get string from builder");
+            str_data += s;
+        }
+
+        StrStore { offsets, str_data }
+    }
+
+    pub fn get_str<'s>(&'s self, mstr: MStr) -> &'s str {
+        let id = mstr.id as usize;
+        let start = self.offsets[id] as usize;
+        let end = match self.offsets.get(id + 1) {
+            Some(end) => *end as usize,
+            None => self.str_data.len(),
+        };
+
+        return &self.str_data[start..end];
+    }
+}
+
+/*
 /// A type alias for string identifiers. Used to efficiently reference interned strings
 /// without storing duplicate string data.
 /// StrID types are safe to compare like strings since the same string will always map to the
@@ -352,3 +487,4 @@ mod tests {
         assert_eq!(bool_id, BOOL);
     }
 }
+*/
