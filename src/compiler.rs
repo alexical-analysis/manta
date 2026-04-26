@@ -8,9 +8,11 @@ use crate::blocker::Blocker;
 use crate::codegen::Codegen;
 use crate::codegen::optimizer;
 use crate::file_set::FileSet;
+use crate::noder::NodeTree;
 use crate::noder::node_module;
 use crate::parser::Parser;
 use crate::pub_mod::PubMod;
+use crate::str_store::StrID;
 use crate::str_store::StrStore;
 
 use inkwell::context::Context;
@@ -36,14 +38,15 @@ impl<'fs> Compiler<'fs> {
     /// Compiles the source to a .o file and write the result to the object_file path.
     pub fn compile(
         &mut self,
-        mod_map: &HashMap<String, PubMod>,
+        str_store: &mut StrStore,
+        mod_map: &HashMap<StrID, NodeTree>,
         object_file: &PathBuf,
         save_temps: bool,
-    ) -> Result<PubMod, Box<dyn Error>> {
+    ) -> Result<NodeTree, Box<dyn Error>> {
         let context = Context::create();
         let mut generator = Codegen::new(&context);
 
-        let (module, pub_mod) = self.compile_module(mod_map, &mut generator);
+        let (module, node_tree) = self.compile_module(str_store, mod_map, &mut generator);
         if save_temps {
             let mut ll_file = object_file.clone();
             ll_file.set_extension("ll");
@@ -59,18 +62,18 @@ impl<'fs> Compiler<'fs> {
         println!("writing object file to dir {:?}...", object_file);
         target_machine.write_to_file(&module, FileType::Object, object_file.as_path())?;
 
-        Ok(pub_mod)
+        Ok(node_tree)
     }
 
     fn compile_module<'ctx>(
         &mut self,
-        mod_map: &HashMap<String, PubMod>,
+        str_store: &mut StrStore,
+        mod_map: &HashMap<StrID, NodeTree>,
         generator: &mut Codegen<'ctx>,
-    ) -> (Module<'ctx>, PubMod) {
+    ) -> (Module<'ctx>, NodeTree) {
         println!("building ast module...");
         let parser = Parser::new(self.file_set);
-        let mut str_store = StrStore::new();
-        let module = parser.parse_module(&mut str_store);
+        let module = parser.parse_module(str_store);
 
         if !module.get_errors().is_empty() {
             panic!("errors in the parser: {:?}", module.get_errors())
@@ -78,25 +81,19 @@ impl<'fs> Compiler<'fs> {
 
         // build the HIR from the AST
         println!("building hir module...");
-        let node_tree = node_module(&module);
+        let node_tree = node_module(mod_map, &module);
 
         // build the MIR from the HIR
         println!("building mir module...");
         let blocker = Blocker::new(&node_tree);
         let mir_module = blocker.build_module();
 
-        let pub_mod = PubMod::new(
-            str_store.clone(),
-            module.name(),
-            node_tree.get_public_types(),
-        );
-
         // build the llvm module from the MIR
         println!("building llvm module...");
         let llvm_module =
             generator.gen_module(&str_store, &self.module_name, &self.import_path, mir_module);
 
-        (llvm_module, pub_mod)
+        (llvm_module, node_tree)
     }
 }
 

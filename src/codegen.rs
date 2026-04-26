@@ -1348,6 +1348,7 @@ mod tests {
     use super::*;
     use inkwell::context::Context;
     use pretty_assertions::assert_eq;
+    use std::collections::HashMap;
     use std::fs;
     use std::path::{Path, PathBuf};
 
@@ -1379,7 +1380,7 @@ mod tests {
         let parser = Parser::new(&file_set);
         let module = parser.parse_module(&mut str_store);
 
-        let node_tree = node_module(&module);
+        let node_tree = node_module(&HashMap::new(), &module);
         let blocker = Blocker::new(&node_tree);
         let mir_module = blocker.build_module();
 

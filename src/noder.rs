@@ -7,8 +7,8 @@ use std::fmt::Debug;
 use std::ops::Deref;
 
 use crate::ast::{
-    self, BinaryOp, BlockStmt, Decl, Expr, IdentifierExpr, LetExcept, LetStmt, Pattern, Payload,
-    ReturnStmt, Stmt, UnaryOp,
+    self, BinaryOp, BlockStmt, Decl, Expr, FunctionDecl, IdentifierExpr, LetExcept, LetStmt,
+    Pattern, Payload, ReturnStmt, Stmt, UnaryOp,
 };
 use crate::hir::{
     ArrayType, DefaultPat, EnumType, EnumVariant, EnumVariantPat, FunctionType, NamedType, Node,
@@ -109,6 +109,56 @@ impl NodeTree {
         node_id
     }
 
+    /// Finds a public decl with the specified name
+    pub fn find_public_decl(&self, name: StrID) -> Option<NodeID> {
+        for root in &self.roots {
+            let node = self.get_node(*root);
+            match node {
+                Some(Node::FunctionDecl { public, ident, .. }) => {
+                    let ident_node = self.get_node(*ident).expect("failed to find function name");
+                    let function_name = match ident_node {
+                        Node::Identifier { name, .. } => *name,
+                        _ => panic!("failed to resolve function name"),
+                    };
+
+                    if *public && name == function_name {
+                        return Some(*root);
+                    }
+
+                    return None;
+                }
+                Some(Node::TypeDecl { ident }) => {
+                    let ident_node = self.get_node(*ident).expect("failed to find type name");
+                    let type_name = match ident_node {
+                        Node::Identifier { name, .. } => *name,
+                        _ => panic!("failed to resolve type name"),
+                    };
+
+                    // TODO: need to make sure the type decl is public
+                    if name == type_name {
+                        return Some(*root);
+                    }
+                }
+                Some(Node::VarDecl { public, ident, .. }) => {
+                    let ident_node = self.get_node(*ident).expect("failed to find type name");
+                    let function_name = match ident_node {
+                        Node::Identifier { name, .. } => *name,
+                        _ => panic!("failed to resolve type name"),
+                    };
+
+                    if *public && name == function_name {
+                        return Some(*root);
+                    }
+
+                    return None;
+                }
+                _ => return None,
+            }
+        }
+
+        None
+    }
+
     pub fn get_node(&self, node_id: NodeID) -> Option<&Node> {
         self.nodes.get(node_id.to_usize())
     }
@@ -120,19 +170,9 @@ impl NodeTree {
     pub fn get_type(&self, node_id: NodeID) -> Option<&TypeSpec> {
         self.type_map.get(node_id)
     }
-
-    pub fn get_public_types(&self) -> HashMap<StrID, TypeSpec> {
-        let mut type_map = HashMap::new();
-        for (str_id, node_id) in &self.public_decls {
-            let type_spec = self.get_type(*node_id).expect("failed to find node type");
-            type_map.insert(*str_id, type_spec.clone());
-        }
-
-        type_map
-    }
 }
 
-pub fn node_module(module: &Module) -> NodeTree {
+pub fn node_module(mod_map: &HashMap<StrID, NodeTree>, module: &Module) -> NodeTree {
     // Should these types be owned by the Noder type?
     let mut node_tree = NodeTree::new();
 
@@ -159,7 +199,7 @@ pub fn node_module(module: &Module) -> NodeTree {
     }
 
     for decl in module.get_decls() {
-        node_decl(&mut node_tree, &module, decl);
+        node_decl(&mut node_tree, mod_map, &module, decl);
     }
 
     let mut typer = Typer::new();
@@ -348,7 +388,12 @@ fn node_type_spec(node_tree: &NodeTree, module: &Module, type_spec: &ast::TypeSp
     }
 }
 
-fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
+fn node_decl(
+    node_tree: &mut NodeTree,
+    mod_map: &HashMap<StrID, NodeTree>,
+    module: &Module,
+    decl: &Decl,
+) {
     match decl {
         Decl::Function(decl) => {
             let mut params = vec![];
@@ -394,7 +439,7 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 .get(binding.id)
                 .expect("function not pre-registered in symbol_map");
 
-            let body_id = node_fn_body(node_tree, module, &decl.body, return_type);
+            let body_id = node_fn_body(node_tree, mod_map, module, &decl.body, return_type);
             let func_id = node_tree.add_root_node(Node::FunctionDecl {
                 public: decl.public,
                 ident: ident_id,
@@ -440,7 +485,7 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 public: decl.public,
                 ident: ident_id,
             });
-            let value_node = node_expr(node_tree, module, &decl.value);
+            let value_node = node_expr(node_tree, mod_map, module, &decl.value);
             node_tree.add_root_node(Node::Assign {
                 target: ident_id,
                 value: value_node,
@@ -462,7 +507,7 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
                 public: decl.public,
                 ident: ident_id,
             });
-            let value_node = node_expr(node_tree, module, &decl.value);
+            let value_node = node_expr(node_tree, mod_map, module, &decl.value);
             node_tree.add_root_node(Node::Assign {
                 target: ident_id,
                 value: value_node,
@@ -478,13 +523,14 @@ fn node_decl(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
 
 fn node_fn_body(
     node_tree: &mut NodeTree,
+    mod_map: &HashMap<StrID, NodeTree>,
     module: &Module,
     block: &BlockStmt,
     return_type: TypeSpec,
 ) -> NodeID {
     let mut stmt_ids = vec![];
     for stmt in &block.statements {
-        let ids = node_stmt(node_tree, module, stmt);
+        let ids = node_stmt(node_tree, mod_map, module, stmt);
         stmt_ids.extend(ids);
     }
 
@@ -496,7 +542,7 @@ fn node_fn_body(
             Some(Stmt::Return(_)) => { /* we're good, the final statement is a return */ }
             Some(_) | None => {
                 let ret_stmt = &Stmt::Return(ReturnStmt { value: None });
-                let return_id = node_stmt(node_tree, module, ret_stmt);
+                let return_id = node_stmt(node_tree, mod_map, module, ret_stmt);
                 stmt_ids.push(*return_id.first().expect("failed to node statement"))
             }
         }
@@ -507,10 +553,15 @@ fn node_fn_body(
     })
 }
 
-fn node_block(node_tree: &mut NodeTree, module: &Module, block: &BlockStmt) -> NodeID {
+fn node_block(
+    node_tree: &mut NodeTree,
+    mod_map: &HashMap<StrID, NodeTree>,
+    module: &Module,
+    block: &BlockStmt,
+) -> NodeID {
     let mut stmt_ids = vec![];
     for stmt in &block.statements {
-        let ids = node_stmt(node_tree, module, stmt);
+        let ids = node_stmt(node_tree, mod_map, module, stmt);
         stmt_ids.extend(ids);
     }
 
@@ -544,9 +595,14 @@ fn lvalue_root(expr: &ast::Expr) -> Option<&IdentifierExpr> {
     }
 }
 
-fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<NodeID> {
+fn node_stmt(
+    node_tree: &mut NodeTree,
+    mod_map: &HashMap<StrID, NodeTree>,
+    module: &Module,
+    stmt: &Stmt,
+) -> Vec<NodeID> {
     match stmt {
-        Stmt::Let(stmt) => node_let(node_tree, module, stmt),
+        Stmt::Let(stmt) => node_let(node_tree, mod_map, module, stmt),
         Stmt::Assign(stmt) => {
             // Enforce mutability: walk through the l_value expression to find the root
             // identifier, then check that it is mutable. This means `let p = &x` blocks
@@ -568,18 +624,18 @@ fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<Node
                 ),
             }
 
-            let l_id = node_expr(node_tree, module, &stmt.lvalue);
-            let r_id = node_expr(node_tree, module, &stmt.rvalue);
+            let l_id = node_expr(node_tree, mod_map, module, &stmt.lvalue);
+            let r_id = node_expr(node_tree, mod_map, module, &stmt.rvalue);
 
             vec![node_tree.add_node(Node::Assign {
                 target: l_id,
                 value: r_id,
             })]
         }
-        Stmt::Expr(stmt) => vec![node_expr(node_tree, module, &stmt.expr)],
+        Stmt::Expr(stmt) => vec![node_expr(node_tree, mod_map, module, &stmt.expr)],
         Stmt::Return(stmt) => {
             let value = if let Some(v) = &stmt.value {
-                let value_id = node_expr(node_tree, module, v);
+                let value_id = node_expr(node_tree, mod_map, module, v);
                 Some(value_id)
             } else {
                 None
@@ -588,15 +644,15 @@ fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<Node
             vec![node_tree.add_node(Node::Return { value })]
         }
         Stmt::Defer(stmt) => {
-            let block_id = node_block(node_tree, module, &stmt.block);
+            let block_id = node_block(node_tree, mod_map, module, &stmt.block);
             vec![node_tree.add_node(Node::Defer { block: block_id })]
         }
         Stmt::Match(stmt) => {
-            let target_id = node_expr(node_tree, module, &stmt.target);
+            let target_id = node_expr(node_tree, mod_map, module, &stmt.target);
             let mut arms = vec![];
             for arm in &stmt.arms {
                 let pat_id = node_pattern(node_tree, module, &arm.pattern);
-                let block_id = node_block(node_tree, module, &arm.body);
+                let block_id = node_block(node_tree, mod_map, module, &arm.body);
 
                 let arm_id = node_tree.add_node(Node::MatchArm {
                     pattern: pat_id,
@@ -611,14 +667,14 @@ fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<Node
                 arms,
             })]
         }
-        Stmt::Block(stmt) => vec![node_block(node_tree, module, stmt)],
+        Stmt::Block(stmt) => vec![node_block(node_tree, mod_map, module, stmt)],
         Stmt::If(stmt) => {
-            let check_id = node_expr(node_tree, module, &stmt.check);
-            let success_id = node_block(node_tree, module, &stmt.success);
+            let check_id = node_expr(node_tree, mod_map, module, &stmt.check);
+            let success_id = node_block(node_tree, mod_map, module, &stmt.success);
             let fail_id = stmt
                 .fail
                 .as_ref()
-                .map(|fail| node_block(node_tree, module, fail));
+                .map(|fail| node_block(node_tree, mod_map, module, fail));
 
             vec![node_tree.add_node(Node::If {
                 condition: check_id,
@@ -629,7 +685,7 @@ fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<Node
         Stmt::Loop(stmt) => {
             let prev = node_tree.within_loop;
             node_tree.within_loop = true;
-            let body = node_block(node_tree, module, &stmt.body);
+            let body = node_block(node_tree, mod_map, module, &stmt.body);
             node_tree.within_loop = prev;
 
             vec![node_tree.add_node(Node::Loop { body })]
@@ -640,7 +696,7 @@ fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<Node
                 statements: vec![break_id],
             });
 
-            let check = node_expr(node_tree, module, &stmt.check);
+            let check = node_expr(node_tree, mod_map, module, &stmt.check);
             let not_check = node_tree.add_node(Node::Unary {
                 operator: UnaryOp::Not,
                 operand: check,
@@ -653,7 +709,7 @@ fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<Node
 
             let prev = node_tree.within_loop;
             node_tree.within_loop = true;
-            let body = node_block(node_tree, module, &stmt.body);
+            let body = node_block(node_tree, mod_map, module, &stmt.body);
             node_tree.within_loop = prev;
 
             // insert the check into the head of the body
@@ -687,7 +743,7 @@ fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<Node
 
             node_tree.symbol_map.add(binding.id, binding_id);
 
-            let start_id = node_expr(node_tree, module, &stmt.range.start);
+            let start_id = node_expr(node_tree, mod_map, module, &stmt.range.start);
             let initial_assign_id = node_tree.add_node(Node::Assign {
                 target: binding_id,
                 value: start_id,
@@ -698,7 +754,7 @@ fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<Node
                 statements: vec![break_id],
             });
 
-            let end_id = node_expr(node_tree, module, &stmt.range.end);
+            let end_id = node_expr(node_tree, mod_map, module, &stmt.range.end);
 
             let comp_op = match stmt.range.inclusive {
                 true => BinaryOp::GreaterThan,
@@ -729,7 +785,7 @@ fn node_stmt(node_tree: &mut NodeTree, module: &Module, stmt: &Stmt) -> Vec<Node
 
             let prev = node_tree.within_loop;
             node_tree.within_loop = true;
-            let body = node_block(node_tree, module, &stmt.body);
+            let body = node_block(node_tree, mod_map, module, &stmt.body);
             node_tree.within_loop = prev;
 
             // insert the check into the head of the body and the increment into the tail
@@ -884,10 +940,15 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
     }
 }
 
-fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<NodeID> {
+fn node_let(
+    node_tree: &mut NodeTree,
+    mod_map: &HashMap<StrID, NodeTree>,
+    module: &Module,
+    stmt: &LetStmt,
+) -> Vec<NodeID> {
     let mut nodes = vec![];
     let mut arms = vec![];
-    let value_id = node_expr(node_tree, module, &stmt.value);
+    let value_id = node_expr(node_tree, mod_map, module, &stmt.value);
 
     match &stmt.pattern {
         Pattern::EnumVariant(pat) => {
@@ -1142,7 +1203,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
 
                     node_tree.symbol_map.add(binding.id, ident_id);
 
-                    let body_id = node_block(node_tree, module, body);
+                    let body_id = node_block(node_tree, mod_map, module, body);
 
                     node_tree.add_node(Node::MatchArm {
                         pattern: pat_id,
@@ -1160,7 +1221,7 @@ fn node_let(node_tree: &mut NodeTree, module: &Module, stmt: &LetStmt) -> Vec<No
                             payload: None,
                         })));
 
-                    let body_id = node_block(node_tree, module, body);
+                    let body_id = node_block(node_tree, mod_map, module, body);
                     node_tree.add_node(Node::MatchArm {
                         pattern: pat_id,
                         body: body_id,
@@ -1369,32 +1430,47 @@ fn node_wrap_expr(
     enum_constructor_id
 }
 
-fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
+fn node_expr(
+    node_tree: &mut NodeTree,
+    mod_map: &HashMap<StrID, NodeTree>,
+    module: &Module,
+    expr: &Expr,
+) -> NodeID {
     match expr {
         Expr::IntLiteral(expr) => node_tree.add_node(Node::IntLiteral(*expr)),
         Expr::UIntLiteral(expr) => node_tree.add_node(Node::UIntLiteral(*expr)),
         Expr::FloatLiteral(expr) => node_tree.add_node(Node::FloatLiteral(*expr)),
         Expr::StringLiteral(expr) => node_tree.add_node(Node::StringLiteral(*expr)),
         Expr::BoolLiteral(expr) => node_tree.add_node(Node::BoolLiteral(*expr)),
-        Expr::Identifier(expr) => {
-            let scope_pos = module
-                .get_scope_pos(expr.id)
-                .expect("could not get scope for identifier");
+        Expr::Identifier(expr) => match expr.module {
+            Some(module) => {
+                let mod_node_tree = mod_map.get(&module).expect("failed to find module");
+                let ident_id = mod_node_tree
+                    .find_public_decl(expr.name)
+                    .expect("failed to find module identifier");
 
-            let binding = module
-                .find_binding(scope_pos, expr.name)
-                .expect("failed to find binding for identifier expression");
+                ident_id
+            }
+            None => {
+                let scope_pos = module
+                    .get_scope_pos(expr.id)
+                    .expect("could not get scope for identifier");
 
-            let ident_id = node_tree
-                .symbol_map
-                .get(binding.id)
-                .expect("identifier declaration missing from symbol map");
+                let binding = module
+                    .find_binding(scope_pos, expr.name)
+                    .expect("failed to find binding for identifier expression");
 
-            *ident_id
-        }
+                let ident_id = node_tree
+                    .symbol_map
+                    .get(binding.id)
+                    .expect("identifier declaration missing from symbol map");
+
+                *ident_id
+            }
+        },
         Expr::Binary(expr) => {
-            let left_id = node_expr(node_tree, module, &expr.left);
-            let right_id = node_expr(node_tree, module, &expr.right);
+            let left_id = node_expr(node_tree, mod_map, module, &expr.left);
+            let right_id = node_expr(node_tree, mod_map, module, &expr.right);
             node_tree.add_node(Node::Binary {
                 left: left_id,
                 operator: expr.operator,
@@ -1402,31 +1478,34 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
             })
         }
         Expr::Unary(expr) => {
-            let expr_id = node_expr(node_tree, module, &expr.operand);
+            let expr_id = node_expr(node_tree, mod_map, module, &expr.operand);
             node_tree.add_node(Node::Unary {
                 operator: expr.operator,
                 operand: expr_id,
             })
         }
         Expr::Call(expr) => {
-            let func_id = node_expr(node_tree, module, &expr.func);
+            let func_id = node_expr(node_tree, mod_map, module, &expr.func);
 
             let mut args = vec![];
             for arg in &expr.args {
-                let param_id = node_expr(node_tree, module, arg);
+                let param_id = node_expr(node_tree, mod_map, module, arg);
                 args.push(param_id);
             }
 
             // if the function was an enum constructor when we actually need to update the enum
             // to contain a payload and return the EnumConstructor itself rather than creating
             // and returning the ID for the function call.
-            let mut func_node = node_tree.get_mut_node(func_id).unwrap();
+            let mut func_node = node_tree
+                .get_mut_node(func_id)
+                .expect("failed to find function node");
+
             if let Node::EnumConstructor { payload: p, .. } = &mut func_node {
                 if args.len() != 1 {
                     panic!("enum constructors can only contain a single paramater")
                 }
 
-                let first_arg = args.first().unwrap();
+                let first_arg = args.first().expect("failed to get enum value");
                 *p = Some(*first_arg);
                 func_id
             } else {
@@ -1469,7 +1548,7 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
                     .find(|f| f.name == field_type.name)
                     .expect("unknown field name in struct constructor");
 
-                let value_id = node_expr(node_tree, module, &field.value);
+                let value_id = node_expr(node_tree, mod_map, module, &field.value);
                 let field_id = node_tree.add_node(Node::StructConstructorField {
                     name: field.name,
                     value: value_id,
@@ -1485,8 +1564,8 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
             struct_id
         }
         Expr::Index(expr) => {
-            let target_id = node_expr(node_tree, module, &expr.target);
-            let idx_id = node_expr(node_tree, module, &expr.index);
+            let target_id = node_expr(node_tree, mod_map, module, &expr.target);
+            let idx_id = node_expr(node_tree, mod_map, module, &expr.index);
 
             node_tree.add_node(Node::Index {
                 target: target_id,
@@ -1494,8 +1573,8 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
             })
         }
         Expr::Range(expr) => {
-            let start_id = node_expr(node_tree, module, &expr.start);
-            let end_id = node_expr(node_tree, module, &expr.end);
+            let start_id = node_expr(node_tree, mod_map, module, &expr.start);
+            let end_id = node_expr(node_tree, mod_map, module, &expr.end);
             node_tree.add_node(Node::Range {
                 start: start_id,
                 end: end_id,
@@ -1515,7 +1594,7 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
                 }
             };
 
-            let target_id = node_expr(node_tree, module, target);
+            let target_id = node_expr(node_tree, mod_map, module, target);
 
             let binding = match target.deref() {
                 Expr::Identifier(ident) => {
@@ -1570,10 +1649,10 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
             node_id
         }
         Expr::Alloc(expr) => {
-            let meta_id = node_expr(node_tree, module, &expr.meta_type);
+            let meta_id = node_expr(node_tree, mod_map, module, &expr.meta_type);
             let mut options = vec![];
             for opt in &expr.options {
-                let opt_id = node_expr(node_tree, module, opt);
+                let opt_id = node_expr(node_tree, mod_map, module, opt);
                 options.push(opt_id);
             }
 
@@ -1587,7 +1666,7 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
             node_id
         }
         Expr::Free(expr) => {
-            let ptr_id = node_expr(node_tree, module, &expr.expr);
+            let ptr_id = node_expr(node_tree, mod_map, module, &expr.expr);
             node_tree.add_node(Node::Free { expr: ptr_id })
         }
     }
@@ -1597,7 +1676,7 @@ fn node_expr(node_tree: &mut NodeTree, module: &Module, expr: &Expr) -> NodeID {
 mod tests {
     use super::*;
     use std::fs;
-    use std::path::{Path, PathBuf};
+    use std::path::Path;
 
     use pretty_assertions::assert_eq;
 
@@ -1657,7 +1736,7 @@ mod tests {
         let parser = Parser::new(&file_set);
         let module = parser.parse_module(&mut str_store);
 
-        let node_tree = node_module(&module);
+        let node_tree = node_module(&HashMap::new(), &module);
 
         let total = node_tree.nodes.len();
         let untyped: Vec<usize> = (0..total)
@@ -1739,7 +1818,7 @@ mod tests {
                     let decl = $decl;
                     let module = Module::new(vec![ParserFile::new(vec![], vec![decl])]);
 
-                    let node_tree = node_module(&module);
+                    let node_tree = node_module(&HashMap::new(), &module);
 
                     let expected = $expected;
 
