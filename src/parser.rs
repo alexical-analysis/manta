@@ -6,8 +6,6 @@ pub mod pattern;
 pub mod statement;
 pub mod types;
 
-use std::path::PathBuf;
-
 use crate::ast::Decl;
 use crate::file_set::FileSet;
 use crate::str_store::StrStore;
@@ -28,9 +26,7 @@ pub enum ParseError {
     InvalidExpression(Token, String),
 }
 
-/// A minimal Parser core scaffolding. This implements a buffered token stream
-/// with lookahead and simple parselet registration. The parselet registries
-/// are intentionally simple (Vec-based) to avoid requiring `TokenKind: Hash`.
+/// The parser for a manta program
 pub struct Parser<'fs> {
     file_set: &'fs FileSet,
     decl_parser: DeclParser,

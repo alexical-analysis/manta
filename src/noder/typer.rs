@@ -21,8 +21,8 @@ impl Typer {
         }
     }
 
-    pub fn type_node_tree(&mut self, node_tree: &mut NodeTree) {
-        for node in &node_tree.roots.clone() {
+    pub fn type_node_tree(&mut self, node_tree: &mut NodeTree, roots: &[NodeID]) {
+        for node in roots {
             self.type_node(node_tree, *node);
         }
     }

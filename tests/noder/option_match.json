@@ -311,13 +311,6 @@
       }
     }
   ],
-  "roots": [
-    10,
-    11,
-    26,
-    47
-  ],
-  "public_decls": {},
   "type_map": {
     "keys": {
       "0": 0,
@@ -713,5 +706,11 @@
       33
     ]
   },
-  "within_loop": false
+  "roots": [
+    10,
+    11,
+    26,
+    47
+  ],
+  "public_decls": {}
 }

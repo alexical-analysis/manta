@@ -145,10 +145,6 @@
       }
     }
   ],
-  "roots": [
-    23
-  ],
-  "public_decls": {},
   "type_map": {
     "keys": {
       "0": 0,
@@ -247,5 +243,8 @@
       16
     ]
   },
-  "within_loop": false
+  "roots": [
+    23
+  ],
+  "public_decls": {}
 }
