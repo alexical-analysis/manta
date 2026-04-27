@@ -21,6 +21,7 @@ use std::time::Instant;
 use clap::{Parser, Subcommand};
 use compiler::Compiler;
 
+use crate::compiler::ModuleID;
 use crate::str_store::StrStore;
 
 /// The CLI for the Manta programming language
@@ -114,6 +115,7 @@ fn build(
     let mut str_store = StrStore::new();
     let mut mod_map = HashMap::new();
     let mut object_files = vec![];
+    let mut next_module_id = 0u32;
     for module in &modules {
         line_count += module.line_count();
 
@@ -127,13 +129,23 @@ fn build(
 
         let object_file = root.join(mod_name.clone() + ".o");
 
+        let module_id = ModuleID::new(next_module_id);
+        next_module_id += 1;
+
         let mut compiler = Compiler::new(import_path.into(), mod_name.clone(), module);
         let node_tree = compiler
-            .compile(&mut str_store, &mod_map, &object_file, save_temps)
+            .compile(
+                &mut str_store,
+                &mod_map,
+                module_id,
+                &object_file,
+                save_temps,
+            )
             .expect("failed to compile module");
 
         let mod_id = str_store.get_id(&mod_name);
         mod_map.insert(mod_id, node_tree);
+        next_module_id += 1;
 
         object_files.push(object_file)
     }

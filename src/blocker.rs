@@ -1371,6 +1371,7 @@ mod tests {
     use std::fs;
     use std::path::{Path, PathBuf};
 
+    use crate::compiler::ModuleID;
     use crate::file_set::{File, FileSet};
     use crate::mir::{BasicBlock, Instruction, MirModule};
     use crate::noder::{NodeTree, Noder, SideTable};
@@ -1399,8 +1400,10 @@ mod tests {
         let parser = Parser::new(&file_set);
         let module = parser.parse_module(&mut str_store);
 
-        let node_tree = Noder::new().node_module(&HashMap::new(), &module);
-        let blocker = Blocker::new(&node_tree);
+        let noder = Noder::new(ModuleID::new(0));
+        let hir_module = noder.node_module(&HashMap::new(), &module);
+
+        let blocker = Blocker::new(&hir_module);
         let mir_module = blocker.build_module();
 
         let json_output = serde_json::to_string_pretty(&mir_module)
@@ -1531,6 +1534,7 @@ mod tests {
         test_blocker_const_int {
             got: Module {
                 tree: NodeTree {
+                    module_id: ModuleID::new(0),
                     nodes: vec![
                         Node::Identifier {
                             name: StrID::from_usize(1),
@@ -1538,23 +1542,23 @@ mod tests {
                         }, // NodeID(0)
                         Node::IntLiteral(42), // NodeID(1)
                         Node::Return {
-                            value: Some(NodeID::from_usize(1))
+                            value: Some(NodeID::new(ModuleID::new(0), 1))
                         }, // NodeID(2)
                         Node::Block {
-                            statements: vec![NodeID::from_usize(2)]
+                            statements: vec![NodeID::new(ModuleID::new(0), 2)]
                         }, // NodeID(3)
                         Node::FunctionDecl {
                             public: false,
                             // NodeID(4)
-                            ident: NodeID::from_usize(0),
+                            ident: NodeID::new(ModuleID::new(0), 0),
                             params: vec![],
-                            body: NodeID::from_usize(3),
+                            body: NodeID::new(ModuleID::new(0), 3),
                         },
                     ],
                     type_map: SideTable {
                         keys: BTreeMap::from([
-                            (NodeID::from_usize(1), 0),
-                            (NodeID::from_usize(4), 1),
+                            (NodeID::new(ModuleID::new(0), 1), 0),
+                            (NodeID::new(ModuleID::new(0), 4), 1),
                         ]),
                         values: vec![hir::TypeSpec::Int32, hir::TypeSpec::Int32],
                     },
@@ -1563,7 +1567,7 @@ mod tests {
                         values: vec![],
                     },
                 },
-                roots: vec![NodeID::from_usize(4)],
+                roots: vec![NodeID::new(ModuleID::new(0), 4)],
                 public_decls: HashMap::from([]),
             },
             want: MirModule {
@@ -1610,6 +1614,7 @@ mod tests {
         test_blocker_const_bool_true {
             got: Module {
                 tree: NodeTree {
+                    module_id: ModuleID::new(0),
                     nodes: vec![
                         Node::Identifier {
                             name: StrID::from_usize(1),
@@ -1617,23 +1622,23 @@ mod tests {
                         }, // NodeID(0)
                         Node::BoolLiteral(true), // NodeID(1)
                         Node::Return {
-                            value: Some(NodeID::from_usize(1))
+                            value: Some(NodeID::new(ModuleID::new(0), 1))
                         }, // NodeID(2)
                         Node::Block {
-                            statements: vec![NodeID::from_usize(2)]
+                            statements: vec![NodeID::new(ModuleID::new(0), 2)]
                         }, // NodeID(3)
                         Node::FunctionDecl {
                             public: false,
                             // NodeID(4)
-                            ident: NodeID::from_usize(0),
+                            ident: NodeID::new(ModuleID::new(0), 0),
                             params: vec![],
-                            body: NodeID::from_usize(3),
+                            body: NodeID::new(ModuleID::new(0), 3),
                         },
                     ],
                     type_map: SideTable {
                         keys: BTreeMap::from([
-                            (NodeID::from_usize(1), 0),
-                            (NodeID::from_usize(4), 1)
+                            (NodeID::new(ModuleID::new(0), 1), 0),
+                            (NodeID::new(ModuleID::new(0), 4), 1)
                         ]),
                         values: vec![hir::TypeSpec::Bool, hir::TypeSpec::Bool],
                     },
@@ -1642,7 +1647,7 @@ mod tests {
                         values: vec![]
                     },
                 },
-                roots: vec![NodeID::from_usize(4)],
+                roots: vec![NodeID::new(ModuleID::new(0), 4)],
                 public_decls: HashMap::from([]),
             },
             want: MirModule {
@@ -1689,6 +1694,7 @@ mod tests {
         test_blocker_const_bool_false {
             got: Module {
                 tree: NodeTree {
+                    module_id: ModuleID::new(0),
                     nodes: vec![
                         Node::Identifier {
                             name: StrID::from_usize(1),
@@ -1696,23 +1702,23 @@ mod tests {
                         }, // NodeID(0)
                         Node::BoolLiteral(false), // NodeID(1)
                         Node::Return {
-                            value: Some(NodeID::from_usize(1))
+                            value: Some(NodeID::new(ModuleID::new(0), 1))
                         }, // NodeID(2)
                         Node::Block {
-                            statements: vec![NodeID::from_usize(2)]
+                            statements: vec![NodeID::new(ModuleID::new(0), 2)]
                         }, // NodeID(3)
                         Node::FunctionDecl {
                             public: false,
                             // NodeID(4)
-                            ident: NodeID::from_usize(0),
+                            ident: NodeID::new(ModuleID::new(0), 0),
                             params: vec![],
-                            body: NodeID::from_usize(3),
+                            body: NodeID::new(ModuleID::new(0), 3),
                         },
                     ],
                     type_map: SideTable {
                         keys: BTreeMap::from([
-                            (NodeID::from_usize(1), 0),
-                            (NodeID::from_usize(4), 1)
+                            (NodeID::new(ModuleID::new(0), 1), 0),
+                            (NodeID::new(ModuleID::new(0), 4), 1)
                         ]),
                         values: vec![hir::TypeSpec::Bool, hir::TypeSpec::Bool],
                     },
@@ -1721,7 +1727,7 @@ mod tests {
                         values: vec![]
                     },
                 },
-                roots: vec![NodeID::from_usize(4)],
+                roots: vec![NodeID::new(ModuleID::new(0), 4)],
                 public_decls: HashMap::from([]),
             },
             want: MirModule {
@@ -1768,6 +1774,7 @@ mod tests {
         test_blocker_const_float {
             got: Module {
                 tree: NodeTree {
+                    module_id: ModuleID::new(0),
                     nodes: vec![
                         Node::Identifier {
                             name: StrID::from_usize(1),
@@ -1775,23 +1782,23 @@ mod tests {
                         }, // NodeID(0)
                         Node::FloatLiteral(3.45), // NodeID(1)
                         Node::Return {
-                            value: Some(NodeID::from_usize(1))
+                            value: Some(NodeID::new(ModuleID::new(0), 1))
                         }, // NodeID(2)
                         Node::Block {
-                            statements: vec![NodeID::from_usize(2)]
+                            statements: vec![NodeID::new(ModuleID::new(0), 2)]
                         }, // NodeID(3)
                         Node::FunctionDecl {
                             public: false,
                             // NodeID(4)
-                            ident: NodeID::from_usize(0),
+                            ident: NodeID::new(ModuleID::new(0), 0),
                             params: vec![],
-                            body: NodeID::from_usize(3),
+                            body: NodeID::new(ModuleID::new(0), 3),
                         },
                     ],
                     type_map: SideTable {
                         keys: BTreeMap::from([
-                            (NodeID::from_usize(1), 0),
-                            (NodeID::from_usize(4), 1)
+                            (NodeID::new(ModuleID::new(0), 1), 0),
+                            (NodeID::new(ModuleID::new(0), 4), 1)
                         ]),
                         values: vec![hir::TypeSpec::Float64, hir::TypeSpec::Float64],
                     },
@@ -1800,7 +1807,7 @@ mod tests {
                         values: vec![]
                     },
                 },
-                roots: vec![NodeID::from_usize(4)],
+                roots: vec![NodeID::new(ModuleID::new(0), 4)],
                 public_decls: HashMap::from([]),
             },
             want: MirModule {
@@ -1847,6 +1854,7 @@ mod tests {
         test_blocker_const_string {
             got: Module {
                 tree: NodeTree {
+                    module_id: ModuleID::new(0),
                     nodes: vec![
                         Node::Identifier {
                             name: StrID::from_usize(1),
@@ -1854,23 +1862,23 @@ mod tests {
                         }, // NodeID(0)
                         Node::StringLiteral(StrID::from_usize(99)), // NodeID(1)
                         Node::Return {
-                            value: Some(NodeID::from_usize(1))
+                            value: Some(NodeID::new(ModuleID::new(0), 1))
                         }, // NodeID(2)
                         Node::Block {
-                            statements: vec![NodeID::from_usize(2)]
+                            statements: vec![NodeID::new(ModuleID::new(0), 2)]
                         }, // NodeID(3)
                         Node::FunctionDecl {
                             public: false,
                             // NodeID(4)
-                            ident: NodeID::from_usize(0),
+                            ident: NodeID::new(ModuleID::new(0), 0),
                             params: vec![],
-                            body: NodeID::from_usize(3),
+                            body: NodeID::new(ModuleID::new(0), 3),
                         },
                     ],
                     type_map: SideTable {
                         keys: BTreeMap::from([
-                            (NodeID::from_usize(1), 0),
-                            (NodeID::from_usize(4), 1)
+                            (NodeID::new(ModuleID::new(0), 1), 0),
+                            (NodeID::new(ModuleID::new(0), 4), 1)
                         ]),
                         values: vec![hir::TypeSpec::String, hir::TypeSpec::String],
                     },
@@ -1879,7 +1887,7 @@ mod tests {
                         values: vec![]
                     },
                 },
-                roots: vec![NodeID::from_usize(4)],
+                roots: vec![NodeID::new(ModuleID::new(0), 4)],
                 public_decls: HashMap::from([]),
             },
             want: MirModule {

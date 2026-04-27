@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 use std::error::Error;
-use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
+
+use serde::{Deserialize, Serialize};
 
 use crate::blocker::Blocker;
 use crate::codegen::Codegen;
@@ -11,13 +12,28 @@ use crate::file_set::FileSet;
 use crate::noder::Module as HirModule;
 use crate::noder::Noder;
 use crate::parser::Parser;
-use crate::pub_mod::PubMod;
 use crate::str_store::StrID;
 use crate::str_store::StrStore;
 
 use inkwell::context::Context;
 use inkwell::module::Module;
 use inkwell::targets::{FileType, TargetMachine};
+
+/// The unique id for the module in project
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Copy, Clone, Serialize, Deserialize)]
+pub struct ModuleID {
+    id: u32,
+}
+
+impl ModuleID {
+    pub fn new(id: u32) -> Self {
+        ModuleID { id }
+    }
+
+    pub fn id(&self) -> u32 {
+        self.id
+    }
+}
 
 /// Compiler compiles a single module into a .o file and returns the public interface to that module
 pub struct Compiler<'fs> {
@@ -40,13 +56,15 @@ impl<'fs> Compiler<'fs> {
         &mut self,
         str_store: &mut StrStore,
         mod_map: &HashMap<StrID, HirModule>,
+        module_id: ModuleID,
         object_file: &PathBuf,
         save_temps: bool,
     ) -> Result<HirModule, Box<dyn Error>> {
         let context = Context::create();
         let mut generator = Codegen::new(&context);
 
-        let (module, node_tree) = self.compile_module(str_store, mod_map, &mut generator);
+        let (module, node_tree) =
+            self.compile_module(str_store, mod_map, module_id, &mut generator);
         if save_temps {
             let mut ll_file = object_file.clone();
             ll_file.set_extension("ll");
@@ -69,6 +87,7 @@ impl<'fs> Compiler<'fs> {
         &mut self,
         str_store: &mut StrStore,
         mod_map: &HashMap<StrID, HirModule>,
+        module_id: ModuleID,
         generator: &mut Codegen<'ctx>,
     ) -> (Module<'ctx>, HirModule) {
         println!("building ast module...");
@@ -81,7 +100,7 @@ impl<'fs> Compiler<'fs> {
 
         // build the HIR from the AST
         println!("building hir module...");
-        let node_tree = Noder::new().node_module(mod_map, &module);
+        let node_tree = Noder::new(module_id).node_module(mod_map, &module);
 
         // build the MIR from the HIR
         println!("building mir module...");
