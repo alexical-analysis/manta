@@ -7,15 +7,15 @@ use std::fmt::Debug;
 use std::ops::Deref;
 
 use crate::ast::{
-    self, BinaryOp, BlockStmt, Decl, Expr, FunctionDecl, IdentifierExpr, LetExcept, LetStmt,
-    Pattern, Payload, ReturnStmt, Stmt, UnaryOp,
+    self, BinaryOp, BlockStmt, Decl, Expr, IdentifierExpr, LetExcept, LetStmt, Pattern, Payload,
+    ReturnStmt, Stmt, UnaryOp,
 };
 use crate::hir::{
     ArrayType, DefaultPat, EnumType, EnumVariant, EnumVariantPat, FunctionType, NamedType, Node,
     NodeID, PatternNode, StructType, StructTypeField, TypeSpec, TypeSpecPat,
 };
 use crate::noder::typer::{Typer, resolve_type};
-use crate::parser::module::{BindingType, Module, SymID};
+use crate::parser::module::{BindingType, Module as ParseModule, SymID};
 use crate::str_store::{self, StrID};
 
 #[derive(Serialize)]
@@ -60,12 +60,10 @@ impl<K: Ord + Debug, V: Debug> SideTable<K, V> {
     }
 }
 
-/// NodeTree contains all the nodes for a given tree as well as tracking the tree roots
+/// NodeTree is the node arena for a module
 #[derive(Serialize)]
 pub struct NodeTree {
     pub(crate) nodes: Vec<Node>,
-    pub roots: Vec<NodeID>,
-    pub public_decls: HashMap<StrID, NodeID>,
     // the type_map maps each node in the node tree to it's type (if it has one)
     // TODO: we're going to have a type for every node so maybe we can use a slot map or something
     // to pack these more tightly withouth a lookup/ performance cost. right now the side
@@ -75,47 +73,57 @@ pub struct NodeTree {
     // node_id where it was declared, using this you can look up a symbols declaration site in the
     // node tree through the symbol table
     pub(crate) symbol_map: SideTable<SymID, NodeID>,
-    pub within_loop: bool,
 }
 
 impl NodeTree {
-    /// Create a new NodeTree
-    pub fn new() -> Self {
+    fn new() -> Self {
         NodeTree {
             nodes: vec![],
-            roots: vec![],
-            public_decls: HashMap::new(),
             type_map: SideTable::new(),
             symbol_map: SideTable::new(),
-            within_loop: false,
         }
     }
 
-    /// Add node adds a new node ot the store and returns its unique NodeID
+    /// Add node adds a new node to the store and returns its unique NodeID
     pub fn add_node(&mut self, node: Node) -> NodeID {
         self.nodes.push(node);
         let id = self.nodes.len() - 1;
         NodeID::from_usize(id)
     }
 
-    /// Adds a root node to the store and returns its unique NodeID
-    pub fn add_root_node(&mut self, node: Node) -> NodeID {
-        self.nodes.push(node);
-        let id = self.nodes.len() - 1;
-
-        let node_id = NodeID::from_usize(id);
-        self.roots.push(node_id);
-
-        node_id
+    pub fn get_node(&self, node_id: NodeID) -> Option<&Node> {
+        self.nodes.get(node_id.to_usize())
     }
 
+    pub fn get_mut_node(&mut self, node_id: NodeID) -> Option<&mut Node> {
+        self.nodes.get_mut(node_id.to_usize())
+    }
+
+    pub fn get_type(&self, node_id: NodeID) -> Option<&TypeSpec> {
+        self.type_map.get(node_id)
+    }
+}
+
+/// Module for a manta program
+#[derive(Serialize)]
+pub struct Module {
+    #[serde(flatten)]
+    pub tree: NodeTree,
+    pub roots: Vec<NodeID>,
+    pub public_decls: HashMap<StrID, NodeID>,
+}
+
+impl Module {
     /// Finds a public decl with the specified name
     pub fn find_public_decl(&self, name: StrID) -> Option<NodeID> {
         for root in &self.roots {
-            let node = self.get_node(*root);
+            let node = self.tree.get_node(*root);
             match node {
                 Some(Node::FunctionDecl { public, ident, .. }) => {
-                    let ident_node = self.get_node(*ident).expect("failed to find function name");
+                    let ident_node = self
+                        .tree
+                        .get_node(*ident)
+                        .expect("failed to find function name");
                     let function_name = match ident_node {
                         Node::Identifier { name, .. } => *name,
                         _ => panic!("failed to resolve function name"),
@@ -128,7 +136,10 @@ impl NodeTree {
                     return None;
                 }
                 Some(Node::TypeDecl { ident }) => {
-                    let ident_node = self.get_node(*ident).expect("failed to find type name");
+                    let ident_node = self
+                        .tree
+                        .get_node(*ident)
+                        .expect("failed to find type name");
                     let type_name = match ident_node {
                         Node::Identifier { name, .. } => *name,
                         _ => panic!("failed to resolve type name"),
@@ -140,7 +151,10 @@ impl NodeTree {
                     }
                 }
                 Some(Node::VarDecl { public, ident, .. }) => {
-                    let ident_node = self.get_node(*ident).expect("failed to find type name");
+                    let ident_node = self
+                        .tree
+                        .get_node(*ident)
+                        .expect("failed to find type name");
                     let function_name = match ident_node {
                         Node::Identifier { name, .. } => *name,
                         _ => panic!("failed to resolve type name"),
@@ -158,61 +172,83 @@ impl NodeTree {
 
         None
     }
-
-    pub fn get_node(&self, node_id: NodeID) -> Option<&Node> {
-        self.nodes.get(node_id.to_usize())
-    }
-
-    pub fn get_mut_node(&mut self, node_id: NodeID) -> Option<&mut Node> {
-        self.nodes.get_mut(node_id.to_usize())
-    }
-
-    pub fn get_type(&self, node_id: NodeID) -> Option<&TypeSpec> {
-        self.type_map.get(node_id)
-    }
 }
 
-pub fn node_module(mod_map: &HashMap<StrID, NodeTree>, module: &Module) -> NodeTree {
-    // Should these types be owned by the Noder type?
-    let mut node_tree = NodeTree::new();
+/// Noder builds a module from the result of the Parser
+pub struct Noder {
+    tree: NodeTree,
+    roots: Vec<NodeID>,
+    public_decls: HashMap<StrID, NodeID>,
+    within_loop: bool,
+}
 
-    // TODO: remove when these builtin functions are removed
-    for builtin_name in [str_store::PRINT, str_store::EPRINT] {
-        let binding = module
-            .find_builtin_binding(builtin_name)
-            .expect("missing builtin binding");
-        let ident_id = node_tree.add_node(Node::Identifier {
-            name: builtin_name,
-            module: None,
-        });
-        node_tree.symbol_map.add(binding.id, ident_id);
-        if let BindingType::Func(ts) = &binding.binding_type {
-            let ts = node_type_spec(&node_tree, &module, ts);
-            node_tree.type_map.add(ident_id, ts);
+impl Noder {
+    pub fn new() -> Self {
+        Noder {
+            tree: NodeTree::new(),
+            roots: vec![],
+            public_decls: HashMap::new(),
+            within_loop: false,
         }
     }
 
-    // preprocess all top-level declaration identifiers in symbol_map before processing
-    // any bodies, so that decl bodies can reference any top-level decl regardless of source order.
-    for decl in module.get_decls() {
-        node_decl_name(&mut node_tree, &module, decl);
+    pub fn node_module(mut self, mod_map: &HashMap<StrID, Module>, module: &ParseModule) -> Module {
+        // TODO: remove when these builtin functions are removed
+        for builtin_name in [str_store::PRINT, str_store::EPRINT] {
+            let binding = module
+                .find_builtin_binding(builtin_name)
+                .expect("missing builtin binding");
+            let ident_id = self.add_node(Node::Identifier {
+                name: builtin_name,
+                module: None,
+            });
+            self.tree.symbol_map.add(binding.id, ident_id);
+            if let BindingType::Func(ts) = &binding.binding_type {
+                let ts = node_type_spec(&self.tree, &module, ts);
+                self.tree.type_map.add(ident_id, ts);
+            }
+        }
+
+        // preprocess all top-level declaration identifiers in symbol_map before processing
+        // any bodies, so that decl bodies can reference any top-level decl regardless of source order.
+        for decl in module.get_decls() {
+            node_decl_name(&mut self, &module, decl);
+        }
+
+        for decl in module.get_decls() {
+            node_decl(&mut self, mod_map, &module, decl);
+        }
+
+        let mut typer = Typer::new();
+        // TODO: gather errors here instead of just panicing
+        typer.type_node_tree(&mut self.tree, &self.roots);
+
+        Module {
+            tree: self.tree,
+            roots: self.roots,
+            public_decls: self.public_decls,
+        }
     }
 
-    for decl in module.get_decls() {
-        node_decl(&mut node_tree, mod_map, &module, decl);
+    fn add_node(&mut self, node: Node) -> NodeID {
+        self.tree.add_node(node)
     }
 
-    let mut typer = Typer::new();
-    // TODO: gather errors here instead of just panicing
-    typer.type_node_tree(&mut node_tree);
+    fn add_root_node(&mut self, node: Node) -> NodeID {
+        let id = self.tree.add_node(node);
+        self.roots.push(id);
+        id
+    }
 
-    node_tree
+    fn get_mut_node(&mut self, id: NodeID) -> Option<&mut Node> {
+        self.tree.get_mut_node(id)
+    }
 }
 
-fn node_decl_name(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
+fn node_decl_name(noder: &mut Noder, module: &ParseModule, decl: &Decl) {
     match decl {
         Decl::Function(decl) => {
-            let ident_id = node_tree.add_node(Node::Identifier {
+            let ident_id = noder.add_node(Node::Identifier {
                 name: decl.name,
                 module: None,
             });
@@ -222,18 +258,18 @@ fn node_decl_name(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
             let binding = module
                 .find_binding(scope_pos, decl.name)
                 .expect("missing binding for function in pre-pass");
-            node_tree.symbol_map.add(binding.id, ident_id);
+            noder.tree.symbol_map.add(binding.id, ident_id);
 
             let func_type = ast::TypeSpec::Function(decl.function_type.clone());
-            let func_type = node_type_spec(node_tree, module, &func_type);
-            node_tree.type_map.add(ident_id, func_type.clone());
+            let func_type = node_type_spec(&noder.tree, module, &func_type);
+            noder.tree.type_map.add(ident_id, func_type.clone());
 
             if decl.public {
-                node_tree.public_decls.insert(decl.name, ident_id);
+                noder.public_decls.insert(decl.name, ident_id);
             }
         }
         Decl::Type(decl) => {
-            let ident_id = node_tree.add_node(Node::Identifier {
+            let ident_id = noder.add_node(Node::Identifier {
                 name: decl.name,
                 module: None,
             });
@@ -243,14 +279,14 @@ fn node_decl_name(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
             let binding = module
                 .find_binding(scope_pos, decl.name)
                 .expect("missing binding for type decl in pre-pass");
-            node_tree.symbol_map.add(binding.id, ident_id);
+            noder.tree.symbol_map.add(binding.id, ident_id);
 
             if decl.public {
-                node_tree.public_decls.insert(decl.name, ident_id);
+                noder.public_decls.insert(decl.name, ident_id);
             }
         }
         Decl::Const(decl) => {
-            let ident_id = node_tree.add_node(Node::Identifier {
+            let ident_id = noder.add_node(Node::Identifier {
                 name: decl.name,
                 module: None,
             });
@@ -260,14 +296,14 @@ fn node_decl_name(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
             let binding = module
                 .find_binding(scope_pos, decl.name)
                 .expect("missing binding for type decl in pre-pass");
-            node_tree.symbol_map.add(binding.id, ident_id);
+            noder.tree.symbol_map.add(binding.id, ident_id);
 
             if decl.public {
-                node_tree.public_decls.insert(decl.name, ident_id);
+                noder.public_decls.insert(decl.name, ident_id);
             }
         }
         Decl::Var(decl) => {
-            let ident_id = node_tree.add_node(Node::Identifier {
+            let ident_id = noder.add_node(Node::Identifier {
                 name: decl.name,
                 module: None,
             });
@@ -277,17 +313,21 @@ fn node_decl_name(node_tree: &mut NodeTree, module: &Module, decl: &Decl) {
             let binding = module
                 .find_binding(scope_pos, decl.name)
                 .expect("missing binding for type decl in pre-pass");
-            node_tree.symbol_map.add(binding.id, ident_id);
+            noder.tree.symbol_map.add(binding.id, ident_id);
 
             if decl.public {
-                node_tree.public_decls.insert(decl.name, ident_id);
+                noder.public_decls.insert(decl.name, ident_id);
             }
         }
         _ => {}
     }
 }
 
-fn node_type_spec(node_tree: &NodeTree, module: &Module, type_spec: &ast::TypeSpec) -> TypeSpec {
+fn node_type_spec(
+    node_tree: &NodeTree,
+    module: &ParseModule,
+    type_spec: &ast::TypeSpec,
+) -> TypeSpec {
     match type_spec {
         ast::TypeSpec::Int8 => TypeSpec::Int8,
         ast::TypeSpec::Int16 => TypeSpec::Int16,
@@ -389,9 +429,9 @@ fn node_type_spec(node_tree: &NodeTree, module: &Module, type_spec: &ast::TypeSp
 }
 
 fn node_decl(
-    node_tree: &mut NodeTree,
-    mod_map: &HashMap<StrID, NodeTree>,
-    module: &Module,
+    noder: &mut Noder,
+    mod_map: &HashMap<StrID, Module>,
+    module: &ParseModule,
     decl: &Decl,
 ) {
     match decl {
@@ -401,18 +441,18 @@ fn node_decl(
                 let param = &decl.params[i];
                 let param_type = &decl.function_type.params[i];
 
-                let ident_id = node_tree.add_node(Node::Identifier {
+                let ident_id = noder.add_node(Node::Identifier {
                     module: None,
                     name: param.name,
                 });
-                let param_id = node_tree.add_node(Node::VarDecl {
+                let param_id = noder.add_node(Node::VarDecl {
                     public: false,
                     ident: ident_id,
                 });
                 params.push(param_id);
 
-                let type_spec = node_type_spec(node_tree, module, param_type);
-                node_tree.type_map.add(ident_id, type_spec);
+                let type_spec = node_type_spec(&noder.tree, module, param_type);
+                noder.tree.type_map.add(ident_id, type_spec);
 
                 let scope_pos = module
                     .get_scope_pos(param.id)
@@ -421,10 +461,10 @@ fn node_decl(
                     .find_binding(scope_pos, param.name)
                     .expect("missing binding for function parameter");
 
-                node_tree.symbol_map.add(binding.id, ident_id);
+                noder.tree.symbol_map.add(binding.id, ident_id);
             }
 
-            let return_type = node_type_spec(node_tree, module, &decl.function_type.return_type);
+            let return_type = node_type_spec(&noder.tree, module, &decl.function_type.return_type);
 
             // Look up the ident_id registered in the pre-pass (handles forward references and
             // self-recursion).
@@ -434,13 +474,14 @@ fn node_decl(
             let binding = module
                 .find_binding(scope_pos, decl.name)
                 .expect("missing binding for function");
-            let ident_id = *node_tree
+            let ident_id = *noder
+                .tree
                 .symbol_map
                 .get(binding.id)
                 .expect("function not pre-registered in symbol_map");
 
-            let body_id = node_fn_body(node_tree, mod_map, module, &decl.body, return_type);
-            let func_id = node_tree.add_root_node(Node::FunctionDecl {
+            let body_id = node_fn_body(noder, mod_map, module, &decl.body, return_type);
+            let func_id = noder.add_root_node(Node::FunctionDecl {
                 public: decl.public,
                 ident: ident_id,
                 params,
@@ -448,10 +489,10 @@ fn node_decl(
             });
 
             let func_type = ast::TypeSpec::Function(decl.function_type.clone());
-            let func_type = node_type_spec(node_tree, module, &func_type);
+            let func_type = node_type_spec(&noder.tree, module, &func_type);
 
             // ident_id type was already added in pre-pass; only add for the FunctionDecl node.
-            node_tree.type_map.add(func_id, func_type);
+            noder.tree.type_map.add(func_id, func_type);
         }
         Decl::Type(decl) => {
             let scope_pos = module
@@ -460,14 +501,15 @@ fn node_decl(
             let binding = module
                 .find_binding(scope_pos, decl.name)
                 .expect("missing binding for type decl");
-            let ident_id = *node_tree
+            let ident_id = *noder
+                .tree
                 .symbol_map
                 .get(binding.id)
                 .expect("type not pre-registered in symbol_map");
 
-            let decl_id = node_tree.add_root_node(Node::TypeDecl { ident: ident_id });
-            let type_spec = node_type_spec(node_tree, module, &decl.type_spec);
-            node_tree.type_map.add(decl_id, type_spec);
+            let decl_id = noder.add_root_node(Node::TypeDecl { ident: ident_id });
+            let type_spec = node_type_spec(&noder.tree, module, &decl.type_spec);
+            noder.tree.type_map.add(decl_id, type_spec);
         }
         Decl::Const(decl) => {
             let scope_pos = module
@@ -476,17 +518,18 @@ fn node_decl(
             let binding = module
                 .find_binding(scope_pos, decl.name)
                 .expect("missing binding for const decl");
-            let ident_id = *node_tree
+            let ident_id = *noder
+                .tree
                 .symbol_map
                 .get(binding.id)
                 .expect("const not pre-registered in symbol_map");
 
-            node_tree.add_root_node(Node::VarDecl {
+            noder.add_root_node(Node::VarDecl {
                 public: decl.public,
                 ident: ident_id,
             });
-            let value_node = node_expr(node_tree, mod_map, module, &decl.value);
-            node_tree.add_root_node(Node::Assign {
+            let value_node = node_expr(noder, mod_map, module, &decl.value);
+            noder.add_root_node(Node::Assign {
                 target: ident_id,
                 value: value_node,
             });
@@ -498,17 +541,18 @@ fn node_decl(
             let binding = module
                 .find_binding(scope_pos, decl.name)
                 .expect("missing binding for var decl");
-            let ident_id = *node_tree
+            let ident_id = *noder
+                .tree
                 .symbol_map
                 .get(binding.id)
                 .expect("var not pre-registered in symbol_map");
 
-            node_tree.add_root_node(Node::VarDecl {
+            noder.add_root_node(Node::VarDecl {
                 public: decl.public,
                 ident: ident_id,
             });
-            let value_node = node_expr(node_tree, mod_map, module, &decl.value);
-            node_tree.add_root_node(Node::Assign {
+            let value_node = node_expr(noder, mod_map, module, &decl.value);
+            noder.add_root_node(Node::Assign {
                 target: ident_id,
                 value: value_node,
             });
@@ -516,21 +560,21 @@ fn node_decl(
         Decl::Use(_) => { /* ignore these since they're handled by the parser */ }
         Decl::Mod(_) => { /* ignore these since they're handled by the parser */ }
         Decl::Invalid => {
-            node_tree.add_root_node(Node::Invalid);
+            noder.add_root_node(Node::Invalid);
         }
     }
 }
 
 fn node_fn_body(
-    node_tree: &mut NodeTree,
-    mod_map: &HashMap<StrID, NodeTree>,
-    module: &Module,
+    noder: &mut Noder,
+    mod_map: &HashMap<StrID, Module>,
+    module: &ParseModule,
     block: &BlockStmt,
     return_type: TypeSpec,
 ) -> NodeID {
     let mut stmt_ids = vec![];
     for stmt in &block.statements {
-        let ids = node_stmt(node_tree, mod_map, module, stmt);
+        let ids = node_stmt(noder, mod_map, module, stmt);
         stmt_ids.extend(ids);
     }
 
@@ -542,30 +586,30 @@ fn node_fn_body(
             Some(Stmt::Return(_)) => { /* we're good, the final statement is a return */ }
             Some(_) | None => {
                 let ret_stmt = &Stmt::Return(ReturnStmt { value: None });
-                let return_id = node_stmt(node_tree, mod_map, module, ret_stmt);
+                let return_id = node_stmt(noder, mod_map, module, ret_stmt);
                 stmt_ids.push(*return_id.first().expect("failed to node statement"))
             }
         }
     }
 
-    node_tree.add_node(Node::Block {
+    noder.add_node(Node::Block {
         statements: stmt_ids,
     })
 }
 
 fn node_block(
-    node_tree: &mut NodeTree,
-    mod_map: &HashMap<StrID, NodeTree>,
-    module: &Module,
+    noder: &mut Noder,
+    mod_map: &HashMap<StrID, Module>,
+    module: &ParseModule,
     block: &BlockStmt,
 ) -> NodeID {
     let mut stmt_ids = vec![];
     for stmt in &block.statements {
-        let ids = node_stmt(node_tree, mod_map, module, stmt);
+        let ids = node_stmt(noder, mod_map, module, stmt);
         stmt_ids.extend(ids);
     }
 
-    node_tree.add_node(Node::Block {
+    noder.add_node(Node::Block {
         statements: stmt_ids,
     })
 }
@@ -596,13 +640,13 @@ fn lvalue_root(expr: &ast::Expr) -> Option<&IdentifierExpr> {
 }
 
 fn node_stmt(
-    node_tree: &mut NodeTree,
-    mod_map: &HashMap<StrID, NodeTree>,
-    module: &Module,
+    noder: &mut Noder,
+    mod_map: &HashMap<StrID, Module>,
+    module: &ParseModule,
     stmt: &Stmt,
 ) -> Vec<NodeID> {
     match stmt {
-        Stmt::Let(stmt) => node_let(node_tree, mod_map, module, stmt),
+        Stmt::Let(stmt) => node_let(noder, mod_map, module, stmt),
         Stmt::Assign(stmt) => {
             // Enforce mutability: walk through the l_value expression to find the root
             // identifier, then check that it is mutable. This means `let p = &x` blocks
@@ -624,37 +668,37 @@ fn node_stmt(
                 ),
             }
 
-            let l_id = node_expr(node_tree, mod_map, module, &stmt.lvalue);
-            let r_id = node_expr(node_tree, mod_map, module, &stmt.rvalue);
+            let l_id = node_expr(noder, mod_map, module, &stmt.lvalue);
+            let r_id = node_expr(noder, mod_map, module, &stmt.rvalue);
 
-            vec![node_tree.add_node(Node::Assign {
+            vec![noder.add_node(Node::Assign {
                 target: l_id,
                 value: r_id,
             })]
         }
-        Stmt::Expr(stmt) => vec![node_expr(node_tree, mod_map, module, &stmt.expr)],
+        Stmt::Expr(stmt) => vec![node_expr(noder, mod_map, module, &stmt.expr)],
         Stmt::Return(stmt) => {
             let value = if let Some(v) = &stmt.value {
-                let value_id = node_expr(node_tree, mod_map, module, v);
+                let value_id = node_expr(noder, mod_map, module, v);
                 Some(value_id)
             } else {
                 None
             };
 
-            vec![node_tree.add_node(Node::Return { value })]
+            vec![noder.add_node(Node::Return { value })]
         }
         Stmt::Defer(stmt) => {
-            let block_id = node_block(node_tree, mod_map, module, &stmt.block);
-            vec![node_tree.add_node(Node::Defer { block: block_id })]
+            let block_id = node_block(noder, mod_map, module, &stmt.block);
+            vec![noder.add_node(Node::Defer { block: block_id })]
         }
         Stmt::Match(stmt) => {
-            let target_id = node_expr(node_tree, mod_map, module, &stmt.target);
+            let target_id = node_expr(noder, mod_map, module, &stmt.target);
             let mut arms = vec![];
             for arm in &stmt.arms {
-                let pat_id = node_pattern(node_tree, module, &arm.pattern);
-                let block_id = node_block(node_tree, mod_map, module, &arm.body);
+                let pat_id = node_pattern(noder, module, &arm.pattern);
+                let block_id = node_block(noder, mod_map, module, &arm.body);
 
-                let arm_id = node_tree.add_node(Node::MatchArm {
+                let arm_id = noder.add_node(Node::MatchArm {
                     pattern: pat_id,
                     body: block_id,
                 });
@@ -662,58 +706,58 @@ fn node_stmt(
                 arms.push(arm_id);
             }
 
-            vec![node_tree.add_node(Node::Match {
+            vec![noder.add_node(Node::Match {
                 target: target_id,
                 arms,
             })]
         }
-        Stmt::Block(stmt) => vec![node_block(node_tree, mod_map, module, stmt)],
+        Stmt::Block(stmt) => vec![node_block(noder, mod_map, module, stmt)],
         Stmt::If(stmt) => {
-            let check_id = node_expr(node_tree, mod_map, module, &stmt.check);
-            let success_id = node_block(node_tree, mod_map, module, &stmt.success);
+            let check_id = node_expr(noder, mod_map, module, &stmt.check);
+            let success_id = node_block(noder, mod_map, module, &stmt.success);
             let fail_id = stmt
                 .fail
                 .as_ref()
-                .map(|fail| node_block(node_tree, mod_map, module, fail));
+                .map(|fail| node_block(noder, mod_map, module, fail));
 
-            vec![node_tree.add_node(Node::If {
+            vec![noder.add_node(Node::If {
                 condition: check_id,
                 then_block: success_id,
                 else_block: fail_id,
             })]
         }
         Stmt::Loop(stmt) => {
-            let prev = node_tree.within_loop;
-            node_tree.within_loop = true;
-            let body = node_block(node_tree, mod_map, module, &stmt.body);
-            node_tree.within_loop = prev;
+            let prev = noder.within_loop;
+            noder.within_loop = true;
+            let body = node_block(noder, mod_map, module, &stmt.body);
+            noder.within_loop = prev;
 
-            vec![node_tree.add_node(Node::Loop { body })]
+            vec![noder.add_node(Node::Loop { body })]
         }
         Stmt::While(stmt) => {
-            let break_id = node_tree.add_node(Node::Break);
-            let break_block = node_tree.add_node(Node::Block {
+            let break_id = noder.add_node(Node::Break);
+            let break_block = noder.add_node(Node::Block {
                 statements: vec![break_id],
             });
 
-            let check = node_expr(node_tree, mod_map, module, &stmt.check);
-            let not_check = node_tree.add_node(Node::Unary {
+            let check = node_expr(noder, mod_map, module, &stmt.check);
+            let not_check = noder.add_node(Node::Unary {
                 operator: UnaryOp::Not,
                 operand: check,
             });
-            let check_id = node_tree.add_node(Node::If {
+            let check_id = noder.add_node(Node::If {
                 condition: not_check,
                 then_block: break_block,
                 else_block: None,
             });
 
-            let prev = node_tree.within_loop;
-            node_tree.within_loop = true;
-            let body = node_block(node_tree, mod_map, module, &stmt.body);
-            node_tree.within_loop = prev;
+            let prev = noder.within_loop;
+            noder.within_loop = true;
+            let body = node_block(noder, mod_map, module, &stmt.body);
+            noder.within_loop = prev;
 
             // insert the check into the head of the body
-            let body_node = node_tree
+            let body_node = noder
                 .get_mut_node(body)
                 .expect("failed to get while loop body");
             match body_node {
@@ -721,15 +765,15 @@ fn node_stmt(
                 _ => panic!("while body must be a block"),
             }
 
-            vec![node_tree.add_node(Node::Loop { body })]
+            vec![noder.add_node(Node::Loop { body })]
         }
         Stmt::For(stmt) => {
             // set up the identifier for bindings
-            let binding_id = node_tree.add_node(Node::Identifier {
+            let binding_id = noder.add_node(Node::Identifier {
                 module: None,
                 name: stmt.binding.name,
             });
-            let var_decl_id = node_tree.add_node(Node::VarDecl {
+            let var_decl_id = noder.add_node(Node::VarDecl {
                 public: false,
                 ident: binding_id,
             });
@@ -741,55 +785,55 @@ fn node_stmt(
                 .find_binding(scope_pos, stmt.binding.name)
                 .expect("missing binding for function parameter");
 
-            node_tree.symbol_map.add(binding.id, binding_id);
+            noder.tree.symbol_map.add(binding.id, binding_id);
 
-            let start_id = node_expr(node_tree, mod_map, module, &stmt.range.start);
-            let initial_assign_id = node_tree.add_node(Node::Assign {
+            let start_id = node_expr(noder, mod_map, module, &stmt.range.start);
+            let initial_assign_id = noder.add_node(Node::Assign {
                 target: binding_id,
                 value: start_id,
             });
 
-            let break_id = node_tree.add_node(Node::Break);
-            let break_block = node_tree.add_node(Node::Block {
+            let break_id = noder.add_node(Node::Break);
+            let break_block = noder.add_node(Node::Block {
                 statements: vec![break_id],
             });
 
-            let end_id = node_expr(node_tree, mod_map, module, &stmt.range.end);
+            let end_id = node_expr(noder, mod_map, module, &stmt.range.end);
 
             let comp_op = match stmt.range.inclusive {
                 true => BinaryOp::GreaterThan,
                 false => BinaryOp::GreaterThanOrEqual,
             };
 
-            let condition_id = node_tree.add_node(Node::Binary {
+            let condition_id = noder.add_node(Node::Binary {
                 left: binding_id,
                 operator: comp_op,
                 right: end_id,
             });
-            let check_id = node_tree.add_node(Node::If {
+            let check_id = noder.add_node(Node::If {
                 condition: condition_id,
                 then_block: break_block,
                 else_block: None,
             });
 
-            let one_id = node_tree.add_node(Node::IntLiteral(1));
-            let inc_add_id = node_tree.add_node(Node::Binary {
+            let one_id = noder.add_node(Node::IntLiteral(1));
+            let inc_add_id = noder.add_node(Node::Binary {
                 left: binding_id,
                 operator: BinaryOp::Add,
                 right: one_id,
             });
-            let increment_id = node_tree.add_node(Node::Assign {
+            let increment_id = noder.add_node(Node::Assign {
                 target: binding_id,
                 value: inc_add_id,
             });
 
-            let prev = node_tree.within_loop;
-            node_tree.within_loop = true;
-            let body = node_block(node_tree, mod_map, module, &stmt.body);
-            node_tree.within_loop = prev;
+            let prev = noder.within_loop;
+            noder.within_loop = true;
+            let body = node_block(noder, mod_map, module, &stmt.body);
+            noder.within_loop = prev;
 
             // insert the check into the head of the body and the increment into the tail
-            let body_node = node_tree
+            let body_node = noder
                 .get_mut_node(body)
                 .expect("failed to get while loop body");
             match body_node {
@@ -803,47 +847,41 @@ fn node_stmt(
             vec![
                 var_decl_id,
                 initial_assign_id,
-                node_tree.add_node(Node::Loop { body }),
+                noder.add_node(Node::Loop { body }),
             ]
         }
         Stmt::Break => {
-            if !node_tree.within_loop {
+            if !noder.within_loop {
                 panic!("break keywords must appear within loops")
             }
 
-            vec![node_tree.add_node(Node::Break)]
+            vec![noder.add_node(Node::Break)]
         }
         Stmt::Continue => {
-            if !node_tree.within_loop {
+            if !noder.within_loop {
                 panic!("continue keywords must appear within loops")
             }
 
-            vec![node_tree.add_node(Node::Continue)]
+            vec![noder.add_node(Node::Continue)]
         }
     }
 }
 
-fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) -> NodeID {
+fn node_pattern(noder: &mut Noder, module: &ParseModule, pattern: &Pattern) -> NodeID {
     match pattern {
-        Pattern::IntLiteral(pat) => {
-            node_tree.add_node(Node::Pattern(PatternNode::IntLiteral(*pat)))
-        }
-        Pattern::UIntLiteral(pat) => {
-            node_tree.add_node(Node::Pattern(PatternNode::UIntLiteral(*pat)))
-        }
+        Pattern::IntLiteral(pat) => noder.add_node(Node::Pattern(PatternNode::IntLiteral(*pat))),
+        Pattern::UIntLiteral(pat) => noder.add_node(Node::Pattern(PatternNode::UIntLiteral(*pat))),
         Pattern::StringLiteral(pat) => {
-            node_tree.add_node(Node::Pattern(PatternNode::StringLiteral(*pat)))
+            noder.add_node(Node::Pattern(PatternNode::StringLiteral(*pat)))
         }
-        Pattern::BoolLiteral(pat) => {
-            node_tree.add_node(Node::Pattern(PatternNode::BoolLiteral(*pat)))
-        }
+        Pattern::BoolLiteral(pat) => noder.add_node(Node::Pattern(PatternNode::BoolLiteral(*pat))),
         Pattern::FloatLiteral(pat) => {
-            node_tree.add_node(Node::Pattern(PatternNode::FloatLiteral(*pat)))
+            noder.add_node(Node::Pattern(PatternNode::FloatLiteral(*pat)))
         }
         Pattern::TypeSpec(pat) => {
             let mut payload = None;
             if let Payload::Some(pay) = pat.payload {
-                let payload_id = node_tree.add_node(Node::Identifier {
+                let payload_id = noder.add_node(Node::Identifier {
                     name: pay,
                     module: None,
                 });
@@ -855,19 +893,19 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
                     .find_binding(scope_pos, pay)
                     .expect("missing binding for var decl");
 
-                node_tree.symbol_map.add(binding.id, payload_id);
+                noder.tree.symbol_map.add(binding.id, payload_id);
                 payload = Some(payload_id)
             }
 
-            let node_id = node_tree.add_node(Node::Pattern(PatternNode::TypeSpec(TypeSpecPat {
+            let node_id = noder.add_node(Node::Pattern(PatternNode::TypeSpec(TypeSpecPat {
                 payload,
             })));
 
             // we add the type spec during the noding phase for type specs because otherwise we would
             // loose the type information. The hir tree only tracks type information in
             // the type_map, not on the individual nodes like the ast.
-            let type_spec = node_type_spec(node_tree, module, &pat.type_spec);
-            node_tree.type_map.add(node_id, type_spec);
+            let type_spec = node_type_spec(&noder.tree, module, &pat.type_spec);
+            noder.tree.type_map.add(node_id, type_spec);
 
             node_id
         }
@@ -880,7 +918,8 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
                 let binding = module
                     .find_binding(scope_pos, ident.name)
                     .expect("can not find binding for enum variant");
-                let ident_node = node_tree
+                let ident_node = noder
+                    .tree
                     .symbol_map
                     .get(binding.id)
                     .expect("failed to find declaration node for the enum variant");
@@ -890,7 +929,7 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
 
             let mut payload = None;
             if let Payload::Some(pay) = pat.payload {
-                let payload_ident = node_tree.add_node(Node::Identifier {
+                let payload_ident = noder.add_node(Node::Identifier {
                     name: pay,
                     module: None,
                 });
@@ -902,11 +941,11 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
                     .find_binding(scope_pos, pay)
                     .expect("missing binding for enum variant pattern payload");
 
-                node_tree.symbol_map.add(binding.id, payload_ident);
+                noder.tree.symbol_map.add(binding.id, payload_ident);
                 payload = Some(payload_ident)
             }
 
-            node_tree.add_node(Node::Pattern(PatternNode::EnumVariant(EnumVariantPat {
+            noder.add_node(Node::Pattern(PatternNode::EnumVariant(EnumVariantPat {
                 enum_name,
                 variant: pat.variant,
                 payload,
@@ -914,7 +953,7 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
         }
         Pattern::Identifier(pat) => {
             // Identifiers are turned into Default patterns with the identifier as the payload
-            let payload_ident = node_tree.add_node(Node::Identifier {
+            let payload_ident = noder.add_node(Node::Identifier {
                 name: pat.name,
                 module: None,
             });
@@ -926,29 +965,29 @@ fn node_pattern(node_tree: &mut NodeTree, module: &Module, pattern: &Pattern) ->
                 .find_binding(scope_pos, pat.name)
                 .expect("missing binding for enum variant pattern payload");
 
-            node_tree.symbol_map.add(binding.id, payload_ident);
+            noder.tree.symbol_map.add(binding.id, payload_ident);
 
             let payload = Some(payload_ident);
-            node_tree.add_node(Node::Pattern(PatternNode::Default(DefaultPat { payload })))
+            noder.add_node(Node::Pattern(PatternNode::Default(DefaultPat { payload })))
         }
         Pattern::ModuleIdentifier(_) => {
             panic!("no module identifier patterns should exist at this point in the hir")
         }
-        Pattern::Default => node_tree.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
+        Pattern::Default => noder.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
             payload: None,
         }))),
     }
 }
 
 fn node_let(
-    node_tree: &mut NodeTree,
-    mod_map: &HashMap<StrID, NodeTree>,
-    module: &Module,
+    noder: &mut Noder,
+    mod_map: &HashMap<StrID, Module>,
+    module: &ParseModule,
     stmt: &LetStmt,
 ) -> Vec<NodeID> {
     let mut nodes = vec![];
     let mut arms = vec![];
-    let value_id = node_expr(node_tree, mod_map, module, &stmt.value);
+    let value_id = node_expr(noder, mod_map, module, &stmt.value);
 
     match &stmt.pattern {
         Pattern::EnumVariant(pat) => {
@@ -965,7 +1004,7 @@ fn node_let(
                 //   ...
                 // }
 
-                let pattern = node_pattern(node_tree, module, &stmt.pattern);
+                let pattern = node_pattern(noder, module, &stmt.pattern);
 
                 // lookup the payload node id
                 let scope_pos = module
@@ -974,25 +1013,26 @@ fn node_let(
                 let binding = module
                     .find_binding(scope_pos, pay)
                     .expect("missing binding for enum variant pattern payload");
-                let payload_id = *node_tree
+                let payload_id = *noder
+                    .tree
                     .symbol_map
                     .get(binding.id)
                     .expect("missing payload id for enum pattern");
 
-                let outer_ident = node_tree.add_node(Node::Identifier {
+                let outer_ident = noder.add_node(Node::Identifier {
                     name: pay,
                     module: None,
                 });
-                nodes.push(node_tree.add_node(Node::VarDecl {
+                nodes.push(noder.add_node(Node::VarDecl {
                     public: false,
                     ident: outer_ident,
                 }));
 
-                let assign_id = node_tree.add_node(Node::Assign {
+                let assign_id = noder.add_node(Node::Assign {
                     target: outer_ident,
                     value: payload_id,
                 });
-                let match_body = node_tree.add_node(Node::Block {
+                let match_body = noder.add_node(Node::Block {
                     statements: vec![assign_id],
                 });
 
@@ -1005,9 +1045,9 @@ fn node_let(
 
                 // Now that we've wired up the assignment we need to update the symbol_map to point
                 // to our outer_ident node instead of the inner_ident node
-                node_tree.symbol_map.set(binding.id, outer_ident);
+                noder.tree.symbol_map.set(binding.id, outer_ident);
 
-                let arm = node_tree.add_node(Node::MatchArm {
+                let arm = noder.add_node(Node::MatchArm {
                     pattern,
                     body: match_body,
                 });
@@ -1020,9 +1060,9 @@ fn node_let(
                 //   ...
                 // }
 
-                let pattern = node_pattern(node_tree, module, &stmt.pattern);
-                let empty_body = node_tree.add_node(Node::Block { statements: vec![] });
-                let arm = node_tree.add_node(Node::MatchArm {
+                let pattern = node_pattern(noder, module, &stmt.pattern);
+                let empty_body = noder.add_node(Node::Block { statements: vec![] });
+                let arm = noder.add_node(Node::MatchArm {
                     pattern,
                     body: empty_body,
                 });
@@ -1041,11 +1081,11 @@ fn node_let(
                 )
             }
 
-            let ident_id = node_tree.add_node(Node::Identifier {
+            let ident_id = noder.add_node(Node::Identifier {
                 name: ident.name,
                 module: None,
             });
-            nodes.push(node_tree.add_node(Node::VarDecl {
+            nodes.push(noder.add_node(Node::VarDecl {
                 public: false,
                 ident: ident_id,
             }));
@@ -1057,9 +1097,9 @@ fn node_let(
                 .find_binding(scope_pos, ident.name)
                 .expect("missing binding for function");
 
-            node_tree.symbol_map.add(binding.id, ident_id);
+            noder.tree.symbol_map.add(binding.id, ident_id);
 
-            let assign_id = node_tree.add_node(Node::Assign {
+            let assign_id = noder.add_node(Node::Assign {
                 target: ident_id,
                 value: value_id,
             });
@@ -1082,7 +1122,7 @@ fn node_let(
                     //   ...
                     // }
 
-                    let pattern = node_pattern(node_tree, module, &stmt.pattern);
+                    let pattern = node_pattern(noder, module, &stmt.pattern);
 
                     // lookup the payload node id
                     let scope_pos = module
@@ -1091,25 +1131,26 @@ fn node_let(
                     let binding = module
                         .find_binding(scope_pos, pay)
                         .expect("missing binding for enum variant pattern payload");
-                    let payload_id = *node_tree
+                    let payload_id = *noder
+                        .tree
                         .symbol_map
                         .get(binding.id)
                         .expect("missing payload id for enum pattern");
 
-                    let outer_ident = node_tree.add_node(Node::Identifier {
+                    let outer_ident = noder.add_node(Node::Identifier {
                         name: pay,
                         module: None,
                     });
-                    nodes.push(node_tree.add_node(Node::VarDecl {
+                    nodes.push(noder.add_node(Node::VarDecl {
                         public: false,
                         ident: outer_ident,
                     }));
 
-                    let assign_id = node_tree.add_node(Node::Assign {
+                    let assign_id = noder.add_node(Node::Assign {
                         target: outer_ident,
                         value: payload_id,
                     });
-                    let match_body = node_tree.add_node(Node::Block {
+                    let match_body = noder.add_node(Node::Block {
                         statements: vec![assign_id],
                     });
 
@@ -1122,9 +1163,9 @@ fn node_let(
 
                     // Now that we've wired up the assignment we need to update the symbol_map to point
                     // to our outer_ident node instead of the inner_ident node
-                    node_tree.symbol_map.set(binding.id, outer_ident);
+                    noder.tree.symbol_map.set(binding.id, outer_ident);
 
-                    let arm = node_tree.add_node(Node::MatchArm {
+                    let arm = noder.add_node(Node::MatchArm {
                         pattern,
                         body: match_body,
                     });
@@ -1138,9 +1179,9 @@ fn node_let(
                     //   ...
                     // }
 
-                    let pattern = node_pattern(node_tree, module, &stmt.pattern);
-                    let empty_body = node_tree.add_node(Node::Block { statements: vec![] });
-                    let arm = node_tree.add_node(Node::MatchArm {
+                    let pattern = node_pattern(noder, module, &stmt.pattern);
+                    let empty_body = noder.add_node(Node::Block { statements: vec![] });
+                    let arm = noder.add_node(Node::MatchArm {
                         pattern,
                         body: empty_body,
                     });
@@ -1164,9 +1205,9 @@ fn node_let(
                 panic!("let statement needs an exception handler")
             }
 
-            let pat_id = node_pattern(node_tree, module, &stmt.pattern);
-            let empty_body = node_tree.add_node(Node::Block { statements: vec![] });
-            let arm_id = node_tree.add_node(Node::MatchArm {
+            let pat_id = node_pattern(noder, module, &stmt.pattern);
+            let empty_body = noder.add_node(Node::Block { statements: vec![] });
+            let arm_id = noder.add_node(Node::MatchArm {
                 pattern: pat_id,
                 body: empty_body,
             });
@@ -1185,14 +1226,13 @@ fn node_let(
                     // becomes:
                     //
                     // e { ... }
-                    let ident_id = node_tree.add_node(Node::Identifier {
+                    let ident_id = noder.add_node(Node::Identifier {
                         name: e,
                         module: None,
                     });
-                    let pat_id =
-                        node_tree.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
-                            payload: Some(ident_id),
-                        })));
+                    let pat_id = noder.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
+                        payload: Some(ident_id),
+                    })));
 
                     let scope_pos = module
                         .get_scope_pos(*id)
@@ -1201,11 +1241,11 @@ fn node_let(
                         .find_binding(scope_pos, e)
                         .expect("missing binding for or identifier");
 
-                    node_tree.symbol_map.add(binding.id, ident_id);
+                    noder.tree.symbol_map.add(binding.id, ident_id);
 
-                    let body_id = node_block(node_tree, mod_map, module, body);
+                    let body_id = node_block(noder, mod_map, module, body);
 
-                    node_tree.add_node(Node::MatchArm {
+                    noder.add_node(Node::MatchArm {
                         pattern: pat_id,
                         body: body_id,
                     })
@@ -1216,13 +1256,12 @@ fn node_let(
                     // becomes:
                     //
                     // _ { ... }
-                    let pat_id =
-                        node_tree.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
-                            payload: None,
-                        })));
+                    let pat_id = noder.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
+                        payload: None,
+                    })));
 
-                    let body_id = node_block(node_tree, mod_map, module, body);
-                    node_tree.add_node(Node::MatchArm {
+                    let body_id = node_block(noder, mod_map, module, body);
+                    noder.add_node(Node::MatchArm {
                         pattern: pat_id,
                         body: body_id,
                     })
@@ -1235,24 +1274,24 @@ fn node_let(
             // becomes:
             //
             // <wrap> { return .Variant(<wrap>) }
-            let wrap_id = node_tree.add_node(Node::Identifier {
+            let wrap_id = noder.add_node(Node::Identifier {
                 name: str_store::WRAP,
                 module: None,
             });
-            let enum_id = node_wrap_expr(node_tree, module, expr, wrap_id);
+            let enum_id = node_wrap_expr(noder, module, expr, wrap_id);
 
-            let ret_id = node_tree.add_node(Node::Return {
+            let ret_id = noder.add_node(Node::Return {
                 value: Some(enum_id),
             });
-            let body_id = node_tree.add_node(Node::Block {
+            let body_id = noder.add_node(Node::Block {
                 statements: vec![ret_id],
             });
 
-            let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
+            let pat_id = noder.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
                 payload: Some(wrap_id),
             })));
 
-            node_tree.add_node(Node::MatchArm {
+            noder.add_node(Node::MatchArm {
                 pattern: pat_id,
                 body: body_id,
             })
@@ -1265,12 +1304,12 @@ fn node_let(
             // <panic> { panic(<panic>) }
 
             // the identifier for the function call
-            let panic_fn_id = node_tree.add_node(Node::Identifier {
+            let panic_fn_id = noder.add_node(Node::Identifier {
                 name: str_store::PANIC,
                 module: None,
             });
 
-            node_tree.type_map.add(
+            noder.tree.type_map.add(
                 panic_fn_id,
                 TypeSpec::Function(FunctionType {
                     params: vec![TypeSpec::String],
@@ -1281,27 +1320,27 @@ fn node_let(
             // the identifier for the pattern, this needs to be seperate from the function call
             // identifier for type checking to work correctly since they need to have different
             // underlying types
-            let panic_ident_id = node_tree.add_node(Node::Identifier {
+            let panic_ident_id = noder.add_node(Node::Identifier {
                 name: str_store::PANIC,
                 module: None,
             });
 
-            let panic_str_id = node_tree.add_node(Node::StringLiteral(str_store::UNDERSCORE));
+            let panic_str_id = noder.add_node(Node::StringLiteral(str_store::UNDERSCORE));
 
-            let call_id = node_tree.add_node(Node::Call {
+            let call_id = noder.add_node(Node::Call {
                 func: panic_fn_id,
                 // TODO: eventually we need to support more flexible panics but for now just use a
                 // constant string
                 args: vec![panic_str_id],
             });
-            let body_id = node_tree.add_node(Node::Block {
+            let body_id = noder.add_node(Node::Block {
                 statements: vec![call_id],
             });
 
-            let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
+            let pat_id = noder.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
                 payload: Some(panic_ident_id),
             })));
-            node_tree.add_node(Node::MatchArm {
+            noder.add_node(Node::MatchArm {
                 pattern: pat_id,
                 body: body_id,
             })
@@ -1311,12 +1350,12 @@ fn node_let(
             // for now just panic if we hit this arm somehow
 
             // the identifier for the function call
-            let panic_fn_id = node_tree.add_node(Node::Identifier {
+            let panic_fn_id = noder.add_node(Node::Identifier {
                 name: str_store::PANIC,
                 module: None,
             });
 
-            node_tree.type_map.add(
+            noder.tree.type_map.add(
                 panic_fn_id,
                 TypeSpec::Function(FunctionType {
                     // TODO: this needs to be the type of the expression that's being matched or an
@@ -1329,23 +1368,23 @@ fn node_let(
             // the identifier for the pattern, this needs to be seperate from the function call
             // identifier for type checking to work correctly since they need to have different
             // underlying types
-            let panic_ident_id = node_tree.add_node(Node::Identifier {
+            let panic_ident_id = noder.add_node(Node::Identifier {
                 name: str_store::PANIC,
                 module: None,
             });
 
-            let call_id = node_tree.add_node(Node::Call {
+            let call_id = noder.add_node(Node::Call {
                 func: panic_fn_id,
                 args: vec![panic_ident_id],
             });
-            let body_id = node_tree.add_node(Node::Block {
+            let body_id = noder.add_node(Node::Block {
                 statements: vec![call_id],
             });
 
-            let pat_id = node_tree.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
+            let pat_id = noder.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
                 payload: Some(panic_ident_id),
             })));
-            node_tree.add_node(Node::MatchArm {
+            noder.add_node(Node::MatchArm {
                 pattern: pat_id,
                 body: body_id,
             })
@@ -1354,7 +1393,7 @@ fn node_let(
 
     arms.push(default_id);
 
-    let match_id = node_tree.add_node(Node::Match {
+    let match_id = noder.add_node(Node::Match {
         target: value_id,
         arms,
     });
@@ -1364,12 +1403,7 @@ fn node_let(
 }
 
 /// convert an abitrary expression into a wrap node for the `let .Ok = expr wrap .Err` syntax
-fn node_wrap_expr(
-    node_tree: &mut NodeTree,
-    module: &Module,
-    expr: &Expr,
-    wrap_id: NodeID,
-) -> NodeID {
+fn node_wrap_expr(noder: &mut Noder, module: &ParseModule, expr: &Expr, wrap_id: NodeID) -> NodeID {
     let dot_expr = match expr {
         Expr::DotAccess(expr) => expr,
         _ => panic!("only dot expressions are allowed!"),
@@ -1380,7 +1414,7 @@ fn node_wrap_expr(
         // TODO: how do we check this more carfully, we need to fill in the type hole first by
         // checking what the return value of the function is
         None => {
-            return node_tree.add_node(Node::EnumConstructor {
+            return noder.add_node(Node::EnumConstructor {
                 target: None,
                 variant: dot_expr.field,
                 payload: Some(wrap_id),
@@ -1410,19 +1444,20 @@ fn node_wrap_expr(
         panic!("can only call wrap with enum types")
     }
 
-    let target_node = node_tree.symbol_map.get(binding.id).cloned();
+    let target_node = noder.tree.symbol_map.get(binding.id).cloned();
 
-    let enum_constructor_id = node_tree.add_node(Node::EnumConstructor {
+    let enum_constructor_id = noder.add_node(Node::EnumConstructor {
         target: target_node,
         variant: dot_expr.field,
         payload: Some(wrap_id),
     });
 
     // Look up the enum type from the symbol map
-    if let Some(type_decl_id) = node_tree.symbol_map.get(binding.id)
-        && let Some(enum_type) = node_tree.type_map.get(*type_decl_id)
+    if let Some(type_decl_id) = noder.tree.symbol_map.get(binding.id)
+        && let Some(enum_type) = noder.tree.type_map.get(*type_decl_id)
     {
-        node_tree
+        noder
+            .tree
             .type_map
             .add(enum_constructor_id, enum_type.clone());
     }
@@ -1431,17 +1466,17 @@ fn node_wrap_expr(
 }
 
 fn node_expr(
-    node_tree: &mut NodeTree,
-    mod_map: &HashMap<StrID, NodeTree>,
-    module: &Module,
+    noder: &mut Noder,
+    mod_map: &HashMap<StrID, Module>,
+    module: &ParseModule,
     expr: &Expr,
 ) -> NodeID {
     match expr {
-        Expr::IntLiteral(expr) => node_tree.add_node(Node::IntLiteral(*expr)),
-        Expr::UIntLiteral(expr) => node_tree.add_node(Node::UIntLiteral(*expr)),
-        Expr::FloatLiteral(expr) => node_tree.add_node(Node::FloatLiteral(*expr)),
-        Expr::StringLiteral(expr) => node_tree.add_node(Node::StringLiteral(*expr)),
-        Expr::BoolLiteral(expr) => node_tree.add_node(Node::BoolLiteral(*expr)),
+        Expr::IntLiteral(expr) => noder.add_node(Node::IntLiteral(*expr)),
+        Expr::UIntLiteral(expr) => noder.add_node(Node::UIntLiteral(*expr)),
+        Expr::FloatLiteral(expr) => noder.add_node(Node::FloatLiteral(*expr)),
+        Expr::StringLiteral(expr) => noder.add_node(Node::StringLiteral(*expr)),
+        Expr::BoolLiteral(expr) => noder.add_node(Node::BoolLiteral(*expr)),
         Expr::Identifier(expr) => match expr.module {
             Some(module) => {
                 let mod_node_tree = mod_map.get(&module).expect("failed to find module");
@@ -1460,7 +1495,8 @@ fn node_expr(
                     .find_binding(scope_pos, expr.name)
                     .expect("failed to find binding for identifier expression");
 
-                let ident_id = node_tree
+                let ident_id = noder
+                    .tree
                     .symbol_map
                     .get(binding.id)
                     .expect("identifier declaration missing from symbol map");
@@ -1469,34 +1505,34 @@ fn node_expr(
             }
         },
         Expr::Binary(expr) => {
-            let left_id = node_expr(node_tree, mod_map, module, &expr.left);
-            let right_id = node_expr(node_tree, mod_map, module, &expr.right);
-            node_tree.add_node(Node::Binary {
+            let left_id = node_expr(noder, mod_map, module, &expr.left);
+            let right_id = node_expr(noder, mod_map, module, &expr.right);
+            noder.add_node(Node::Binary {
                 left: left_id,
                 operator: expr.operator,
                 right: right_id,
             })
         }
         Expr::Unary(expr) => {
-            let expr_id = node_expr(node_tree, mod_map, module, &expr.operand);
-            node_tree.add_node(Node::Unary {
+            let expr_id = node_expr(noder, mod_map, module, &expr.operand);
+            noder.add_node(Node::Unary {
                 operator: expr.operator,
                 operand: expr_id,
             })
         }
         Expr::Call(expr) => {
-            let func_id = node_expr(node_tree, mod_map, module, &expr.func);
+            let func_id = node_expr(noder, mod_map, module, &expr.func);
 
             let mut args = vec![];
             for arg in &expr.args {
-                let param_id = node_expr(node_tree, mod_map, module, arg);
+                let param_id = node_expr(noder, mod_map, module, arg);
                 args.push(param_id);
             }
 
             // if the function was an enum constructor when we actually need to update the enum
             // to contain a payload and return the EnumConstructor itself rather than creating
             // and returning the ID for the function call.
-            let mut func_node = node_tree
+            let mut func_node = noder
                 .get_mut_node(func_id)
                 .expect("failed to find function node");
 
@@ -1509,7 +1545,7 @@ fn node_expr(
                 *p = Some(*first_arg);
                 func_id
             } else {
-                node_tree.add_node(Node::Call {
+                noder.add_node(Node::Call {
                     func: func_id,
                     args,
                 })
@@ -1525,7 +1561,7 @@ fn node_expr(
                 }
             }
 
-            let type_spec = node_type_spec(node_tree, module, &expr.type_spec);
+            let type_spec = node_type_spec(&noder.tree, module, &expr.type_spec);
             let base_type = resolve_type(&type_spec);
             let field_types = match base_type {
                 TypeSpec::Struct(ts) => ts.fields.clone(),
@@ -1548,8 +1584,8 @@ fn node_expr(
                     .find(|f| f.name == field_type.name)
                     .expect("unknown field name in struct constructor");
 
-                let value_id = node_expr(node_tree, mod_map, module, &field.value);
-                let field_id = node_tree.add_node(Node::StructConstructorField {
+                let value_id = node_expr(noder, mod_map, module, &field.value);
+                let field_id = noder.add_node(Node::StructConstructorField {
                     name: field.name,
                     value: value_id,
                 });
@@ -1558,24 +1594,24 @@ fn node_expr(
             }
 
             // Make sure we track the type here otherwise we'll loose the type
-            let struct_id = node_tree.add_node(Node::StructConstructor { fields });
-            node_tree.type_map.add(struct_id, type_spec);
+            let struct_id = noder.add_node(Node::StructConstructor { fields });
+            noder.tree.type_map.add(struct_id, type_spec);
 
             struct_id
         }
         Expr::Index(expr) => {
-            let target_id = node_expr(node_tree, mod_map, module, &expr.target);
-            let idx_id = node_expr(node_tree, mod_map, module, &expr.index);
+            let target_id = node_expr(noder, mod_map, module, &expr.target);
+            let idx_id = node_expr(noder, mod_map, module, &expr.index);
 
-            node_tree.add_node(Node::Index {
+            noder.add_node(Node::Index {
                 target: target_id,
                 index: idx_id,
             })
         }
         Expr::Range(expr) => {
-            let start_id = node_expr(node_tree, mod_map, module, &expr.start);
-            let end_id = node_expr(node_tree, mod_map, module, &expr.end);
-            node_tree.add_node(Node::Range {
+            let start_id = node_expr(noder, mod_map, module, &expr.start);
+            let end_id = node_expr(noder, mod_map, module, &expr.end);
+            noder.add_node(Node::Range {
                 start: start_id,
                 end: end_id,
             })
@@ -1586,7 +1622,7 @@ fn node_expr(
                 None => {
                     // if there's no target it must be an enum (and if it's not, we'll fail type
                     // checking later)
-                    return node_tree.add_node(Node::EnumConstructor {
+                    return noder.add_node(Node::EnumConstructor {
                         target: None,
                         variant: expr.field,
                         payload: None,
@@ -1594,7 +1630,7 @@ fn node_expr(
                 }
             };
 
-            let target_id = node_expr(node_tree, mod_map, module, target);
+            let target_id = node_expr(noder, mod_map, module, target);
 
             let binding = match target.deref() {
                 Expr::Identifier(ident) => {
@@ -1607,7 +1643,7 @@ fn node_expr(
                 }
                 _ => {
                     // non-identifier targets can only be field access expressions
-                    return node_tree.add_node(Node::FieldAccess {
+                    return noder.add_node(Node::FieldAccess {
                         target: target_id,
                         field: expr.field,
                     });
@@ -1616,16 +1652,17 @@ fn node_expr(
 
             match binding.binding_type {
                 BindingType::Type(ast::TypeSpec::Enum(_)) => {
-                    let enum_constructor_id = node_tree.add_node(Node::EnumConstructor {
+                    let enum_constructor_id = noder.add_node(Node::EnumConstructor {
                         target: Some(target_id),
                         variant: expr.field,
                         payload: None,
                     });
                     // Look up the enum type from the symbol map
-                    if let Some(type_decl_id) = node_tree.symbol_map.get(binding.id)
-                        && let Some(enum_type) = node_tree.type_map.get(*type_decl_id)
+                    if let Some(type_decl_id) = noder.tree.symbol_map.get(binding.id)
+                        && let Some(enum_type) = noder.tree.type_map.get(*type_decl_id)
                     {
-                        node_tree
+                        noder
+                            .tree
                             .type_map
                             .add(enum_constructor_id, enum_type.clone());
                     }
@@ -1634,7 +1671,7 @@ fn node_expr(
                 _ => {
                     // identifiers can still be field access expressions of the identifier is
                     // not an enum type
-                    node_tree.add_node(Node::FieldAccess {
+                    noder.add_node(Node::FieldAccess {
                         target: target_id,
                         field: expr.field,
                     })
@@ -1642,32 +1679,32 @@ fn node_expr(
             }
         }
         Expr::MetaType(expr) => {
-            let node_id = node_tree.add_node(Node::MetaType);
-            let ts = node_type_spec(node_tree, module, &expr.type_spec);
-            node_tree.type_map.add(node_id, ts);
+            let node_id = noder.add_node(Node::MetaType);
+            let ts = node_type_spec(&noder.tree, module, &expr.type_spec);
+            noder.tree.type_map.add(node_id, ts);
 
             node_id
         }
         Expr::Alloc(expr) => {
-            let meta_id = node_expr(node_tree, mod_map, module, &expr.meta_type);
+            let meta_id = node_expr(noder, mod_map, module, &expr.meta_type);
             let mut options = vec![];
             for opt in &expr.options {
-                let opt_id = node_expr(node_tree, mod_map, module, opt);
+                let opt_id = node_expr(noder, mod_map, module, opt);
                 options.push(opt_id);
             }
 
-            let node_id = node_tree.add_node(Node::Alloc {
+            let node_id = noder.add_node(Node::Alloc {
                 meta_type: meta_id,
                 options,
             });
 
-            node_tree.type_map.add(node_id, TypeSpec::UnsafePtr);
+            noder.tree.type_map.add(node_id, TypeSpec::UnsafePtr);
 
             node_id
         }
         Expr::Free(expr) => {
-            let ptr_id = node_expr(node_tree, mod_map, module, &expr.expr);
-            node_tree.add_node(Node::Free { expr: ptr_id })
+            let ptr_id = node_expr(noder, mod_map, module, &expr.expr);
+            noder.add_node(Node::Free { expr: ptr_id })
         }
     }
 }
@@ -1736,11 +1773,11 @@ mod tests {
         let parser = Parser::new(&file_set);
         let module = parser.parse_module(&mut str_store);
 
-        let node_tree = node_module(&HashMap::new(), &module);
+        let node_tree = Noder::new().node_module(&HashMap::new(), &module);
 
-        let total = node_tree.nodes.len();
+        let total = node_tree.tree.nodes.len();
         let untyped: Vec<usize> = (0..total)
-            .filter(|&i| node_tree.type_map.get(NodeID::from_usize(i)).is_none())
+            .filter(|&i| node_tree.tree.type_map.get(NodeID::from_usize(i)).is_none())
             .collect();
         if !untyped.is_empty() {
             let pct = (untyped.len() as f64 / total as f64) * 100.0;
@@ -1757,7 +1794,7 @@ mod tests {
         let any_typed: Vec<usize> = (0..total)
             .filter(|&i| {
                 matches!(
-                    node_tree.type_map.get(NodeID::from_usize(i)),
+                    node_tree.tree.type_map.get(NodeID::from_usize(i)),
                     Some(TypeSpec::Any)
                         | Some(TypeSpec::IntLiteral(_))
                         | Some(TypeSpec::FloatLiteral(_))
@@ -1816,9 +1853,9 @@ mod tests {
                 fn $case() {
                     // Build module from provided declaration
                     let decl = $decl;
-                    let module = Module::new(vec![ParserFile::new(vec![], vec![decl])]);
+                    let module = ParseModule::new(vec![ParserFile::new(vec![], vec![decl])]);
 
-                    let node_tree = node_module(&HashMap::new(), &module);
+                    let node_tree = Noder::new().node_module(&HashMap::new(), &module);
 
                     let expected = $expected;
 
@@ -1840,113 +1877,115 @@ mod tests {
                 name: StrID::from_usize(1),
                 value: Expr::IntLiteral(42)
             }),
-            expected: NodeTree {
-                // NodeID(0): print builtin, NodeID(1): eprint builtin
-                // NodeID(2): Identifier, NodeID(3): VarDecl (root), NodeID(4): IntLiteral, NodeID(5): Assign (root)
-                nodes: vec![
-                    Node::Identifier {
-                        name: str_store::PRINT,
-                        module: None
+            expected: Module {
+                tree: NodeTree {
+                    // NodeID(0): print builtin, NodeID(1): eprint builtin
+                    // NodeID(2): Identifier, NodeID(3): VarDecl (root), NodeID(4): IntLiteral, NodeID(5): Assign (root)
+                    nodes: vec![
+                        Node::Identifier {
+                            name: str_store::PRINT,
+                            module: None
+                        },
+                        Node::Identifier {
+                            name: str_store::EPRINT,
+                            module: None
+                        },
+                        Node::Identifier {
+                            name: StrID::from_usize(1),
+                            module: None
+                        },
+                        Node::VarDecl {
+                            public: false,
+                            ident: NodeID::from_usize(2)
+                        },
+                        Node::IntLiteral(42),
+                        Node::Assign {
+                            target: NodeID::from_usize(2),
+                            value: NodeID::from_usize(4)
+                        },
+                    ],
+                    type_map: SideTable {
+                        // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
+                        // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), Int64), (NodeID(2), Int64)
+                        keys: BTreeMap::from([
+                            (NodeID::from_usize(0), 0),
+                            (NodeID::from_usize(1), 1),
+                            (NodeID::from_usize(2), 5),
+                            (NodeID::from_usize(3), 2),
+                            (NodeID::from_usize(4), 4),
+                            (NodeID::from_usize(5), 3),
+                        ]),
+                        values: vec![
+                            TypeSpec::Function(FunctionType {
+                                params: vec![TypeSpec::String],
+                                return_type: Box::new(TypeSpec::Unit)
+                            }),
+                            TypeSpec::Function(FunctionType {
+                                params: vec![TypeSpec::String],
+                                return_type: Box::new(TypeSpec::Unit)
+                            }),
+                            TypeSpec::Unit,
+                            TypeSpec::Unit,
+                            TypeSpec::Int64,
+                            TypeSpec::Int64,
+                        ],
                     },
-                    Node::Identifier {
-                        name: str_store::EPRINT,
-                        module: None
+                    symbol_map: SideTable {
+                        keys: BTreeMap::from([(12_usize, 0), (13_usize, 1), (14_usize, 2)]),
+                        values: vec![
+                            NodeID::from_usize(0),
+                            NodeID::from_usize(1),
+                            NodeID::from_usize(2)
+                        ],
                     },
-                    Node::Identifier {
-                        name: StrID::from_usize(1),
-                        module: None
-                    },
-                    Node::VarDecl {
-                        public: false,
-                        ident: NodeID::from_usize(2)
-                    },
-                    Node::IntLiteral(42),
-                    Node::Assign {
-                        target: NodeID::from_usize(2),
-                        value: NodeID::from_usize(4)
-                    },
-                ],
+                },
                 roots: vec![NodeID::from_usize(3), NodeID::from_usize(5)],
                 public_decls: HashMap::from([]),
-                type_map: SideTable {
-                    // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
-                    // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), Int64), (NodeID(2), Int64)
-                    keys: BTreeMap::from([
-                        (NodeID::from_usize(0), 0),
-                        (NodeID::from_usize(1), 1),
-                        (NodeID::from_usize(2), 5),
-                        (NodeID::from_usize(3), 2),
-                        (NodeID::from_usize(4), 4),
-                        (NodeID::from_usize(5), 3),
-                    ]),
-                    values: vec![
-                        TypeSpec::Function(FunctionType {
-                            params: vec![TypeSpec::String],
-                            return_type: Box::new(TypeSpec::Unit)
-                        }),
-                        TypeSpec::Function(FunctionType {
-                            params: vec![TypeSpec::String],
-                            return_type: Box::new(TypeSpec::Unit)
-                        }),
-                        TypeSpec::Unit,
-                        TypeSpec::Unit,
-                        TypeSpec::Int64,
-                        TypeSpec::Int64,
-                    ],
-                },
-                symbol_map: SideTable {
-                    keys: BTreeMap::from([(12_usize, 0), (13_usize, 1), (14_usize, 2)]),
-                    values: vec![
-                        NodeID::from_usize(0),
-                        NodeID::from_usize(1),
-                        NodeID::from_usize(2)
-                    ],
-                },
-                within_loop: false,
             }
         },
         node_invalid_decl {
             decl: Decl::Invalid,
-            expected: NodeTree {
-                // NodeID(0): print builtin, NodeID(1): eprint builtin, NodeID(2): Invalid
-                nodes: vec![
-                    Node::Identifier {
-                        name: str_store::PRINT,
-                        module: None
+            expected: Module {
+                tree: NodeTree {
+                    // NodeID(0): print builtin, NodeID(1): eprint builtin, NodeID(2): Invalid
+                    nodes: vec![
+                        Node::Identifier {
+                            name: str_store::PRINT,
+                            module: None
+                        },
+                        Node::Identifier {
+                            name: str_store::EPRINT,
+                            module: None
+                        },
+                        Node::Invalid,
+                    ],
+                    type_map: SideTable {
+                        // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
+                        // typer assigns Panic to the Invalid node (NodeID(2))
+                        keys: BTreeMap::from([
+                            (NodeID::from_usize(0), 0),
+                            (NodeID::from_usize(1), 1),
+                            (NodeID::from_usize(2), 2),
+                        ]),
+                        values: vec![
+                            TypeSpec::Function(FunctionType {
+                                params: vec![TypeSpec::String],
+                                return_type: Box::new(TypeSpec::Unit)
+                            }),
+                            TypeSpec::Function(FunctionType {
+                                params: vec![TypeSpec::String],
+                                return_type: Box::new(TypeSpec::Unit)
+                            }),
+                            TypeSpec::Panic,
+                        ],
                     },
-                    Node::Identifier {
-                        name: str_store::EPRINT,
-                        module: None
+                    symbol_map: SideTable {
+                        keys: BTreeMap::from([(12_usize, 0), (13_usize, 1)]),
+                        values: vec![NodeID::from_usize(0), NodeID::from_usize(1)],
                     },
-                    Node::Invalid,
-                ],
+                },
                 roots: vec![NodeID::from_usize(2)],
                 public_decls: HashMap::from([]),
-                type_map: SideTable {
-                    // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
-                    // typer assigns Panic to the Invalid node (NodeID(2))
-                    keys: BTreeMap::from([
-                        (NodeID::from_usize(0), 0),
-                        (NodeID::from_usize(1), 1),
-                        (NodeID::from_usize(2), 2),
-                    ]),
-                    values: vec![
-                        TypeSpec::Function(FunctionType {
-                            params: vec![TypeSpec::String],
-                            return_type: Box::new(TypeSpec::Unit)
-                        }),
-                        TypeSpec::Function(FunctionType {
-                            params: vec![TypeSpec::String],
-                            return_type: Box::new(TypeSpec::Unit)
-                        }),
-                        TypeSpec::Panic,
-                    ],
-                },
-                symbol_map: SideTable {
-                    keys: BTreeMap::from([(12_usize, 0), (13_usize, 1)]),
-                    values: vec![NodeID::from_usize(0), NodeID::from_usize(1)],
-                },
-                within_loop: false,
             }
         },
         node_const_decl_bool_literal {
@@ -1956,69 +1995,70 @@ mod tests {
                 name: StrID::from_usize(1),
                 value: Expr::BoolLiteral(true)
             }),
-            expected: NodeTree {
-                // NodeID(0): print builtin, NodeID(1): eprint builtin
-                // NodeID(2): Identifier, NodeID(3): VarDecl (root), NodeID(4): BoolLiteral, NodeID(5): Assign (root)
-                nodes: vec![
-                    Node::Identifier {
-                        name: str_store::PRINT,
-                        module: None
+            expected: Module {
+                tree: NodeTree {
+                    // NodeID(0): print builtin, NodeID(1): eprint builtin
+                    // NodeID(2): Identifier, NodeID(3): VarDecl (root), NodeID(4): BoolLiteral, NodeID(5): Assign (root)
+                    nodes: vec![
+                        Node::Identifier {
+                            name: str_store::PRINT,
+                            module: None
+                        },
+                        Node::Identifier {
+                            name: str_store::EPRINT,
+                            module: None
+                        },
+                        Node::Identifier {
+                            name: StrID::from_usize(1),
+                            module: None
+                        },
+                        Node::VarDecl {
+                            public: false,
+                            ident: NodeID::from_usize(2)
+                        },
+                        Node::BoolLiteral(true),
+                        Node::Assign {
+                            target: NodeID::from_usize(2),
+                            value: NodeID::from_usize(4)
+                        },
+                    ],
+                    type_map: SideTable {
+                        // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
+                        // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), Bool), (NodeID(2), Bool)
+                        keys: BTreeMap::from([
+                            (NodeID::from_usize(0), 0),
+                            (NodeID::from_usize(1), 1),
+                            (NodeID::from_usize(2), 5),
+                            (NodeID::from_usize(3), 2),
+                            (NodeID::from_usize(4), 4),
+                            (NodeID::from_usize(5), 3),
+                        ]),
+                        values: vec![
+                            TypeSpec::Function(FunctionType {
+                                params: vec![TypeSpec::String],
+                                return_type: Box::new(TypeSpec::Unit)
+                            }),
+                            TypeSpec::Function(FunctionType {
+                                params: vec![TypeSpec::String],
+                                return_type: Box::new(TypeSpec::Unit)
+                            }),
+                            TypeSpec::Unit,
+                            TypeSpec::Unit,
+                            TypeSpec::Bool,
+                            TypeSpec::Bool,
+                        ],
                     },
-                    Node::Identifier {
-                        name: str_store::EPRINT,
-                        module: None
+                    symbol_map: SideTable {
+                        keys: BTreeMap::from([(12_usize, 0), (13_usize, 1), (14_usize, 2)]),
+                        values: vec![
+                            NodeID::from_usize(0),
+                            NodeID::from_usize(1),
+                            NodeID::from_usize(2)
+                        ],
                     },
-                    Node::Identifier {
-                        name: StrID::from_usize(1),
-                        module: None
-                    },
-                    Node::VarDecl {
-                        public: false,
-                        ident: NodeID::from_usize(2)
-                    },
-                    Node::BoolLiteral(true),
-                    Node::Assign {
-                        target: NodeID::from_usize(2),
-                        value: NodeID::from_usize(4)
-                    },
-                ],
+                },
                 roots: vec![NodeID::from_usize(3), NodeID::from_usize(5)],
                 public_decls: HashMap::from([]),
-                type_map: SideTable {
-                    // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
-                    // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), Bool), (NodeID(2), Bool)
-                    keys: BTreeMap::from([
-                        (NodeID::from_usize(0), 0),
-                        (NodeID::from_usize(1), 1),
-                        (NodeID::from_usize(2), 5),
-                        (NodeID::from_usize(3), 2),
-                        (NodeID::from_usize(4), 4),
-                        (NodeID::from_usize(5), 3),
-                    ]),
-                    values: vec![
-                        TypeSpec::Function(FunctionType {
-                            params: vec![TypeSpec::String],
-                            return_type: Box::new(TypeSpec::Unit)
-                        }),
-                        TypeSpec::Function(FunctionType {
-                            params: vec![TypeSpec::String],
-                            return_type: Box::new(TypeSpec::Unit)
-                        }),
-                        TypeSpec::Unit,
-                        TypeSpec::Unit,
-                        TypeSpec::Bool,
-                        TypeSpec::Bool,
-                    ],
-                },
-                symbol_map: SideTable {
-                    keys: BTreeMap::from([(12_usize, 0), (13_usize, 1), (14_usize, 2)]),
-                    values: vec![
-                        NodeID::from_usize(0),
-                        NodeID::from_usize(1),
-                        NodeID::from_usize(2)
-                    ],
-                },
-                within_loop: false,
             }
         },
         node_const_decl_float_literal {
@@ -2028,69 +2068,70 @@ mod tests {
                 name: StrID::from_usize(1),
                 value: Expr::FloatLiteral(3.45)
             }),
-            expected: NodeTree {
-                // NodeID(0): print builtin, NodeID(1): eprint builtin
-                // NodeID(2): Identifier, NodeID(3): VarDecl (root), NodeID(4): FloatLiteral, NodeID(5): Assign (root)
-                nodes: vec![
-                    Node::Identifier {
-                        name: str_store::PRINT,
-                        module: None
+            expected: Module {
+                tree: NodeTree {
+                    // NodeID(0): print builtin, NodeID(1): eprint builtin
+                    // NodeID(2): Identifier, NodeID(3): VarDecl (root), NodeID(4): FloatLiteral, NodeID(5): Assign (root)
+                    nodes: vec![
+                        Node::Identifier {
+                            name: str_store::PRINT,
+                            module: None
+                        },
+                        Node::Identifier {
+                            name: str_store::EPRINT,
+                            module: None
+                        },
+                        Node::Identifier {
+                            name: StrID::from_usize(1),
+                            module: None
+                        },
+                        Node::VarDecl {
+                            public: false,
+                            ident: NodeID::from_usize(2)
+                        },
+                        Node::FloatLiteral(3.45),
+                        Node::Assign {
+                            target: NodeID::from_usize(2),
+                            value: NodeID::from_usize(4)
+                        },
+                    ],
+                    type_map: SideTable {
+                        // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
+                        // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), Float64), (NodeID(2), Float64)
+                        keys: BTreeMap::from([
+                            (NodeID::from_usize(0), 0),
+                            (NodeID::from_usize(1), 1),
+                            (NodeID::from_usize(2), 5),
+                            (NodeID::from_usize(3), 2),
+                            (NodeID::from_usize(4), 4),
+                            (NodeID::from_usize(5), 3),
+                        ]),
+                        values: vec![
+                            TypeSpec::Function(FunctionType {
+                                params: vec![TypeSpec::String],
+                                return_type: Box::new(TypeSpec::Unit)
+                            }),
+                            TypeSpec::Function(FunctionType {
+                                params: vec![TypeSpec::String],
+                                return_type: Box::new(TypeSpec::Unit)
+                            }),
+                            TypeSpec::Unit,
+                            TypeSpec::Unit,
+                            TypeSpec::Float64,
+                            TypeSpec::Float64,
+                        ],
                     },
-                    Node::Identifier {
-                        name: str_store::EPRINT,
-                        module: None
+                    symbol_map: SideTable {
+                        keys: BTreeMap::from([(12_usize, 0), (13_usize, 1), (14_usize, 2)]),
+                        values: vec![
+                            NodeID::from_usize(0),
+                            NodeID::from_usize(1),
+                            NodeID::from_usize(2)
+                        ],
                     },
-                    Node::Identifier {
-                        name: StrID::from_usize(1),
-                        module: None
-                    },
-                    Node::VarDecl {
-                        public: false,
-                        ident: NodeID::from_usize(2)
-                    },
-                    Node::FloatLiteral(3.45),
-                    Node::Assign {
-                        target: NodeID::from_usize(2),
-                        value: NodeID::from_usize(4)
-                    },
-                ],
+                },
                 roots: vec![NodeID::from_usize(3), NodeID::from_usize(5)],
                 public_decls: HashMap::from([]),
-                type_map: SideTable {
-                    // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
-                    // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), Float64), (NodeID(2), Float64)
-                    keys: BTreeMap::from([
-                        (NodeID::from_usize(0), 0),
-                        (NodeID::from_usize(1), 1),
-                        (NodeID::from_usize(2), 5),
-                        (NodeID::from_usize(3), 2),
-                        (NodeID::from_usize(4), 4),
-                        (NodeID::from_usize(5), 3),
-                    ]),
-                    values: vec![
-                        TypeSpec::Function(FunctionType {
-                            params: vec![TypeSpec::String],
-                            return_type: Box::new(TypeSpec::Unit)
-                        }),
-                        TypeSpec::Function(FunctionType {
-                            params: vec![TypeSpec::String],
-                            return_type: Box::new(TypeSpec::Unit)
-                        }),
-                        TypeSpec::Unit,
-                        TypeSpec::Unit,
-                        TypeSpec::Float64,
-                        TypeSpec::Float64,
-                    ],
-                },
-                symbol_map: SideTable {
-                    keys: BTreeMap::from([(12_usize, 0), (13_usize, 1), (14_usize, 2)]),
-                    values: vec![
-                        NodeID::from_usize(0),
-                        NodeID::from_usize(1),
-                        NodeID::from_usize(2)
-                    ],
-                },
-                within_loop: false,
             }
         },
         node_type_decl_int64 {
@@ -2100,63 +2141,64 @@ mod tests {
                 name: StrID::from_usize(1),
                 type_spec: ast::TypeSpec::Int64,
             }),
-            expected: NodeTree {
-                // NodeID(0): print builtin, NodeID(1): eprint builtin
-                // NodeID(2): Identifier (pre-pass), NodeID(3): TypeDecl (root)
-                nodes: vec![
-                    Node::Identifier {
-                        name: str_store::PRINT,
-                        module: None
+            expected: Module {
+                tree: NodeTree {
+                    // NodeID(0): print builtin, NodeID(1): eprint builtin
+                    // NodeID(2): Identifier (pre-pass), NodeID(3): TypeDecl (root)
+                    nodes: vec![
+                        Node::Identifier {
+                            name: str_store::PRINT,
+                            module: None
+                        },
+                        Node::Identifier {
+                            name: str_store::EPRINT,
+                            module: None
+                        },
+                        Node::Identifier {
+                            name: StrID::from_usize(1),
+                            module: None
+                        },
+                        Node::TypeDecl {
+                            ident: NodeID::from_usize(2)
+                        },
+                    ],
+                    type_map: SideTable {
+                        // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
+                        // inserted by noder: (NodeID(3), Int64)
+                        // inserted by typer: (NodeID(2), Named { name: NodeID(2), type_spec: Int64 })
+                        keys: BTreeMap::from([
+                            (NodeID::from_usize(0), 0),
+                            (NodeID::from_usize(1), 1),
+                            (NodeID::from_usize(2), 3),
+                            (NodeID::from_usize(3), 2),
+                        ]),
+                        values: vec![
+                            TypeSpec::Function(FunctionType {
+                                params: vec![TypeSpec::String],
+                                return_type: Box::new(TypeSpec::Unit)
+                            }),
+                            TypeSpec::Function(FunctionType {
+                                params: vec![TypeSpec::String],
+                                return_type: Box::new(TypeSpec::Unit)
+                            }),
+                            TypeSpec::Int64,
+                            TypeSpec::Named(NamedType {
+                                name: NodeID::from_usize(2),
+                                type_spec: Box::new(TypeSpec::Int64),
+                            }),
+                        ],
                     },
-                    Node::Identifier {
-                        name: str_store::EPRINT,
-                        module: None
+                    symbol_map: SideTable {
+                        keys: BTreeMap::from([(12_usize, 0), (13_usize, 1), (14_usize, 2)]),
+                        values: vec![
+                            NodeID::from_usize(0),
+                            NodeID::from_usize(1),
+                            NodeID::from_usize(2)
+                        ],
                     },
-                    Node::Identifier {
-                        name: StrID::from_usize(1),
-                        module: None
-                    },
-                    Node::TypeDecl {
-                        ident: NodeID::from_usize(2)
-                    },
-                ],
+                },
                 roots: vec![NodeID::from_usize(3)],
                 public_decls: HashMap::from([]),
-                type_map: SideTable {
-                    // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
-                    // inserted by noder: (NodeID(3), Int64)
-                    // inserted by typer: (NodeID(2), Named { name: NodeID(2), type_spec: Int64 })
-                    keys: BTreeMap::from([
-                        (NodeID::from_usize(0), 0),
-                        (NodeID::from_usize(1), 1),
-                        (NodeID::from_usize(2), 3),
-                        (NodeID::from_usize(3), 2),
-                    ]),
-                    values: vec![
-                        TypeSpec::Function(FunctionType {
-                            params: vec![TypeSpec::String],
-                            return_type: Box::new(TypeSpec::Unit)
-                        }),
-                        TypeSpec::Function(FunctionType {
-                            params: vec![TypeSpec::String],
-                            return_type: Box::new(TypeSpec::Unit)
-                        }),
-                        TypeSpec::Int64,
-                        TypeSpec::Named(NamedType {
-                            name: NodeID::from_usize(2),
-                            type_spec: Box::new(TypeSpec::Int64),
-                        }),
-                    ],
-                },
-                symbol_map: SideTable {
-                    keys: BTreeMap::from([(12_usize, 0), (13_usize, 1), (14_usize, 2)]),
-                    values: vec![
-                        NodeID::from_usize(0),
-                        NodeID::from_usize(1),
-                        NodeID::from_usize(2)
-                    ],
-                },
-                within_loop: false,
             }
         },
         node_struct_type_decl {
@@ -2179,62 +2221,47 @@ mod tests {
                     ],
                 }),
             }),
-            expected: NodeTree {
-                // NodeID(0): print builtin, NodeID(1): eprint builtin
-                // NodeID(2): Identifier (pre-pass), NodeID(3): TypeDecl (root)
-                nodes: vec![
-                    Node::Identifier {
-                        name: str_store::PRINT,
-                        module: None
-                    },
-                    Node::Identifier {
-                        name: str_store::EPRINT,
-                        module: None
-                    },
-                    Node::Identifier {
-                        name: StrID::from_usize(1),
-                        module: None
-                    },
-                    Node::TypeDecl {
-                        ident: NodeID::from_usize(2)
-                    },
-                ],
-                roots: vec![NodeID::from_usize(3)],
-                public_decls: HashMap::from([]),
-                type_map: SideTable {
-                    // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
-                    // noder adds NodeID(3) with the struct type spec
-                    // typer adds NodeID(2) with the Named wrapper
-                    keys: BTreeMap::from([
-                        (NodeID::from_usize(0), 0),
-                        (NodeID::from_usize(1), 1),
-                        (NodeID::from_usize(2), 3),
-                        (NodeID::from_usize(3), 2),
-                    ]),
-                    values: vec![
-                        TypeSpec::Function(FunctionType {
-                            params: vec![TypeSpec::String],
-                            return_type: Box::new(TypeSpec::Unit)
-                        }),
-                        TypeSpec::Function(FunctionType {
-                            params: vec![TypeSpec::String],
-                            return_type: Box::new(TypeSpec::Unit)
-                        }),
-                        TypeSpec::Struct(StructType {
-                            fields: vec![
-                                StructTypeField {
-                                    name: StrID::from_usize(2),
-                                    type_spec: TypeSpec::Int32
-                                },
-                                StructTypeField {
-                                    name: StrID::from_usize(3),
-                                    type_spec: TypeSpec::Int32
-                                },
-                            ],
-                        }),
-                        TypeSpec::Named(NamedType {
-                            name: NodeID::from_usize(2),
-                            type_spec: Box::new(TypeSpec::Struct(StructType {
+            expected: Module {
+                tree: NodeTree {
+                    // NodeID(0): print builtin, NodeID(1): eprint builtin
+                    // NodeID(2): Identifier (pre-pass), NodeID(3): TypeDecl (root)
+                    nodes: vec![
+                        Node::Identifier {
+                            name: str_store::PRINT,
+                            module: None
+                        },
+                        Node::Identifier {
+                            name: str_store::EPRINT,
+                            module: None
+                        },
+                        Node::Identifier {
+                            name: StrID::from_usize(1),
+                            module: None
+                        },
+                        Node::TypeDecl {
+                            ident: NodeID::from_usize(2)
+                        },
+                    ],
+                    type_map: SideTable {
+                        // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
+                        // noder adds NodeID(3) with the struct type spec
+                        // typer adds NodeID(2) with the Named wrapper
+                        keys: BTreeMap::from([
+                            (NodeID::from_usize(0), 0),
+                            (NodeID::from_usize(1), 1),
+                            (NodeID::from_usize(2), 3),
+                            (NodeID::from_usize(3), 2),
+                        ]),
+                        values: vec![
+                            TypeSpec::Function(FunctionType {
+                                params: vec![TypeSpec::String],
+                                return_type: Box::new(TypeSpec::Unit)
+                            }),
+                            TypeSpec::Function(FunctionType {
+                                params: vec![TypeSpec::String],
+                                return_type: Box::new(TypeSpec::Unit)
+                            }),
+                            TypeSpec::Struct(StructType {
                                 fields: vec![
                                     StructTypeField {
                                         name: StrID::from_usize(2),
@@ -2245,19 +2272,35 @@ mod tests {
                                         type_spec: TypeSpec::Int32
                                     },
                                 ],
-                            })),
-                        }),
-                    ],
+                            }),
+                            TypeSpec::Named(NamedType {
+                                name: NodeID::from_usize(2),
+                                type_spec: Box::new(TypeSpec::Struct(StructType {
+                                    fields: vec![
+                                        StructTypeField {
+                                            name: StrID::from_usize(2),
+                                            type_spec: TypeSpec::Int32
+                                        },
+                                        StructTypeField {
+                                            name: StrID::from_usize(3),
+                                            type_spec: TypeSpec::Int32
+                                        },
+                                    ],
+                                })),
+                            }),
+                        ],
+                    },
+                    symbol_map: SideTable {
+                        keys: BTreeMap::from([(12_usize, 0), (13_usize, 1), (14_usize, 2)]),
+                        values: vec![
+                            NodeID::from_usize(0),
+                            NodeID::from_usize(1),
+                            NodeID::from_usize(2)
+                        ],
+                    },
                 },
-                symbol_map: SideTable {
-                    keys: BTreeMap::from([(12_usize, 0), (13_usize, 1), (14_usize, 2)]),
-                    values: vec![
-                        NodeID::from_usize(0),
-                        NodeID::from_usize(1),
-                        NodeID::from_usize(2)
-                    ],
-                },
-                within_loop: false,
+                roots: vec![NodeID::from_usize(3)],
+                public_decls: HashMap::from([]),
             }
         },
         node_var_decl_string_literal {
@@ -2267,69 +2310,70 @@ mod tests {
                 name: StrID::from_usize(2),
                 value: Expr::StringLiteral(StrID::from_usize(3))
             }),
-            expected: NodeTree {
-                // NodeID(0): print builtin, NodeID(1): eprint builtin
-                // NodeID(2): Identifier, NodeID(3): VarDecl (root), NodeID(4): StringLiteral, NodeID(5): Assign (root)
-                nodes: vec![
-                    Node::Identifier {
-                        name: str_store::PRINT,
-                        module: None
+            expected: Module {
+                tree: NodeTree {
+                    // NodeID(0): print builtin, NodeID(1): eprint builtin
+                    // NodeID(2): Identifier, NodeID(3): VarDecl (root), NodeID(4): StringLiteral, NodeID(5): Assign (root)
+                    nodes: vec![
+                        Node::Identifier {
+                            name: str_store::PRINT,
+                            module: None
+                        },
+                        Node::Identifier {
+                            name: str_store::EPRINT,
+                            module: None
+                        },
+                        Node::Identifier {
+                            name: StrID::from_usize(2),
+                            module: None
+                        },
+                        Node::VarDecl {
+                            public: false,
+                            ident: NodeID::from_usize(2)
+                        },
+                        Node::StringLiteral(StrID::from_usize(3)),
+                        Node::Assign {
+                            target: NodeID::from_usize(2),
+                            value: NodeID::from_usize(4)
+                        },
+                    ],
+                    type_map: SideTable {
+                        // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
+                        // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), String), (NodeID(2), String)
+                        keys: BTreeMap::from([
+                            (NodeID::from_usize(0), 0),
+                            (NodeID::from_usize(1), 1),
+                            (NodeID::from_usize(2), 5),
+                            (NodeID::from_usize(3), 2),
+                            (NodeID::from_usize(4), 4),
+                            (NodeID::from_usize(5), 3),
+                        ]),
+                        values: vec![
+                            TypeSpec::Function(FunctionType {
+                                params: vec![TypeSpec::String],
+                                return_type: Box::new(TypeSpec::Unit)
+                            }),
+                            TypeSpec::Function(FunctionType {
+                                params: vec![TypeSpec::String],
+                                return_type: Box::new(TypeSpec::Unit)
+                            }),
+                            TypeSpec::Unit,
+                            TypeSpec::Unit,
+                            TypeSpec::String,
+                            TypeSpec::String,
+                        ],
                     },
-                    Node::Identifier {
-                        name: str_store::EPRINT,
-                        module: None
+                    symbol_map: SideTable {
+                        keys: BTreeMap::from([(12_usize, 0), (13_usize, 1), (14_usize, 2)]),
+                        values: vec![
+                            NodeID::from_usize(0),
+                            NodeID::from_usize(1),
+                            NodeID::from_usize(2)
+                        ],
                     },
-                    Node::Identifier {
-                        name: StrID::from_usize(2),
-                        module: None
-                    },
-                    Node::VarDecl {
-                        public: false,
-                        ident: NodeID::from_usize(2)
-                    },
-                    Node::StringLiteral(StrID::from_usize(3)),
-                    Node::Assign {
-                        target: NodeID::from_usize(2),
-                        value: NodeID::from_usize(4)
-                    },
-                ],
+                },
                 roots: vec![NodeID::from_usize(3), NodeID::from_usize(5)],
                 public_decls: HashMap::from([]),
-                type_map: SideTable {
-                    // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
-                    // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), String), (NodeID(2), String)
-                    keys: BTreeMap::from([
-                        (NodeID::from_usize(0), 0),
-                        (NodeID::from_usize(1), 1),
-                        (NodeID::from_usize(2), 5),
-                        (NodeID::from_usize(3), 2),
-                        (NodeID::from_usize(4), 4),
-                        (NodeID::from_usize(5), 3),
-                    ]),
-                    values: vec![
-                        TypeSpec::Function(FunctionType {
-                            params: vec![TypeSpec::String],
-                            return_type: Box::new(TypeSpec::Unit)
-                        }),
-                        TypeSpec::Function(FunctionType {
-                            params: vec![TypeSpec::String],
-                            return_type: Box::new(TypeSpec::Unit)
-                        }),
-                        TypeSpec::Unit,
-                        TypeSpec::Unit,
-                        TypeSpec::String,
-                        TypeSpec::String,
-                    ],
-                },
-                symbol_map: SideTable {
-                    keys: BTreeMap::from([(12_usize, 0), (13_usize, 1), (14_usize, 2)]),
-                    values: vec![
-                        NodeID::from_usize(0),
-                        NodeID::from_usize(1),
-                        NodeID::from_usize(2)
-                    ],
-                },
-                within_loop: false,
             }
         },
     );
@@ -2338,7 +2382,6 @@ mod tests {
     fn test_new_store_is_empty() {
         let store = NodeTree::new();
         assert_eq!(store.nodes.len(), 0);
-        assert_eq!(store.roots.len(), 0);
     }
 
     #[test]
@@ -2360,56 +2403,6 @@ mod tests {
         assert_eq!(id2, NodeID::from_usize(1));
         assert_eq!(id3, NodeID::from_usize(2));
         assert_eq!(store.nodes.len(), 3);
-    }
-
-    #[test]
-    fn test_add_node_does_not_add_to_roots() {
-        let mut store = NodeTree::new();
-        store.add_node(Node::Invalid);
-        assert_eq!(store.roots.len(), 0);
-    }
-
-    #[test]
-    fn test_add_root_node_returns_correct_id() {
-        let mut store = NodeTree::new();
-        let node = Node::Invalid;
-        let id = store.add_root_node(node);
-        assert_eq!(id, NodeID::from_usize(0));
-    }
-
-    #[test]
-    fn test_add_root_node_adds_to_roots() {
-        let mut store = NodeTree::new();
-        let id = store.add_root_node(Node::BoolLiteral(true));
-        assert_eq!(store.roots.len(), 1);
-        assert_eq!(store.roots[0], id);
-    }
-
-    #[test]
-    fn test_add_multiple_root_nodes() {
-        let mut store = NodeTree::new();
-        let id1 = store.add_root_node(Node::IntLiteral(1));
-        let id2 = store.add_root_node(Node::IntLiteral(2));
-        let id3 = store.add_root_node(Node::IntLiteral(3));
-
-        assert_eq!(store.roots.len(), 3);
-        assert_eq!(store.roots[0], id1);
-        assert_eq!(store.roots[1], id2);
-        assert_eq!(store.roots[2], id3);
-    }
-
-    #[test]
-    fn test_mix_nodes_and_root_nodes() {
-        let mut store = NodeTree::new();
-        let regular_id = store.add_node(Node::Invalid);
-        let root_id = store.add_root_node(Node::BoolLiteral(true));
-        let another_regular = store.add_node(Node::IntLiteral(42));
-
-        assert_eq!(store.nodes.len(), 3);
-        assert_eq!(store.roots.len(), 1);
-        assert_eq!(store.roots[0], root_id);
-        assert_ne!(regular_id, root_id);
-        assert_ne!(another_regular, root_id);
     }
 
     #[test]
@@ -2554,15 +2547,5 @@ mod tests {
                 assert_ne!(ids[i], ids[j]);
             }
         }
-    }
-
-    #[test]
-    fn test_add_many_root_nodes() {
-        let mut store = NodeTree::new();
-        for i in 0..20 {
-            store.add_root_node(Node::IntLiteral(i));
-        }
-        assert_eq!(store.roots.len(), 20);
-        assert_eq!(store.nodes.len(), 20);
     }
 }

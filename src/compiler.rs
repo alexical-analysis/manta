@@ -8,8 +8,8 @@ use crate::blocker::Blocker;
 use crate::codegen::Codegen;
 use crate::codegen::optimizer;
 use crate::file_set::FileSet;
-use crate::noder::NodeTree;
-use crate::noder::node_module;
+use crate::noder::Module as HirModule;
+use crate::noder::Noder;
 use crate::parser::Parser;
 use crate::pub_mod::PubMod;
 use crate::str_store::StrID;
@@ -39,10 +39,10 @@ impl<'fs> Compiler<'fs> {
     pub fn compile(
         &mut self,
         str_store: &mut StrStore,
-        mod_map: &HashMap<StrID, NodeTree>,
+        mod_map: &HashMap<StrID, HirModule>,
         object_file: &PathBuf,
         save_temps: bool,
-    ) -> Result<NodeTree, Box<dyn Error>> {
+    ) -> Result<HirModule, Box<dyn Error>> {
         let context = Context::create();
         let mut generator = Codegen::new(&context);
 
@@ -68,9 +68,9 @@ impl<'fs> Compiler<'fs> {
     fn compile_module<'ctx>(
         &mut self,
         str_store: &mut StrStore,
-        mod_map: &HashMap<StrID, NodeTree>,
+        mod_map: &HashMap<StrID, HirModule>,
         generator: &mut Codegen<'ctx>,
-    ) -> (Module<'ctx>, NodeTree) {
+    ) -> (Module<'ctx>, HirModule) {
         println!("building ast module...");
         let parser = Parser::new(self.file_set);
         let module = parser.parse_module(str_store);
@@ -81,7 +81,7 @@ impl<'fs> Compiler<'fs> {
 
         // build the HIR from the AST
         println!("building hir module...");
-        let node_tree = node_module(mod_map, &module);
+        let node_tree = Noder::new().node_module(mod_map, &module);
 
         // build the MIR from the HIR
         println!("building mir module...");
