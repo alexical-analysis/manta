@@ -30,7 +30,7 @@
       ],
       "return_type": "Unit",
       "local_map": {
-        "4": 1
+        "0:4": 1
       },
       "locals": [
         {
@@ -59,8 +59,8 @@
       "params": [],
       "return_type": "Unit",
       "local_map": {
-        "10": 1,
-        "18": 2
+        "0:10": 1,
+        "0:18": 2
       },
       "locals": [
         {

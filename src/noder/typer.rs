@@ -1097,13 +1097,14 @@ fn match_enum_pat(known: &TypeSpec, unknown: &InferredEnumPat) -> TypeMatch {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::compiler::ModuleID;
     use crate::hir::{EnumType, EnumVariant, NamedType};
     use crate::str_store::StrID;
 
     // Helper: wrap a TypeSpec in a Named alias
     fn named(ts: TypeSpec) -> TypeSpec {
         TypeSpec::Named(NamedType {
-            name: NodeID::from_usize(0),
+            name: NodeID::new(ModuleID::new(0), 0),
             type_spec: Box::new(ts),
         })
     }

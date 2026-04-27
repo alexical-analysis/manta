@@ -1,4 +1,7 @@
 {
+  "module_id": {
+    "id": 0
+  },
   "nodes": [
     {
       "Identifier": {
@@ -62,12 +65,12 @@
     },
     {
       "TypeDecl": {
-        "ident": 2
+        "ident": "0:2"
       }
     },
     {
       "TypeDecl": {
-        "ident": 3
+        "ident": "0:3"
       }
     },
     {
@@ -79,7 +82,7 @@
     {
       "VarDecl": {
         "public": false,
-        "ident": 12
+        "ident": "0:12"
       }
     },
     {
@@ -91,24 +94,24 @@
     },
     {
       "Return": {
-        "value": 14
+        "value": "0:14"
       }
     },
     {
       "Block": {
         "statements": [
-          15
+          "0:15"
         ]
       }
     },
     {
       "FunctionDecl": {
         "public": false,
-        "ident": 4,
+        "ident": "0:4",
         "params": [
-          13
+          "0:13"
         ],
-        "body": 16
+        "body": "0:16"
       }
     },
     {
@@ -120,7 +123,7 @@
     {
       "VarDecl": {
         "public": false,
-        "ident": 18
+        "ident": "0:18"
       }
     },
     {
@@ -131,23 +134,23 @@
     {
       "Block": {
         "statements": [
-          20
+          "0:20"
         ]
       }
     },
     {
       "FunctionDecl": {
         "public": false,
-        "ident": 5,
+        "ident": "0:5",
         "params": [
-          19
+          "0:19"
         ],
-        "body": 21
+        "body": "0:21"
       }
     },
     {
       "TypeDecl": {
-        "ident": 6
+        "ident": "0:6"
       }
     },
     {
@@ -159,7 +162,7 @@
     {
       "VarDecl": {
         "public": false,
-        "ident": 24
+        "ident": "0:24"
       }
     },
     {
@@ -171,7 +174,7 @@
     {
       "VarDecl": {
         "public": false,
-        "ident": 26
+        "ident": "0:26"
       }
     },
     {
@@ -183,30 +186,30 @@
     },
     {
       "Return": {
-        "value": 28
+        "value": "0:28"
       }
     },
     {
       "Block": {
         "statements": [
-          29
+          "0:29"
         ]
       }
     },
     {
       "FunctionDecl": {
         "public": false,
-        "ident": 7,
+        "ident": "0:7",
         "params": [
-          25,
-          27
+          "0:25",
+          "0:27"
         ],
-        "body": 30
+        "body": "0:30"
       }
     },
     {
       "TypeDecl": {
-        "ident": 8
+        "ident": "0:8"
       }
     },
     {
@@ -218,14 +221,14 @@
     {
       "VarDecl": {
         "public": false,
-        "ident": 33
+        "ident": "0:33"
       }
     },
     {
       "Call": {
-        "func": 4,
+        "func": "0:4",
         "args": [
-          33
+          "0:33"
         ]
       }
     },
@@ -240,7 +243,7 @@
         "EnumVariant": {
           "enum_name": null,
           "variant": 14,
-          "payload": 36
+          "payload": "0:36"
         }
       }
     },
@@ -253,26 +256,26 @@
     {
       "VarDecl": {
         "public": false,
-        "ident": 38
+        "ident": "0:38"
       }
     },
     {
       "Assign": {
-        "target": 38,
-        "value": 36
+        "target": "0:38",
+        "value": "0:36"
       }
     },
     {
       "Block": {
         "statements": [
-          40
+          "0:40"
         ]
       }
     },
     {
       "MatchArm": {
-        "pattern": 37,
-        "body": 41
+        "pattern": "0:37",
+        "body": "0:41"
       }
     },
     {
@@ -285,67 +288,67 @@
       "EnumConstructor": {
         "target": null,
         "variant": 30,
-        "payload": 43
+        "payload": "0:43"
       }
     },
     {
       "Return": {
-        "value": 44
+        "value": "0:44"
       }
     },
     {
       "Block": {
         "statements": [
-          45
+          "0:45"
         ]
       }
     },
     {
       "Pattern": {
         "Default": {
-          "payload": 43
+          "payload": "0:43"
         }
       }
     },
     {
       "MatchArm": {
-        "pattern": 47,
-        "body": 46
+        "pattern": "0:47",
+        "body": "0:46"
       }
     },
     {
       "Match": {
-        "target": 35,
+        "target": "0:35",
         "arms": [
-          42,
-          48
+          "0:42",
+          "0:48"
         ]
       }
     },
     {
       "Call": {
-        "func": 5,
+        "func": "0:5",
         "args": [
-          38
+          "0:38"
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          50
+          "0:50"
         ]
       }
     },
     {
       "Defer": {
-        "block": 51
+        "block": "0:51"
       }
     },
     "MetaType",
     {
       "Alloc": {
-        "meta_type": 53,
+        "meta_type": "0:53",
         "options": []
       }
     },
@@ -358,7 +361,7 @@
     {
       "Pattern": {
         "TypeSpec": {
-          "payload": 55
+          "payload": "0:55"
         }
       }
     },
@@ -371,26 +374,26 @@
     {
       "VarDecl": {
         "public": false,
-        "ident": 57
+        "ident": "0:57"
       }
     },
     {
       "Assign": {
-        "target": 57,
-        "value": 55
+        "target": "0:57",
+        "value": "0:55"
       }
     },
     {
       "Block": {
         "statements": [
-          59
+          "0:59"
         ]
       }
     },
     {
       "MatchArm": {
-        "pattern": 56,
-        "body": 60
+        "pattern": "0:56",
+        "body": "0:60"
       }
     },
     {
@@ -410,70 +413,70 @@
     },
     {
       "Call": {
-        "func": 62,
+        "func": "0:62",
         "args": [
-          64
+          "0:64"
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          65
+          "0:65"
         ]
       }
     },
     {
       "Pattern": {
         "Default": {
-          "payload": 63
+          "payload": "0:63"
         }
       }
     },
     {
       "MatchArm": {
-        "pattern": 67,
-        "body": 66
+        "pattern": "0:67",
+        "body": "0:66"
       }
     },
     {
       "Match": {
-        "target": 54,
+        "target": "0:54",
         "arms": [
-          61,
-          68
+          "0:61",
+          "0:68"
         ]
       }
     },
     {
       "Free": {
-        "expr": 57
+        "expr": "0:57"
       }
     },
     {
       "Block": {
         "statements": [
-          70
+          "0:70"
         ]
       }
     },
     {
       "Defer": {
-        "block": 71
+        "block": "0:71"
       }
     },
     {
       "Unary": {
         "operator": "Dereference",
-        "operand": 57
+        "operand": "0:57"
       }
     },
     {
       "Call": {
-        "func": 7,
+        "func": "0:7",
         "args": [
-          38,
-          73
+          "0:38",
+          "0:73"
         ]
       }
     },
@@ -488,7 +491,7 @@
         "EnumVariant": {
           "enum_name": null,
           "variant": 14,
-          "payload": 75
+          "payload": "0:75"
         }
       }
     },
@@ -501,26 +504,26 @@
     {
       "VarDecl": {
         "public": false,
-        "ident": 77
+        "ident": "0:77"
       }
     },
     {
       "Assign": {
-        "target": 77,
-        "value": 75
+        "target": "0:77",
+        "value": "0:75"
       }
     },
     {
       "Block": {
         "statements": [
-          79
+          "0:79"
         ]
       }
     },
     {
       "MatchArm": {
-        "pattern": 76,
-        "body": 80
+        "pattern": "0:76",
+        "body": "0:80"
       }
     },
     {
@@ -533,40 +536,40 @@
       "EnumConstructor": {
         "target": null,
         "variant": 31,
-        "payload": 82
+        "payload": "0:82"
       }
     },
     {
       "Return": {
-        "value": 83
+        "value": "0:83"
       }
     },
     {
       "Block": {
         "statements": [
-          84
+          "0:84"
         ]
       }
     },
     {
       "Pattern": {
         "Default": {
-          "payload": 82
+          "payload": "0:82"
         }
       }
     },
     {
       "MatchArm": {
-        "pattern": 86,
-        "body": 85
+        "pattern": "0:86",
+        "body": "0:85"
       }
     },
     {
       "Match": {
-        "target": 74,
+        "target": "0:74",
         "arms": [
-          81,
-          87
+          "0:81",
+          "0:87"
         ]
       }
     },
@@ -579,130 +582,130 @@
     },
     {
       "Return": {
-        "value": 89
+        "value": "0:89"
       }
     },
     {
       "Block": {
         "statements": [
-          39,
-          49,
-          52,
-          58,
-          69,
-          72,
-          78,
-          88,
-          90
+          "0:39",
+          "0:49",
+          "0:52",
+          "0:58",
+          "0:69",
+          "0:72",
+          "0:78",
+          "0:88",
+          "0:90"
         ]
       }
     },
     {
       "FunctionDecl": {
         "public": false,
-        "ident": 9,
+        "ident": "0:9",
         "params": [
-          34
+          "0:34"
         ],
-        "body": 91
+        "body": "0:91"
       }
     }
   ],
   "type_map": {
     "keys": {
-      "0": 0,
-      "1": 1,
-      "2": 23,
-      "3": 24,
-      "4": 2,
-      "5": 3,
-      "6": 32,
-      "7": 4,
-      "8": 38,
-      "9": 5,
-      "10": 6,
-      "11": 7,
-      "12": 8,
-      "13": 25,
-      "14": 28,
-      "15": 27,
-      "16": 26,
-      "17": 9,
-      "18": 10,
-      "19": 29,
-      "20": 31,
-      "21": 30,
-      "22": 11,
-      "23": 12,
-      "24": 13,
-      "25": 33,
-      "26": 14,
-      "27": 34,
-      "28": 37,
-      "29": 36,
-      "30": 35,
-      "31": 15,
-      "32": 16,
-      "33": 17,
-      "34": 39,
-      "35": 43,
-      "36": 44,
-      "37": 45,
-      "38": 49,
-      "39": 41,
-      "40": 48,
-      "41": 47,
-      "42": 46,
-      "43": 51,
-      "44": 55,
-      "45": 54,
-      "46": 53,
-      "47": 50,
-      "48": 52,
-      "49": 42,
-      "50": 58,
-      "51": 57,
-      "52": 56,
-      "53": 18,
-      "54": 19,
-      "55": 61,
-      "56": 20,
-      "57": 65,
-      "58": 59,
-      "59": 64,
-      "60": 63,
-      "61": 62,
-      "62": 21,
-      "63": 67,
-      "64": 70,
-      "65": 71,
-      "66": 69,
-      "67": 66,
-      "68": 68,
-      "69": 60,
-      "70": 74,
-      "71": 73,
-      "72": 72,
-      "73": 77,
-      "74": 78,
-      "75": 79,
-      "76": 80,
-      "77": 84,
-      "78": 75,
-      "79": 83,
-      "80": 82,
-      "81": 81,
-      "82": 86,
-      "83": 90,
-      "84": 89,
-      "85": 88,
-      "86": 85,
-      "87": 87,
-      "88": 76,
-      "89": 92,
-      "90": 91,
-      "91": 40,
-      "92": 22
+      "0:0": 0,
+      "0:1": 1,
+      "0:2": 23,
+      "0:3": 24,
+      "0:4": 2,
+      "0:5": 3,
+      "0:6": 32,
+      "0:7": 4,
+      "0:8": 38,
+      "0:9": 5,
+      "0:10": 6,
+      "0:11": 7,
+      "0:12": 8,
+      "0:13": 25,
+      "0:14": 28,
+      "0:15": 27,
+      "0:16": 26,
+      "0:17": 9,
+      "0:18": 10,
+      "0:19": 29,
+      "0:20": 31,
+      "0:21": 30,
+      "0:22": 11,
+      "0:23": 12,
+      "0:24": 13,
+      "0:25": 33,
+      "0:26": 14,
+      "0:27": 34,
+      "0:28": 37,
+      "0:29": 36,
+      "0:30": 35,
+      "0:31": 15,
+      "0:32": 16,
+      "0:33": 17,
+      "0:34": 39,
+      "0:35": 43,
+      "0:36": 44,
+      "0:37": 45,
+      "0:38": 49,
+      "0:39": 41,
+      "0:40": 48,
+      "0:41": 47,
+      "0:42": 46,
+      "0:43": 51,
+      "0:44": 55,
+      "0:45": 54,
+      "0:46": 53,
+      "0:47": 50,
+      "0:48": 52,
+      "0:49": 42,
+      "0:50": 58,
+      "0:51": 57,
+      "0:52": 56,
+      "0:53": 18,
+      "0:54": 19,
+      "0:55": 61,
+      "0:56": 20,
+      "0:57": 65,
+      "0:58": 59,
+      "0:59": 64,
+      "0:60": 63,
+      "0:61": 62,
+      "0:62": 21,
+      "0:63": 67,
+      "0:64": 70,
+      "0:65": 71,
+      "0:66": 69,
+      "0:67": 66,
+      "0:68": 68,
+      "0:69": 60,
+      "0:70": 74,
+      "0:71": 73,
+      "0:72": 72,
+      "0:73": 77,
+      "0:74": 78,
+      "0:75": 79,
+      "0:76": 80,
+      "0:77": 84,
+      "0:78": 75,
+      "0:79": 83,
+      "0:80": 82,
+      "0:81": 81,
+      "0:82": 86,
+      "0:83": 90,
+      "0:84": 89,
+      "0:85": 88,
+      "0:86": 85,
+      "0:87": 87,
+      "0:88": 76,
+      "0:89": 92,
+      "0:90": 91,
+      "0:91": 40,
+      "0:92": 22
     },
     "values": [
       {
@@ -728,7 +731,7 @@
           ],
           "return_type": {
             "Named": {
-              "name": 3,
+              "name": "0:3",
               "type_spec": {
                 "Enum": {
                   "variants": [
@@ -736,7 +739,7 @@
                       "name": 14,
                       "payload": {
                         "Named": {
-                          "name": 2,
+                          "name": "0:2",
                           "type_spec": {
                             "Struct": {
                               "fields": []
@@ -761,7 +764,7 @@
           "params": [
             {
               "Named": {
-                "name": 2,
+                "name": "0:2",
                 "type_spec": {
                   "Struct": {
                     "fields": []
@@ -778,7 +781,7 @@
           "params": [
             {
               "Named": {
-                "name": 2,
+                "name": "0:2",
                 "type_spec": {
                   "Struct": {
                     "fields": []
@@ -792,7 +795,7 @@
           ],
           "return_type": {
             "Named": {
-              "name": 6,
+              "name": "0:6",
               "type_spec": {
                 "Enum": {
                   "variants": [
@@ -818,7 +821,7 @@
           ],
           "return_type": {
             "Named": {
-              "name": 8,
+              "name": "0:8",
               "type_spec": {
                 "Enum": {
                   "variants": [
@@ -830,7 +833,7 @@
                       "name": 30,
                       "payload": {
                         "Named": {
-                          "name": 3,
+                          "name": "0:3",
                           "type_spec": {
                             "Enum": {
                               "variants": [
@@ -838,7 +841,7 @@
                                   "name": 14,
                                   "payload": {
                                     "Named": {
-                                      "name": 2,
+                                      "name": "0:2",
                                       "type_spec": {
                                         "Struct": {
                                           "fields": []
@@ -861,7 +864,7 @@
                       "name": 31,
                       "payload": {
                         "Named": {
-                          "name": 6,
+                          "name": "0:6",
                           "type_spec": {
                             "Enum": {
                               "variants": [
@@ -898,7 +901,7 @@
               "name": 14,
               "payload": {
                 "Named": {
-                  "name": 2,
+                  "name": "0:2",
                   "type_spec": {
                     "Struct": {
                       "fields": []
@@ -922,7 +925,7 @@
           ],
           "return_type": {
             "Named": {
-              "name": 3,
+              "name": "0:3",
               "type_spec": {
                 "Enum": {
                   "variants": [
@@ -930,7 +933,7 @@
                       "name": 14,
                       "payload": {
                         "Named": {
-                          "name": 2,
+                          "name": "0:2",
                           "type_spec": {
                             "Struct": {
                               "fields": []
@@ -952,7 +955,7 @@
       },
       {
         "Named": {
-          "name": 2,
+          "name": "0:2",
           "type_spec": {
             "Struct": {
               "fields": []
@@ -965,7 +968,7 @@
           "params": [
             {
               "Named": {
-                "name": 2,
+                "name": "0:2",
                 "type_spec": {
                   "Struct": {
                     "fields": []
@@ -993,7 +996,7 @@
       },
       {
         "Named": {
-          "name": 2,
+          "name": "0:2",
           "type_spec": {
             "Struct": {
               "fields": []
@@ -1009,7 +1012,7 @@
           "params": [
             {
               "Named": {
-                "name": 2,
+                "name": "0:2",
                 "type_spec": {
                   "Struct": {
                     "fields": []
@@ -1023,7 +1026,7 @@
           ],
           "return_type": {
             "Named": {
-              "name": 6,
+              "name": "0:6",
               "type_spec": {
                 "Enum": {
                   "variants": [
@@ -1053,7 +1056,7 @@
               "name": 30,
               "payload": {
                 "Named": {
-                  "name": 3,
+                  "name": "0:3",
                   "type_spec": {
                     "Enum": {
                       "variants": [
@@ -1061,7 +1064,7 @@
                           "name": 14,
                           "payload": {
                             "Named": {
-                              "name": 2,
+                              "name": "0:2",
                               "type_spec": {
                                 "Struct": {
                                   "fields": []
@@ -1084,7 +1087,7 @@
               "name": 31,
               "payload": {
                 "Named": {
-                  "name": 6,
+                  "name": "0:6",
                   "type_spec": {
                     "Enum": {
                       "variants": [
@@ -1130,7 +1133,7 @@
           ],
           "return_type": {
             "Named": {
-              "name": 8,
+              "name": "0:8",
               "type_spec": {
                 "Enum": {
                   "variants": [
@@ -1142,7 +1145,7 @@
                       "name": 30,
                       "payload": {
                         "Named": {
-                          "name": 3,
+                          "name": "0:3",
                           "type_spec": {
                             "Enum": {
                               "variants": [
@@ -1150,7 +1153,7 @@
                                   "name": 14,
                                   "payload": {
                                     "Named": {
-                                      "name": 2,
+                                      "name": "0:2",
                                       "type_spec": {
                                         "Struct": {
                                           "fields": []
@@ -1173,7 +1176,7 @@
                       "name": 31,
                       "payload": {
                         "Named": {
-                          "name": 6,
+                          "name": "0:6",
                           "type_spec": {
                             "Enum": {
                               "variants": [
@@ -1200,7 +1203,7 @@
       },
       {
         "Named": {
-          "name": 2,
+          "name": "0:2",
           "type_spec": {
             "Struct": {
               "fields": []
@@ -1210,7 +1213,7 @@
       },
       {
         "Named": {
-          "name": 3,
+          "name": "0:3",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1218,7 +1221,7 @@
                   "name": 14,
                   "payload": {
                     "Named": {
-                      "name": 2,
+                      "name": "0:2",
                       "type_spec": {
                         "Struct": {
                           "fields": []
@@ -1241,7 +1244,7 @@
       "Unit",
       {
         "Named": {
-          "name": 3,
+          "name": "0:3",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1249,7 +1252,7 @@
                   "name": 14,
                   "payload": {
                     "Named": {
-                      "name": 2,
+                      "name": "0:2",
                       "type_spec": {
                         "Struct": {
                           "fields": []
@@ -1272,7 +1275,7 @@
       "Unit",
       {
         "Named": {
-          "name": 6,
+          "name": "0:6",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1295,7 +1298,7 @@
       "Unit",
       {
         "Named": {
-          "name": 6,
+          "name": "0:6",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1314,7 +1317,7 @@
       },
       {
         "Named": {
-          "name": 8,
+          "name": "0:8",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1326,7 +1329,7 @@
                   "name": 30,
                   "payload": {
                     "Named": {
-                      "name": 3,
+                      "name": "0:3",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -1334,7 +1337,7 @@
                               "name": 14,
                               "payload": {
                                 "Named": {
-                                  "name": 2,
+                                  "name": "0:2",
                                   "type_spec": {
                                     "Struct": {
                                       "fields": []
@@ -1357,7 +1360,7 @@
                   "name": 31,
                   "payload": {
                     "Named": {
-                      "name": 6,
+                      "name": "0:6",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -1386,7 +1389,7 @@
       "Unit",
       {
         "Named": {
-          "name": 3,
+          "name": "0:3",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1394,7 +1397,7 @@
                   "name": 14,
                   "payload": {
                     "Named": {
-                      "name": 2,
+                      "name": "0:2",
                       "type_spec": {
                         "Struct": {
                           "fields": []
@@ -1414,7 +1417,7 @@
       },
       {
         "Named": {
-          "name": 2,
+          "name": "0:2",
           "type_spec": {
             "Struct": {
               "fields": []
@@ -1424,7 +1427,7 @@
       },
       {
         "Named": {
-          "name": 3,
+          "name": "0:3",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1432,7 +1435,7 @@
                   "name": 14,
                   "payload": {
                     "Named": {
-                      "name": 2,
+                      "name": "0:2",
                       "type_spec": {
                         "Struct": {
                           "fields": []
@@ -1452,7 +1455,7 @@
       },
       {
         "Named": {
-          "name": 3,
+          "name": "0:3",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1460,7 +1463,7 @@
                   "name": 14,
                   "payload": {
                     "Named": {
-                      "name": 2,
+                      "name": "0:2",
                       "type_spec": {
                         "Struct": {
                           "fields": []
@@ -1482,7 +1485,7 @@
       "Unit",
       {
         "Named": {
-          "name": 2,
+          "name": "0:2",
           "type_spec": {
             "Struct": {
               "fields": []
@@ -1492,7 +1495,7 @@
       },
       {
         "Named": {
-          "name": 3,
+          "name": "0:3",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1500,7 +1503,7 @@
                   "name": 14,
                   "payload": {
                     "Named": {
-                      "name": 2,
+                      "name": "0:2",
                       "type_spec": {
                         "Struct": {
                           "fields": []
@@ -1520,7 +1523,7 @@
       },
       {
         "Named": {
-          "name": 3,
+          "name": "0:3",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1528,7 +1531,7 @@
                   "name": 14,
                   "payload": {
                     "Named": {
-                      "name": 2,
+                      "name": "0:2",
                       "type_spec": {
                         "Struct": {
                           "fields": []
@@ -1548,7 +1551,7 @@
       },
       {
         "Named": {
-          "name": 3,
+          "name": "0:3",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1556,7 +1559,7 @@
                   "name": 14,
                   "payload": {
                     "Named": {
-                      "name": 2,
+                      "name": "0:2",
                       "type_spec": {
                         "Struct": {
                           "fields": []
@@ -1578,7 +1581,7 @@
       "Unit",
       {
         "Named": {
-          "name": 8,
+          "name": "0:8",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1590,7 +1593,7 @@
                   "name": 30,
                   "payload": {
                     "Named": {
-                      "name": 3,
+                      "name": "0:3",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -1598,7 +1601,7 @@
                               "name": 14,
                               "payload": {
                                 "Named": {
-                                  "name": 2,
+                                  "name": "0:2",
                                   "type_spec": {
                                     "Struct": {
                                       "fields": []
@@ -1621,7 +1624,7 @@
                   "name": 31,
                   "payload": {
                     "Named": {
-                      "name": 6,
+                      "name": "0:6",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -1682,7 +1685,7 @@
       },
       {
         "Named": {
-          "name": 6,
+          "name": "0:6",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1702,7 +1705,7 @@
       "UInt64",
       {
         "Named": {
-          "name": 6,
+          "name": "0:6",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1721,7 +1724,7 @@
       },
       {
         "Named": {
-          "name": 6,
+          "name": "0:6",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1743,7 +1746,7 @@
       "UInt64",
       {
         "Named": {
-          "name": 6,
+          "name": "0:6",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1762,7 +1765,7 @@
       },
       {
         "Named": {
-          "name": 6,
+          "name": "0:6",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1781,7 +1784,7 @@
       },
       {
         "Named": {
-          "name": 6,
+          "name": "0:6",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1802,7 +1805,7 @@
       "Unit",
       {
         "Named": {
-          "name": 8,
+          "name": "0:8",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1814,7 +1817,7 @@
                   "name": 30,
                   "payload": {
                     "Named": {
-                      "name": 3,
+                      "name": "0:3",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -1822,7 +1825,7 @@
                               "name": 14,
                               "payload": {
                                 "Named": {
-                                  "name": 2,
+                                  "name": "0:2",
                                   "type_spec": {
                                     "Struct": {
                                       "fields": []
@@ -1845,7 +1848,7 @@
                   "name": 31,
                   "payload": {
                     "Named": {
-                      "name": 6,
+                      "name": "0:6",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -1871,7 +1874,7 @@
       "Unit",
       {
         "Named": {
-          "name": 8,
+          "name": "0:8",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1883,7 +1886,7 @@
                   "name": 30,
                   "payload": {
                     "Named": {
-                      "name": 3,
+                      "name": "0:3",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -1891,7 +1894,7 @@
                               "name": 14,
                               "payload": {
                                 "Named": {
-                                  "name": 2,
+                                  "name": "0:2",
                                   "type_spec": {
                                     "Struct": {
                                       "fields": []
@@ -1914,7 +1917,7 @@
                   "name": 31,
                   "payload": {
                     "Named": {
-                      "name": 6,
+                      "name": "0:6",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -1961,35 +1964,35 @@
       "29": 17
     },
     "values": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      12,
-      18,
-      24,
-      26,
-      33,
-      38,
-      57,
-      77
+      "0:0",
+      "0:1",
+      "0:2",
+      "0:3",
+      "0:4",
+      "0:5",
+      "0:6",
+      "0:7",
+      "0:8",
+      "0:9",
+      "0:12",
+      "0:18",
+      "0:24",
+      "0:26",
+      "0:33",
+      "0:38",
+      "0:57",
+      "0:77"
     ]
   },
   "roots": [
-    10,
-    11,
-    17,
-    22,
-    23,
-    31,
-    32,
-    92
+    "0:10",
+    "0:11",
+    "0:17",
+    "0:22",
+    "0:23",
+    "0:31",
+    "0:32",
+    "0:92"
   ],
   "public_decls": {}
 }

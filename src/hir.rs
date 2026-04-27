@@ -1,23 +1,49 @@
-use serde::{Deserialize, Serialize};
+use serde::de::Error;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::ast::{BinaryOp, UnaryOp};
+use crate::compiler::ModuleID;
 use crate::str_store::StrID;
 
 // High-level Intermediate Representation (HIR)
 // This is a desugared, simplified version of the AST with a single node type.
-// It removes syntactic sugar and represents all code uniformly as a tree of nodes.
 
 /// NodeID is the unique identifier for a gien node in the HIR tree
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Copy, Clone, Serialize, Deserialize)]
-pub struct NodeID(usize);
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Copy, Clone)]
+pub struct NodeID {
+    module_id: ModuleID,
+    id: u32,
+}
+
+impl Serialize for NodeID {
+    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        s.serialize_str(&format!("{}:{}", self.module_id.id(), self.id))
+    }
+}
+
+impl<'de> Deserialize<'de> for NodeID {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        let raw = String::deserialize(d)?;
+        let (module_str, id_str) = raw
+            .split_once(':')
+            .ok_or_else(|| Error::custom(format!("invalid NodeID: {raw}")))?;
+        let module_id = module_str.parse::<u32>().map_err(Error::custom)?;
+        let id = id_str.parse::<u32>().map_err(Error::custom)?;
+        Ok(NodeID::new(ModuleID::new(module_id), id))
+    }
+}
 
 impl NodeID {
-    pub fn from_usize(idx: usize) -> Self {
-        NodeID(idx)
+    pub fn new(module_id: ModuleID, id: u32) -> Self {
+        NodeID { module_id, id }
     }
 
-    pub fn to_usize(self) -> usize {
-        self.0
+    pub fn module_id(&self) -> ModuleID {
+        self.module_id
+    }
+
+    pub fn id(&self) -> u32 {
+        self.id
     }
 }
 
