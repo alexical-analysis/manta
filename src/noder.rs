@@ -204,7 +204,7 @@ impl Noder {
             });
             self.tree.symbol_map.add(binding.id, ident_id);
             if let BindingType::Func(ts) = &binding.binding_type {
-                let ts = node_type_spec(&self.tree, &module, ts);
+                let ts = self.node_type_spec(&module, ts);
                 self.tree.type_map.add(ident_id, ts);
             }
         }
@@ -212,11 +212,11 @@ impl Noder {
         // preprocess all top-level declaration identifiers in symbol_map before processing
         // any bodies, so that decl bodies can reference any top-level decl regardless of source order.
         for decl in module.get_decls() {
-            node_decl_name(&mut self, &module, decl);
+            self.node_decl_name(&module, decl);
         }
 
         for decl in module.get_decls() {
-            node_decl(&mut self, mod_map, &module, decl);
+            self.node_decl(mod_map, &module, decl);
         }
 
         let mut typer = Typer::new();
@@ -243,375 +243,1441 @@ impl Noder {
     fn get_mut_node(&mut self, id: NodeID) -> Option<&mut Node> {
         self.tree.get_mut_node(id)
     }
-}
 
-fn node_decl_name(noder: &mut Noder, module: &ParseModule, decl: &Decl) {
-    match decl {
-        Decl::Function(decl) => {
-            let ident_id = noder.add_node(Node::Identifier {
-                name: decl.name,
-                module: None,
-            });
-            let scope_pos = module
-                .get_scope_pos(decl.id)
-                .expect("missing scope_pos for function in pre-pass");
-            let binding = module
-                .find_binding(scope_pos, decl.name)
-                .expect("missing binding for function in pre-pass");
-            noder.tree.symbol_map.add(binding.id, ident_id);
-
-            let func_type = ast::TypeSpec::Function(decl.function_type.clone());
-            let func_type = node_type_spec(&noder.tree, module, &func_type);
-            noder.tree.type_map.add(ident_id, func_type.clone());
-
-            if decl.public {
-                noder.public_decls.insert(decl.name, ident_id);
-            }
-        }
-        Decl::Type(decl) => {
-            let ident_id = noder.add_node(Node::Identifier {
-                name: decl.name,
-                module: None,
-            });
-            let scope_pos = module
-                .get_scope_pos(decl.id)
-                .expect("missing scope_pos for type decl in pre-pass");
-            let binding = module
-                .find_binding(scope_pos, decl.name)
-                .expect("missing binding for type decl in pre-pass");
-            noder.tree.symbol_map.add(binding.id, ident_id);
-
-            if decl.public {
-                noder.public_decls.insert(decl.name, ident_id);
-            }
-        }
-        Decl::Const(decl) => {
-            let ident_id = noder.add_node(Node::Identifier {
-                name: decl.name,
-                module: None,
-            });
-            let scope_pos = module
-                .get_scope_pos(decl.id)
-                .expect("missing scope_pos for type decl in pre-pass");
-            let binding = module
-                .find_binding(scope_pos, decl.name)
-                .expect("missing binding for type decl in pre-pass");
-            noder.tree.symbol_map.add(binding.id, ident_id);
-
-            if decl.public {
-                noder.public_decls.insert(decl.name, ident_id);
-            }
-        }
-        Decl::Var(decl) => {
-            let ident_id = noder.add_node(Node::Identifier {
-                name: decl.name,
-                module: None,
-            });
-            let scope_pos = module
-                .get_scope_pos(decl.id)
-                .expect("missing scope_pos for type decl in pre-pass");
-            let binding = module
-                .find_binding(scope_pos, decl.name)
-                .expect("missing binding for type decl in pre-pass");
-            noder.tree.symbol_map.add(binding.id, ident_id);
-
-            if decl.public {
-                noder.public_decls.insert(decl.name, ident_id);
-            }
-        }
-        _ => {}
-    }
-}
-
-fn node_type_spec(
-    node_tree: &NodeTree,
-    module: &ParseModule,
-    type_spec: &ast::TypeSpec,
-) -> TypeSpec {
-    match type_spec {
-        ast::TypeSpec::Int8 => TypeSpec::Int8,
-        ast::TypeSpec::Int16 => TypeSpec::Int16,
-        ast::TypeSpec::Int32 => TypeSpec::Int32,
-        ast::TypeSpec::Int64 => TypeSpec::Int64,
-        ast::TypeSpec::UInt8 => TypeSpec::UInt8,
-        ast::TypeSpec::UInt16 => TypeSpec::UInt16,
-        ast::TypeSpec::UInt32 => TypeSpec::UInt32,
-        ast::TypeSpec::UInt64 => TypeSpec::UInt64,
-        ast::TypeSpec::Float32 => TypeSpec::Float32,
-        ast::TypeSpec::Float64 => TypeSpec::Float64,
-        ast::TypeSpec::String => TypeSpec::String,
-        ast::TypeSpec::Bool => TypeSpec::Bool,
-        ast::TypeSpec::Unit => TypeSpec::Unit,
-        ast::TypeSpec::Named(t) => {
-            if t.module.is_some() {
-                panic!("modules are not yet supported")
-            }
-
-            // look up the type using it's scope_position and name and extract the underlying type
-            let scope_pos = module
-                .get_scope_pos(t.id)
-                .expect("failed to find type identifier scope position");
-            let binding = module
-                .find_binding(scope_pos, t.name)
-                .expect("missing binding for type identifier");
-            let type_spec = match &binding.binding_type {
-                BindingType::Type(t) => t,
-                _ => panic!("this binding was not for a type"),
-            };
-            let name_id = node_tree
-                .symbol_map
-                .get(binding.id)
-                .expect("failed to find declaration name for named type spec");
-
-            let type_spec = node_type_spec(node_tree, module, type_spec);
-            let type_spec = Box::new(type_spec);
-            TypeSpec::Named(NamedType {
-                name: *name_id,
-                type_spec,
-            })
-        }
-        ast::TypeSpec::Pointer(t) => {
-            let inner = node_type_spec(node_tree, module, t);
-            TypeSpec::Pointer(Box::new(inner))
-        }
-        ast::TypeSpec::Slice(t) => {
-            let inner = node_type_spec(node_tree, module, t);
-            TypeSpec::Slice(Box::new(inner))
-        }
-        ast::TypeSpec::Array(t) => {
-            let inner = node_type_spec(node_tree, module, &t.type_spec);
-            TypeSpec::Array(ArrayType {
-                size: t.size,
-                type_spec: Box::new(inner),
-            })
-        }
-        ast::TypeSpec::Struct(t) => {
-            let mut fields = vec![];
-            for field in &t.fields {
-                let inner = node_type_spec(node_tree, module, &field.type_spec);
-                fields.push(StructTypeField {
-                    name: field.name,
-                    type_spec: inner,
-                })
-            }
-            TypeSpec::Struct(StructType { fields })
-        }
-        ast::TypeSpec::Enum(t) => {
-            let mut variants: Vec<EnumVariant> = vec![];
-            for variant in &t.variants {
-                let inner = variant
-                    .payload
-                    .as_ref()
-                    .map(|t| node_type_spec(node_tree, module, t));
-                variants.push(EnumVariant {
-                    name: variant.name,
-                    payload: inner,
-                })
-            }
-            TypeSpec::Enum(EnumType { variants })
-        }
-        ast::TypeSpec::Function(t) => {
-            let return_type = node_type_spec(node_tree, module, &t.return_type);
-            let return_type = Box::new(return_type);
-
-            let mut params = vec![];
-            for param in &t.params {
-                let inner = node_type_spec(node_tree, module, param);
-                params.push(inner);
-            }
-
-            TypeSpec::Function(FunctionType {
-                params,
-                return_type,
-            })
-        }
-    }
-}
-
-fn node_decl(
-    noder: &mut Noder,
-    mod_map: &HashMap<StrID, Module>,
-    module: &ParseModule,
-    decl: &Decl,
-) {
-    match decl {
-        Decl::Function(decl) => {
-            let mut params = vec![];
-            for i in 0..decl.params.len() {
-                let param = &decl.params[i];
-                let param_type = &decl.function_type.params[i];
-
-                let ident_id = noder.add_node(Node::Identifier {
+    fn node_decl_name(&mut self, module: &ParseModule, decl: &Decl) {
+        match decl {
+            Decl::Function(decl) => {
+                let ident_id = self.add_node(Node::Identifier {
+                    name: decl.name,
                     module: None,
-                    name: param.name,
                 });
-                let param_id = noder.add_node(Node::VarDecl {
-                    public: false,
+                let scope_pos = module
+                    .get_scope_pos(decl.id)
+                    .expect("missing scope_pos for function in pre-pass");
+                let binding = module
+                    .find_binding(scope_pos, decl.name)
+                    .expect("missing binding for function in pre-pass");
+                self.tree.symbol_map.add(binding.id, ident_id);
+
+                let func_type = ast::TypeSpec::Function(decl.function_type.clone());
+                let func_type = self.node_type_spec(module, &func_type);
+                self.tree.type_map.add(ident_id, func_type.clone());
+
+                if decl.public {
+                    self.public_decls.insert(decl.name, ident_id);
+                }
+            }
+            Decl::Type(decl) => {
+                let ident_id = self.add_node(Node::Identifier {
+                    name: decl.name,
+                    module: None,
+                });
+                let scope_pos = module
+                    .get_scope_pos(decl.id)
+                    .expect("missing scope_pos for type decl in pre-pass");
+                let binding = module
+                    .find_binding(scope_pos, decl.name)
+                    .expect("missing binding for type decl in pre-pass");
+                self.tree.symbol_map.add(binding.id, ident_id);
+
+                if decl.public {
+                    self.public_decls.insert(decl.name, ident_id);
+                }
+            }
+            Decl::Const(decl) => {
+                let ident_id = self.add_node(Node::Identifier {
+                    name: decl.name,
+                    module: None,
+                });
+                let scope_pos = module
+                    .get_scope_pos(decl.id)
+                    .expect("missing scope_pos for type decl in pre-pass");
+                let binding = module
+                    .find_binding(scope_pos, decl.name)
+                    .expect("missing binding for type decl in pre-pass");
+                self.tree.symbol_map.add(binding.id, ident_id);
+
+                if decl.public {
+                    self.public_decls.insert(decl.name, ident_id);
+                }
+            }
+            Decl::Var(decl) => {
+                let ident_id = self.add_node(Node::Identifier {
+                    name: decl.name,
+                    module: None,
+                });
+                let scope_pos = module
+                    .get_scope_pos(decl.id)
+                    .expect("missing scope_pos for type decl in pre-pass");
+                let binding = module
+                    .find_binding(scope_pos, decl.name)
+                    .expect("missing binding for type decl in pre-pass");
+                self.tree.symbol_map.add(binding.id, ident_id);
+
+                if decl.public {
+                    self.public_decls.insert(decl.name, ident_id);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    fn node_type_spec(&self, module: &ParseModule, type_spec: &ast::TypeSpec) -> TypeSpec {
+        match type_spec {
+            ast::TypeSpec::Int8 => TypeSpec::Int8,
+            ast::TypeSpec::Int16 => TypeSpec::Int16,
+            ast::TypeSpec::Int32 => TypeSpec::Int32,
+            ast::TypeSpec::Int64 => TypeSpec::Int64,
+            ast::TypeSpec::UInt8 => TypeSpec::UInt8,
+            ast::TypeSpec::UInt16 => TypeSpec::UInt16,
+            ast::TypeSpec::UInt32 => TypeSpec::UInt32,
+            ast::TypeSpec::UInt64 => TypeSpec::UInt64,
+            ast::TypeSpec::Float32 => TypeSpec::Float32,
+            ast::TypeSpec::Float64 => TypeSpec::Float64,
+            ast::TypeSpec::String => TypeSpec::String,
+            ast::TypeSpec::Bool => TypeSpec::Bool,
+            ast::TypeSpec::Unit => TypeSpec::Unit,
+            ast::TypeSpec::Named(t) => {
+                if t.module.is_some() {
+                    panic!("modules are not yet supported")
+                }
+
+                // look up the type using it's scope_position and name and extract the underlying type
+                let scope_pos = module
+                    .get_scope_pos(t.id)
+                    .expect("failed to find type identifier scope position");
+                let binding = module
+                    .find_binding(scope_pos, t.name)
+                    .expect("missing binding for type identifier");
+                let type_spec = match &binding.binding_type {
+                    BindingType::Type(t) => t,
+                    _ => panic!("this binding was not for a type"),
+                };
+                let name_id = self
+                    .tree
+                    .symbol_map
+                    .get(binding.id)
+                    .expect("failed to find declaration name for named type spec");
+
+                let type_spec = self.node_type_spec(module, type_spec);
+                let type_spec = Box::new(type_spec);
+                TypeSpec::Named(NamedType {
+                    name: *name_id,
+                    type_spec,
+                })
+            }
+            ast::TypeSpec::Pointer(t) => {
+                let inner = self.node_type_spec(module, t);
+                TypeSpec::Pointer(Box::new(inner))
+            }
+            ast::TypeSpec::Slice(t) => {
+                let inner = self.node_type_spec(module, t);
+                TypeSpec::Slice(Box::new(inner))
+            }
+            ast::TypeSpec::Array(t) => {
+                let inner = self.node_type_spec(module, &t.type_spec);
+                TypeSpec::Array(ArrayType {
+                    size: t.size,
+                    type_spec: Box::new(inner),
+                })
+            }
+            ast::TypeSpec::Struct(t) => {
+                let mut fields = vec![];
+                for field in &t.fields {
+                    let inner = self.node_type_spec(module, &field.type_spec);
+                    fields.push(StructTypeField {
+                        name: field.name,
+                        type_spec: inner,
+                    })
+                }
+                TypeSpec::Struct(StructType { fields })
+            }
+            ast::TypeSpec::Enum(t) => {
+                let mut variants: Vec<EnumVariant> = vec![];
+                for variant in &t.variants {
+                    let inner = variant
+                        .payload
+                        .as_ref()
+                        .map(|t| self.node_type_spec(module, t));
+                    variants.push(EnumVariant {
+                        name: variant.name,
+                        payload: inner,
+                    })
+                }
+                TypeSpec::Enum(EnumType { variants })
+            }
+            ast::TypeSpec::Function(t) => {
+                let return_type = self.node_type_spec(module, &t.return_type);
+                let return_type = Box::new(return_type);
+
+                let mut params = vec![];
+                for param in &t.params {
+                    let inner = self.node_type_spec(module, param);
+                    params.push(inner);
+                }
+
+                TypeSpec::Function(FunctionType {
+                    params,
+                    return_type,
+                })
+            }
+        }
+    }
+
+    fn node_decl(&mut self, mod_map: &HashMap<StrID, Module>, module: &ParseModule, decl: &Decl) {
+        match decl {
+            Decl::Function(decl) => {
+                let mut params = vec![];
+                for i in 0..decl.params.len() {
+                    let param = &decl.params[i];
+                    let param_type = &decl.function_type.params[i];
+
+                    let ident_id = self.add_node(Node::Identifier {
+                        module: None,
+                        name: param.name,
+                    });
+                    let param_id = self.add_node(Node::VarDecl {
+                        public: false,
+                        ident: ident_id,
+                    });
+                    params.push(param_id);
+
+                    let type_spec = self.node_type_spec(module, param_type);
+                    self.tree.type_map.add(ident_id, type_spec);
+
+                    let scope_pos = module
+                        .get_scope_pos(param.id)
+                        .expect("missing scope position for function paramater");
+                    let binding = module
+                        .find_binding(scope_pos, param.name)
+                        .expect("missing binding for function parameter");
+
+                    self.tree.symbol_map.add(binding.id, ident_id);
+                }
+
+                let return_type = self.node_type_spec(module, &decl.function_type.return_type);
+
+                // Look up the ident_id registered in the pre-pass (handles forward references and
+                // self-recursion).
+                let scope_pos = module
+                    .get_scope_pos(decl.id)
+                    .expect("missing scope_pos for function");
+                let binding = module
+                    .find_binding(scope_pos, decl.name)
+                    .expect("missing binding for function");
+                let ident_id = *self
+                    .tree
+                    .symbol_map
+                    .get(binding.id)
+                    .expect("function not pre-registered in symbol_map");
+
+                let body_id = self.node_fn_body(mod_map, module, &decl.body, return_type);
+                let func_id = self.add_root_node(Node::FunctionDecl {
+                    public: decl.public,
+                    ident: ident_id,
+                    params,
+                    body: body_id,
+                });
+
+                let func_type = ast::TypeSpec::Function(decl.function_type.clone());
+                let func_type = self.node_type_spec(module, &func_type);
+
+                // ident_id type was already added in pre-pass; only add for the FunctionDecl node.
+                self.tree.type_map.add(func_id, func_type);
+            }
+            Decl::Type(decl) => {
+                let scope_pos = module
+                    .get_scope_pos(decl.id)
+                    .expect("missing scope_pos for type decl");
+                let binding = module
+                    .find_binding(scope_pos, decl.name)
+                    .expect("missing binding for type decl");
+                let ident_id = *self
+                    .tree
+                    .symbol_map
+                    .get(binding.id)
+                    .expect("type not pre-registered in symbol_map");
+
+                let decl_id = self.add_root_node(Node::TypeDecl { ident: ident_id });
+                let type_spec = self.node_type_spec(module, &decl.type_spec);
+                self.tree.type_map.add(decl_id, type_spec);
+            }
+            Decl::Const(decl) => {
+                let scope_pos = module
+                    .get_scope_pos(decl.id)
+                    .expect("missing scope_pos for const decl");
+                let binding = module
+                    .find_binding(scope_pos, decl.name)
+                    .expect("missing binding for const decl");
+                let ident_id = *self
+                    .tree
+                    .symbol_map
+                    .get(binding.id)
+                    .expect("const not pre-registered in symbol_map");
+
+                self.add_root_node(Node::VarDecl {
+                    public: decl.public,
                     ident: ident_id,
                 });
-                params.push(param_id);
+                let value_node = self.node_expr(mod_map, module, &decl.value);
+                self.add_root_node(Node::Assign {
+                    target: ident_id,
+                    value: value_node,
+                });
+            }
+            Decl::Var(decl) => {
+                let scope_pos = module
+                    .get_scope_pos(decl.id)
+                    .expect("missing scope_pos for var decl");
+                let binding = module
+                    .find_binding(scope_pos, decl.name)
+                    .expect("missing binding for var decl");
+                let ident_id = *self
+                    .tree
+                    .symbol_map
+                    .get(binding.id)
+                    .expect("var not pre-registered in symbol_map");
 
-                let type_spec = node_type_spec(&noder.tree, module, param_type);
-                noder.tree.type_map.add(ident_id, type_spec);
+                self.add_root_node(Node::VarDecl {
+                    public: decl.public,
+                    ident: ident_id,
+                });
+                let value_node = self.node_expr(mod_map, module, &decl.value);
+                self.add_root_node(Node::Assign {
+                    target: ident_id,
+                    value: value_node,
+                });
+            }
+            Decl::Use(_) => { /* ignore these since they're handled by the parser */ }
+            Decl::Mod(_) => { /* ignore these since they're handled by the parser */ }
+            Decl::Invalid => {
+                self.add_root_node(Node::Invalid);
+            }
+        }
+    }
+
+    fn node_fn_body(
+        &mut self,
+        mod_map: &HashMap<StrID, Module>,
+        module: &ParseModule,
+        block: &BlockStmt,
+        return_type: TypeSpec,
+    ) -> NodeID {
+        let mut stmt_ids = vec![];
+        for stmt in &block.statements {
+            let ids = self.node_stmt(mod_map, module, stmt);
+            stmt_ids.extend(ids);
+        }
+
+        // we allow the final return in a function to be omitted if the return type is the
+        // unit type we need to ensure we add that return in here though so that we're ready
+        // for the MIR construction
+        if return_type == TypeSpec::Unit {
+            match block.statements.last() {
+                Some(Stmt::Return(_)) => { /* we're good, the final statement is a return */ }
+                Some(_) | None => {
+                    let ret_stmt = &Stmt::Return(ReturnStmt { value: None });
+                    let return_id = self.node_stmt(mod_map, module, ret_stmt);
+                    stmt_ids.push(*return_id.first().expect("failed to node statement"))
+                }
+            }
+        }
+
+        self.add_node(Node::Block {
+            statements: stmt_ids,
+        })
+    }
+
+    fn node_block(
+        &mut self,
+        mod_map: &HashMap<StrID, Module>,
+        module: &ParseModule,
+        block: &BlockStmt,
+    ) -> NodeID {
+        let mut stmt_ids = vec![];
+        for stmt in &block.statements {
+            let ids = self.node_stmt(mod_map, module, stmt);
+            stmt_ids.extend(ids);
+        }
+
+        self.add_node(Node::Block {
+            statements: stmt_ids,
+        })
+    }
+
+    fn node_stmt(
+        &mut self,
+        mod_map: &HashMap<StrID, Module>,
+        module: &ParseModule,
+        stmt: &Stmt,
+    ) -> Vec<NodeID> {
+        match stmt {
+            Stmt::Let(stmt) => self.node_let(mod_map, module, stmt),
+            Stmt::Assign(stmt) => {
+                // Enforce mutability: walk through the l_value expression to find the root
+                // identifier, then check that it is mutable. This means `let p = &x` blocks
+                // both `p = &y` and `*p = y` since both are mutations through the same binding.
+                match lvalue_root(&stmt.lvalue) {
+                    Some(ident) => {
+                        let scope_pos = module
+                            .get_scope_pos(ident.id)
+                            .expect("could not get scope for assignment lvalue");
+                        let binding = module
+                            .find_binding(scope_pos, ident.name)
+                            .expect("failed to find binding for assignment lvalue");
+                        if !binding.mutable {
+                            panic!("assignment to immutable variable");
+                        }
+                    }
+                    None => panic!(
+                        "unsupported assignment: assignment target has no root binding as is therefore considered immutable"
+                    ),
+                }
+
+                let l_id = self.node_expr(mod_map, module, &stmt.lvalue);
+                let r_id = self.node_expr(mod_map, module, &stmt.rvalue);
+
+                vec![self.add_node(Node::Assign {
+                    target: l_id,
+                    value: r_id,
+                })]
+            }
+            Stmt::Expr(stmt) => vec![self.node_expr(mod_map, module, &stmt.expr)],
+            Stmt::Return(stmt) => {
+                let value = if let Some(v) = &stmt.value {
+                    let value_id = self.node_expr(mod_map, module, v);
+                    Some(value_id)
+                } else {
+                    None
+                };
+
+                vec![self.add_node(Node::Return { value })]
+            }
+            Stmt::Defer(stmt) => {
+                let block_id = self.node_block(mod_map, module, &stmt.block);
+                vec![self.add_node(Node::Defer { block: block_id })]
+            }
+            Stmt::Match(stmt) => {
+                let target_id = self.node_expr(mod_map, module, &stmt.target);
+                let mut arms = vec![];
+                for arm in &stmt.arms {
+                    let pat_id = self.node_pattern(module, &arm.pattern);
+                    let block_id = self.node_block(mod_map, module, &arm.body);
+
+                    let arm_id = self.add_node(Node::MatchArm {
+                        pattern: pat_id,
+                        body: block_id,
+                    });
+
+                    arms.push(arm_id);
+                }
+
+                vec![self.add_node(Node::Match {
+                    target: target_id,
+                    arms,
+                })]
+            }
+            Stmt::Block(stmt) => vec![self.node_block(mod_map, module, stmt)],
+            Stmt::If(stmt) => {
+                let check_id = self.node_expr(mod_map, module, &stmt.check);
+                let success_id = self.node_block(mod_map, module, &stmt.success);
+                let fail_id = stmt
+                    .fail
+                    .as_ref()
+                    .map(|fail| self.node_block(mod_map, module, fail));
+
+                vec![self.add_node(Node::If {
+                    condition: check_id,
+                    then_block: success_id,
+                    else_block: fail_id,
+                })]
+            }
+            Stmt::Loop(stmt) => {
+                let prev = self.within_loop;
+                self.within_loop = true;
+                let body = self.node_block(mod_map, module, &stmt.body);
+                self.within_loop = prev;
+
+                vec![self.add_node(Node::Loop { body })]
+            }
+            Stmt::While(stmt) => {
+                let break_id = self.add_node(Node::Break);
+                let break_block = self.add_node(Node::Block {
+                    statements: vec![break_id],
+                });
+
+                let check = self.node_expr(mod_map, module, &stmt.check);
+                let not_check = self.add_node(Node::Unary {
+                    operator: UnaryOp::Not,
+                    operand: check,
+                });
+                let check_id = self.add_node(Node::If {
+                    condition: not_check,
+                    then_block: break_block,
+                    else_block: None,
+                });
+
+                let prev = self.within_loop;
+                self.within_loop = true;
+                let body = self.node_block(mod_map, module, &stmt.body);
+                self.within_loop = prev;
+
+                // insert the check into the head of the body
+                let body_node = self
+                    .get_mut_node(body)
+                    .expect("failed to get while loop body");
+                match body_node {
+                    Node::Block { statements } => statements.insert(0, check_id),
+                    _ => panic!("while body must be a block"),
+                }
+
+                vec![self.add_node(Node::Loop { body })]
+            }
+            Stmt::For(stmt) => {
+                // set up the identifier for bindings
+                let binding_id = self.add_node(Node::Identifier {
+                    module: None,
+                    name: stmt.binding.name,
+                });
+                let var_decl_id = self.add_node(Node::VarDecl {
+                    public: false,
+                    ident: binding_id,
+                });
 
                 let scope_pos = module
-                    .get_scope_pos(param.id)
-                    .expect("missing scope position for function paramater");
+                    .get_scope_pos(stmt.binding.id)
+                    .expect("missing scope position for loop for stmt");
                 let binding = module
-                    .find_binding(scope_pos, param.name)
+                    .find_binding(scope_pos, stmt.binding.name)
                     .expect("missing binding for function parameter");
 
-                noder.tree.symbol_map.add(binding.id, ident_id);
+                self.tree.symbol_map.add(binding.id, binding_id);
+
+                let start_id = self.node_expr(mod_map, module, &stmt.range.start);
+                let initial_assign_id = self.add_node(Node::Assign {
+                    target: binding_id,
+                    value: start_id,
+                });
+
+                let break_id = self.add_node(Node::Break);
+                let break_block = self.add_node(Node::Block {
+                    statements: vec![break_id],
+                });
+
+                let end_id = self.node_expr(mod_map, module, &stmt.range.end);
+
+                let comp_op = match stmt.range.inclusive {
+                    true => BinaryOp::GreaterThan,
+                    false => BinaryOp::GreaterThanOrEqual,
+                };
+
+                let condition_id = self.add_node(Node::Binary {
+                    left: binding_id,
+                    operator: comp_op,
+                    right: end_id,
+                });
+                let check_id = self.add_node(Node::If {
+                    condition: condition_id,
+                    then_block: break_block,
+                    else_block: None,
+                });
+
+                let one_id = self.add_node(Node::IntLiteral(1));
+                let inc_add_id = self.add_node(Node::Binary {
+                    left: binding_id,
+                    operator: BinaryOp::Add,
+                    right: one_id,
+                });
+                let increment_id = self.add_node(Node::Assign {
+                    target: binding_id,
+                    value: inc_add_id,
+                });
+
+                let prev = self.within_loop;
+                self.within_loop = true;
+                let body = self.node_block(mod_map, module, &stmt.body);
+                self.within_loop = prev;
+
+                // insert the check into the head of the body and the increment into the tail
+                let body_node = self
+                    .get_mut_node(body)
+                    .expect("failed to get while loop body");
+                match body_node {
+                    Node::Block { statements } => {
+                        statements.insert(0, check_id);
+                        statements.push(increment_id);
+                    }
+                    _ => panic!("while body must be a block"),
+                }
+
+                vec![
+                    var_decl_id,
+                    initial_assign_id,
+                    self.add_node(Node::Loop { body }),
+                ]
             }
+            Stmt::Break => {
+                if !self.within_loop {
+                    panic!("break keywords must appear within loops")
+                }
 
-            let return_type = node_type_spec(&noder.tree, module, &decl.function_type.return_type);
+                vec![self.add_node(Node::Break)]
+            }
+            Stmt::Continue => {
+                if !self.within_loop {
+                    panic!("continue keywords must appear within loops")
+                }
 
-            // Look up the ident_id registered in the pre-pass (handles forward references and
-            // self-recursion).
-            let scope_pos = module
-                .get_scope_pos(decl.id)
-                .expect("missing scope_pos for function");
-            let binding = module
-                .find_binding(scope_pos, decl.name)
-                .expect("missing binding for function");
-            let ident_id = *noder
-                .tree
-                .symbol_map
-                .get(binding.id)
-                .expect("function not pre-registered in symbol_map");
-
-            let body_id = node_fn_body(noder, mod_map, module, &decl.body, return_type);
-            let func_id = noder.add_root_node(Node::FunctionDecl {
-                public: decl.public,
-                ident: ident_id,
-                params,
-                body: body_id,
-            });
-
-            let func_type = ast::TypeSpec::Function(decl.function_type.clone());
-            let func_type = node_type_spec(&noder.tree, module, &func_type);
-
-            // ident_id type was already added in pre-pass; only add for the FunctionDecl node.
-            noder.tree.type_map.add(func_id, func_type);
-        }
-        Decl::Type(decl) => {
-            let scope_pos = module
-                .get_scope_pos(decl.id)
-                .expect("missing scope_pos for type decl");
-            let binding = module
-                .find_binding(scope_pos, decl.name)
-                .expect("missing binding for type decl");
-            let ident_id = *noder
-                .tree
-                .symbol_map
-                .get(binding.id)
-                .expect("type not pre-registered in symbol_map");
-
-            let decl_id = noder.add_root_node(Node::TypeDecl { ident: ident_id });
-            let type_spec = node_type_spec(&noder.tree, module, &decl.type_spec);
-            noder.tree.type_map.add(decl_id, type_spec);
-        }
-        Decl::Const(decl) => {
-            let scope_pos = module
-                .get_scope_pos(decl.id)
-                .expect("missing scope_pos for const decl");
-            let binding = module
-                .find_binding(scope_pos, decl.name)
-                .expect("missing binding for const decl");
-            let ident_id = *noder
-                .tree
-                .symbol_map
-                .get(binding.id)
-                .expect("const not pre-registered in symbol_map");
-
-            noder.add_root_node(Node::VarDecl {
-                public: decl.public,
-                ident: ident_id,
-            });
-            let value_node = node_expr(noder, mod_map, module, &decl.value);
-            noder.add_root_node(Node::Assign {
-                target: ident_id,
-                value: value_node,
-            });
-        }
-        Decl::Var(decl) => {
-            let scope_pos = module
-                .get_scope_pos(decl.id)
-                .expect("missing scope_pos for var decl");
-            let binding = module
-                .find_binding(scope_pos, decl.name)
-                .expect("missing binding for var decl");
-            let ident_id = *noder
-                .tree
-                .symbol_map
-                .get(binding.id)
-                .expect("var not pre-registered in symbol_map");
-
-            noder.add_root_node(Node::VarDecl {
-                public: decl.public,
-                ident: ident_id,
-            });
-            let value_node = node_expr(noder, mod_map, module, &decl.value);
-            noder.add_root_node(Node::Assign {
-                target: ident_id,
-                value: value_node,
-            });
-        }
-        Decl::Use(_) => { /* ignore these since they're handled by the parser */ }
-        Decl::Mod(_) => { /* ignore these since they're handled by the parser */ }
-        Decl::Invalid => {
-            noder.add_root_node(Node::Invalid);
-        }
-    }
-}
-
-fn node_fn_body(
-    noder: &mut Noder,
-    mod_map: &HashMap<StrID, Module>,
-    module: &ParseModule,
-    block: &BlockStmt,
-    return_type: TypeSpec,
-) -> NodeID {
-    let mut stmt_ids = vec![];
-    for stmt in &block.statements {
-        let ids = node_stmt(noder, mod_map, module, stmt);
-        stmt_ids.extend(ids);
-    }
-
-    // we allow the final return in a function to be omitted if the return type is the
-    // unit type we need to ensure we add that return in here though so that we're ready
-    // for the MIR construction
-    if return_type == TypeSpec::Unit {
-        match block.statements.last() {
-            Some(Stmt::Return(_)) => { /* we're good, the final statement is a return */ }
-            Some(_) | None => {
-                let ret_stmt = &Stmt::Return(ReturnStmt { value: None });
-                let return_id = node_stmt(noder, mod_map, module, ret_stmt);
-                stmt_ids.push(*return_id.first().expect("failed to node statement"))
+                vec![self.add_node(Node::Continue)]
             }
         }
     }
 
-    noder.add_node(Node::Block {
-        statements: stmt_ids,
-    })
-}
+    fn node_pattern(&mut self, module: &ParseModule, pattern: &Pattern) -> NodeID {
+        match pattern {
+            Pattern::IntLiteral(pat) => self.add_node(Node::Pattern(PatternNode::IntLiteral(*pat))),
+            Pattern::UIntLiteral(pat) => {
+                self.add_node(Node::Pattern(PatternNode::UIntLiteral(*pat)))
+            }
+            Pattern::StringLiteral(pat) => {
+                self.add_node(Node::Pattern(PatternNode::StringLiteral(*pat)))
+            }
+            Pattern::BoolLiteral(pat) => {
+                self.add_node(Node::Pattern(PatternNode::BoolLiteral(*pat)))
+            }
+            Pattern::FloatLiteral(pat) => {
+                self.add_node(Node::Pattern(PatternNode::FloatLiteral(*pat)))
+            }
+            Pattern::TypeSpec(pat) => {
+                let mut payload = None;
+                if let Payload::Some(pay) = pat.payload {
+                    let payload_id = self.add_node(Node::Identifier {
+                        name: pay,
+                        module: None,
+                    });
 
-fn node_block(
-    noder: &mut Noder,
-    mod_map: &HashMap<StrID, Module>,
-    module: &ParseModule,
-    block: &BlockStmt,
-) -> NodeID {
-    let mut stmt_ids = vec![];
-    for stmt in &block.statements {
-        let ids = node_stmt(noder, mod_map, module, stmt);
-        stmt_ids.extend(ids);
+                    let scope_pos = module
+                        .get_scope_pos(pat.id)
+                        .expect("missing scope_posfor var decl");
+                    let binding = module
+                        .find_binding(scope_pos, pay)
+                        .expect("missing binding for var decl");
+
+                    self.tree.symbol_map.add(binding.id, payload_id);
+                    payload = Some(payload_id)
+                }
+
+                let node_id = self.add_node(Node::Pattern(PatternNode::TypeSpec(TypeSpecPat {
+                    payload,
+                })));
+
+                // we add the type spec during the noding phase for type specs because otherwise we would
+                // loose the type information. The hir tree only tracks type information in
+                // the type_map, not on the individual nodes like the ast.
+                let type_spec = self.node_type_spec(module, &pat.type_spec);
+                self.tree.type_map.add(node_id, type_spec);
+
+                node_id
+            }
+            Pattern::EnumVariant(pat) => {
+                let mut enum_name = None;
+                if let Some(ident) = &pat.enum_name {
+                    let scope_pos = module
+                        .get_scope_pos(pat.id)
+                        .expect("missing scope position for enum variant");
+                    let binding = module
+                        .find_binding(scope_pos, ident.name)
+                        .expect("can not find binding for enum variant");
+                    let ident_node = self
+                        .tree
+                        .symbol_map
+                        .get(binding.id)
+                        .expect("failed to find declaration node for the enum variant");
+
+                    enum_name = Some(*ident_node);
+                }
+
+                let mut payload = None;
+                if let Payload::Some(pay) = pat.payload {
+                    let payload_ident = self.add_node(Node::Identifier {
+                        name: pay,
+                        module: None,
+                    });
+
+                    let scope_pos = module
+                        .get_scope_pos(pat.id)
+                        .expect("missing scope_posfor var enum variant pattern payload");
+                    let binding = module
+                        .find_binding(scope_pos, pay)
+                        .expect("missing binding for enum variant pattern payload");
+
+                    self.tree.symbol_map.add(binding.id, payload_ident);
+                    payload = Some(payload_ident)
+                }
+
+                self.add_node(Node::Pattern(PatternNode::EnumVariant(EnumVariantPat {
+                    enum_name,
+                    variant: pat.variant,
+                    payload,
+                })))
+            }
+            Pattern::Identifier(pat) => {
+                // Identifiers are turned into Default patterns with the identifier as the payload
+                let payload_ident = self.add_node(Node::Identifier {
+                    name: pat.name,
+                    module: None,
+                });
+
+                let scope_pos = module
+                    .get_scope_pos(pat.id)
+                    .expect("missing scope_posfor var enum variant pattern payload");
+                let binding = module
+                    .find_binding(scope_pos, pat.name)
+                    .expect("missing binding for enum variant pattern payload");
+
+                self.tree.symbol_map.add(binding.id, payload_ident);
+
+                let payload = Some(payload_ident);
+                self.add_node(Node::Pattern(PatternNode::Default(DefaultPat { payload })))
+            }
+            Pattern::ModuleIdentifier(_) => {
+                panic!("no module identifier patterns should exist at this point in the hir")
+            }
+            Pattern::Default => self.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
+                payload: None,
+            }))),
+        }
     }
 
-    noder.add_node(Node::Block {
-        statements: stmt_ids,
-    })
+    fn node_let(
+        &mut self,
+        mod_map: &HashMap<StrID, Module>,
+        module: &ParseModule,
+        stmt: &LetStmt,
+    ) -> Vec<NodeID> {
+        let mut nodes = vec![];
+        let mut arms = vec![];
+        let value_id = self.node_expr(mod_map, module, &stmt.value);
+
+        match &stmt.pattern {
+            Pattern::EnumVariant(pat) => {
+                if stmt.except == LetExcept::None {
+                    panic!("missing exception handler for this pattern")
+                }
+
+                if let Payload::Some(pay) = pat.payload {
+                    // let .ident(p) = value
+                    //
+                    // decl outer_p
+                    // match value {
+                    //   .ident(inner_p) { outer_p = inner_p }
+                    //   ...
+                    // }
+
+                    let pattern = self.node_pattern(module, &stmt.pattern);
+
+                    // lookup the payload node id
+                    let scope_pos = module
+                        .get_scope_pos(pat.id)
+                        .expect("missing scope_posfor var enum variant pattern payload");
+                    let binding = module
+                        .find_binding(scope_pos, pay)
+                        .expect("missing binding for enum variant pattern payload");
+                    let payload_id = *self
+                        .tree
+                        .symbol_map
+                        .get(binding.id)
+                        .expect("missing payload id for enum pattern");
+
+                    let outer_ident = self.add_node(Node::Identifier {
+                        name: pay,
+                        module: None,
+                    });
+                    nodes.push(self.add_node(Node::VarDecl {
+                        public: false,
+                        ident: outer_ident,
+                    }));
+
+                    let assign_id = self.add_node(Node::Assign {
+                        target: outer_ident,
+                        value: payload_id,
+                    });
+                    let match_body = self.add_node(Node::Block {
+                        statements: vec![assign_id],
+                    });
+
+                    let scope_pos = module
+                        .get_scope_pos(pat.id)
+                        .expect("missing scope_posfor var enum variant pattern payload");
+                    let binding = module
+                        .find_binding(scope_pos, pay)
+                        .expect("missing binding for enum variant pattern payload");
+
+                    // Now that we've wired up the assignment we need to update the symbol_map to point
+                    // to our outer_ident node instead of the inner_ident node
+                    self.tree.symbol_map.set(binding.id, outer_ident);
+
+                    let arm = self.add_node(Node::MatchArm {
+                        pattern,
+                        body: match_body,
+                    });
+                    arms.push(arm);
+                } else {
+                    // let .ident = value
+                    //
+                    // match value {
+                    //   .ident { }
+                    //   ...
+                    // }
+
+                    let pattern = self.node_pattern(module, &stmt.pattern);
+                    let empty_body = self.add_node(Node::Block { statements: vec![] });
+                    let arm = self.add_node(Node::MatchArm {
+                        pattern,
+                        body: empty_body,
+                    });
+                    arms.push(arm);
+                }
+            }
+            Pattern::Identifier(ident) => {
+                // let ident = value
+                //
+                // decl ident
+                // ident = value
+
+                if stmt.except != LetExcept::None {
+                    panic!(
+                        "identifier expressions can never faile and should not have an except handle"
+                    )
+                }
+
+                let ident_id = self.add_node(Node::Identifier {
+                    name: ident.name,
+                    module: None,
+                });
+                nodes.push(self.add_node(Node::VarDecl {
+                    public: false,
+                    ident: ident_id,
+                }));
+
+                let scope_pos = module
+                    .get_scope_pos(ident.id)
+                    .expect("missing scope_posfor function");
+                let binding = module
+                    .find_binding(scope_pos, ident.name)
+                    .expect("missing binding for function");
+
+                self.tree.symbol_map.add(binding.id, ident_id);
+
+                let assign_id = self.add_node(Node::Assign {
+                    target: ident_id,
+                    value: value_id,
+                });
+                nodes.push(assign_id);
+
+                return nodes;
+            }
+            Pattern::TypeSpec(pat) => {
+                if stmt.except == LetExcept::None {
+                    panic!("missing exception handler for this pattern")
+                }
+
+                match pat.payload {
+                    Payload::Some(pay) => {
+                        // let type(ident) = value
+                        //
+                        // decl outer_ident
+                        // match value {
+                        //   type(inner_ident) => { outer_ident = inner_ident }
+                        //   ...
+                        // }
+
+                        let pattern = self.node_pattern(module, &stmt.pattern);
+
+                        // lookup the payload node id
+                        let scope_pos = module
+                            .get_scope_pos(pat.id)
+                            .expect("missing scope_posfor var enum variant pattern payload");
+                        let binding = module
+                            .find_binding(scope_pos, pay)
+                            .expect("missing binding for enum variant pattern payload");
+                        let payload_id = *self
+                            .tree
+                            .symbol_map
+                            .get(binding.id)
+                            .expect("missing payload id for enum pattern");
+
+                        let outer_ident = self.add_node(Node::Identifier {
+                            name: pay,
+                            module: None,
+                        });
+                        nodes.push(self.add_node(Node::VarDecl {
+                            public: false,
+                            ident: outer_ident,
+                        }));
+
+                        let assign_id = self.add_node(Node::Assign {
+                            target: outer_ident,
+                            value: payload_id,
+                        });
+                        let match_body = self.add_node(Node::Block {
+                            statements: vec![assign_id],
+                        });
+
+                        let scope_pos = module
+                            .get_scope_pos(pat.id)
+                            .expect("missing scope_posfor var enum variant pattern payload");
+                        let binding = module
+                            .find_binding(scope_pos, pay)
+                            .expect("missing binding for enum variant pattern payload");
+
+                        // Now that we've wired up the assignment we need to update the symbol_map to point
+                        // to our outer_ident node instead of the inner_ident node
+                        self.tree.symbol_map.set(binding.id, outer_ident);
+
+                        let arm = self.add_node(Node::MatchArm {
+                            pattern,
+                            body: match_body,
+                        });
+                        arms.push(arm);
+                    }
+                    Payload::Default => {
+                        // let type(_) = value
+                        //
+                        // match value {
+                        //   type(_) => {}
+                        //   ...
+                        // }
+
+                        let pattern = self.node_pattern(module, &stmt.pattern);
+                        let empty_body = self.add_node(Node::Block { statements: vec![] });
+                        let arm = self.add_node(Node::MatchArm {
+                            pattern,
+                            body: empty_body,
+                        });
+                        arms.push(arm);
+                    }
+                    Payload::None => panic!("type spec patterns must have a payload to be valid"),
+                }
+            }
+            _ => {
+                //
+                // let Pat = value
+                //
+                // becomes:
+                //
+                // match {
+                //     Pat { }
+                //     ...
+                // }
+
+                if stmt.except == LetExcept::None {
+                    panic!("let statement needs an exception handler")
+                }
+
+                let pat_id = self.node_pattern(module, &stmt.pattern);
+                let empty_body = self.add_node(Node::Block { statements: vec![] });
+                let arm_id = self.add_node(Node::MatchArm {
+                    pattern: pat_id,
+                    body: empty_body,
+                });
+                arms.push(arm_id)
+            }
+        }
+
+        let default_id = match &stmt.except {
+            // TODO: binding should be an identifier so we have a symbol ID so we can map to an
+            // identifer and pass it through successfully
+            LetExcept::Or { id, binding, body } => {
+                match *binding {
+                    Some(e) => {
+                        // or(e) { ... }
+                        //
+                        // becomes:
+                        //
+                        // e { ... }
+                        let ident_id = self.add_node(Node::Identifier {
+                            name: e,
+                            module: None,
+                        });
+                        let pat_id =
+                            self.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
+                                payload: Some(ident_id),
+                            })));
+
+                        let scope_pos = module
+                            .get_scope_pos(*id)
+                            .expect("missing scope position for or binding");
+                        let binding = module
+                            .find_binding(scope_pos, e)
+                            .expect("missing binding for or identifier");
+
+                        self.tree.symbol_map.add(binding.id, ident_id);
+
+                        let body_id = self.node_block(mod_map, module, body);
+
+                        self.add_node(Node::MatchArm {
+                            pattern: pat_id,
+                            body: body_id,
+                        })
+                    }
+                    None => {
+                        // or { ... }
+                        //
+                        // becomes:
+                        //
+                        // _ { ... }
+                        let pat_id =
+                            self.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
+                                payload: None,
+                            })));
+
+                        let body_id = self.node_block(mod_map, module, body);
+                        self.add_node(Node::MatchArm {
+                            pattern: pat_id,
+                            body: body_id,
+                        })
+                    }
+                }
+            }
+            LetExcept::Wrap(expr) => {
+                // wrap .Variant
+                //
+                // becomes:
+                //
+                // <wrap> { return .Variant(<wrap>) }
+                let wrap_id = self.add_node(Node::Identifier {
+                    name: str_store::WRAP,
+                    module: None,
+                });
+                let enum_id = self.node_wrap_expr(module, expr, wrap_id);
+
+                let ret_id = self.add_node(Node::Return {
+                    value: Some(enum_id),
+                });
+                let body_id = self.add_node(Node::Block {
+                    statements: vec![ret_id],
+                });
+
+                let pat_id = self.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
+                    payload: Some(wrap_id),
+                })));
+
+                self.add_node(Node::MatchArm {
+                    pattern: pat_id,
+                    body: body_id,
+                })
+            }
+            LetExcept::Panic => {
+                // !
+                //
+                // becomes:
+                //
+                // <panic> { panic(<panic>) }
+
+                // the identifier for the function call
+                let panic_fn_id = self.add_node(Node::Identifier {
+                    name: str_store::PANIC,
+                    module: None,
+                });
+
+                self.tree.type_map.add(
+                    panic_fn_id,
+                    TypeSpec::Function(FunctionType {
+                        params: vec![TypeSpec::String],
+                        return_type: Box::new(TypeSpec::Panic),
+                    }),
+                );
+
+                // the identifier for the pattern, this needs to be seperate from the function call
+                // identifier for type checking to work correctly since they need to have different
+                // underlying types
+                let panic_ident_id = self.add_node(Node::Identifier {
+                    name: str_store::PANIC,
+                    module: None,
+                });
+
+                let panic_str_id = self.add_node(Node::StringLiteral(str_store::UNDERSCORE));
+
+                let call_id = self.add_node(Node::Call {
+                    func: panic_fn_id,
+                    // TODO: eventually we need to support more flexible panics but for now just use a
+                    // constant string
+                    args: vec![panic_str_id],
+                });
+                let body_id = self.add_node(Node::Block {
+                    statements: vec![call_id],
+                });
+
+                let pat_id = self.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
+                    payload: Some(panic_ident_id),
+                })));
+                self.add_node(Node::MatchArm {
+                    pattern: pat_id,
+                    body: body_id,
+                })
+            }
+            LetExcept::None => {
+                // TODO: we need to check that this expression can not fail to match
+                // for now just panic if we hit this arm somehow
+
+                // the identifier for the function call
+                let panic_fn_id = self.add_node(Node::Identifier {
+                    name: str_store::PANIC,
+                    module: None,
+                });
+
+                self.tree.type_map.add(
+                    panic_fn_id,
+                    TypeSpec::Function(FunctionType {
+                        // TODO: this needs to be the type of the expression that's being matched or an
+                        // any type like in Go, just pick a random type for now
+                        params: vec![TypeSpec::String],
+                        return_type: Box::new(TypeSpec::Panic),
+                    }),
+                );
+
+                // the identifier for the pattern, this needs to be seperate from the function call
+                // identifier for type checking to work correctly since they need to have different
+                // underlying types
+                let panic_ident_id = self.add_node(Node::Identifier {
+                    name: str_store::PANIC,
+                    module: None,
+                });
+
+                let call_id = self.add_node(Node::Call {
+                    func: panic_fn_id,
+                    args: vec![panic_ident_id],
+                });
+                let body_id = self.add_node(Node::Block {
+                    statements: vec![call_id],
+                });
+
+                let pat_id = self.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
+                    payload: Some(panic_ident_id),
+                })));
+                self.add_node(Node::MatchArm {
+                    pattern: pat_id,
+                    body: body_id,
+                })
+            }
+        };
+
+        arms.push(default_id);
+
+        let match_id = self.add_node(Node::Match {
+            target: value_id,
+            arms,
+        });
+        nodes.push(match_id);
+
+        nodes
+    }
+
+    /// convert an abitrary expression into a wrap node for the `let .Ok = expr wrap .Err` syntax
+    fn node_wrap_expr(&mut self, module: &ParseModule, expr: &Expr, wrap_id: NodeID) -> NodeID {
+        let dot_expr = match expr {
+            Expr::DotAccess(expr) => expr,
+            _ => panic!("only dot expressions are allowed!"),
+        };
+
+        let target = match &dot_expr.target {
+            Some(target) => target,
+            // TODO: how do we check this more carfully, we need to fill in the type hole first by
+            // checking what the return value of the function is
+            None => {
+                return self.add_node(Node::EnumConstructor {
+                    target: None,
+                    variant: dot_expr.field,
+                    payload: Some(wrap_id),
+                });
+            }
+        };
+
+        let target = match target.deref() {
+            Expr::Identifier(expr) => expr,
+            // if we have a non-identifier target this isn't an enum variant
+            _ => panic!("dot expression target must be an identifier"),
+        };
+
+        let scope_pos = module
+            .get_scope_pos(target.id)
+            .expect("could not find scope for identifier");
+
+        let binding = module
+            .find_binding(scope_pos, target.name)
+            .expect("unknown identifier used in dot expression target");
+
+        // if the identifier is a declared enum type we know this is a valid enum expression
+        if !matches!(
+            binding.binding_type,
+            BindingType::Type(ast::TypeSpec::Enum(_))
+        ) {
+            panic!("can only call wrap with enum types")
+        }
+
+        let target_node = self.tree.symbol_map.get(binding.id).cloned();
+
+        let enum_constructor_id = self.add_node(Node::EnumConstructor {
+            target: target_node,
+            variant: dot_expr.field,
+            payload: Some(wrap_id),
+        });
+
+        // Look up the enum type from the symbol map
+        if let Some(type_decl_id) = self.tree.symbol_map.get(binding.id)
+            && let Some(enum_type) = self.tree.type_map.get(*type_decl_id)
+        {
+            self.tree
+                .type_map
+                .add(enum_constructor_id, enum_type.clone());
+        }
+
+        enum_constructor_id
+    }
+
+    fn node_expr(
+        &mut self,
+        mod_map: &HashMap<StrID, Module>,
+        module: &ParseModule,
+        expr: &Expr,
+    ) -> NodeID {
+        match expr {
+            Expr::IntLiteral(expr) => self.add_node(Node::IntLiteral(*expr)),
+            Expr::UIntLiteral(expr) => self.add_node(Node::UIntLiteral(*expr)),
+            Expr::FloatLiteral(expr) => self.add_node(Node::FloatLiteral(*expr)),
+            Expr::StringLiteral(expr) => self.add_node(Node::StringLiteral(*expr)),
+            Expr::BoolLiteral(expr) => self.add_node(Node::BoolLiteral(*expr)),
+            Expr::Identifier(expr) => match expr.module {
+                Some(module) => {
+                    let mod_node_tree = mod_map.get(&module).expect("failed to find module");
+                    let ident_id = mod_node_tree
+                        .find_public_decl(expr.name)
+                        .expect("failed to find module identifier");
+
+                    ident_id
+                }
+                None => {
+                    let scope_pos = module
+                        .get_scope_pos(expr.id)
+                        .expect("could not get scope for identifier");
+
+                    let binding = module
+                        .find_binding(scope_pos, expr.name)
+                        .expect("failed to find binding for identifier expression");
+
+                    let ident_id = self
+                        .tree
+                        .symbol_map
+                        .get(binding.id)
+                        .expect("identifier declaration missing from symbol map");
+
+                    *ident_id
+                }
+            },
+            Expr::Binary(expr) => {
+                let left_id = self.node_expr(mod_map, module, &expr.left);
+                let right_id = self.node_expr(mod_map, module, &expr.right);
+                self.add_node(Node::Binary {
+                    left: left_id,
+                    operator: expr.operator,
+                    right: right_id,
+                })
+            }
+            Expr::Unary(expr) => {
+                let expr_id = self.node_expr(mod_map, module, &expr.operand);
+                self.add_node(Node::Unary {
+                    operator: expr.operator,
+                    operand: expr_id,
+                })
+            }
+            Expr::Call(expr) => {
+                let func_id = self.node_expr(mod_map, module, &expr.func);
+
+                let mut args = vec![];
+                for arg in &expr.args {
+                    let param_id = self.node_expr(mod_map, module, arg);
+                    args.push(param_id);
+                }
+
+                // if the function was an enum constructor when we actually need to update the enum
+                // to contain a payload and return the EnumConstructor itself rather than creating
+                // and returning the ID for the function call.
+                let mut func_node = self
+                    .get_mut_node(func_id)
+                    .expect("failed to find function node");
+
+                if let Node::EnumConstructor { payload: p, .. } = &mut func_node {
+                    if args.len() != 1 {
+                        panic!("enum constructors can only contain a single paramater")
+                    }
+
+                    let first_arg = args.first().expect("failed to get enum value");
+                    *p = Some(*first_arg);
+                    func_id
+                } else {
+                    self.add_node(Node::Call {
+                        func: func_id,
+                        args,
+                    })
+                }
+            }
+            Expr::StructConstructor(expr) => {
+                // ensure all field names are unique
+                let mut assigned_fields = HashSet::new();
+                for field in &expr.fields {
+                    let new = assigned_fields.insert(field.name);
+                    if !new {
+                        panic!("duplicate fields in struct construction");
+                    }
+                }
+
+                let type_spec = self.node_type_spec(module, &expr.type_spec);
+                let base_type = resolve_type(&type_spec);
+                let field_types = match base_type {
+                    TypeSpec::Struct(ts) => ts.fields.clone(),
+                    _ => panic!("invalid type for struct construction"),
+                };
+
+                if expr.fields.len() > field_types.len() {
+                    panic!("too many fields for struct construction");
+                }
+                if expr.fields.len() < field_types.len() {
+                    panic!("missing fields for struct construction");
+                }
+
+                let mut fields = Vec::with_capacity(field_types.len());
+
+                for field_type in &field_types {
+                    let field = expr
+                        .fields
+                        .iter()
+                        .find(|f| f.name == field_type.name)
+                        .expect("unknown field name in struct constructor");
+
+                    let value_id = self.node_expr(mod_map, module, &field.value);
+                    let field_id = self.add_node(Node::StructConstructorField {
+                        name: field.name,
+                        value: value_id,
+                    });
+
+                    fields.push(field_id);
+                }
+
+                // Make sure we track the type here otherwise we'll loose the type
+                let struct_id = self.add_node(Node::StructConstructor { fields });
+                self.tree.type_map.add(struct_id, type_spec);
+
+                struct_id
+            }
+            Expr::Index(expr) => {
+                let target_id = self.node_expr(mod_map, module, &expr.target);
+                let idx_id = self.node_expr(mod_map, module, &expr.index);
+
+                self.add_node(Node::Index {
+                    target: target_id,
+                    index: idx_id,
+                })
+            }
+            Expr::Range(expr) => {
+                let start_id = self.node_expr(mod_map, module, &expr.start);
+                let end_id = self.node_expr(mod_map, module, &expr.end);
+                self.add_node(Node::Range {
+                    start: start_id,
+                    end: end_id,
+                })
+            }
+            Expr::DotAccess(expr) => {
+                let target = match &expr.target {
+                    Some(t) => t,
+                    None => {
+                        // if there's no target it must be an enum (and if it's not, we'll fail type
+                        // checking later)
+                        return self.add_node(Node::EnumConstructor {
+                            target: None,
+                            variant: expr.field,
+                            payload: None,
+                        });
+                    }
+                };
+
+                let target_id = self.node_expr(mod_map, module, target);
+
+                let binding = match target.deref() {
+                    Expr::Identifier(ident) => {
+                        let scope_pos = module
+                            .get_scope_pos(ident.id)
+                            .expect("could not find scope_posfor identifier");
+                        module
+                            .find_binding(scope_pos, ident.name)
+                            .expect("missing binding for already noded target")
+                    }
+                    _ => {
+                        // non-identifier targets can only be field access expressions
+                        return self.add_node(Node::FieldAccess {
+                            target: target_id,
+                            field: expr.field,
+                        });
+                    }
+                };
+
+                match binding.binding_type {
+                    BindingType::Type(ast::TypeSpec::Enum(_)) => {
+                        let enum_constructor_id = self.add_node(Node::EnumConstructor {
+                            target: Some(target_id),
+                            variant: expr.field,
+                            payload: None,
+                        });
+                        // Look up the enum type from the symbol map
+                        if let Some(type_decl_id) = self.tree.symbol_map.get(binding.id)
+                            && let Some(enum_type) = self.tree.type_map.get(*type_decl_id)
+                        {
+                            self.tree
+                                .type_map
+                                .add(enum_constructor_id, enum_type.clone());
+                        }
+                        enum_constructor_id
+                    }
+                    _ => {
+                        // identifiers can still be field access expressions of the identifier is
+                        // not an enum type
+                        self.add_node(Node::FieldAccess {
+                            target: target_id,
+                            field: expr.field,
+                        })
+                    }
+                }
+            }
+            Expr::MetaType(expr) => {
+                let node_id = self.add_node(Node::MetaType);
+                let ts = self.node_type_spec(module, &expr.type_spec);
+                self.tree.type_map.add(node_id, ts);
+
+                node_id
+            }
+            Expr::Alloc(expr) => {
+                let meta_id = self.node_expr(mod_map, module, &expr.meta_type);
+                let mut options = vec![];
+                for opt in &expr.options {
+                    let opt_id = self.node_expr(mod_map, module, opt);
+                    options.push(opt_id);
+                }
+
+                let node_id = self.add_node(Node::Alloc {
+                    meta_type: meta_id,
+                    options,
+                });
+
+                self.tree.type_map.add(node_id, TypeSpec::UnsafePtr);
+
+                node_id
+            }
+            Expr::Free(expr) => {
+                let ptr_id = self.node_expr(mod_map, module, &expr.expr);
+                self.add_node(Node::Free { expr: ptr_id })
+            }
+        }
+    }
 }
 
 /// Walk through leading dereferences to find the root identifier of an lvalue expression.
@@ -636,1076 +1702,6 @@ fn lvalue_root(expr: &ast::Expr) -> Option<&IdentifierExpr> {
         //   `mut p = slot(); *p = 10`
         // This keeps the type system simple sinc mutability always lives solely on bindings.
         _ => None,
-    }
-}
-
-fn node_stmt(
-    noder: &mut Noder,
-    mod_map: &HashMap<StrID, Module>,
-    module: &ParseModule,
-    stmt: &Stmt,
-) -> Vec<NodeID> {
-    match stmt {
-        Stmt::Let(stmt) => node_let(noder, mod_map, module, stmt),
-        Stmt::Assign(stmt) => {
-            // Enforce mutability: walk through the l_value expression to find the root
-            // identifier, then check that it is mutable. This means `let p = &x` blocks
-            // both `p = &y` and `*p = y` since both are mutations through the same binding.
-            match lvalue_root(&stmt.lvalue) {
-                Some(ident) => {
-                    let scope_pos = module
-                        .get_scope_pos(ident.id)
-                        .expect("could not get scope for assignment lvalue");
-                    let binding = module
-                        .find_binding(scope_pos, ident.name)
-                        .expect("failed to find binding for assignment lvalue");
-                    if !binding.mutable {
-                        panic!("assignment to immutable variable");
-                    }
-                }
-                None => panic!(
-                    "unsupported assignment: assignment target has no root binding as is therefore considered immutable"
-                ),
-            }
-
-            let l_id = node_expr(noder, mod_map, module, &stmt.lvalue);
-            let r_id = node_expr(noder, mod_map, module, &stmt.rvalue);
-
-            vec![noder.add_node(Node::Assign {
-                target: l_id,
-                value: r_id,
-            })]
-        }
-        Stmt::Expr(stmt) => vec![node_expr(noder, mod_map, module, &stmt.expr)],
-        Stmt::Return(stmt) => {
-            let value = if let Some(v) = &stmt.value {
-                let value_id = node_expr(noder, mod_map, module, v);
-                Some(value_id)
-            } else {
-                None
-            };
-
-            vec![noder.add_node(Node::Return { value })]
-        }
-        Stmt::Defer(stmt) => {
-            let block_id = node_block(noder, mod_map, module, &stmt.block);
-            vec![noder.add_node(Node::Defer { block: block_id })]
-        }
-        Stmt::Match(stmt) => {
-            let target_id = node_expr(noder, mod_map, module, &stmt.target);
-            let mut arms = vec![];
-            for arm in &stmt.arms {
-                let pat_id = node_pattern(noder, module, &arm.pattern);
-                let block_id = node_block(noder, mod_map, module, &arm.body);
-
-                let arm_id = noder.add_node(Node::MatchArm {
-                    pattern: pat_id,
-                    body: block_id,
-                });
-
-                arms.push(arm_id);
-            }
-
-            vec![noder.add_node(Node::Match {
-                target: target_id,
-                arms,
-            })]
-        }
-        Stmt::Block(stmt) => vec![node_block(noder, mod_map, module, stmt)],
-        Stmt::If(stmt) => {
-            let check_id = node_expr(noder, mod_map, module, &stmt.check);
-            let success_id = node_block(noder, mod_map, module, &stmt.success);
-            let fail_id = stmt
-                .fail
-                .as_ref()
-                .map(|fail| node_block(noder, mod_map, module, fail));
-
-            vec![noder.add_node(Node::If {
-                condition: check_id,
-                then_block: success_id,
-                else_block: fail_id,
-            })]
-        }
-        Stmt::Loop(stmt) => {
-            let prev = noder.within_loop;
-            noder.within_loop = true;
-            let body = node_block(noder, mod_map, module, &stmt.body);
-            noder.within_loop = prev;
-
-            vec![noder.add_node(Node::Loop { body })]
-        }
-        Stmt::While(stmt) => {
-            let break_id = noder.add_node(Node::Break);
-            let break_block = noder.add_node(Node::Block {
-                statements: vec![break_id],
-            });
-
-            let check = node_expr(noder, mod_map, module, &stmt.check);
-            let not_check = noder.add_node(Node::Unary {
-                operator: UnaryOp::Not,
-                operand: check,
-            });
-            let check_id = noder.add_node(Node::If {
-                condition: not_check,
-                then_block: break_block,
-                else_block: None,
-            });
-
-            let prev = noder.within_loop;
-            noder.within_loop = true;
-            let body = node_block(noder, mod_map, module, &stmt.body);
-            noder.within_loop = prev;
-
-            // insert the check into the head of the body
-            let body_node = noder
-                .get_mut_node(body)
-                .expect("failed to get while loop body");
-            match body_node {
-                Node::Block { statements } => statements.insert(0, check_id),
-                _ => panic!("while body must be a block"),
-            }
-
-            vec![noder.add_node(Node::Loop { body })]
-        }
-        Stmt::For(stmt) => {
-            // set up the identifier for bindings
-            let binding_id = noder.add_node(Node::Identifier {
-                module: None,
-                name: stmt.binding.name,
-            });
-            let var_decl_id = noder.add_node(Node::VarDecl {
-                public: false,
-                ident: binding_id,
-            });
-
-            let scope_pos = module
-                .get_scope_pos(stmt.binding.id)
-                .expect("missing scope position for loop for stmt");
-            let binding = module
-                .find_binding(scope_pos, stmt.binding.name)
-                .expect("missing binding for function parameter");
-
-            noder.tree.symbol_map.add(binding.id, binding_id);
-
-            let start_id = node_expr(noder, mod_map, module, &stmt.range.start);
-            let initial_assign_id = noder.add_node(Node::Assign {
-                target: binding_id,
-                value: start_id,
-            });
-
-            let break_id = noder.add_node(Node::Break);
-            let break_block = noder.add_node(Node::Block {
-                statements: vec![break_id],
-            });
-
-            let end_id = node_expr(noder, mod_map, module, &stmt.range.end);
-
-            let comp_op = match stmt.range.inclusive {
-                true => BinaryOp::GreaterThan,
-                false => BinaryOp::GreaterThanOrEqual,
-            };
-
-            let condition_id = noder.add_node(Node::Binary {
-                left: binding_id,
-                operator: comp_op,
-                right: end_id,
-            });
-            let check_id = noder.add_node(Node::If {
-                condition: condition_id,
-                then_block: break_block,
-                else_block: None,
-            });
-
-            let one_id = noder.add_node(Node::IntLiteral(1));
-            let inc_add_id = noder.add_node(Node::Binary {
-                left: binding_id,
-                operator: BinaryOp::Add,
-                right: one_id,
-            });
-            let increment_id = noder.add_node(Node::Assign {
-                target: binding_id,
-                value: inc_add_id,
-            });
-
-            let prev = noder.within_loop;
-            noder.within_loop = true;
-            let body = node_block(noder, mod_map, module, &stmt.body);
-            noder.within_loop = prev;
-
-            // insert the check into the head of the body and the increment into the tail
-            let body_node = noder
-                .get_mut_node(body)
-                .expect("failed to get while loop body");
-            match body_node {
-                Node::Block { statements } => {
-                    statements.insert(0, check_id);
-                    statements.push(increment_id);
-                }
-                _ => panic!("while body must be a block"),
-            }
-
-            vec![
-                var_decl_id,
-                initial_assign_id,
-                noder.add_node(Node::Loop { body }),
-            ]
-        }
-        Stmt::Break => {
-            if !noder.within_loop {
-                panic!("break keywords must appear within loops")
-            }
-
-            vec![noder.add_node(Node::Break)]
-        }
-        Stmt::Continue => {
-            if !noder.within_loop {
-                panic!("continue keywords must appear within loops")
-            }
-
-            vec![noder.add_node(Node::Continue)]
-        }
-    }
-}
-
-fn node_pattern(noder: &mut Noder, module: &ParseModule, pattern: &Pattern) -> NodeID {
-    match pattern {
-        Pattern::IntLiteral(pat) => noder.add_node(Node::Pattern(PatternNode::IntLiteral(*pat))),
-        Pattern::UIntLiteral(pat) => noder.add_node(Node::Pattern(PatternNode::UIntLiteral(*pat))),
-        Pattern::StringLiteral(pat) => {
-            noder.add_node(Node::Pattern(PatternNode::StringLiteral(*pat)))
-        }
-        Pattern::BoolLiteral(pat) => noder.add_node(Node::Pattern(PatternNode::BoolLiteral(*pat))),
-        Pattern::FloatLiteral(pat) => {
-            noder.add_node(Node::Pattern(PatternNode::FloatLiteral(*pat)))
-        }
-        Pattern::TypeSpec(pat) => {
-            let mut payload = None;
-            if let Payload::Some(pay) = pat.payload {
-                let payload_id = noder.add_node(Node::Identifier {
-                    name: pay,
-                    module: None,
-                });
-
-                let scope_pos = module
-                    .get_scope_pos(pat.id)
-                    .expect("missing scope_posfor var decl");
-                let binding = module
-                    .find_binding(scope_pos, pay)
-                    .expect("missing binding for var decl");
-
-                noder.tree.symbol_map.add(binding.id, payload_id);
-                payload = Some(payload_id)
-            }
-
-            let node_id = noder.add_node(Node::Pattern(PatternNode::TypeSpec(TypeSpecPat {
-                payload,
-            })));
-
-            // we add the type spec during the noding phase for type specs because otherwise we would
-            // loose the type information. The hir tree only tracks type information in
-            // the type_map, not on the individual nodes like the ast.
-            let type_spec = node_type_spec(&noder.tree, module, &pat.type_spec);
-            noder.tree.type_map.add(node_id, type_spec);
-
-            node_id
-        }
-        Pattern::EnumVariant(pat) => {
-            let mut enum_name = None;
-            if let Some(ident) = &pat.enum_name {
-                let scope_pos = module
-                    .get_scope_pos(pat.id)
-                    .expect("missing scope position for enum variant");
-                let binding = module
-                    .find_binding(scope_pos, ident.name)
-                    .expect("can not find binding for enum variant");
-                let ident_node = noder
-                    .tree
-                    .symbol_map
-                    .get(binding.id)
-                    .expect("failed to find declaration node for the enum variant");
-
-                enum_name = Some(*ident_node);
-            }
-
-            let mut payload = None;
-            if let Payload::Some(pay) = pat.payload {
-                let payload_ident = noder.add_node(Node::Identifier {
-                    name: pay,
-                    module: None,
-                });
-
-                let scope_pos = module
-                    .get_scope_pos(pat.id)
-                    .expect("missing scope_posfor var enum variant pattern payload");
-                let binding = module
-                    .find_binding(scope_pos, pay)
-                    .expect("missing binding for enum variant pattern payload");
-
-                noder.tree.symbol_map.add(binding.id, payload_ident);
-                payload = Some(payload_ident)
-            }
-
-            noder.add_node(Node::Pattern(PatternNode::EnumVariant(EnumVariantPat {
-                enum_name,
-                variant: pat.variant,
-                payload,
-            })))
-        }
-        Pattern::Identifier(pat) => {
-            // Identifiers are turned into Default patterns with the identifier as the payload
-            let payload_ident = noder.add_node(Node::Identifier {
-                name: pat.name,
-                module: None,
-            });
-
-            let scope_pos = module
-                .get_scope_pos(pat.id)
-                .expect("missing scope_posfor var enum variant pattern payload");
-            let binding = module
-                .find_binding(scope_pos, pat.name)
-                .expect("missing binding for enum variant pattern payload");
-
-            noder.tree.symbol_map.add(binding.id, payload_ident);
-
-            let payload = Some(payload_ident);
-            noder.add_node(Node::Pattern(PatternNode::Default(DefaultPat { payload })))
-        }
-        Pattern::ModuleIdentifier(_) => {
-            panic!("no module identifier patterns should exist at this point in the hir")
-        }
-        Pattern::Default => noder.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
-            payload: None,
-        }))),
-    }
-}
-
-fn node_let(
-    noder: &mut Noder,
-    mod_map: &HashMap<StrID, Module>,
-    module: &ParseModule,
-    stmt: &LetStmt,
-) -> Vec<NodeID> {
-    let mut nodes = vec![];
-    let mut arms = vec![];
-    let value_id = node_expr(noder, mod_map, module, &stmt.value);
-
-    match &stmt.pattern {
-        Pattern::EnumVariant(pat) => {
-            if stmt.except == LetExcept::None {
-                panic!("missing exception handler for this pattern")
-            }
-
-            if let Payload::Some(pay) = pat.payload {
-                // let .ident(p) = value
-                //
-                // decl outer_p
-                // match value {
-                //   .ident(inner_p) { outer_p = inner_p }
-                //   ...
-                // }
-
-                let pattern = node_pattern(noder, module, &stmt.pattern);
-
-                // lookup the payload node id
-                let scope_pos = module
-                    .get_scope_pos(pat.id)
-                    .expect("missing scope_posfor var enum variant pattern payload");
-                let binding = module
-                    .find_binding(scope_pos, pay)
-                    .expect("missing binding for enum variant pattern payload");
-                let payload_id = *noder
-                    .tree
-                    .symbol_map
-                    .get(binding.id)
-                    .expect("missing payload id for enum pattern");
-
-                let outer_ident = noder.add_node(Node::Identifier {
-                    name: pay,
-                    module: None,
-                });
-                nodes.push(noder.add_node(Node::VarDecl {
-                    public: false,
-                    ident: outer_ident,
-                }));
-
-                let assign_id = noder.add_node(Node::Assign {
-                    target: outer_ident,
-                    value: payload_id,
-                });
-                let match_body = noder.add_node(Node::Block {
-                    statements: vec![assign_id],
-                });
-
-                let scope_pos = module
-                    .get_scope_pos(pat.id)
-                    .expect("missing scope_posfor var enum variant pattern payload");
-                let binding = module
-                    .find_binding(scope_pos, pay)
-                    .expect("missing binding for enum variant pattern payload");
-
-                // Now that we've wired up the assignment we need to update the symbol_map to point
-                // to our outer_ident node instead of the inner_ident node
-                noder.tree.symbol_map.set(binding.id, outer_ident);
-
-                let arm = noder.add_node(Node::MatchArm {
-                    pattern,
-                    body: match_body,
-                });
-                arms.push(arm);
-            } else {
-                // let .ident = value
-                //
-                // match value {
-                //   .ident { }
-                //   ...
-                // }
-
-                let pattern = node_pattern(noder, module, &stmt.pattern);
-                let empty_body = noder.add_node(Node::Block { statements: vec![] });
-                let arm = noder.add_node(Node::MatchArm {
-                    pattern,
-                    body: empty_body,
-                });
-                arms.push(arm);
-            }
-        }
-        Pattern::Identifier(ident) => {
-            // let ident = value
-            //
-            // decl ident
-            // ident = value
-
-            if stmt.except != LetExcept::None {
-                panic!(
-                    "identifier expressions can never faile and should not have an except handle"
-                )
-            }
-
-            let ident_id = noder.add_node(Node::Identifier {
-                name: ident.name,
-                module: None,
-            });
-            nodes.push(noder.add_node(Node::VarDecl {
-                public: false,
-                ident: ident_id,
-            }));
-
-            let scope_pos = module
-                .get_scope_pos(ident.id)
-                .expect("missing scope_posfor function");
-            let binding = module
-                .find_binding(scope_pos, ident.name)
-                .expect("missing binding for function");
-
-            noder.tree.symbol_map.add(binding.id, ident_id);
-
-            let assign_id = noder.add_node(Node::Assign {
-                target: ident_id,
-                value: value_id,
-            });
-            nodes.push(assign_id);
-
-            return nodes;
-        }
-        Pattern::TypeSpec(pat) => {
-            if stmt.except == LetExcept::None {
-                panic!("missing exception handler for this pattern")
-            }
-
-            match pat.payload {
-                Payload::Some(pay) => {
-                    // let type(ident) = value
-                    //
-                    // decl outer_ident
-                    // match value {
-                    //   type(inner_ident) => { outer_ident = inner_ident }
-                    //   ...
-                    // }
-
-                    let pattern = node_pattern(noder, module, &stmt.pattern);
-
-                    // lookup the payload node id
-                    let scope_pos = module
-                        .get_scope_pos(pat.id)
-                        .expect("missing scope_posfor var enum variant pattern payload");
-                    let binding = module
-                        .find_binding(scope_pos, pay)
-                        .expect("missing binding for enum variant pattern payload");
-                    let payload_id = *noder
-                        .tree
-                        .symbol_map
-                        .get(binding.id)
-                        .expect("missing payload id for enum pattern");
-
-                    let outer_ident = noder.add_node(Node::Identifier {
-                        name: pay,
-                        module: None,
-                    });
-                    nodes.push(noder.add_node(Node::VarDecl {
-                        public: false,
-                        ident: outer_ident,
-                    }));
-
-                    let assign_id = noder.add_node(Node::Assign {
-                        target: outer_ident,
-                        value: payload_id,
-                    });
-                    let match_body = noder.add_node(Node::Block {
-                        statements: vec![assign_id],
-                    });
-
-                    let scope_pos = module
-                        .get_scope_pos(pat.id)
-                        .expect("missing scope_posfor var enum variant pattern payload");
-                    let binding = module
-                        .find_binding(scope_pos, pay)
-                        .expect("missing binding for enum variant pattern payload");
-
-                    // Now that we've wired up the assignment we need to update the symbol_map to point
-                    // to our outer_ident node instead of the inner_ident node
-                    noder.tree.symbol_map.set(binding.id, outer_ident);
-
-                    let arm = noder.add_node(Node::MatchArm {
-                        pattern,
-                        body: match_body,
-                    });
-                    arms.push(arm);
-                }
-                Payload::Default => {
-                    // let type(_) = value
-                    //
-                    // match value {
-                    //   type(_) => {}
-                    //   ...
-                    // }
-
-                    let pattern = node_pattern(noder, module, &stmt.pattern);
-                    let empty_body = noder.add_node(Node::Block { statements: vec![] });
-                    let arm = noder.add_node(Node::MatchArm {
-                        pattern,
-                        body: empty_body,
-                    });
-                    arms.push(arm);
-                }
-                Payload::None => panic!("type spec patterns must have a payload to be valid"),
-            }
-        }
-        _ => {
-            //
-            // let Pat = value
-            //
-            // becomes:
-            //
-            // match {
-            //     Pat { }
-            //     ...
-            // }
-
-            if stmt.except == LetExcept::None {
-                panic!("let statement needs an exception handler")
-            }
-
-            let pat_id = node_pattern(noder, module, &stmt.pattern);
-            let empty_body = noder.add_node(Node::Block { statements: vec![] });
-            let arm_id = noder.add_node(Node::MatchArm {
-                pattern: pat_id,
-                body: empty_body,
-            });
-            arms.push(arm_id)
-        }
-    }
-
-    let default_id = match &stmt.except {
-        // TODO: binding should be an identifier so we have a symbol ID so we can map to an
-        // identifer and pass it through successfully
-        LetExcept::Or { id, binding, body } => {
-            match *binding {
-                Some(e) => {
-                    // or(e) { ... }
-                    //
-                    // becomes:
-                    //
-                    // e { ... }
-                    let ident_id = noder.add_node(Node::Identifier {
-                        name: e,
-                        module: None,
-                    });
-                    let pat_id = noder.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
-                        payload: Some(ident_id),
-                    })));
-
-                    let scope_pos = module
-                        .get_scope_pos(*id)
-                        .expect("missing scope position for or binding");
-                    let binding = module
-                        .find_binding(scope_pos, e)
-                        .expect("missing binding for or identifier");
-
-                    noder.tree.symbol_map.add(binding.id, ident_id);
-
-                    let body_id = node_block(noder, mod_map, module, body);
-
-                    noder.add_node(Node::MatchArm {
-                        pattern: pat_id,
-                        body: body_id,
-                    })
-                }
-                None => {
-                    // or { ... }
-                    //
-                    // becomes:
-                    //
-                    // _ { ... }
-                    let pat_id = noder.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
-                        payload: None,
-                    })));
-
-                    let body_id = node_block(noder, mod_map, module, body);
-                    noder.add_node(Node::MatchArm {
-                        pattern: pat_id,
-                        body: body_id,
-                    })
-                }
-            }
-        }
-        LetExcept::Wrap(expr) => {
-            // wrap .Variant
-            //
-            // becomes:
-            //
-            // <wrap> { return .Variant(<wrap>) }
-            let wrap_id = noder.add_node(Node::Identifier {
-                name: str_store::WRAP,
-                module: None,
-            });
-            let enum_id = node_wrap_expr(noder, module, expr, wrap_id);
-
-            let ret_id = noder.add_node(Node::Return {
-                value: Some(enum_id),
-            });
-            let body_id = noder.add_node(Node::Block {
-                statements: vec![ret_id],
-            });
-
-            let pat_id = noder.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
-                payload: Some(wrap_id),
-            })));
-
-            noder.add_node(Node::MatchArm {
-                pattern: pat_id,
-                body: body_id,
-            })
-        }
-        LetExcept::Panic => {
-            // !
-            //
-            // becomes:
-            //
-            // <panic> { panic(<panic>) }
-
-            // the identifier for the function call
-            let panic_fn_id = noder.add_node(Node::Identifier {
-                name: str_store::PANIC,
-                module: None,
-            });
-
-            noder.tree.type_map.add(
-                panic_fn_id,
-                TypeSpec::Function(FunctionType {
-                    params: vec![TypeSpec::String],
-                    return_type: Box::new(TypeSpec::Panic),
-                }),
-            );
-
-            // the identifier for the pattern, this needs to be seperate from the function call
-            // identifier for type checking to work correctly since they need to have different
-            // underlying types
-            let panic_ident_id = noder.add_node(Node::Identifier {
-                name: str_store::PANIC,
-                module: None,
-            });
-
-            let panic_str_id = noder.add_node(Node::StringLiteral(str_store::UNDERSCORE));
-
-            let call_id = noder.add_node(Node::Call {
-                func: panic_fn_id,
-                // TODO: eventually we need to support more flexible panics but for now just use a
-                // constant string
-                args: vec![panic_str_id],
-            });
-            let body_id = noder.add_node(Node::Block {
-                statements: vec![call_id],
-            });
-
-            let pat_id = noder.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
-                payload: Some(panic_ident_id),
-            })));
-            noder.add_node(Node::MatchArm {
-                pattern: pat_id,
-                body: body_id,
-            })
-        }
-        LetExcept::None => {
-            // TODO: we need to check that this expression can not fail to match
-            // for now just panic if we hit this arm somehow
-
-            // the identifier for the function call
-            let panic_fn_id = noder.add_node(Node::Identifier {
-                name: str_store::PANIC,
-                module: None,
-            });
-
-            noder.tree.type_map.add(
-                panic_fn_id,
-                TypeSpec::Function(FunctionType {
-                    // TODO: this needs to be the type of the expression that's being matched or an
-                    // any type like in Go, just pick a random type for now
-                    params: vec![TypeSpec::String],
-                    return_type: Box::new(TypeSpec::Panic),
-                }),
-            );
-
-            // the identifier for the pattern, this needs to be seperate from the function call
-            // identifier for type checking to work correctly since they need to have different
-            // underlying types
-            let panic_ident_id = noder.add_node(Node::Identifier {
-                name: str_store::PANIC,
-                module: None,
-            });
-
-            let call_id = noder.add_node(Node::Call {
-                func: panic_fn_id,
-                args: vec![panic_ident_id],
-            });
-            let body_id = noder.add_node(Node::Block {
-                statements: vec![call_id],
-            });
-
-            let pat_id = noder.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
-                payload: Some(panic_ident_id),
-            })));
-            noder.add_node(Node::MatchArm {
-                pattern: pat_id,
-                body: body_id,
-            })
-        }
-    };
-
-    arms.push(default_id);
-
-    let match_id = noder.add_node(Node::Match {
-        target: value_id,
-        arms,
-    });
-    nodes.push(match_id);
-
-    nodes
-}
-
-/// convert an abitrary expression into a wrap node for the `let .Ok = expr wrap .Err` syntax
-fn node_wrap_expr(noder: &mut Noder, module: &ParseModule, expr: &Expr, wrap_id: NodeID) -> NodeID {
-    let dot_expr = match expr {
-        Expr::DotAccess(expr) => expr,
-        _ => panic!("only dot expressions are allowed!"),
-    };
-
-    let target = match &dot_expr.target {
-        Some(target) => target,
-        // TODO: how do we check this more carfully, we need to fill in the type hole first by
-        // checking what the return value of the function is
-        None => {
-            return noder.add_node(Node::EnumConstructor {
-                target: None,
-                variant: dot_expr.field,
-                payload: Some(wrap_id),
-            });
-        }
-    };
-
-    let target = match target.deref() {
-        Expr::Identifier(expr) => expr,
-        // if we have a non-identifier target this isn't an enum variant
-        _ => panic!("dot expression target must be an identifier"),
-    };
-
-    let scope_pos = module
-        .get_scope_pos(target.id)
-        .expect("could not find scope for identifier");
-
-    let binding = module
-        .find_binding(scope_pos, target.name)
-        .expect("unknown identifier used in dot expression target");
-
-    // if the identifier is a declared enum type we know this is a valid enum expression
-    if !matches!(
-        binding.binding_type,
-        BindingType::Type(ast::TypeSpec::Enum(_))
-    ) {
-        panic!("can only call wrap with enum types")
-    }
-
-    let target_node = noder.tree.symbol_map.get(binding.id).cloned();
-
-    let enum_constructor_id = noder.add_node(Node::EnumConstructor {
-        target: target_node,
-        variant: dot_expr.field,
-        payload: Some(wrap_id),
-    });
-
-    // Look up the enum type from the symbol map
-    if let Some(type_decl_id) = noder.tree.symbol_map.get(binding.id)
-        && let Some(enum_type) = noder.tree.type_map.get(*type_decl_id)
-    {
-        noder
-            .tree
-            .type_map
-            .add(enum_constructor_id, enum_type.clone());
-    }
-
-    enum_constructor_id
-}
-
-fn node_expr(
-    noder: &mut Noder,
-    mod_map: &HashMap<StrID, Module>,
-    module: &ParseModule,
-    expr: &Expr,
-) -> NodeID {
-    match expr {
-        Expr::IntLiteral(expr) => noder.add_node(Node::IntLiteral(*expr)),
-        Expr::UIntLiteral(expr) => noder.add_node(Node::UIntLiteral(*expr)),
-        Expr::FloatLiteral(expr) => noder.add_node(Node::FloatLiteral(*expr)),
-        Expr::StringLiteral(expr) => noder.add_node(Node::StringLiteral(*expr)),
-        Expr::BoolLiteral(expr) => noder.add_node(Node::BoolLiteral(*expr)),
-        Expr::Identifier(expr) => match expr.module {
-            Some(module) => {
-                let mod_node_tree = mod_map.get(&module).expect("failed to find module");
-                let ident_id = mod_node_tree
-                    .find_public_decl(expr.name)
-                    .expect("failed to find module identifier");
-
-                ident_id
-            }
-            None => {
-                let scope_pos = module
-                    .get_scope_pos(expr.id)
-                    .expect("could not get scope for identifier");
-
-                let binding = module
-                    .find_binding(scope_pos, expr.name)
-                    .expect("failed to find binding for identifier expression");
-
-                let ident_id = noder
-                    .tree
-                    .symbol_map
-                    .get(binding.id)
-                    .expect("identifier declaration missing from symbol map");
-
-                *ident_id
-            }
-        },
-        Expr::Binary(expr) => {
-            let left_id = node_expr(noder, mod_map, module, &expr.left);
-            let right_id = node_expr(noder, mod_map, module, &expr.right);
-            noder.add_node(Node::Binary {
-                left: left_id,
-                operator: expr.operator,
-                right: right_id,
-            })
-        }
-        Expr::Unary(expr) => {
-            let expr_id = node_expr(noder, mod_map, module, &expr.operand);
-            noder.add_node(Node::Unary {
-                operator: expr.operator,
-                operand: expr_id,
-            })
-        }
-        Expr::Call(expr) => {
-            let func_id = node_expr(noder, mod_map, module, &expr.func);
-
-            let mut args = vec![];
-            for arg in &expr.args {
-                let param_id = node_expr(noder, mod_map, module, arg);
-                args.push(param_id);
-            }
-
-            // if the function was an enum constructor when we actually need to update the enum
-            // to contain a payload and return the EnumConstructor itself rather than creating
-            // and returning the ID for the function call.
-            let mut func_node = noder
-                .get_mut_node(func_id)
-                .expect("failed to find function node");
-
-            if let Node::EnumConstructor { payload: p, .. } = &mut func_node {
-                if args.len() != 1 {
-                    panic!("enum constructors can only contain a single paramater")
-                }
-
-                let first_arg = args.first().expect("failed to get enum value");
-                *p = Some(*first_arg);
-                func_id
-            } else {
-                noder.add_node(Node::Call {
-                    func: func_id,
-                    args,
-                })
-            }
-        }
-        Expr::StructConstructor(expr) => {
-            // ensure all field names are unique
-            let mut assigned_fields = HashSet::new();
-            for field in &expr.fields {
-                let new = assigned_fields.insert(field.name);
-                if !new {
-                    panic!("duplicate fields in struct construction");
-                }
-            }
-
-            let type_spec = node_type_spec(&noder.tree, module, &expr.type_spec);
-            let base_type = resolve_type(&type_spec);
-            let field_types = match base_type {
-                TypeSpec::Struct(ts) => ts.fields.clone(),
-                _ => panic!("invalid type for struct construction"),
-            };
-
-            if expr.fields.len() > field_types.len() {
-                panic!("too many fields for struct construction");
-            }
-            if expr.fields.len() < field_types.len() {
-                panic!("missing fields for struct construction");
-            }
-
-            let mut fields = Vec::with_capacity(field_types.len());
-
-            for field_type in &field_types {
-                let field = expr
-                    .fields
-                    .iter()
-                    .find(|f| f.name == field_type.name)
-                    .expect("unknown field name in struct constructor");
-
-                let value_id = node_expr(noder, mod_map, module, &field.value);
-                let field_id = noder.add_node(Node::StructConstructorField {
-                    name: field.name,
-                    value: value_id,
-                });
-
-                fields.push(field_id);
-            }
-
-            // Make sure we track the type here otherwise we'll loose the type
-            let struct_id = noder.add_node(Node::StructConstructor { fields });
-            noder.tree.type_map.add(struct_id, type_spec);
-
-            struct_id
-        }
-        Expr::Index(expr) => {
-            let target_id = node_expr(noder, mod_map, module, &expr.target);
-            let idx_id = node_expr(noder, mod_map, module, &expr.index);
-
-            noder.add_node(Node::Index {
-                target: target_id,
-                index: idx_id,
-            })
-        }
-        Expr::Range(expr) => {
-            let start_id = node_expr(noder, mod_map, module, &expr.start);
-            let end_id = node_expr(noder, mod_map, module, &expr.end);
-            noder.add_node(Node::Range {
-                start: start_id,
-                end: end_id,
-            })
-        }
-        Expr::DotAccess(expr) => {
-            let target = match &expr.target {
-                Some(t) => t,
-                None => {
-                    // if there's no target it must be an enum (and if it's not, we'll fail type
-                    // checking later)
-                    return noder.add_node(Node::EnumConstructor {
-                        target: None,
-                        variant: expr.field,
-                        payload: None,
-                    });
-                }
-            };
-
-            let target_id = node_expr(noder, mod_map, module, target);
-
-            let binding = match target.deref() {
-                Expr::Identifier(ident) => {
-                    let scope_pos = module
-                        .get_scope_pos(ident.id)
-                        .expect("could not find scope_posfor identifier");
-                    module
-                        .find_binding(scope_pos, ident.name)
-                        .expect("missing binding for already noded target")
-                }
-                _ => {
-                    // non-identifier targets can only be field access expressions
-                    return noder.add_node(Node::FieldAccess {
-                        target: target_id,
-                        field: expr.field,
-                    });
-                }
-            };
-
-            match binding.binding_type {
-                BindingType::Type(ast::TypeSpec::Enum(_)) => {
-                    let enum_constructor_id = noder.add_node(Node::EnumConstructor {
-                        target: Some(target_id),
-                        variant: expr.field,
-                        payload: None,
-                    });
-                    // Look up the enum type from the symbol map
-                    if let Some(type_decl_id) = noder.tree.symbol_map.get(binding.id)
-                        && let Some(enum_type) = noder.tree.type_map.get(*type_decl_id)
-                    {
-                        noder
-                            .tree
-                            .type_map
-                            .add(enum_constructor_id, enum_type.clone());
-                    }
-                    enum_constructor_id
-                }
-                _ => {
-                    // identifiers can still be field access expressions of the identifier is
-                    // not an enum type
-                    noder.add_node(Node::FieldAccess {
-                        target: target_id,
-                        field: expr.field,
-                    })
-                }
-            }
-        }
-        Expr::MetaType(expr) => {
-            let node_id = noder.add_node(Node::MetaType);
-            let ts = node_type_spec(&noder.tree, module, &expr.type_spec);
-            noder.tree.type_map.add(node_id, ts);
-
-            node_id
-        }
-        Expr::Alloc(expr) => {
-            let meta_id = node_expr(noder, mod_map, module, &expr.meta_type);
-            let mut options = vec![];
-            for opt in &expr.options {
-                let opt_id = node_expr(noder, mod_map, module, opt);
-                options.push(opt_id);
-            }
-
-            let node_id = noder.add_node(Node::Alloc {
-                meta_type: meta_id,
-                options,
-            });
-
-            noder.tree.type_map.add(node_id, TypeSpec::UnsafePtr);
-
-            node_id
-        }
-        Expr::Free(expr) => {
-            let ptr_id = node_expr(noder, mod_map, module, &expr.expr);
-            noder.add_node(Node::Free { expr: ptr_id })
-        }
     }
 }
 
