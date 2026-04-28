@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use crate::hir::NodeID;
 use crate::mir::{
-    BasicBlock, BlockId, ConstValue, Instruction, Local, LocalId, MirFunction, Place, SwitchArm,
-    TagSize, Terminator, TypeSpec, ValueId,
+    BasicBlock, BlockId, ConstValue, Instruction, Linkage, Local, LocalId, MirFunction, Place,
+    SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
 };
 use crate::str_store::{self, StrID};
 
@@ -384,7 +384,7 @@ struct Scope {
 }
 
 pub struct FunctionBuilder {
-    public: bool,
+    linkage: Linkage,
     name: StrID,
     params: Vec<LocalId>,
     return_type: TypeSpec,
@@ -399,7 +399,7 @@ pub struct FunctionBuilder {
 impl FunctionBuilder {
     pub fn new_public(name: StrID, return_type: TypeSpec) -> Self {
         FunctionBuilder {
-            public: true,
+            linkage: Linkage::Public,
             name,
             return_type,
             params: vec![],
@@ -414,7 +414,22 @@ impl FunctionBuilder {
 
     pub fn new_private(name: StrID, return_type: TypeSpec) -> Self {
         FunctionBuilder {
-            public: false,
+            linkage: Linkage::Private,
+            name,
+            return_type,
+            params: vec![],
+            locals: vec![],
+            local_map: BTreeMap::new(),
+            blocks: vec![],
+            scopes: vec![],
+            instructions: vec![],
+            value_types: vec![],
+        }
+    }
+
+    pub fn new_external(import_path: StrID, name: StrID, return_type: TypeSpec) -> Self {
+        FunctionBuilder {
+            linkage: Linkage::External(import_path),
             name,
             return_type,
             params: vec![],
@@ -1089,6 +1104,21 @@ impl FunctionBuilder {
     }
 
     pub fn build_mir_function(&mut self) -> MirFunction {
+        if matches!(self.linkage, Linkage::External(_)) {
+            return MirFunction {
+                linkage: self.linkage.clone(),
+                name: self.name,
+                params: self.params.clone(),
+                return_type: self.return_type.clone(),
+                blocks: vec![],
+                entry_block: BlockId::from_u32(1),
+                local_map: BTreeMap::new(),
+                locals: vec![],
+                instructions: vec![],
+                value_types: vec![],
+            };
+        }
+
         if self.blocks.is_empty() {
             panic!("function must have an entry block")
         };
@@ -1135,7 +1165,7 @@ impl FunctionBuilder {
         }
 
         MirFunction {
-            public: self.public,
+            linkage: self.linkage.clone(),
             name: self.name,
             params: self.params.clone(),
             return_type: self.return_type.clone(),

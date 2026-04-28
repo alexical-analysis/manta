@@ -8,9 +8,8 @@ use std::ops::Deref;
 
 use crate::ast::{
     self, BinaryOp, BlockStmt, Decl, Expr, IdentifierExpr, LetExcept, LetStmt, Pattern, Payload,
-    ReturnStmt, Stmt, UnaryOp,
+    ReturnStmt, Stmt, UnaryOp, VarDecl,
 };
-use crate::compiler::ModuleID;
 use crate::hir::{
     ArrayType, DefaultPat, EnumType, EnumVariant, EnumVariantPat, FunctionType, NamedType, Node,
     NodeID, PatternNode, StructType, StructTypeField, TypeSpec, TypeSpecPat,
@@ -64,7 +63,6 @@ impl<K: Ord + Debug, V: Debug> SideTable<K, V> {
 /// NodeTree is the node arena for a module
 #[derive(Serialize)]
 pub struct NodeTree {
-    pub(crate) module_id: ModuleID,
     pub(crate) nodes: Vec<Node>,
     // the type_map maps each node in the node tree to it's type (if it has one)
     // TODO: we're going to have a type for every node so maybe we can use a slot map or something
@@ -78,9 +76,8 @@ pub struct NodeTree {
 }
 
 impl NodeTree {
-    fn new(module_id: ModuleID) -> Self {
+    fn new() -> Self {
         NodeTree {
-            module_id,
             nodes: vec![],
             type_map: SideTable::new(),
             symbol_map: SideTable::new(),
@@ -89,24 +86,16 @@ impl NodeTree {
 
     /// Add node adds a new node to the store and returns its unique NodeID
     pub fn add_node(&mut self, node: Node) -> NodeID {
+        let id = self.nodes.len();
         self.nodes.push(node);
-        let id = self.nodes.len() - 1;
-        NodeID::new(self.module_id, id as u32)
+        NodeID::new(id as u32)
     }
 
     pub fn get_node(&self, node_id: NodeID) -> Option<&Node> {
-        if node_id.module_id() != self.module_id {
-            return None;
-        }
-
         self.nodes.get(node_id.id() as usize)
     }
 
     pub fn get_mut_node(&mut self, node_id: NodeID) -> Option<&mut Node> {
-        if node_id.module_id() != self.module_id {
-            return None;
-        }
-
         self.nodes.get_mut(node_id.id() as usize)
     }
 
@@ -126,7 +115,7 @@ pub struct Module {
 
 impl Module {
     /// Finds a public decl with the specified name
-    pub fn find_public_decl(&self, name: StrID) -> Option<NodeID> {
+    pub fn find_public_decl(&self, name: StrID) -> Option<&Node> {
         for root in &self.roots {
             let node = self.tree.get_node(*root);
             match node {
@@ -141,10 +130,9 @@ impl Module {
                     };
 
                     if *public && name == function_name {
-                        return Some(*root);
+                        eprintln!("found public function");
+                        return node;
                     }
-
-                    return None;
                 }
                 Some(Node::TypeDecl { ident }) => {
                     let ident_node = self
@@ -158,26 +146,26 @@ impl Module {
 
                     // TODO: need to make sure the type decl is public
                     if name == type_name {
-                        return Some(*root);
+                        eprintln!("found public function");
+                        return node;
                     }
                 }
                 Some(Node::VarDecl { public, ident, .. }) => {
-                    let ident_node = self
-                        .tree
-                        .get_node(*ident)
-                        .expect("failed to find type name");
-                    let function_name = match ident_node {
+                    let ident_node = self.tree.get_node(*ident).expect("failed to find var name");
+                    let var_name = match ident_node {
                         Node::Identifier { name, .. } => *name,
-                        _ => panic!("failed to resolve type name"),
+                        _ => panic!("failed to resolve var name"),
                     };
 
-                    if *public && name == function_name {
-                        return Some(*root);
+                    if *public && name == var_name {
+                        eprintln!("found public function");
+                        return node;
                     }
-
+                }
+                _ => {
+                    eprintln!("failed to find public function");
                     return None;
                 }
-                _ => return None,
             }
         }
 
@@ -187,25 +175,30 @@ impl Module {
 
 /// Noder builds a module from the result of the Parser
 pub struct Noder {
-    module_id: ModuleID,
     tree: NodeTree,
     roots: Vec<NodeID>,
+    module_decls: HashMap<StrID, HashMap<StrID, NodeID>>,
     public_decls: HashMap<StrID, NodeID>,
     within_loop: bool,
 }
 
 impl Noder {
-    pub fn new(module_id: ModuleID) -> Self {
+    pub fn new() -> Self {
         Noder {
-            module_id,
-            tree: NodeTree::new(module_id),
+            tree: NodeTree::new(),
             roots: vec![],
+            module_decls: HashMap::new(),
             public_decls: HashMap::new(),
             within_loop: false,
         }
     }
 
     pub fn node_module(mut self, mod_map: &HashMap<StrID, Module>, module: &ParseModule) -> Module {
+        // TODO: given we're pre-populating this maybe the mod_map belongs in the Noder?
+        for (import_path, _) in mod_map {
+            self.module_decls.insert(*import_path, HashMap::new());
+        }
+
         // TODO: remove when these builtin functions are removed
         for builtin_name in [str_store::PRINT, str_store::EPRINT] {
             let binding = module
@@ -1463,12 +1456,31 @@ impl Noder {
             Expr::BoolLiteral(expr) => self.add_node(Node::BoolLiteral(*expr)),
             Expr::Identifier(expr) => match expr.module {
                 Some(module) => {
+                    // TODO: need to look up the import_path using the module alias
+                    let module_decl_map = self
+                        .module_decls
+                        .get(&module)
+                        .expect("failed to find module");
+
+                    if let Some(node_id) = module_decl_map.get(&expr.name) {
+                        return *node_id;
+                    }
+
+                    // The external identifier has not been declare in this node tree yet
                     let mod_node_tree = mod_map.get(&module).expect("failed to find module");
-                    let ident_id = mod_node_tree
+                    let external_node = mod_node_tree
                         .find_public_decl(expr.name)
                         .expect("failed to find module identifier");
+                    let clone_id =
+                        self.node_external_decl(&mod_node_tree.tree, module, external_node);
 
-                    ident_id
+                    let module_decl_map = self
+                        .module_decls
+                        .get_mut(&module)
+                        .expect("failed to find module");
+                    module_decl_map.insert(expr.name, clone_id);
+
+                    clone_id
                 }
                 None => {
                     let scope_pos = module
@@ -1691,6 +1703,123 @@ impl Noder {
             }
         }
     }
+
+    fn node_external_decl(
+        &mut self,
+        mod_node_tree: &NodeTree,
+        import_path: StrID,
+        node: &Node,
+    ) -> NodeID {
+        match node {
+            Node::VarDecl { ident, .. } => {
+                let type_spec = mod_node_tree
+                    .type_map
+                    .get(*ident)
+                    .expect("failed to get var decl type");
+
+                let ident_node = mod_node_tree
+                    .get_node(*ident)
+                    .expect("failed to get identifier node");
+
+                let ident_id = self.add_node(ident_node.clone());
+                let decl_id = self.add_node(Node::ExternalVarDecl {
+                    import_path,
+                    ident: ident_id,
+                });
+
+                self.tree.type_map.add(ident_id, type_spec.clone());
+                self.tree.type_map.add(decl_id, type_spec.clone());
+                self.roots.push(decl_id);
+
+                ident_id
+            }
+            Node::FunctionDecl { ident, params, .. } => {
+                let mut new_params = vec![];
+                for param in params {
+                    let param_type_spec = mod_node_tree
+                        .type_map
+                        .get(*param)
+                        .expect("missing type for param");
+
+                    let param_decl = mod_node_tree
+                        .get_node(*param)
+                        .expect("failed to get paramater node");
+
+                    let ident_id = match param_decl {
+                        Node::VarDecl { ident, .. } => ident,
+                        _ => panic!("param must be a var decl"),
+                    };
+
+                    let ident_node = mod_node_tree
+                        .get_node(*ident_id)
+                        .expect("failed to ge param identifier");
+
+                    let ident_name = match ident_node {
+                        Node::Identifier { name, .. } => *name,
+                        _ => panic!("failed to get identifier name"),
+                    };
+
+                    let ident_id = self.add_node(Node::Identifier {
+                        module: None,
+                        name: ident_name,
+                    });
+                    let param_id = self.add_node(Node::VarDecl {
+                        public: false,
+                        ident: ident_id,
+                    });
+                    new_params.push(param_id);
+
+                    self.tree.type_map.add(ident_id, param_type_spec.clone());
+                    self.tree.type_map.add(param_id, param_type_spec.clone());
+                }
+
+                let type_spec = mod_node_tree
+                    .type_map
+                    .get(*ident)
+                    .expect("failed to get func decl type");
+
+                let ident_node = mod_node_tree
+                    .get_node(*ident)
+                    .expect("failed to get identifier node");
+
+                let ident_id = self.add_node(ident_node.clone());
+                let decl_id = self.add_node(Node::ExternalFunctionDecl {
+                    import_path,
+                    ident: ident_id,
+                    params: new_params,
+                });
+
+                self.tree.type_map.add(ident_id, type_spec.clone());
+                self.tree.type_map.add(decl_id, type_spec.clone());
+                self.roots.push(decl_id);
+
+                ident_id
+            }
+            Node::TypeDecl { ident } => {
+                let type_spec = mod_node_tree
+                    .type_map
+                    .get(*ident)
+                    .expect("failed to get var decl type");
+
+                let ident_node = mod_node_tree
+                    .get_node(*ident)
+                    .expect("failed to get identifier node");
+
+                let ident_id = self.add_node(ident_node.clone());
+                let decl_id = self.add_node(Node::ExternalTypeDecl {
+                    import_path,
+                    ident: ident_id,
+                });
+
+                self.tree.type_map.add(ident_id, type_spec.clone());
+                self.tree.type_map.add(decl_id, type_spec.clone());
+                self.roots.push(decl_id);
+
+                ident_id
+            }
+            _ => panic!("invalid external declaration {:?}", node),
+        }
+    }
 }
 
 /// Walk through leading dereferences to find the root identifier of an lvalue expression.
@@ -1737,39 +1866,27 @@ mod tests {
     #[test]
     fn typemap_new_get_none() {
         let tm: SideTable<NodeID, TypeSpec> = SideTable::new();
-        assert_eq!(tm.get(NodeID::new(ModuleID::new(0), 0)), None);
-        assert_eq!(tm.get(NodeID::new(ModuleID::new(0), 10)), None);
+        assert_eq!(tm.get(NodeID::new(0)), None);
+        assert_eq!(tm.get(NodeID::new(10)), None);
     }
 
     #[test]
     fn typemap_add_and_get() {
         let mut tm: SideTable<NodeID, TypeSpec> = SideTable::new();
-        tm.add(NodeID::new(ModuleID::new(0), 0), TypeSpec::Int32);
-        assert_eq!(
-            tm.get(NodeID::new(ModuleID::new(0), 0)),
-            Some(&TypeSpec::Int32)
-        );
+        tm.add(NodeID::new(0), TypeSpec::Int32);
+        assert_eq!(tm.get(NodeID::new(0)), Some(&TypeSpec::Int32));
 
-        tm.add(NodeID::new(ModuleID::new(0), 1), TypeSpec::Bool);
-        assert_eq!(
-            tm.get(NodeID::new(ModuleID::new(0), 1)),
-            Some(&TypeSpec::Bool)
-        );
-        assert_eq!(
-            tm.get(NodeID::new(ModuleID::new(0), 0)),
-            Some(&TypeSpec::Int32)
-        );
+        tm.add(NodeID::new(1), TypeSpec::Bool);
+        assert_eq!(tm.get(NodeID::new(1)), Some(&TypeSpec::Bool));
+        assert_eq!(tm.get(NodeID::new(0)), Some(&TypeSpec::Int32));
     }
 
     #[test]
     fn typemap_sparse_indices() {
         let mut tm: SideTable<NodeID, TypeSpec> = SideTable::new();
-        tm.add(NodeID::new(ModuleID::new(0), 3), TypeSpec::String);
-        assert_eq!(
-            tm.get(NodeID::new(ModuleID::new(0), 3)),
-            Some(&TypeSpec::String)
-        );
-        assert_eq!(tm.get(NodeID::new(ModuleID::new(0), 0)), None);
+        tm.add(NodeID::new(3), TypeSpec::String);
+        assert_eq!(tm.get(NodeID::new(3)), Some(&TypeSpec::String));
+        assert_eq!(tm.get(NodeID::new(0)), None);
     }
 
     fn assert_file_path_eq(path: &std::path::Path, noder_dir: &Path) {
@@ -1793,20 +1910,13 @@ mod tests {
         let file_set = FileSet::new_from_files(std::path::PathBuf::new(), vec![file]);
         let parser = Parser::new(&file_set);
         let module = parser.parse_module(&mut str_store);
-        let module_id = ModuleID::new(0);
 
-        let noder = Noder::new(module_id);
+        let noder = Noder::new();
         let node_tree = noder.node_module(&HashMap::new(), &module);
 
         let total = node_tree.tree.nodes.len();
         let untyped: Vec<usize> = (0..total)
-            .filter(|&i| {
-                node_tree
-                    .tree
-                    .type_map
-                    .get(NodeID::new(ModuleID::new(0), i as u32))
-                    .is_none()
-            })
+            .filter(|&i| node_tree.tree.type_map.get(NodeID::new(i as u32)).is_none())
             .collect();
         if !untyped.is_empty() {
             let pct = (untyped.len() as f64 / total as f64) * 100.0;
@@ -1823,10 +1933,7 @@ mod tests {
         let any_typed: Vec<usize> = (0..total)
             .filter(|&i| {
                 matches!(
-                    node_tree
-                        .tree
-                        .type_map
-                        .get(NodeID::new(ModuleID::new(0), i as u32)),
+                    node_tree.tree.type_map.get(NodeID::new(i as u32)),
                     Some(TypeSpec::Any)
                         | Some(TypeSpec::IntLiteral(_))
                         | Some(TypeSpec::FloatLiteral(_))
@@ -1886,9 +1993,8 @@ mod tests {
                     // Build module from provided declaration
                     let decl = $decl;
                     let module = ParseModule::new(vec![ParserFile::new(vec![], vec![decl])]);
-                    let module_id = ModuleID::new(0);
 
-                    let noder = Noder::new(module_id);
+                    let noder = Noder::new();
                     let node_tree = noder.node_module(&HashMap::new(), &module);
 
                     let expected = $expected;
@@ -1913,7 +2019,6 @@ mod tests {
             }),
             expected: Module {
                 tree: NodeTree {
-                    module_id: ModuleID::new(0),
                     // NodeID(0): print builtin, NodeID(1): eprint builtin
                     // NodeID(2): Identifier, NodeID(3): VarDecl (root), NodeID(4): IntLiteral, NodeID(5): Assign (root)
                     nodes: vec![
@@ -1931,24 +2036,24 @@ mod tests {
                         },
                         Node::VarDecl {
                             public: false,
-                            ident: NodeID::new(ModuleID::new(0), 2)
+                            ident: NodeID::new(2)
                         },
                         Node::IntLiteral(42),
                         Node::Assign {
-                            target: NodeID::new(ModuleID::new(0), 2),
-                            value: NodeID::new(ModuleID::new(0), 4)
+                            target: NodeID::new(2),
+                            value: NodeID::new(4)
                         },
                     ],
                     type_map: SideTable {
                         // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
                         // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), Int64), (NodeID(2), Int64)
                         keys: BTreeMap::from([
-                            (NodeID::new(ModuleID::new(0), 0), 0),
-                            (NodeID::new(ModuleID::new(0), 1), 1),
-                            (NodeID::new(ModuleID::new(0), 2), 5),
-                            (NodeID::new(ModuleID::new(0), 3), 2),
-                            (NodeID::new(ModuleID::new(0), 4), 4),
-                            (NodeID::new(ModuleID::new(0), 5), 3),
+                            (NodeID::new(0), 0),
+                            (NodeID::new(1), 1),
+                            (NodeID::new(2), 5),
+                            (NodeID::new(3), 2),
+                            (NodeID::new(4), 4),
+                            (NodeID::new(5), 3),
                         ]),
                         values: vec![
                             TypeSpec::Function(FunctionType {
@@ -1967,17 +2072,10 @@ mod tests {
                     },
                     symbol_map: SideTable {
                         keys: BTreeMap::from([(12_usize, 0), (13_usize, 1), (14_usize, 2)]),
-                        values: vec![
-                            NodeID::new(ModuleID::new(0), 0),
-                            NodeID::new(ModuleID::new(0), 1),
-                            NodeID::new(ModuleID::new(0), 2)
-                        ],
+                        values: vec![NodeID::new(0), NodeID::new(1), NodeID::new(2)],
                     },
                 },
-                roots: vec![
-                    NodeID::new(ModuleID::new(0), 3),
-                    NodeID::new(ModuleID::new(0), 5)
-                ],
+                roots: vec![NodeID::new(3), NodeID::new(5)],
                 public_decls: HashMap::from([]),
             }
         },
@@ -1985,7 +2083,6 @@ mod tests {
             decl: Decl::Invalid,
             expected: Module {
                 tree: NodeTree {
-                    module_id: ModuleID::new(0),
                     // NodeID(0): print builtin, NodeID(1): eprint builtin, NodeID(2): Invalid
                     nodes: vec![
                         Node::Identifier {
@@ -2002,9 +2099,9 @@ mod tests {
                         // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
                         // typer assigns Panic to the Invalid node (NodeID(2))
                         keys: BTreeMap::from([
-                            (NodeID::new(ModuleID::new(0), 0), 0),
-                            (NodeID::new(ModuleID::new(0), 1), 1),
-                            (NodeID::new(ModuleID::new(0), 2), 2),
+                            (NodeID::new(0), 0),
+                            (NodeID::new(1), 1),
+                            (NodeID::new(2), 2),
                         ]),
                         values: vec![
                             TypeSpec::Function(FunctionType {
@@ -2020,13 +2117,10 @@ mod tests {
                     },
                     symbol_map: SideTable {
                         keys: BTreeMap::from([(12_usize, 0), (13_usize, 1)]),
-                        values: vec![
-                            NodeID::new(ModuleID::new(0), 0),
-                            NodeID::new(ModuleID::new(0), 1)
-                        ],
+                        values: vec![NodeID::new(0), NodeID::new(1)],
                     },
                 },
-                roots: vec![NodeID::new(ModuleID::new(0), 2)],
+                roots: vec![NodeID::new(2)],
                 public_decls: HashMap::from([]),
             }
         },
@@ -2039,7 +2133,6 @@ mod tests {
             }),
             expected: Module {
                 tree: NodeTree {
-                    module_id: ModuleID::new(0),
                     // NodeID(0): print builtin, NodeID(1): eprint builtin
                     // NodeID(2): Identifier, NodeID(3): VarDecl (root), NodeID(4): BoolLiteral, NodeID(5): Assign (root)
                     nodes: vec![
@@ -2057,24 +2150,24 @@ mod tests {
                         },
                         Node::VarDecl {
                             public: false,
-                            ident: NodeID::new(ModuleID::new(0), 2)
+                            ident: NodeID::new(2)
                         },
                         Node::BoolLiteral(true),
                         Node::Assign {
-                            target: NodeID::new(ModuleID::new(0), 2),
-                            value: NodeID::new(ModuleID::new(0), 4)
+                            target: NodeID::new(2),
+                            value: NodeID::new(4)
                         },
                     ],
                     type_map: SideTable {
                         // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
                         // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), Bool), (NodeID(2), Bool)
                         keys: BTreeMap::from([
-                            (NodeID::new(ModuleID::new(0), 0), 0),
-                            (NodeID::new(ModuleID::new(0), 1), 1),
-                            (NodeID::new(ModuleID::new(0), 2), 5),
-                            (NodeID::new(ModuleID::new(0), 3), 2),
-                            (NodeID::new(ModuleID::new(0), 4), 4),
-                            (NodeID::new(ModuleID::new(0), 5), 3),
+                            (NodeID::new(0), 0),
+                            (NodeID::new(1), 1),
+                            (NodeID::new(2), 5),
+                            (NodeID::new(3), 2),
+                            (NodeID::new(4), 4),
+                            (NodeID::new(5), 3),
                         ]),
                         values: vec![
                             TypeSpec::Function(FunctionType {
@@ -2093,17 +2186,10 @@ mod tests {
                     },
                     symbol_map: SideTable {
                         keys: BTreeMap::from([(12_usize, 0), (13_usize, 1), (14_usize, 2)]),
-                        values: vec![
-                            NodeID::new(ModuleID::new(0), 0),
-                            NodeID::new(ModuleID::new(0), 1),
-                            NodeID::new(ModuleID::new(0), 2)
-                        ],
+                        values: vec![NodeID::new(0), NodeID::new(1), NodeID::new(2)],
                     },
                 },
-                roots: vec![
-                    NodeID::new(ModuleID::new(0), 3),
-                    NodeID::new(ModuleID::new(0), 5)
-                ],
+                roots: vec![NodeID::new(3), NodeID::new(5)],
                 public_decls: HashMap::from([]),
             }
         },
@@ -2116,7 +2202,6 @@ mod tests {
             }),
             expected: Module {
                 tree: NodeTree {
-                    module_id: ModuleID::new(0),
                     // NodeID(0): print builtin, NodeID(1): eprint builtin
                     // NodeID(2): Identifier, NodeID(3): VarDecl (root), NodeID(4): FloatLiteral, NodeID(5): Assign (root)
                     nodes: vec![
@@ -2134,24 +2219,24 @@ mod tests {
                         },
                         Node::VarDecl {
                             public: false,
-                            ident: NodeID::new(ModuleID::new(0), 2)
+                            ident: NodeID::new(2)
                         },
                         Node::FloatLiteral(3.45),
                         Node::Assign {
-                            target: NodeID::new(ModuleID::new(0), 2),
-                            value: NodeID::new(ModuleID::new(0), 4)
+                            target: NodeID::new(2),
+                            value: NodeID::new(4)
                         },
                     ],
                     type_map: SideTable {
                         // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
                         // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), Float64), (NodeID(2), Float64)
                         keys: BTreeMap::from([
-                            (NodeID::new(ModuleID::new(0), 0), 0),
-                            (NodeID::new(ModuleID::new(0), 1), 1),
-                            (NodeID::new(ModuleID::new(0), 2), 5),
-                            (NodeID::new(ModuleID::new(0), 3), 2),
-                            (NodeID::new(ModuleID::new(0), 4), 4),
-                            (NodeID::new(ModuleID::new(0), 5), 3),
+                            (NodeID::new(0), 0),
+                            (NodeID::new(1), 1),
+                            (NodeID::new(2), 5),
+                            (NodeID::new(3), 2),
+                            (NodeID::new(4), 4),
+                            (NodeID::new(5), 3),
                         ]),
                         values: vec![
                             TypeSpec::Function(FunctionType {
@@ -2170,17 +2255,10 @@ mod tests {
                     },
                     symbol_map: SideTable {
                         keys: BTreeMap::from([(12_usize, 0), (13_usize, 1), (14_usize, 2)]),
-                        values: vec![
-                            NodeID::new(ModuleID::new(0), 0),
-                            NodeID::new(ModuleID::new(0), 1),
-                            NodeID::new(ModuleID::new(0), 2)
-                        ],
+                        values: vec![NodeID::new(0), NodeID::new(1), NodeID::new(2)],
                     },
                 },
-                roots: vec![
-                    NodeID::new(ModuleID::new(0), 3),
-                    NodeID::new(ModuleID::new(0), 5)
-                ],
+                roots: vec![NodeID::new(3), NodeID::new(5)],
                 public_decls: HashMap::from([]),
             }
         },
@@ -2193,7 +2271,6 @@ mod tests {
             }),
             expected: Module {
                 tree: NodeTree {
-                    module_id: ModuleID::new(0),
                     // NodeID(0): print builtin, NodeID(1): eprint builtin
                     // NodeID(2): Identifier (pre-pass), NodeID(3): TypeDecl (root)
                     nodes: vec![
@@ -2210,7 +2287,7 @@ mod tests {
                             module: None
                         },
                         Node::TypeDecl {
-                            ident: NodeID::new(ModuleID::new(0), 2)
+                            ident: NodeID::new(2)
                         },
                     ],
                     type_map: SideTable {
@@ -2218,10 +2295,10 @@ mod tests {
                         // inserted by noder: (NodeID(3), Int64)
                         // inserted by typer: (NodeID(2), Named { name: NodeID(2), type_spec: Int64 })
                         keys: BTreeMap::from([
-                            (NodeID::new(ModuleID::new(0), 0), 0),
-                            (NodeID::new(ModuleID::new(0), 1), 1),
-                            (NodeID::new(ModuleID::new(0), 2), 3),
-                            (NodeID::new(ModuleID::new(0), 3), 2),
+                            (NodeID::new(0), 0),
+                            (NodeID::new(1), 1),
+                            (NodeID::new(2), 3),
+                            (NodeID::new(3), 2),
                         ]),
                         values: vec![
                             TypeSpec::Function(FunctionType {
@@ -2234,21 +2311,17 @@ mod tests {
                             }),
                             TypeSpec::Int64,
                             TypeSpec::Named(NamedType {
-                                name: NodeID::new(ModuleID::new(0), 2),
+                                name: NodeID::new(2),
                                 type_spec: Box::new(TypeSpec::Int64),
                             }),
                         ],
                     },
                     symbol_map: SideTable {
                         keys: BTreeMap::from([(12_usize, 0), (13_usize, 1), (14_usize, 2)]),
-                        values: vec![
-                            NodeID::new(ModuleID::new(0), 0),
-                            NodeID::new(ModuleID::new(0), 1),
-                            NodeID::new(ModuleID::new(0), 2)
-                        ],
+                        values: vec![NodeID::new(0), NodeID::new(1), NodeID::new(2)],
                     },
                 },
-                roots: vec![NodeID::new(ModuleID::new(0), 3)],
+                roots: vec![NodeID::new(3)],
                 public_decls: HashMap::from([]),
             }
         },
@@ -2274,7 +2347,6 @@ mod tests {
             }),
             expected: Module {
                 tree: NodeTree {
-                    module_id: ModuleID::new(0),
                     // NodeID(0): print builtin, NodeID(1): eprint builtin
                     // NodeID(2): Identifier (pre-pass), NodeID(3): TypeDecl (root)
                     nodes: vec![
@@ -2291,7 +2363,7 @@ mod tests {
                             module: None
                         },
                         Node::TypeDecl {
-                            ident: NodeID::new(ModuleID::new(0), 2)
+                            ident: NodeID::new(2)
                         },
                     ],
                     type_map: SideTable {
@@ -2299,10 +2371,10 @@ mod tests {
                         // noder adds NodeID(3) with the struct type spec
                         // typer adds NodeID(2) with the Named wrapper
                         keys: BTreeMap::from([
-                            (NodeID::new(ModuleID::new(0), 0), 0),
-                            (NodeID::new(ModuleID::new(0), 1), 1),
-                            (NodeID::new(ModuleID::new(0), 2), 3),
-                            (NodeID::new(ModuleID::new(0), 3), 2),
+                            (NodeID::new(0), 0),
+                            (NodeID::new(1), 1),
+                            (NodeID::new(2), 3),
+                            (NodeID::new(3), 2),
                         ]),
                         values: vec![
                             TypeSpec::Function(FunctionType {
@@ -2326,7 +2398,7 @@ mod tests {
                                 ],
                             }),
                             TypeSpec::Named(NamedType {
-                                name: NodeID::new(ModuleID::new(0), 2),
+                                name: NodeID::new(2),
                                 type_spec: Box::new(TypeSpec::Struct(StructType {
                                     fields: vec![
                                         StructTypeField {
@@ -2344,14 +2416,10 @@ mod tests {
                     },
                     symbol_map: SideTable {
                         keys: BTreeMap::from([(12_usize, 0), (13_usize, 1), (14_usize, 2)]),
-                        values: vec![
-                            NodeID::new(ModuleID::new(0), 0),
-                            NodeID::new(ModuleID::new(0), 1),
-                            NodeID::new(ModuleID::new(0), 2)
-                        ],
+                        values: vec![NodeID::new(0), NodeID::new(1), NodeID::new(2)],
                     },
                 },
-                roots: vec![NodeID::new(ModuleID::new(0), 3)],
+                roots: vec![NodeID::new(3)],
                 public_decls: HashMap::from([]),
             }
         },
@@ -2364,7 +2432,6 @@ mod tests {
             }),
             expected: Module {
                 tree: NodeTree {
-                    module_id: ModuleID::new(0),
                     // NodeID(0): print builtin, NodeID(1): eprint builtin
                     // NodeID(2): Identifier, NodeID(3): VarDecl (root), NodeID(4): StringLiteral, NodeID(5): Assign (root)
                     nodes: vec![
@@ -2382,24 +2449,24 @@ mod tests {
                         },
                         Node::VarDecl {
                             public: false,
-                            ident: NodeID::new(ModuleID::new(0), 2)
+                            ident: NodeID::new(2)
                         },
                         Node::StringLiteral(StrID::from_usize(3)),
                         Node::Assign {
-                            target: NodeID::new(ModuleID::new(0), 2),
-                            value: NodeID::new(ModuleID::new(0), 4)
+                            target: NodeID::new(2),
+                            value: NodeID::new(4)
                         },
                     ],
                     type_map: SideTable {
                         // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
                         // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), String), (NodeID(2), String)
                         keys: BTreeMap::from([
-                            (NodeID::new(ModuleID::new(0), 0), 0),
-                            (NodeID::new(ModuleID::new(0), 1), 1),
-                            (NodeID::new(ModuleID::new(0), 2), 5),
-                            (NodeID::new(ModuleID::new(0), 3), 2),
-                            (NodeID::new(ModuleID::new(0), 4), 4),
-                            (NodeID::new(ModuleID::new(0), 5), 3),
+                            (NodeID::new(0), 0),
+                            (NodeID::new(1), 1),
+                            (NodeID::new(2), 5),
+                            (NodeID::new(3), 2),
+                            (NodeID::new(4), 4),
+                            (NodeID::new(5), 3),
                         ]),
                         values: vec![
                             TypeSpec::Function(FunctionType {
@@ -2418,17 +2485,10 @@ mod tests {
                     },
                     symbol_map: SideTable {
                         keys: BTreeMap::from([(12_usize, 0), (13_usize, 1), (14_usize, 2)]),
-                        values: vec![
-                            NodeID::new(ModuleID::new(0), 0),
-                            NodeID::new(ModuleID::new(0), 1),
-                            NodeID::new(ModuleID::new(0), 2)
-                        ],
+                        values: vec![NodeID::new(0), NodeID::new(1), NodeID::new(2)],
                     },
                 },
-                roots: vec![
-                    NodeID::new(ModuleID::new(0), 3),
-                    NodeID::new(ModuleID::new(0), 5)
-                ],
+                roots: vec![NodeID::new(3), NodeID::new(5)],
                 public_decls: HashMap::from([]),
             }
         },
@@ -2436,54 +2496,48 @@ mod tests {
 
     #[test]
     fn test_new_store_is_empty() {
-        let module_id = ModuleID::new(0);
-        let store = NodeTree::new(module_id);
+        let store = NodeTree::new();
         assert_eq!(store.nodes.len(), 0);
     }
 
     #[test]
     fn test_add_node_returns_correct_id() {
-        let module_id = ModuleID::new(0);
-        let mut store = NodeTree::new(module_id);
+        let mut store = NodeTree::new();
         let node = Node::Invalid;
         let id = store.add_node(node);
-        assert_eq!(id, NodeID::new(ModuleID::new(0), 0));
+        assert_eq!(id, NodeID::new(0));
     }
 
     #[test]
     fn test_add_multiple_nodes() {
-        let module_id = ModuleID::new(0);
-        let mut store = NodeTree::new(module_id);
+        let mut store = NodeTree::new();
         let id1 = store.add_node(Node::Invalid);
         let id2 = store.add_node(Node::BoolLiteral(true));
         let id3 = store.add_node(Node::IntLiteral(42));
 
-        assert_eq!(id1, NodeID::new(ModuleID::new(0), 0));
-        assert_eq!(id2, NodeID::new(ModuleID::new(0), 1));
-        assert_eq!(id3, NodeID::new(ModuleID::new(0), 2));
+        assert_eq!(id1, NodeID::new(0));
+        assert_eq!(id2, NodeID::new(1));
+        assert_eq!(id3, NodeID::new(2));
         assert_eq!(store.nodes.len(), 3);
     }
 
     #[test]
     fn test_add_int_literal() {
-        let module_id = ModuleID::new(0);
-        let mut store = NodeTree::new(module_id);
+        let mut store = NodeTree::new();
         let node_id = store.add_node(Node::IntLiteral(100));
         assert_eq!(store.nodes[node_id.id() as usize], Node::IntLiteral(100));
     }
 
     #[test]
     fn test_add_float_literal() {
-        let module_id = ModuleID::new(0);
-        let mut store = NodeTree::new(module_id);
+        let mut store = NodeTree::new();
         let node_id = store.add_node(Node::FloatLiteral(3.45));
         assert_eq!(store.nodes[node_id.id() as usize], Node::FloatLiteral(3.45));
     }
 
     #[test]
     fn test_add_string_literal() {
-        let module_id = ModuleID::new(0);
-        let mut store = NodeTree::new(module_id);
+        let mut store = NodeTree::new();
         let node_id = store.add_node(Node::StringLiteral(StrID::from_usize(0)));
         assert_eq!(
             store.nodes[node_id.id() as usize],
@@ -2493,8 +2547,7 @@ mod tests {
 
     #[test]
     fn test_add_bool_literal() {
-        let module_id = ModuleID::new(0);
-        let mut store = NodeTree::new(module_id);
+        let mut store = NodeTree::new();
         let id_true = store.add_node(Node::BoolLiteral(true));
         let id_false = store.add_node(Node::BoolLiteral(false));
 
@@ -2507,8 +2560,7 @@ mod tests {
 
     #[test]
     fn test_add_identifier() {
-        let module_id = ModuleID::new(0);
-        let mut store = NodeTree::new(module_id);
+        let mut store = NodeTree::new();
         let id = store.add_node(Node::Identifier {
             name: StrID::from_usize(10),
             module: None,
@@ -2524,67 +2576,55 @@ mod tests {
 
     #[test]
     fn test_add_block_node() {
-        let module_id = ModuleID::new(0);
-        let mut store = NodeTree::new(module_id);
+        let mut store = NodeTree::new();
         let id = store.add_node(Node::Block {
-            statements: vec![
-                NodeID::new(ModuleID::new(0), 0),
-                NodeID::new(ModuleID::new(0), 1),
-                NodeID::new(ModuleID::new(0), 2),
-            ],
+            statements: vec![NodeID::new(0), NodeID::new(1), NodeID::new(2)],
         });
         assert_eq!(
             store.nodes[id.id() as usize],
             Node::Block {
-                statements: vec![
-                    NodeID::new(ModuleID::new(0), 0),
-                    NodeID::new(ModuleID::new(0), 1),
-                    NodeID::new(ModuleID::new(0), 2),
-                ],
+                statements: vec![NodeID::new(0), NodeID::new(1), NodeID::new(2),],
             }
         );
     }
 
     #[test]
     fn test_add_binary_operation() {
-        let module_id = ModuleID::new(0);
-        let mut store = NodeTree::new(module_id);
+        let mut store = NodeTree::new();
         let id = store.add_node(Node::Binary {
-            left: NodeID::new(ModuleID::new(0), 0),
+            left: NodeID::new(0),
             operator: BinaryOp::Add,
-            right: NodeID::new(ModuleID::new(0), 1),
+            right: NodeID::new(1),
         });
         assert_eq!(
             store.nodes[id.id() as usize],
             Node::Binary {
-                left: NodeID::new(ModuleID::new(0), 0),
+                left: NodeID::new(0),
                 operator: BinaryOp::Add,
-                right: NodeID::new(ModuleID::new(0), 1),
+                right: NodeID::new(1),
             }
         );
     }
 
     #[test]
     fn test_add_unary_operation() {
-        let module_id = ModuleID::new(0);
-        let mut store = NodeTree::new(module_id);
+        let mut store = NodeTree::new();
         let id = store.add_node(Node::Unary {
             operator: UnaryOp::Negate,
-            operand: NodeID::new(ModuleID::new(0), 0),
+            operand: NodeID::new(0),
         });
         assert_eq!(
             store.nodes[id.id() as usize],
             Node::Unary {
                 operator: UnaryOp::Negate,
-                operand: NodeID::new(ModuleID::new(0), 0),
+                operand: NodeID::new(0),
             }
         );
     }
 
     #[test]
     fn test_add_function_declaration() {
-        let module_id = ModuleID::new(0);
-        let mut store = NodeTree::new(module_id);
+        let mut store = NodeTree::new();
         let ident_id = store.add_node(Node::Identifier {
             name: StrID::from_usize(20),
             module: None,
@@ -2593,11 +2633,11 @@ mod tests {
             public: false,
             ident: ident_id,
             params: vec![],
-            body: NodeID::new(ModuleID::new(0), 0),
+            body: NodeID::new(0),
         });
 
         if let Node::FunctionDecl { ident, .. } = &store.nodes[id.id() as usize] {
-            assert_eq!(*ident, NodeID::new(ModuleID::new(0), 0));
+            assert_eq!(*ident, NodeID::new(0));
         } else {
             panic!("Expected FunctionDecl");
         }
@@ -2605,8 +2645,7 @@ mod tests {
 
     #[test]
     fn test_sequential_ids_are_unique() {
-        let module_id = ModuleID::new(0);
-        let mut store = NodeTree::new(module_id);
+        let mut store = NodeTree::new();
         let mut ids = Vec::new();
         for i in 0..10 {
             let id = store.add_node(Node::IntLiteral(i));

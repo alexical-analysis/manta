@@ -134,10 +134,16 @@ impl Typer {
                     }),
                 )
             }
+            Node::ExternalTypeDecl { .. } => {
+                // external types are already typed
+            }
             Node::VarDecl { .. } => {
                 node_tree.type_map.add(node_id, TypeSpec::Unit);
                 // The identifier in the VarDecl nodes gets typed by it's first assignment or
                 // they get pre-typed durring node-ing.
+            }
+            Node::ExternalVarDecl { .. } => {
+                // external types are already typed
             }
             Node::Block { statements } => {
                 node_tree.type_map.add(node_id, TypeSpec::Unit);
@@ -169,6 +175,9 @@ impl Typer {
                 // other root nodes that might appear outside a function decl and we don't want
                 // those to thing they have a valid return type
                 self.return_type = None;
+            }
+            Node::ExternalFunctionDecl { .. } => {
+                // external expressions are already typed
             }
             Node::Assign { target, value } => {
                 node_tree.type_map.add(node_id, TypeSpec::Unit);
@@ -561,13 +570,16 @@ impl Typer {
             | Node::Break
             | Node::Continue
             | Node::VarDecl { .. }
+            | Node::ExternalVarDecl { .. }
             | Node::Match { .. }
             | Node::Return { .. }
             | Node::MatchArm { .. }
             | Node::Free { .. }
             | Node::TypeDecl { .. }
+            | Node::ExternalTypeDecl { .. }
             | Node::Block { .. }
             | Node::FunctionDecl { .. }
+            | Node::ExternalFunctionDecl { .. }
             | Node::Assign { .. } => panic!("can not type check a statement as an expression"),
         }
     }
@@ -1097,14 +1109,13 @@ fn match_enum_pat(known: &TypeSpec, unknown: &InferredEnumPat) -> TypeMatch {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::compiler::ModuleID;
     use crate::hir::{EnumType, EnumVariant, NamedType};
     use crate::str_store::StrID;
 
     // Helper: wrap a TypeSpec in a Named alias
     fn named(ts: TypeSpec) -> TypeSpec {
         TypeSpec::Named(NamedType {
-            name: NodeID::new(ModuleID::new(0), 0),
+            name: NodeID::new(0),
             type_spec: Box::new(ts),
         })
     }

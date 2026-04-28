@@ -1,7 +1,7 @@
 {
   "globals": [],
   "init": {
-    "public": true,
+    "linkage": "Public",
     "name": 18446744073709551596,
     "params": [],
     "return_type": "Unit",
@@ -23,7 +23,7 @@
   },
   "functions": [
     {
-      "public": false,
+      "linkage": "Private",
       "name": 19,
       "params": [
         1
@@ -40,7 +40,7 @@
         }
       },
       "local_map": {
-        "0:14": 1
+        "14": 1
       },
       "locals": [
         {
@@ -87,14 +87,14 @@
       ]
     },
     {
-      "public": false,
+      "linkage": "Private",
       "name": 23,
       "params": [
         1
       ],
       "return_type": "Unit",
       "local_map": {
-        "0:20": 1
+        "20": 1
       },
       "locals": [
         {
@@ -120,7 +120,7 @@
       "value_types": []
     },
     {
-      "public": false,
+      "linkage": "Private",
       "name": 26,
       "params": [
         1
@@ -135,7 +135,7 @@
         }
       },
       "local_map": {
-        "0:26": 1
+        "26": 1
       },
       "locals": [
         {
@@ -182,14 +182,14 @@
       ]
     },
     {
-      "public": false,
+      "linkage": "Private",
       "name": 27,
       "params": [
         1
       ],
       "return_type": "Unit",
       "local_map": {
-        "0:32": 1
+        "32": 1
       },
       "locals": [
         {
@@ -213,7 +213,7 @@
       "value_types": []
     },
     {
-      "public": false,
+      "linkage": "Private",
       "name": 32,
       "params": [
         1
@@ -247,13 +247,13 @@
         }
       },
       "local_map": {
-        "0:38": 1,
-        "0:41": 4,
-        "0:43": 2,
-        "0:48": 5,
-        "0:59": 8,
-        "0:61": 6,
-        "0:66": 9
+        "38": 1,
+        "41": 4,
+        "43": 2,
+        "48": 5,
+        "59": 8,
+        "61": 6,
+        "66": 9
       },
       "locals": [
         {
@@ -1011,17 +1011,17 @@
       ]
     },
     {
-      "public": false,
+      "linkage": "Private",
       "name": 1,
       "params": [],
       "return_type": "Unit",
       "local_map": {
-        "0:79": 3,
-        "0:81": 1,
-        "0:86": 4,
-        "0:97": 7,
-        "0:99": 5,
-        "0:105": 8
+        "79": 3,
+        "81": 1,
+        "86": 4,
+        "97": 7,
+        "99": 5,
+        "105": 8
       },
       "locals": [
         {

@@ -1,7 +1,7 @@
 {
   "globals": [],
   "init": {
-    "public": true,
+    "linkage": "Public",
     "name": 18446744073709551596,
     "params": [],
     "return_type": "Unit",
@@ -23,15 +23,15 @@
   },
   "functions": [
     {
-      "public": false,
+      "linkage": "Private",
       "name": 1,
       "params": [],
       "return_type": "I64",
       "local_map": {
-        "0:4": 1,
-        "0:8": 2,
-        "0:12": 3,
-        "0:16": 4
+        "4": 1,
+        "8": 2,
+        "12": 3,
+        "16": 4
       },
       "locals": [
         {

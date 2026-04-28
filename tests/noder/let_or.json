@@ -1,7 +1,4 @@
 {
-  "module_id": {
-    "id": 0
-  },
   "nodes": [
     {
       "Identifier": {
@@ -77,12 +74,12 @@
     },
     {
       "TypeDecl": {
-        "ident": "0:2"
+        "ident": "2"
       }
     },
     {
       "TypeDecl": {
-        "ident": "0:3"
+        "ident": "3"
       }
     },
     {
@@ -94,7 +91,7 @@
     {
       "VarDecl": {
         "public": false,
-        "ident": "0:14"
+        "ident": "14"
       }
     },
     {
@@ -106,24 +103,24 @@
     },
     {
       "Return": {
-        "value": "0:16"
+        "value": "16"
       }
     },
     {
       "Block": {
         "statements": [
-          "0:17"
+          "17"
         ]
       }
     },
     {
       "FunctionDecl": {
         "public": false,
-        "ident": "0:4",
+        "ident": "4",
         "params": [
-          "0:15"
+          "15"
         ],
-        "body": "0:18"
+        "body": "18"
       }
     },
     {
@@ -135,7 +132,7 @@
     {
       "VarDecl": {
         "public": false,
-        "ident": "0:20"
+        "ident": "20"
       }
     },
     {
@@ -146,23 +143,23 @@
     {
       "Block": {
         "statements": [
-          "0:22"
+          "22"
         ]
       }
     },
     {
       "FunctionDecl": {
         "public": false,
-        "ident": "0:5",
+        "ident": "5",
         "params": [
-          "0:21"
+          "21"
         ],
-        "body": "0:23"
+        "body": "23"
       }
     },
     {
       "TypeDecl": {
-        "ident": "0:6"
+        "ident": "6"
       }
     },
     {
@@ -174,7 +171,7 @@
     {
       "VarDecl": {
         "public": false,
-        "ident": "0:26"
+        "ident": "26"
       }
     },
     {
@@ -186,24 +183,24 @@
     },
     {
       "Return": {
-        "value": "0:28"
+        "value": "28"
       }
     },
     {
       "Block": {
         "statements": [
-          "0:29"
+          "29"
         ]
       }
     },
     {
       "FunctionDecl": {
         "public": false,
-        "ident": "0:7",
+        "ident": "7",
         "params": [
-          "0:27"
+          "27"
         ],
-        "body": "0:30"
+        "body": "30"
       }
     },
     {
@@ -215,7 +212,7 @@
     {
       "VarDecl": {
         "public": false,
-        "ident": "0:32"
+        "ident": "32"
       }
     },
     {
@@ -226,23 +223,23 @@
     {
       "Block": {
         "statements": [
-          "0:34"
+          "34"
         ]
       }
     },
     {
       "FunctionDecl": {
         "public": false,
-        "ident": "0:8",
+        "ident": "8",
         "params": [
-          "0:33"
+          "33"
         ],
-        "body": "0:35"
+        "body": "35"
       }
     },
     {
       "TypeDecl": {
-        "ident": "0:9"
+        "ident": "9"
       }
     },
     {
@@ -254,14 +251,14 @@
     {
       "VarDecl": {
         "public": false,
-        "ident": "0:38"
+        "ident": "38"
       }
     },
     {
       "Call": {
-        "func": "0:4",
+        "func": "4",
         "args": [
-          "0:38"
+          "38"
         ]
       }
     },
@@ -276,7 +273,7 @@
         "EnumVariant": {
           "enum_name": null,
           "variant": 16,
-          "payload": "0:41"
+          "payload": "41"
         }
       }
     },
@@ -289,26 +286,26 @@
     {
       "VarDecl": {
         "public": false,
-        "ident": "0:43"
+        "ident": "43"
       }
     },
     {
       "Assign": {
-        "target": "0:43",
-        "value": "0:41"
+        "target": "43",
+        "value": "41"
       }
     },
     {
       "Block": {
         "statements": [
-          "0:45"
+          "45"
         ]
       }
     },
     {
       "MatchArm": {
-        "pattern": "0:42",
-        "body": "0:46"
+        "pattern": "42",
+        "body": "46"
       }
     },
     {
@@ -321,68 +318,68 @@
       "EnumConstructor": {
         "target": null,
         "variant": 30,
-        "payload": "0:48"
+        "payload": "48"
       }
     },
     {
       "Return": {
-        "value": "0:49"
+        "value": "49"
       }
     },
     {
       "Block": {
         "statements": [
-          "0:50"
+          "50"
         ]
       }
     },
     {
       "Pattern": {
         "Default": {
-          "payload": "0:48"
+          "payload": "48"
         }
       }
     },
     {
       "MatchArm": {
-        "pattern": "0:52",
-        "body": "0:51"
+        "pattern": "52",
+        "body": "51"
       }
     },
     {
       "Match": {
-        "target": "0:40",
+        "target": "40",
         "arms": [
-          "0:47",
-          "0:53"
+          "47",
+          "53"
         ]
       }
     },
     {
       "Call": {
-        "func": "0:5",
+        "func": "5",
         "args": [
-          "0:43"
+          "43"
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          "0:55"
+          "55"
         ]
       }
     },
     {
       "Defer": {
-        "block": "0:56"
+        "block": "56"
       }
     },
     {
       "Call": {
-        "func": "0:7",
+        "func": "7",
         "args": [
-          "0:43"
+          "43"
         ]
       }
     },
@@ -397,7 +394,7 @@
         "EnumVariant": {
           "enum_name": null,
           "variant": 16,
-          "payload": "0:59"
+          "payload": "59"
         }
       }
     },
@@ -410,26 +407,26 @@
     {
       "VarDecl": {
         "public": false,
-        "ident": "0:61"
+        "ident": "61"
       }
     },
     {
       "Assign": {
-        "target": "0:61",
-        "value": "0:59"
+        "target": "61",
+        "value": "59"
       }
     },
     {
       "Block": {
         "statements": [
-          "0:63"
+          "63"
         ]
       }
     },
     {
       "MatchArm": {
-        "pattern": "0:60",
-        "body": "0:64"
+        "pattern": "60",
+        "body": "64"
       }
     },
     {
@@ -442,40 +439,40 @@
       "EnumConstructor": {
         "target": null,
         "variant": 31,
-        "payload": "0:66"
+        "payload": "66"
       }
     },
     {
       "Return": {
-        "value": "0:67"
+        "value": "67"
       }
     },
     {
       "Block": {
         "statements": [
-          "0:68"
+          "68"
         ]
       }
     },
     {
       "Pattern": {
         "Default": {
-          "payload": "0:66"
+          "payload": "66"
         }
       }
     },
     {
       "MatchArm": {
-        "pattern": "0:70",
-        "body": "0:69"
+        "pattern": "70",
+        "body": "69"
       }
     },
     {
       "Match": {
-        "target": "0:58",
+        "target": "58",
         "arms": [
-          "0:65",
-          "0:71"
+          "65",
+          "71"
         ]
       }
     },
@@ -483,34 +480,34 @@
       "EnumConstructor": {
         "target": null,
         "variant": 16,
-        "payload": "0:61"
+        "payload": "61"
       }
     },
     {
       "Return": {
-        "value": "0:73"
+        "value": "73"
       }
     },
     {
       "Block": {
         "statements": [
-          "0:44",
-          "0:54",
-          "0:57",
-          "0:62",
-          "0:72",
-          "0:74"
+          "44",
+          "54",
+          "57",
+          "62",
+          "72",
+          "74"
         ]
       }
     },
     {
       "FunctionDecl": {
         "public": false,
-        "ident": "0:10",
+        "ident": "10",
         "params": [
-          "0:39"
+          "39"
         ],
-        "body": "0:75"
+        "body": "75"
       }
     },
     {
@@ -518,9 +515,9 @@
     },
     {
       "Call": {
-        "func": "0:10",
+        "func": "10",
         "args": [
-          "0:77"
+          "77"
         ]
       }
     },
@@ -535,7 +532,7 @@
         "EnumVariant": {
           "enum_name": null,
           "variant": 16,
-          "payload": "0:79"
+          "payload": "79"
         }
       }
     },
@@ -548,26 +545,26 @@
     {
       "VarDecl": {
         "public": false,
-        "ident": "0:81"
+        "ident": "81"
       }
     },
     {
       "Assign": {
-        "target": "0:81",
-        "value": "0:79"
+        "target": "81",
+        "value": "79"
       }
     },
     {
       "Block": {
         "statements": [
-          "0:83"
+          "83"
         ]
       }
     },
     {
       "MatchArm": {
-        "pattern": "0:80",
-        "body": "0:84"
+        "pattern": "80",
+        "body": "84"
       }
     },
     {
@@ -579,7 +576,7 @@
     {
       "Pattern": {
         "Default": {
-          "payload": "0:86"
+          "payload": "86"
         }
       }
     },
@@ -588,9 +585,9 @@
     },
     {
       "Call": {
-        "func": "0:8",
+        "func": "8",
         "args": [
-          "0:88"
+          "88"
         ]
       }
     },
@@ -602,31 +599,31 @@
     {
       "Block": {
         "statements": [
-          "0:89",
-          "0:90"
+          "89",
+          "90"
         ]
       }
     },
     {
       "MatchArm": {
-        "pattern": "0:87",
-        "body": "0:91"
+        "pattern": "87",
+        "body": "91"
       }
     },
     {
       "Match": {
-        "target": "0:78",
+        "target": "78",
         "arms": [
-          "0:85",
-          "0:92"
+          "85",
+          "92"
         ]
       }
     },
     {
       "Call": {
-        "func": "0:8",
+        "func": "8",
         "args": [
-          "0:81"
+          "81"
         ]
       }
     },
@@ -635,9 +632,9 @@
     },
     {
       "Call": {
-        "func": "0:10",
+        "func": "10",
         "args": [
-          "0:95"
+          "95"
         ]
       }
     },
@@ -652,7 +649,7 @@
         "EnumVariant": {
           "enum_name": null,
           "variant": 16,
-          "payload": "0:97"
+          "payload": "97"
         }
       }
     },
@@ -665,26 +662,26 @@
     {
       "VarDecl": {
         "public": false,
-        "ident": "0:99"
+        "ident": "99"
       }
     },
     {
       "Assign": {
-        "target": "0:99",
-        "value": "0:97"
+        "target": "99",
+        "value": "97"
       }
     },
     {
       "Block": {
         "statements": [
-          "0:101"
+          "101"
         ]
       }
     },
     {
       "MatchArm": {
-        "pattern": "0:98",
-        "body": "0:102"
+        "pattern": "98",
+        "body": "102"
       }
     },
     {
@@ -704,46 +701,46 @@
     },
     {
       "Call": {
-        "func": "0:104",
+        "func": "104",
         "args": [
-          "0:106"
+          "106"
         ]
       }
     },
     {
       "Block": {
         "statements": [
-          "0:107"
+          "107"
         ]
       }
     },
     {
       "Pattern": {
         "Default": {
-          "payload": "0:105"
+          "payload": "105"
         }
       }
     },
     {
       "MatchArm": {
-        "pattern": "0:109",
-        "body": "0:108"
+        "pattern": "109",
+        "body": "108"
       }
     },
     {
       "Match": {
-        "target": "0:96",
+        "target": "96",
         "arms": [
-          "0:103",
-          "0:110"
+          "103",
+          "110"
         ]
       }
     },
     {
       "Call": {
-        "func": "0:8",
+        "func": "8",
         "args": [
-          "0:99"
+          "99"
         ]
       }
     },
@@ -755,143 +752,143 @@
     {
       "Block": {
         "statements": [
-          "0:82",
-          "0:93",
-          "0:94",
-          "0:100",
-          "0:111",
-          "0:112",
-          "0:113"
+          "82",
+          "93",
+          "94",
+          "100",
+          "111",
+          "112",
+          "113"
         ]
       }
     },
     {
       "FunctionDecl": {
         "public": false,
-        "ident": "0:11",
+        "ident": "11",
         "params": [],
-        "body": "0:114"
+        "body": "114"
       }
     }
   ],
   "type_map": {
     "keys": {
-      "0:0": 0,
-      "0:1": 1,
-      "0:2": 24,
-      "0:3": 25,
-      "0:4": 2,
-      "0:5": 3,
-      "0:6": 33,
-      "0:7": 4,
-      "0:8": 5,
-      "0:9": 41,
-      "0:10": 6,
-      "0:11": 7,
-      "0:12": 8,
-      "0:13": 9,
-      "0:14": 10,
-      "0:15": 26,
-      "0:16": 29,
-      "0:17": 28,
-      "0:18": 27,
-      "0:19": 11,
-      "0:20": 12,
-      "0:21": 30,
-      "0:22": 32,
-      "0:23": 31,
-      "0:24": 13,
-      "0:25": 14,
-      "0:26": 15,
-      "0:27": 34,
-      "0:28": 37,
-      "0:29": 36,
-      "0:30": 35,
-      "0:31": 16,
-      "0:32": 17,
-      "0:33": 38,
-      "0:34": 40,
-      "0:35": 39,
-      "0:36": 18,
-      "0:37": 19,
-      "0:38": 20,
-      "0:39": 42,
-      "0:40": 46,
-      "0:41": 47,
-      "0:42": 48,
-      "0:43": 52,
-      "0:44": 44,
-      "0:45": 51,
-      "0:46": 50,
-      "0:47": 49,
-      "0:48": 54,
-      "0:49": 58,
-      "0:50": 57,
-      "0:51": 56,
-      "0:52": 53,
-      "0:53": 55,
-      "0:54": 45,
-      "0:55": 61,
-      "0:56": 60,
-      "0:57": 59,
-      "0:58": 64,
-      "0:59": 65,
-      "0:60": 66,
-      "0:61": 70,
-      "0:62": 62,
-      "0:63": 69,
-      "0:64": 68,
-      "0:65": 67,
-      "0:66": 72,
-      "0:67": 76,
-      "0:68": 75,
-      "0:69": 74,
-      "0:70": 71,
-      "0:71": 73,
-      "0:72": 63,
-      "0:73": 78,
-      "0:74": 77,
-      "0:75": 43,
-      "0:76": 21,
-      "0:77": 82,
-      "0:78": 83,
-      "0:79": 84,
-      "0:80": 85,
-      "0:81": 89,
-      "0:82": 80,
-      "0:83": 88,
-      "0:84": 87,
-      "0:85": 86,
-      "0:86": 91,
-      "0:87": 90,
-      "0:88": 94,
-      "0:89": 95,
-      "0:90": 96,
-      "0:91": 93,
-      "0:92": 92,
-      "0:93": 81,
-      "0:94": 97,
-      "0:95": 100,
-      "0:96": 101,
-      "0:97": 102,
-      "0:98": 103,
-      "0:99": 107,
-      "0:100": 98,
-      "0:101": 106,
-      "0:102": 105,
-      "0:103": 104,
-      "0:104": 22,
-      "0:105": 109,
-      "0:106": 112,
-      "0:107": 113,
-      "0:108": 111,
-      "0:109": 108,
-      "0:110": 110,
-      "0:111": 99,
-      "0:112": 114,
-      "0:113": 115,
-      "0:114": 79,
-      "0:115": 23
+      "0": 0,
+      "1": 1,
+      "2": 24,
+      "3": 25,
+      "4": 2,
+      "5": 3,
+      "6": 33,
+      "7": 4,
+      "8": 5,
+      "9": 41,
+      "10": 6,
+      "11": 7,
+      "12": 8,
+      "13": 9,
+      "14": 10,
+      "15": 26,
+      "16": 29,
+      "17": 28,
+      "18": 27,
+      "19": 11,
+      "20": 12,
+      "21": 30,
+      "22": 32,
+      "23": 31,
+      "24": 13,
+      "25": 14,
+      "26": 15,
+      "27": 34,
+      "28": 37,
+      "29": 36,
+      "30": 35,
+      "31": 16,
+      "32": 17,
+      "33": 38,
+      "34": 40,
+      "35": 39,
+      "36": 18,
+      "37": 19,
+      "38": 20,
+      "39": 42,
+      "40": 46,
+      "41": 47,
+      "42": 48,
+      "43": 52,
+      "44": 44,
+      "45": 51,
+      "46": 50,
+      "47": 49,
+      "48": 54,
+      "49": 58,
+      "50": 57,
+      "51": 56,
+      "52": 53,
+      "53": 55,
+      "54": 45,
+      "55": 61,
+      "56": 60,
+      "57": 59,
+      "58": 64,
+      "59": 65,
+      "60": 66,
+      "61": 70,
+      "62": 62,
+      "63": 69,
+      "64": 68,
+      "65": 67,
+      "66": 72,
+      "67": 76,
+      "68": 75,
+      "69": 74,
+      "70": 71,
+      "71": 73,
+      "72": 63,
+      "73": 78,
+      "74": 77,
+      "75": 43,
+      "76": 21,
+      "77": 82,
+      "78": 83,
+      "79": 84,
+      "80": 85,
+      "81": 89,
+      "82": 80,
+      "83": 88,
+      "84": 87,
+      "85": 86,
+      "86": 91,
+      "87": 90,
+      "88": 94,
+      "89": 95,
+      "90": 96,
+      "91": 93,
+      "92": 92,
+      "93": 81,
+      "94": 97,
+      "95": 100,
+      "96": 101,
+      "97": 102,
+      "98": 103,
+      "99": 107,
+      "100": 98,
+      "101": 106,
+      "102": 105,
+      "103": 104,
+      "104": 22,
+      "105": 109,
+      "106": 112,
+      "107": 113,
+      "108": 111,
+      "109": 108,
+      "110": 110,
+      "111": 99,
+      "112": 114,
+      "113": 115,
+      "114": 79,
+      "115": 23
     },
     "values": [
       {
@@ -917,7 +914,7 @@
           ],
           "return_type": {
             "Named": {
-              "name": "0:3",
+              "name": "3",
               "type_spec": {
                 "Enum": {
                   "variants": [
@@ -925,7 +922,7 @@
                       "name": 16,
                       "payload": {
                         "Named": {
-                          "name": "0:2",
+                          "name": "2",
                           "type_spec": {
                             "Struct": {
                               "fields": []
@@ -950,7 +947,7 @@
           "params": [
             {
               "Named": {
-                "name": "0:2",
+                "name": "2",
                 "type_spec": {
                   "Struct": {
                     "fields": []
@@ -967,7 +964,7 @@
           "params": [
             {
               "Named": {
-                "name": "0:2",
+                "name": "2",
                 "type_spec": {
                   "Struct": {
                     "fields": []
@@ -978,7 +975,7 @@
           ],
           "return_type": {
             "Named": {
-              "name": "0:6",
+              "name": "6",
               "type_spec": {
                 "Enum": {
                   "variants": [
@@ -1012,7 +1009,7 @@
           ],
           "return_type": {
             "Named": {
-              "name": "0:9",
+              "name": "9",
               "type_spec": {
                 "Enum": {
                   "variants": [
@@ -1024,7 +1021,7 @@
                       "name": 30,
                       "payload": {
                         "Named": {
-                          "name": "0:3",
+                          "name": "3",
                           "type_spec": {
                             "Enum": {
                               "variants": [
@@ -1032,7 +1029,7 @@
                                   "name": 16,
                                   "payload": {
                                     "Named": {
-                                      "name": "0:2",
+                                      "name": "2",
                                       "type_spec": {
                                         "Struct": {
                                           "fields": []
@@ -1055,7 +1052,7 @@
                       "name": 31,
                       "payload": {
                         "Named": {
-                          "name": "0:6",
+                          "name": "6",
                           "type_spec": {
                             "Enum": {
                               "variants": [
@@ -1098,7 +1095,7 @@
               "name": 16,
               "payload": {
                 "Named": {
-                  "name": "0:2",
+                  "name": "2",
                   "type_spec": {
                     "Struct": {
                       "fields": []
@@ -1122,7 +1119,7 @@
           ],
           "return_type": {
             "Named": {
-              "name": "0:3",
+              "name": "3",
               "type_spec": {
                 "Enum": {
                   "variants": [
@@ -1130,7 +1127,7 @@
                       "name": 16,
                       "payload": {
                         "Named": {
-                          "name": "0:2",
+                          "name": "2",
                           "type_spec": {
                             "Struct": {
                               "fields": []
@@ -1152,7 +1149,7 @@
       },
       {
         "Named": {
-          "name": "0:2",
+          "name": "2",
           "type_spec": {
             "Struct": {
               "fields": []
@@ -1165,7 +1162,7 @@
           "params": [
             {
               "Named": {
-                "name": "0:2",
+                "name": "2",
                 "type_spec": {
                   "Struct": {
                     "fields": []
@@ -1193,7 +1190,7 @@
       },
       {
         "Named": {
-          "name": "0:2",
+          "name": "2",
           "type_spec": {
             "Struct": {
               "fields": []
@@ -1206,7 +1203,7 @@
           "params": [
             {
               "Named": {
-                "name": "0:2",
+                "name": "2",
                 "type_spec": {
                   "Struct": {
                     "fields": []
@@ -1217,7 +1214,7 @@
           ],
           "return_type": {
             "Named": {
-              "name": "0:6",
+              "name": "6",
               "type_spec": {
                 "Enum": {
                   "variants": [
@@ -1256,7 +1253,7 @@
               "name": 30,
               "payload": {
                 "Named": {
-                  "name": "0:3",
+                  "name": "3",
                   "type_spec": {
                     "Enum": {
                       "variants": [
@@ -1264,7 +1261,7 @@
                           "name": 16,
                           "payload": {
                             "Named": {
-                              "name": "0:2",
+                              "name": "2",
                               "type_spec": {
                                 "Struct": {
                                   "fields": []
@@ -1287,7 +1284,7 @@
               "name": 31,
               "payload": {
                 "Named": {
-                  "name": "0:6",
+                  "name": "6",
                   "type_spec": {
                     "Enum": {
                       "variants": [
@@ -1316,7 +1313,7 @@
           ],
           "return_type": {
             "Named": {
-              "name": "0:9",
+              "name": "9",
               "type_spec": {
                 "Enum": {
                   "variants": [
@@ -1328,7 +1325,7 @@
                       "name": 30,
                       "payload": {
                         "Named": {
-                          "name": "0:3",
+                          "name": "3",
                           "type_spec": {
                             "Enum": {
                               "variants": [
@@ -1336,7 +1333,7 @@
                                   "name": 16,
                                   "payload": {
                                     "Named": {
-                                      "name": "0:2",
+                                      "name": "2",
                                       "type_spec": {
                                         "Struct": {
                                           "fields": []
@@ -1359,7 +1356,7 @@
                       "name": 31,
                       "payload": {
                         "Named": {
-                          "name": "0:6",
+                          "name": "6",
                           "type_spec": {
                             "Enum": {
                               "variants": [
@@ -1400,7 +1397,7 @@
       },
       {
         "Named": {
-          "name": "0:2",
+          "name": "2",
           "type_spec": {
             "Struct": {
               "fields": []
@@ -1410,7 +1407,7 @@
       },
       {
         "Named": {
-          "name": "0:3",
+          "name": "3",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1418,7 +1415,7 @@
                   "name": 16,
                   "payload": {
                     "Named": {
-                      "name": "0:2",
+                      "name": "2",
                       "type_spec": {
                         "Struct": {
                           "fields": []
@@ -1441,7 +1438,7 @@
       "Unit",
       {
         "Named": {
-          "name": "0:3",
+          "name": "3",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1449,7 +1446,7 @@
                   "name": 16,
                   "payload": {
                     "Named": {
-                      "name": "0:2",
+                      "name": "2",
                       "type_spec": {
                         "Struct": {
                           "fields": []
@@ -1472,7 +1469,7 @@
       "Unit",
       {
         "Named": {
-          "name": "0:6",
+          "name": "6",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1494,7 +1491,7 @@
       "Unit",
       {
         "Named": {
-          "name": "0:6",
+          "name": "6",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1516,7 +1513,7 @@
       "Unit",
       {
         "Named": {
-          "name": "0:9",
+          "name": "9",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1528,7 +1525,7 @@
                   "name": 30,
                   "payload": {
                     "Named": {
-                      "name": "0:3",
+                      "name": "3",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -1536,7 +1533,7 @@
                               "name": 16,
                               "payload": {
                                 "Named": {
-                                  "name": "0:2",
+                                  "name": "2",
                                   "type_spec": {
                                     "Struct": {
                                       "fields": []
@@ -1559,7 +1556,7 @@
                   "name": 31,
                   "payload": {
                     "Named": {
-                      "name": "0:6",
+                      "name": "6",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -1588,7 +1585,7 @@
       "Unit",
       {
         "Named": {
-          "name": "0:3",
+          "name": "3",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1596,7 +1593,7 @@
                   "name": 16,
                   "payload": {
                     "Named": {
-                      "name": "0:2",
+                      "name": "2",
                       "type_spec": {
                         "Struct": {
                           "fields": []
@@ -1616,7 +1613,7 @@
       },
       {
         "Named": {
-          "name": "0:2",
+          "name": "2",
           "type_spec": {
             "Struct": {
               "fields": []
@@ -1626,7 +1623,7 @@
       },
       {
         "Named": {
-          "name": "0:3",
+          "name": "3",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1634,7 +1631,7 @@
                   "name": 16,
                   "payload": {
                     "Named": {
-                      "name": "0:2",
+                      "name": "2",
                       "type_spec": {
                         "Struct": {
                           "fields": []
@@ -1654,7 +1651,7 @@
       },
       {
         "Named": {
-          "name": "0:3",
+          "name": "3",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1662,7 +1659,7 @@
                   "name": 16,
                   "payload": {
                     "Named": {
-                      "name": "0:2",
+                      "name": "2",
                       "type_spec": {
                         "Struct": {
                           "fields": []
@@ -1684,7 +1681,7 @@
       "Unit",
       {
         "Named": {
-          "name": "0:2",
+          "name": "2",
           "type_spec": {
             "Struct": {
               "fields": []
@@ -1694,7 +1691,7 @@
       },
       {
         "Named": {
-          "name": "0:3",
+          "name": "3",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1702,7 +1699,7 @@
                   "name": 16,
                   "payload": {
                     "Named": {
-                      "name": "0:2",
+                      "name": "2",
                       "type_spec": {
                         "Struct": {
                           "fields": []
@@ -1722,7 +1719,7 @@
       },
       {
         "Named": {
-          "name": "0:3",
+          "name": "3",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1730,7 +1727,7 @@
                   "name": 16,
                   "payload": {
                     "Named": {
-                      "name": "0:2",
+                      "name": "2",
                       "type_spec": {
                         "Struct": {
                           "fields": []
@@ -1750,7 +1747,7 @@
       },
       {
         "Named": {
-          "name": "0:3",
+          "name": "3",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1758,7 +1755,7 @@
                   "name": 16,
                   "payload": {
                     "Named": {
-                      "name": "0:2",
+                      "name": "2",
                       "type_spec": {
                         "Struct": {
                           "fields": []
@@ -1780,7 +1777,7 @@
       "Unit",
       {
         "Named": {
-          "name": "0:9",
+          "name": "9",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1792,7 +1789,7 @@
                   "name": 30,
                   "payload": {
                     "Named": {
-                      "name": "0:3",
+                      "name": "3",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -1800,7 +1797,7 @@
                               "name": 16,
                               "payload": {
                                 "Named": {
-                                  "name": "0:2",
+                                  "name": "2",
                                   "type_spec": {
                                     "Struct": {
                                       "fields": []
@@ -1823,7 +1820,7 @@
                   "name": 31,
                   "payload": {
                     "Named": {
-                      "name": "0:6",
+                      "name": "6",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -1853,7 +1850,7 @@
       "Unit",
       {
         "Named": {
-          "name": "0:6",
+          "name": "6",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1873,7 +1870,7 @@
       "String",
       {
         "Named": {
-          "name": "0:6",
+          "name": "6",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1892,7 +1889,7 @@
       },
       {
         "Named": {
-          "name": "0:6",
+          "name": "6",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1914,7 +1911,7 @@
       "String",
       {
         "Named": {
-          "name": "0:6",
+          "name": "6",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1933,7 +1930,7 @@
       },
       {
         "Named": {
-          "name": "0:6",
+          "name": "6",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1952,7 +1949,7 @@
       },
       {
         "Named": {
-          "name": "0:6",
+          "name": "6",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1973,7 +1970,7 @@
       "Unit",
       {
         "Named": {
-          "name": "0:9",
+          "name": "9",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -1985,7 +1982,7 @@
                   "name": 30,
                   "payload": {
                     "Named": {
-                      "name": "0:3",
+                      "name": "3",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -1993,7 +1990,7 @@
                               "name": 16,
                               "payload": {
                                 "Named": {
-                                  "name": "0:2",
+                                  "name": "2",
                                   "type_spec": {
                                     "Struct": {
                                       "fields": []
@@ -2016,7 +2013,7 @@
                   "name": 31,
                   "payload": {
                     "Named": {
-                      "name": "0:6",
+                      "name": "6",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -2042,7 +2039,7 @@
       "Unit",
       {
         "Named": {
-          "name": "0:9",
+          "name": "9",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -2054,7 +2051,7 @@
                   "name": 30,
                   "payload": {
                     "Named": {
-                      "name": "0:3",
+                      "name": "3",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -2062,7 +2059,7 @@
                               "name": 16,
                               "payload": {
                                 "Named": {
-                                  "name": "0:2",
+                                  "name": "2",
                                   "type_spec": {
                                     "Struct": {
                                       "fields": []
@@ -2085,7 +2082,7 @@
                   "name": 31,
                   "payload": {
                     "Named": {
-                      "name": "0:6",
+                      "name": "6",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -2114,7 +2111,7 @@
       "String",
       {
         "Named": {
-          "name": "0:9",
+          "name": "9",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -2126,7 +2123,7 @@
                   "name": 30,
                   "payload": {
                     "Named": {
-                      "name": "0:3",
+                      "name": "3",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -2134,7 +2131,7 @@
                               "name": 16,
                               "payload": {
                                 "Named": {
-                                  "name": "0:2",
+                                  "name": "2",
                                   "type_spec": {
                                     "Struct": {
                                       "fields": []
@@ -2157,7 +2154,7 @@
                   "name": 31,
                   "payload": {
                     "Named": {
-                      "name": "0:6",
+                      "name": "6",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -2183,7 +2180,7 @@
       "String",
       {
         "Named": {
-          "name": "0:9",
+          "name": "9",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -2195,7 +2192,7 @@
                   "name": 30,
                   "payload": {
                     "Named": {
-                      "name": "0:3",
+                      "name": "3",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -2203,7 +2200,7 @@
                               "name": 16,
                               "payload": {
                                 "Named": {
-                                  "name": "0:2",
+                                  "name": "2",
                                   "type_spec": {
                                     "Struct": {
                                       "fields": []
@@ -2226,7 +2223,7 @@
                   "name": 31,
                   "payload": {
                     "Named": {
-                      "name": "0:6",
+                      "name": "6",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -2251,7 +2248,7 @@
       },
       {
         "Named": {
-          "name": "0:9",
+          "name": "9",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -2263,7 +2260,7 @@
                   "name": 30,
                   "payload": {
                     "Named": {
-                      "name": "0:3",
+                      "name": "3",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -2271,7 +2268,7 @@
                               "name": 16,
                               "payload": {
                                 "Named": {
-                                  "name": "0:2",
+                                  "name": "2",
                                   "type_spec": {
                                     "Struct": {
                                       "fields": []
@@ -2294,427 +2291,7 @@
                   "name": 31,
                   "payload": {
                     "Named": {
-                      "name": "0:6",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": "String"
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      },
-      "Unit",
-      "Unit",
-      "String",
-      {
-        "Named": {
-          "name": "0:9",
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 16,
-                  "payload": "String"
-                },
-                {
-                  "name": 30,
-                  "payload": {
-                    "Named": {
-                      "name": "0:3",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": {
-                                "Named": {
-                                  "name": "0:2",
-                                  "type_spec": {
-                                    "Struct": {
-                                      "fields": []
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                },
-                {
-                  "name": 31,
-                  "payload": {
-                    "Named": {
-                      "name": "0:6",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": "String"
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      },
-      {
-        "Named": {
-          "name": "0:9",
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 16,
-                  "payload": "String"
-                },
-                {
-                  "name": 30,
-                  "payload": {
-                    "Named": {
-                      "name": "0:3",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": {
-                                "Named": {
-                                  "name": "0:2",
-                                  "type_spec": {
-                                    "Struct": {
-                                      "fields": []
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                },
-                {
-                  "name": 31,
-                  "payload": {
-                    "Named": {
-                      "name": "0:6",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": "String"
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      },
-      {
-        "Named": {
-          "name": "0:9",
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 16,
-                  "payload": "String"
-                },
-                {
-                  "name": 30,
-                  "payload": {
-                    "Named": {
-                      "name": "0:3",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": {
-                                "Named": {
-                                  "name": "0:2",
-                                  "type_spec": {
-                                    "Struct": {
-                                      "fields": []
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                },
-                {
-                  "name": 31,
-                  "payload": {
-                    "Named": {
-                      "name": "0:6",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": "String"
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      },
-      "Unit",
-      "String",
-      "Unit",
-      "Unit",
-      "Unit",
-      "Unit",
-      "Unit",
-      "String",
-      {
-        "Named": {
-          "name": "0:9",
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 16,
-                  "payload": "String"
-                },
-                {
-                  "name": 30,
-                  "payload": {
-                    "Named": {
-                      "name": "0:3",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": {
-                                "Named": {
-                                  "name": "0:2",
-                                  "type_spec": {
-                                    "Struct": {
-                                      "fields": []
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                },
-                {
-                  "name": 31,
-                  "payload": {
-                    "Named": {
-                      "name": "0:6",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": "String"
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      },
-      "String",
-      {
-        "Named": {
-          "name": "0:9",
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 16,
-                  "payload": "String"
-                },
-                {
-                  "name": 30,
-                  "payload": {
-                    "Named": {
-                      "name": "0:3",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": {
-                                "Named": {
-                                  "name": "0:2",
-                                  "type_spec": {
-                                    "Struct": {
-                                      "fields": []
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                },
-                {
-                  "name": 31,
-                  "payload": {
-                    "Named": {
-                      "name": "0:6",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": "String"
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      },
-      {
-        "Named": {
-          "name": "0:9",
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 16,
-                  "payload": "String"
-                },
-                {
-                  "name": 30,
-                  "payload": {
-                    "Named": {
-                      "name": "0:3",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": {
-                                "Named": {
-                                  "name": "0:2",
-                                  "type_spec": {
-                                    "Struct": {
-                                      "fields": []
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                },
-                {
-                  "name": 31,
-                  "payload": {
-                    "Named": {
-                      "name": "0:6",
+                      "name": "6",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -2742,7 +2319,7 @@
       "String",
       {
         "Named": {
-          "name": "0:9",
+          "name": "9",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -2754,7 +2331,7 @@
                   "name": 30,
                   "payload": {
                     "Named": {
-                      "name": "0:3",
+                      "name": "3",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -2762,7 +2339,7 @@
                               "name": 16,
                               "payload": {
                                 "Named": {
-                                  "name": "0:2",
+                                  "name": "2",
                                   "type_spec": {
                                     "Struct": {
                                       "fields": []
@@ -2785,7 +2362,7 @@
                   "name": 31,
                   "payload": {
                     "Named": {
-                      "name": "0:6",
+                      "name": "6",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -2810,7 +2387,7 @@
       },
       {
         "Named": {
-          "name": "0:9",
+          "name": "9",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -2822,7 +2399,7 @@
                   "name": 30,
                   "payload": {
                     "Named": {
-                      "name": "0:3",
+                      "name": "3",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -2830,7 +2407,7 @@
                               "name": 16,
                               "payload": {
                                 "Named": {
-                                  "name": "0:2",
+                                  "name": "2",
                                   "type_spec": {
                                     "Struct": {
                                       "fields": []
@@ -2853,7 +2430,7 @@
                   "name": 31,
                   "payload": {
                     "Named": {
-                      "name": "0:6",
+                      "name": "6",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -2878,7 +2455,7 @@
       },
       {
         "Named": {
-          "name": "0:9",
+          "name": "9",
           "type_spec": {
             "Enum": {
               "variants": [
@@ -2890,7 +2467,7 @@
                   "name": 30,
                   "payload": {
                     "Named": {
-                      "name": "0:3",
+                      "name": "3",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -2898,7 +2475,7 @@
                               "name": 16,
                               "payload": {
                                 "Named": {
-                                  "name": "0:2",
+                                  "name": "2",
                                   "type_spec": {
                                     "Struct": {
                                       "fields": []
@@ -2921,7 +2498,427 @@
                   "name": 31,
                   "payload": {
                     "Named": {
-                      "name": "0:6",
+                      "name": "6",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 16,
+                              "payload": "String"
+                            },
+                            {
+                              "name": 17,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Unit",
+      "String",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      "String",
+      {
+        "Named": {
+          "name": "9",
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 16,
+                  "payload": "String"
+                },
+                {
+                  "name": 30,
+                  "payload": {
+                    "Named": {
+                      "name": "3",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 16,
+                              "payload": {
+                                "Named": {
+                                  "name": "2",
+                                  "type_spec": {
+                                    "Struct": {
+                                      "fields": []
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "name": 17,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 31,
+                  "payload": {
+                    "Named": {
+                      "name": "6",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 16,
+                              "payload": "String"
+                            },
+                            {
+                              "name": 17,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "String",
+      {
+        "Named": {
+          "name": "9",
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 16,
+                  "payload": "String"
+                },
+                {
+                  "name": 30,
+                  "payload": {
+                    "Named": {
+                      "name": "3",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 16,
+                              "payload": {
+                                "Named": {
+                                  "name": "2",
+                                  "type_spec": {
+                                    "Struct": {
+                                      "fields": []
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "name": 17,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 31,
+                  "payload": {
+                    "Named": {
+                      "name": "6",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 16,
+                              "payload": "String"
+                            },
+                            {
+                              "name": 17,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "Named": {
+          "name": "9",
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 16,
+                  "payload": "String"
+                },
+                {
+                  "name": 30,
+                  "payload": {
+                    "Named": {
+                      "name": "3",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 16,
+                              "payload": {
+                                "Named": {
+                                  "name": "2",
+                                  "type_spec": {
+                                    "Struct": {
+                                      "fields": []
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "name": 17,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 31,
+                  "payload": {
+                    "Named": {
+                      "name": "6",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 16,
+                              "payload": "String"
+                            },
+                            {
+                              "name": 17,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Unit",
+      "Unit",
+      "String",
+      {
+        "Named": {
+          "name": "9",
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 16,
+                  "payload": "String"
+                },
+                {
+                  "name": 30,
+                  "payload": {
+                    "Named": {
+                      "name": "3",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 16,
+                              "payload": {
+                                "Named": {
+                                  "name": "2",
+                                  "type_spec": {
+                                    "Struct": {
+                                      "fields": []
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "name": 17,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 31,
+                  "payload": {
+                    "Named": {
+                      "name": "6",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 16,
+                              "payload": "String"
+                            },
+                            {
+                              "name": 17,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "Named": {
+          "name": "9",
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 16,
+                  "payload": "String"
+                },
+                {
+                  "name": 30,
+                  "payload": {
+                    "Named": {
+                      "name": "3",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 16,
+                              "payload": {
+                                "Named": {
+                                  "name": "2",
+                                  "type_spec": {
+                                    "Struct": {
+                                      "fields": []
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "name": 17,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 31,
+                  "payload": {
+                    "Named": {
+                      "name": "6",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 16,
+                              "payload": "String"
+                            },
+                            {
+                              "name": 17,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "Named": {
+          "name": "9",
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 16,
+                  "payload": "String"
+                },
+                {
+                  "name": 30,
+                  "payload": {
+                    "Named": {
+                      "name": "3",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 16,
+                              "payload": {
+                                "Named": {
+                                  "name": "2",
+                                  "type_spec": {
+                                    "Struct": {
+                                      "fields": []
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "name": 17,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 31,
+                  "payload": {
+                    "Named": {
+                      "name": "6",
                       "type_spec": {
                         "Enum": {
                           "variants": [
@@ -2977,41 +2974,41 @@
       "33": 21
     },
     "values": [
-      "0:0",
-      "0:1",
-      "0:2",
-      "0:3",
-      "0:4",
-      "0:5",
-      "0:6",
-      "0:7",
-      "0:8",
-      "0:9",
-      "0:10",
-      "0:11",
-      "0:14",
-      "0:20",
-      "0:26",
-      "0:32",
-      "0:38",
-      "0:43",
-      "0:61",
-      "0:81",
-      "0:86",
-      "0:99"
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "14",
+      "20",
+      "26",
+      "32",
+      "38",
+      "43",
+      "61",
+      "81",
+      "86",
+      "99"
     ]
   },
   "roots": [
-    "0:12",
-    "0:13",
-    "0:19",
-    "0:24",
-    "0:25",
-    "0:31",
-    "0:36",
-    "0:37",
-    "0:76",
-    "0:115"
+    "12",
+    "13",
+    "19",
+    "24",
+    "25",
+    "31",
+    "36",
+    "37",
+    "76",
+    "115"
   ],
   "public_decls": {}
 }

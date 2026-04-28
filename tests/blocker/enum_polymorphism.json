@@ -7,7 +7,7 @@
     }
   ],
   "init": {
-    "public": true,
+    "linkage": "Public",
     "name": 18446744073709551596,
     "params": [],
     "return_type": "Unit",
@@ -54,14 +54,14 @@
   },
   "functions": [
     {
-      "public": false,
+      "linkage": "Private",
       "name": 13,
       "params": [
         1
       ],
       "return_type": "Unit",
       "local_map": {
-        "0:10": 1
+        "10": 1
       },
       "locals": [
         {
@@ -85,16 +85,16 @@
       "value_types": []
     },
     {
-      "public": false,
+      "linkage": "Private",
       "name": 22,
       "params": [
         1
       ],
       "return_type": "F64",
       "local_map": {
-        "0:16": 1,
-        "0:18": 2,
-        "0:25": 3
+        "16": 1,
+        "18": 2,
+        "25": 3
       },
       "locals": [
         {
@@ -338,15 +338,15 @@
       ]
     },
     {
-      "public": false,
+      "linkage": "Private",
       "name": 1,
       "params": [],
       "return_type": "Unit",
       "local_map": {
-        "0:36": 1,
-        "0:40": 2,
-        "0:46": 3,
-        "0:50": 4
+        "36": 1,
+        "40": 2,
+        "46": 3,
+        "50": 4
       },
       "locals": [
         {

@@ -1353,7 +1353,6 @@ mod tests {
     use std::path::{Path, PathBuf};
 
     use crate::blocker::Blocker;
-    use crate::compiler::ModuleID;
     use crate::file_set::{File, FileSet};
     use crate::noder::Noder;
     use crate::parser::Parser;
@@ -1382,7 +1381,7 @@ mod tests {
         let parser = Parser::new(&file_set);
         let module = parser.parse_module(&mut str_store);
 
-        let noder = Noder::new(ModuleID::new(0));
+        let noder = Noder::new();
         let hir_module = noder.node_module(&HashMap::new(), &module);
 
         let blocker = Blocker::new(&hir_module);

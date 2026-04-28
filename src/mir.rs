@@ -439,10 +439,17 @@ pub struct BasicBlock {
     pub terminator: Terminator,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub enum Linkage {
+    External(StrID),
+    Private,
+    Public,
+}
+
 /// A function in MIR form.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct MirFunction {
-    pub public: bool,
+    pub linkage: Linkage,
     pub name: StrID,
     pub params: Vec<LocalId>,
     pub return_type: TypeSpec,
