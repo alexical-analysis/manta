@@ -116,6 +116,46 @@ impl<'a> Blocker<'a> {
                 let mir_function = self.fn_builder.build_mir_function();
                 Some(mir_function)
             }
+            Node::ExternalFunctionDecl {
+                import_path,
+                ident,
+                params,
+            } => {
+                let name = self.get_ident_name(ident);
+                let return_type = match self.module.tree.get_type(node_id) {
+                    Some(ts) => lower_type_spec(ts),
+                    None => panic!("missing type for function decl"),
+                };
+
+                let mut fn_builder = FunctionBuilder::new_external(import_path, name, return_type);
+
+                for param in params {
+                    let param = self
+                        .module
+                        .tree
+                        .get_node(param)
+                        .expect("missing node for param");
+
+                    let ident = match param {
+                        Node::VarDecl { ident, .. } => ident,
+                        _ => panic!("param was not a VarDecl"),
+                    };
+
+                    let name = self.get_ident_name(*ident);
+
+                    let ts = match self.module.tree.get_type(*ident) {
+                        Some(ts) => lower_type_spec(ts),
+                        None => panic!("missing type for function param"),
+                    };
+
+                    fn_builder.add_param(*ident, name, ts);
+                }
+
+                self.fn_builder = fn_builder;
+
+                let mir_function = self.fn_builder.build_mir_function();
+                Some(mir_function)
+            }
             _ => None,
         }
     }
@@ -149,8 +189,11 @@ impl<'a> Blocker<'a> {
         match node {
             // Function declarations are skipped in the init function
             Node::FunctionDecl { .. } => Some(block_id),
-            Node::TypeDecl { .. } => {
-                // type decls do not need to be represented in the MIR
+            Node::ExternalFunctionDecl { .. } => Some(block_id),
+            Node::TypeDecl { .. } => Some(block_id),
+            Node::ExternalTypeDecl { .. } => Some(block_id),
+            Node::ExternalVarDecl { .. } => {
+                // TODO: need to actually handle the decl?
                 Some(block_id)
             }
             Node::VarDecl { public, ident } => {
@@ -319,6 +362,10 @@ impl<'a> Blocker<'a> {
                 self.fn_builder.get_local(ident, name, ts);
 
                 Some(block_id)
+            }
+            Node::ExternalVarDecl { import_path, ident } => {
+                eprintln!("external var decls are not yet supported");
+                None
             }
             Node::Assign { target, value } => {
                 let val = self.block_expression(block_id, value);
@@ -502,7 +549,9 @@ impl<'a> Blocker<'a> {
                 None
             }
             Node::FunctionDecl { .. } => panic!("function decls are not valid statements"),
+            Node::ExternalFunctionDecl { .. } => panic!("function decls are not valid statements"),
             Node::TypeDecl { .. } => panic!("type decls are not valid statements"),
+            Node::ExternalTypeDecl { .. } => panic!("type decls are not valid statements"),
             Node::IntLiteral(_) => panic!("int literals are expressions, not statements"),
             Node::UIntLiteral(_) => panic!("int literals are expressions, not statements"),
             Node::FloatLiteral(_) => panic!("float literals are expressions, not statements"),
@@ -1371,9 +1420,8 @@ mod tests {
     use std::fs;
     use std::path::{Path, PathBuf};
 
-    use crate::compiler::ModuleID;
     use crate::file_set::{File, FileSet};
-    use crate::mir::{BasicBlock, Instruction, MirModule};
+    use crate::mir::{BasicBlock, Instruction, Linkage, MirModule};
     use crate::noder::{NodeTree, Noder, SideTable};
     use crate::parser::Parser;
     use crate::str_store::{StrID, StrStore};
@@ -1400,7 +1448,7 @@ mod tests {
         let parser = Parser::new(&file_set);
         let module = parser.parse_module(&mut str_store);
 
-        let noder = Noder::new(ModuleID::new(0));
+        let noder = Noder::new();
         let hir_module = noder.node_module(&HashMap::new(), &module);
 
         let blocker = Blocker::new(&hir_module);
@@ -1534,7 +1582,6 @@ mod tests {
         test_blocker_const_int {
             got: Module {
                 tree: NodeTree {
-                    module_id: ModuleID::new(0),
                     nodes: vec![
                         Node::Identifier {
                             name: StrID::from_usize(1),
@@ -1542,24 +1589,21 @@ mod tests {
                         }, // NodeID(0)
                         Node::IntLiteral(42), // NodeID(1)
                         Node::Return {
-                            value: Some(NodeID::new(ModuleID::new(0), 1))
+                            value: Some(NodeID::new(1))
                         }, // NodeID(2)
                         Node::Block {
-                            statements: vec![NodeID::new(ModuleID::new(0), 2)]
+                            statements: vec![NodeID::new(2)]
                         }, // NodeID(3)
                         Node::FunctionDecl {
                             public: false,
                             // NodeID(4)
-                            ident: NodeID::new(ModuleID::new(0), 0),
+                            ident: NodeID::new(0),
                             params: vec![],
-                            body: NodeID::new(ModuleID::new(0), 3),
+                            body: NodeID::new(3),
                         },
                     ],
                     type_map: SideTable {
-                        keys: BTreeMap::from([
-                            (NodeID::new(ModuleID::new(0), 1), 0),
-                            (NodeID::new(ModuleID::new(0), 4), 1),
-                        ]),
+                        keys: BTreeMap::from([(NodeID::new(1), 0), (NodeID::new(4), 1),]),
                         values: vec![hir::TypeSpec::Int32, hir::TypeSpec::Int32],
                     },
                     symbol_map: SideTable {
@@ -1567,13 +1611,13 @@ mod tests {
                         values: vec![],
                     },
                 },
-                roots: vec![NodeID::new(ModuleID::new(0), 4)],
+                roots: vec![NodeID::new(4)],
                 public_decls: HashMap::from([]),
             },
             want: MirModule {
                 globals: vec![],
                 init: MirFunction {
-                    public: true,
+                    linkage: Linkage::Public,
                     blocks: vec![Some(BasicBlock {
                         instructions: vec![],
                         terminator: Terminator::Return { value: None },
@@ -1588,7 +1632,7 @@ mod tests {
                     value_types: vec![],
                 },
                 functions: vec![MirFunction {
-                    public: false,
+                    linkage: Linkage::Private,
                     name: StrID::from_usize(1),
                     params: vec![],
                     return_type: TypeSpec::I32,
@@ -1614,7 +1658,6 @@ mod tests {
         test_blocker_const_bool_true {
             got: Module {
                 tree: NodeTree {
-                    module_id: ModuleID::new(0),
                     nodes: vec![
                         Node::Identifier {
                             name: StrID::from_usize(1),
@@ -1622,24 +1665,21 @@ mod tests {
                         }, // NodeID(0)
                         Node::BoolLiteral(true), // NodeID(1)
                         Node::Return {
-                            value: Some(NodeID::new(ModuleID::new(0), 1))
+                            value: Some(NodeID::new(1))
                         }, // NodeID(2)
                         Node::Block {
-                            statements: vec![NodeID::new(ModuleID::new(0), 2)]
+                            statements: vec![NodeID::new(2)]
                         }, // NodeID(3)
                         Node::FunctionDecl {
                             public: false,
                             // NodeID(4)
-                            ident: NodeID::new(ModuleID::new(0), 0),
+                            ident: NodeID::new(0),
                             params: vec![],
-                            body: NodeID::new(ModuleID::new(0), 3),
+                            body: NodeID::new(3),
                         },
                     ],
                     type_map: SideTable {
-                        keys: BTreeMap::from([
-                            (NodeID::new(ModuleID::new(0), 1), 0),
-                            (NodeID::new(ModuleID::new(0), 4), 1)
-                        ]),
+                        keys: BTreeMap::from([(NodeID::new(1), 0), (NodeID::new(4), 1)]),
                         values: vec![hir::TypeSpec::Bool, hir::TypeSpec::Bool],
                     },
                     symbol_map: SideTable {
@@ -1647,13 +1687,13 @@ mod tests {
                         values: vec![]
                     },
                 },
-                roots: vec![NodeID::new(ModuleID::new(0), 4)],
+                roots: vec![NodeID::new(4)],
                 public_decls: HashMap::from([]),
             },
             want: MirModule {
                 globals: vec![],
                 init: MirFunction {
-                    public: true,
+                    linkage: Linkage::Public,
                     name: str_store::INIT,
                     params: vec![],
                     return_type: TypeSpec::Unit,
@@ -1668,7 +1708,7 @@ mod tests {
                     value_types: vec![],
                 },
                 functions: vec![MirFunction {
-                    public: false,
+                    linkage: Linkage::Private,
                     name: StrID::from_usize(1),
                     params: vec![],
                     return_type: TypeSpec::Bool,
@@ -1694,7 +1734,6 @@ mod tests {
         test_blocker_const_bool_false {
             got: Module {
                 tree: NodeTree {
-                    module_id: ModuleID::new(0),
                     nodes: vec![
                         Node::Identifier {
                             name: StrID::from_usize(1),
@@ -1702,24 +1741,21 @@ mod tests {
                         }, // NodeID(0)
                         Node::BoolLiteral(false), // NodeID(1)
                         Node::Return {
-                            value: Some(NodeID::new(ModuleID::new(0), 1))
+                            value: Some(NodeID::new(1))
                         }, // NodeID(2)
                         Node::Block {
-                            statements: vec![NodeID::new(ModuleID::new(0), 2)]
+                            statements: vec![NodeID::new(2)]
                         }, // NodeID(3)
                         Node::FunctionDecl {
                             public: false,
                             // NodeID(4)
-                            ident: NodeID::new(ModuleID::new(0), 0),
+                            ident: NodeID::new(0),
                             params: vec![],
-                            body: NodeID::new(ModuleID::new(0), 3),
+                            body: NodeID::new(3),
                         },
                     ],
                     type_map: SideTable {
-                        keys: BTreeMap::from([
-                            (NodeID::new(ModuleID::new(0), 1), 0),
-                            (NodeID::new(ModuleID::new(0), 4), 1)
-                        ]),
+                        keys: BTreeMap::from([(NodeID::new(1), 0), (NodeID::new(4), 1)]),
                         values: vec![hir::TypeSpec::Bool, hir::TypeSpec::Bool],
                     },
                     symbol_map: SideTable {
@@ -1727,13 +1763,13 @@ mod tests {
                         values: vec![]
                     },
                 },
-                roots: vec![NodeID::new(ModuleID::new(0), 4)],
+                roots: vec![NodeID::new(4)],
                 public_decls: HashMap::from([]),
             },
             want: MirModule {
                 globals: vec![],
                 init: MirFunction {
-                    public: true,
+                    linkage: Linkage::Public,
                     name: str_store::INIT,
                     params: vec![],
                     return_type: TypeSpec::Unit,
@@ -1748,7 +1784,7 @@ mod tests {
                     value_types: vec![],
                 },
                 functions: vec![MirFunction {
-                    public: false,
+                    linkage: Linkage::Private,
                     name: StrID::from_usize(1),
                     params: vec![],
                     return_type: TypeSpec::Bool,
@@ -1774,7 +1810,6 @@ mod tests {
         test_blocker_const_float {
             got: Module {
                 tree: NodeTree {
-                    module_id: ModuleID::new(0),
                     nodes: vec![
                         Node::Identifier {
                             name: StrID::from_usize(1),
@@ -1782,24 +1817,21 @@ mod tests {
                         }, // NodeID(0)
                         Node::FloatLiteral(3.45), // NodeID(1)
                         Node::Return {
-                            value: Some(NodeID::new(ModuleID::new(0), 1))
+                            value: Some(NodeID::new(1))
                         }, // NodeID(2)
                         Node::Block {
-                            statements: vec![NodeID::new(ModuleID::new(0), 2)]
+                            statements: vec![NodeID::new(2)]
                         }, // NodeID(3)
                         Node::FunctionDecl {
                             public: false,
                             // NodeID(4)
-                            ident: NodeID::new(ModuleID::new(0), 0),
+                            ident: NodeID::new(0),
                             params: vec![],
-                            body: NodeID::new(ModuleID::new(0), 3),
+                            body: NodeID::new(3),
                         },
                     ],
                     type_map: SideTable {
-                        keys: BTreeMap::from([
-                            (NodeID::new(ModuleID::new(0), 1), 0),
-                            (NodeID::new(ModuleID::new(0), 4), 1)
-                        ]),
+                        keys: BTreeMap::from([(NodeID::new(1), 0), (NodeID::new(4), 1)]),
                         values: vec![hir::TypeSpec::Float64, hir::TypeSpec::Float64],
                     },
                     symbol_map: SideTable {
@@ -1807,13 +1839,13 @@ mod tests {
                         values: vec![]
                     },
                 },
-                roots: vec![NodeID::new(ModuleID::new(0), 4)],
+                roots: vec![NodeID::new(4)],
                 public_decls: HashMap::from([]),
             },
             want: MirModule {
                 globals: vec![],
                 init: MirFunction {
-                    public: true,
+                    linkage: Linkage::Public,
                     name: str_store::INIT,
                     params: vec![],
                     return_type: TypeSpec::Unit,
@@ -1828,7 +1860,7 @@ mod tests {
                     value_types: vec![],
                 },
                 functions: vec![MirFunction {
-                    public: false,
+                    linkage: Linkage::Private,
                     name: StrID::from_usize(1),
                     params: vec![],
                     return_type: TypeSpec::F64,
@@ -1854,7 +1886,6 @@ mod tests {
         test_blocker_const_string {
             got: Module {
                 tree: NodeTree {
-                    module_id: ModuleID::new(0),
                     nodes: vec![
                         Node::Identifier {
                             name: StrID::from_usize(1),
@@ -1862,24 +1893,21 @@ mod tests {
                         }, // NodeID(0)
                         Node::StringLiteral(StrID::from_usize(99)), // NodeID(1)
                         Node::Return {
-                            value: Some(NodeID::new(ModuleID::new(0), 1))
+                            value: Some(NodeID::new(1))
                         }, // NodeID(2)
                         Node::Block {
-                            statements: vec![NodeID::new(ModuleID::new(0), 2)]
+                            statements: vec![NodeID::new(2)]
                         }, // NodeID(3)
                         Node::FunctionDecl {
                             public: false,
                             // NodeID(4)
-                            ident: NodeID::new(ModuleID::new(0), 0),
+                            ident: NodeID::new(0),
                             params: vec![],
-                            body: NodeID::new(ModuleID::new(0), 3),
+                            body: NodeID::new(3),
                         },
                     ],
                     type_map: SideTable {
-                        keys: BTreeMap::from([
-                            (NodeID::new(ModuleID::new(0), 1), 0),
-                            (NodeID::new(ModuleID::new(0), 4), 1)
-                        ]),
+                        keys: BTreeMap::from([(NodeID::new(1), 0), (NodeID::new(4), 1)]),
                         values: vec![hir::TypeSpec::String, hir::TypeSpec::String],
                     },
                     symbol_map: SideTable {
@@ -1887,13 +1915,13 @@ mod tests {
                         values: vec![]
                     },
                 },
-                roots: vec![NodeID::new(ModuleID::new(0), 4)],
+                roots: vec![NodeID::new(4)],
                 public_decls: HashMap::from([]),
             },
             want: MirModule {
                 globals: vec![],
                 init: MirFunction {
-                    public: true,
+                    linkage: Linkage::Public,
                     name: str_store::INIT,
                     params: vec![],
                     return_type: TypeSpec::Unit,
@@ -1908,7 +1936,7 @@ mod tests {
                     value_types: vec![],
                 },
                 functions: vec![MirFunction {
-                    public: false,
+                    linkage: Linkage::Private,
                     name: StrID::from_usize(1),
                     params: vec![],
                     return_type: TypeSpec::String,

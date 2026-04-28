@@ -14,8 +14,8 @@ use inkwell::{AddressSpace, FloatPredicate, IntPredicate};
 
 use crate::blocker::{self, Arch};
 use crate::mir::{
-    self, BlockId, ConstValue, Instruction, LocalId, MirFunction, SwitchArm, TagSize, TypeSpec,
-    ValueId,
+    self, BlockId, ConstValue, Instruction, Linkage as MirLinkage, LocalId, MirFunction, SwitchArm,
+    TagSize, TypeSpec, ValueId,
 };
 use crate::str_store::{self, StrStore};
 
@@ -55,8 +55,8 @@ pub fn build_func_value<'ctx>(
         .get_string(function.name)
         .expect("failed to get function name");
 
-    match function.public {
-        true => {
+    match function.linkage {
+        MirLinkage::Public => {
             // external functions need to be prefixed with the module name so there are no linking collisions
             let mut function_prefix = String::from("manta_");
             let import_path = import_path.to_string_lossy().to_string();
@@ -68,7 +68,23 @@ pub fn build_func_value<'ctx>(
             let function_name = function_prefix + function_name.as_str();
             module.add_function(function_name.as_str(), func_type, Some(Linkage::External))
         }
-        false => module.add_function(function_name.as_str(), func_type, Some(Linkage::Internal)),
+        MirLinkage::Private => {
+            module.add_function(function_name.as_str(), func_type, Some(Linkage::Internal))
+        }
+        MirLinkage::External(import_path) => {
+            // external functions need to be prefixed with the module name so there are no linking collisions
+            let mut function_prefix = String::from("manta_");
+            let import_path = str_store
+                .get_string(import_path)
+                .expect("failed to get import path");
+            if !import_path.is_empty() {
+                let import_path = import_path.replace("_", "_0").replace("/", "_") + "_";
+                function_prefix = function_prefix + &import_path;
+            }
+
+            let function_name = function_prefix + function_name.as_str();
+            module.add_function(function_name.as_str(), func_type, Some(Linkage::External))
+        }
     }
 }
 

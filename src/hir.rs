@@ -2,7 +2,6 @@ use serde::de::Error;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::ast::{BinaryOp, UnaryOp};
-use crate::compiler::ModuleID;
 use crate::str_store::StrID;
 
 // High-level Intermediate Representation (HIR)
@@ -11,35 +10,26 @@ use crate::str_store::StrID;
 /// NodeID is the unique identifier for a gien node in the HIR tree
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Copy, Clone)]
 pub struct NodeID {
-    module_id: ModuleID,
     id: u32,
 }
 
 impl Serialize for NodeID {
     fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-        s.serialize_str(&format!("{}:{}", self.module_id.id(), self.id))
+        s.serialize_str(&format!("{}", self.id))
     }
 }
 
 impl<'de> Deserialize<'de> for NodeID {
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         let raw = String::deserialize(d)?;
-        let (module_str, id_str) = raw
-            .split_once(':')
-            .ok_or_else(|| Error::custom(format!("invalid NodeID: {raw}")))?;
-        let module_id = module_str.parse::<u32>().map_err(Error::custom)?;
-        let id = id_str.parse::<u32>().map_err(Error::custom)?;
-        Ok(NodeID::new(ModuleID::new(module_id), id))
+        let id = raw.parse::<u32>().map_err(Error::custom)?;
+        Ok(NodeID::new(id))
     }
 }
 
 impl NodeID {
-    pub fn new(module_id: ModuleID, id: u32) -> Self {
-        NodeID { module_id, id }
-    }
-
-    pub fn module_id(&self) -> ModuleID {
-        self.module_id
+    pub fn new(id: u32) -> Self {
+        NodeID { id }
     }
 
     pub fn id(&self) -> u32 {
@@ -59,8 +49,17 @@ pub enum Node {
         params: Vec<NodeID>,
         body: NodeID,
     },
+    ExternalFunctionDecl {
+        import_path: StrID,
+        ident: NodeID,
+        params: Vec<NodeID>,
+    },
     TypeDecl {
         // ident is always an identifier node
+        ident: NodeID,
+    },
+    ExternalTypeDecl {
+        import_path: StrID,
         ident: NodeID,
     },
     Block {
@@ -72,6 +71,10 @@ pub enum Node {
         ident: NodeID,
         // no value here because HIR declares variables first and then
         // assigns a value in a later node
+    },
+    ExternalVarDecl {
+        import_path: StrID,
+        ident: NodeID,
     },
     Assign {
         target: NodeID,
