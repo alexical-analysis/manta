@@ -2,7 +2,7 @@
   "globals": [
     {
       "type_spec": "F64",
-      "name": 9,
+      "name": 8,
       "public": false
     }
   ],
@@ -55,7 +55,7 @@
   "functions": [
     {
       "linkage": "Private",
-      "name": 13,
+      "name": 12,
       "params": [
         1
       ],
@@ -66,7 +66,7 @@
       "locals": [
         {
           "type_spec": "F64",
-          "name": 14
+          "name": 13
         }
       ],
       "blocks": [
@@ -86,7 +86,7 @@
     },
     {
       "linkage": "Private",
-      "name": 22,
+      "name": 21,
       "params": [
         1
       ],
@@ -107,15 +107,15 @@
               ]
             }
           },
-          "name": 23
+          "name": 22
         },
         {
           "type_spec": "F64",
-          "name": 26
+          "name": 25
         },
         {
           "type_spec": "F64",
-          "name": 23
+          "name": 22
         }
       ],
       "blocks": [
@@ -339,7 +339,7 @@
     },
     {
       "linkage": "Private",
-      "name": 1,
+      "name": 18446744073709551588,
       "params": [],
       "return_type": "Unit",
       "local_map": {
@@ -359,11 +359,11 @@
               ]
             }
           },
-          "name": 31
+          "name": 30
         },
         {
           "type_spec": "F64",
-          "name": 33
+          "name": 32
         },
         {
           "type_spec": {
@@ -375,11 +375,11 @@
               ]
             }
           },
-          "name": 34
+          "name": 33
         },
         {
           "type_spec": "F64",
-          "name": 36
+          "name": 35
         }
       ],
       "blocks": [
@@ -450,7 +450,7 @@
         },
         {
           "Call": {
-            "func": 22,
+            "func": 21,
             "args": [
               4
             ]
@@ -479,7 +479,7 @@
         },
         {
           "Call": {
-            "func": 13,
+            "func": 12,
             "args": [
               7
             ]
@@ -523,7 +523,7 @@
         },
         {
           "Call": {
-            "func": 22,
+            "func": 21,
             "args": [
               12
             ]
@@ -552,7 +552,7 @@
         },
         {
           "Call": {
-            "func": 13,
+            "func": 12,
             "args": [
               15
             ]

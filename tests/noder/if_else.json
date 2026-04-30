@@ -15,19 +15,19 @@
     {
       "Identifier": {
         "module": null,
+        "name": 7
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551588
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
         "name": 8
-      }
-    },
-    {
-      "Identifier": {
-        "module": null,
-        "name": 1
-      }
-    },
-    {
-      "Identifier": {
-        "module": null,
-        "name": 9
       }
     },
     {
@@ -64,7 +64,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 13
+        "name": 12
       }
     },
     {
@@ -80,7 +80,7 @@
       }
     },
     {
-      "StringLiteral": 17
+      "StringLiteral": 16
     },
     {
       "Call": {
@@ -110,7 +110,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 18
+        "name": 17
       }
     },
     {
@@ -136,7 +136,7 @@
       }
     },
     {
-      "StringLiteral": 22
+      "StringLiteral": 21
     },
     {
       "Call": {
@@ -154,7 +154,7 @@
       }
     },
     {
-      "StringLiteral": 17
+      "StringLiteral": 16
     },
     {
       "Call": {

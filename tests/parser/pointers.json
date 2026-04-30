@@ -1,15 +1,15 @@
 {
-  "name": 1,
+  "name": 18446744073709551588,
   "decls": [
     {
       "Mod": {
-        "name": 1
+        "name": 18446744073709551588
       }
     },
     {
       "Use": {
         "modules": [
-          5
+          4
         ]
       }
     },
@@ -17,11 +17,11 @@
       "Function": {
         "public": false,
         "id": 29,
-        "name": 8,
+        "name": 7,
         "params": [
           {
             "id": 44,
-            "name": 9
+            "name": 8
           }
         ],
         "body": {
@@ -40,7 +40,7 @@
       "Function": {
         "public": false,
         "id": 55,
-        "name": 1,
+        "name": 18446744073709551588,
         "params": [],
         "body": {
           "id": 65,
@@ -51,7 +51,7 @@
                 "pattern": {
                   "Identifier": {
                     "id": 75,
-                    "name": 9
+                    "name": 8
                   }
                 },
                 "value": {
@@ -66,7 +66,7 @@
                 "pattern": {
                   "Identifier": {
                     "id": 90,
-                    "name": 15
+                    "name": 14
                   }
                 },
                 "value": {
@@ -81,7 +81,7 @@
                 "pattern": {
                   "Identifier": {
                     "id": 108,
-                    "name": 18
+                    "name": 17
                   }
                 },
                 "value": {
@@ -91,7 +91,7 @@
                       "Identifier": {
                         "id": 113,
                         "module": null,
-                        "name": 9
+                        "name": 8
                       }
                     }
                   }
@@ -107,7 +107,7 @@
                       "Identifier": {
                         "id": 119,
                         "module": null,
-                        "name": 8
+                        "name": 7
                       }
                     },
                     "args": [
@@ -118,7 +118,7 @@
                             "Identifier": {
                               "id": 132,
                               "module": null,
-                              "name": 18
+                              "name": 17
                             }
                           }
                         }
@@ -137,7 +137,7 @@
                       "Identifier": {
                         "id": 140,
                         "module": null,
-                        "name": 18
+                        "name": 17
                       }
                     }
                   }
@@ -155,7 +155,7 @@
                       "Identifier": {
                         "id": 151,
                         "module": null,
-                        "name": 8
+                        "name": 7
                       }
                     },
                     "args": [
@@ -163,7 +163,7 @@
                         "Identifier": {
                           "id": 163,
                           "module": null,
-                          "name": 9
+                          "name": 8
                         }
                       }
                     ]
@@ -177,7 +177,7 @@
                   "Identifier": {
                     "id": 171,
                     "module": null,
-                    "name": 18
+                    "name": 17
                   }
                 },
                 "rvalue": {
@@ -187,7 +187,7 @@
                       "Identifier": {
                         "id": 176,
                         "module": null,
-                        "name": 15
+                        "name": 14
                       }
                     }
                   }
@@ -203,7 +203,7 @@
                       "Identifier": {
                         "id": 183,
                         "module": null,
-                        "name": 18
+                        "name": 17
                       }
                     }
                   }
@@ -217,7 +217,7 @@
                           "Identifier": {
                             "id": 188,
                             "module": null,
-                            "name": 18
+                            "name": 17
                           }
                         }
                       }
@@ -238,7 +238,7 @@
                       "Identifier": {
                         "id": 199,
                         "module": null,
-                        "name": 8
+                        "name": 7
                       }
                     },
                     "args": [
@@ -246,7 +246,7 @@
                         "Identifier": {
                           "id": 211,
                           "module": null,
-                          "name": 15
+                          "name": 14
                         }
                       }
                     ]
@@ -265,7 +265,7 @@
   ],
   "errors": [],
   "using_modules": [
-    5
+    4
   ],
   "sym_table": {
     "scopes": [
@@ -414,7 +414,7 @@
           },
           {
             "id": 14,
-            "name": 8,
+            "name": 7,
             "binding_type": {
               "Func": {
                 "Function": {
@@ -430,7 +430,7 @@
           },
           {
             "id": 15,
-            "name": 1,
+            "name": 18446744073709551588,
             "binding_type": {
               "Func": {
                 "Function": {
@@ -449,7 +449,7 @@
         "bindings": [
           {
             "id": 16,
-            "name": 9,
+            "name": 8,
             "binding_type": "Value",
             "mutable": false,
             "used": false
@@ -469,21 +469,21 @@
         "bindings": [
           {
             "id": 17,
-            "name": 9,
+            "name": 8,
             "binding_type": "Value",
             "mutable": false,
             "used": true
           },
           {
             "id": 18,
-            "name": 15,
+            "name": 14,
             "binding_type": "Value",
             "mutable": false,
             "used": true
           },
           {
             "id": 19,
-            "name": 18,
+            "name": 17,
             "binding_type": "Value",
             "mutable": true,
             "used": true

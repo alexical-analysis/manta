@@ -1,15 +1,15 @@
 {
-  "name": 1,
+  "name": 18446744073709551588,
   "decls": [
     {
       "Mod": {
-        "name": 1
+        "name": 18446744073709551588
       }
     },
     {
       "Use": {
         "modules": [
-          5
+          4
         ]
       }
     },
@@ -17,11 +17,11 @@
       "Function": {
         "public": false,
         "id": 97,
-        "name": 8,
+        "name": 7,
         "params": [
           {
             "id": 112,
-            "name": 9
+            "name": 8
           }
         ],
         "body": {
@@ -40,7 +40,7 @@
       "Function": {
         "public": false,
         "id": 123,
-        "name": 1,
+        "name": 18446744073709551588,
         "params": [],
         "body": {
           "id": 133,
@@ -53,12 +53,12 @@
                       "Identifier": {
                         "id": 139,
                         "module": null,
-                        "name": 8
+                        "name": 7
                       }
                     },
                     "args": [
                       {
-                        "StringLiteral": 12
+                        "StringLiteral": 11
                       }
                     ]
                   }
@@ -76,7 +76,7 @@
     {
       "Use": {
         "modules": [
-          13
+          12
         ]
       }
     }
@@ -94,7 +94,7 @@
     }
   ],
   "using_modules": [
-    5
+    4
   ],
   "sym_table": {
     "scopes": [
@@ -243,7 +243,7 @@
           },
           {
             "id": 14,
-            "name": 8,
+            "name": 7,
             "binding_type": {
               "Func": {
                 "Function": {
@@ -259,7 +259,7 @@
           },
           {
             "id": 15,
-            "name": 1,
+            "name": 18446744073709551588,
             "binding_type": {
               "Func": {
                 "Function": {
@@ -278,7 +278,7 @@
         "bindings": [
           {
             "id": 16,
-            "name": 9,
+            "name": 8,
             "binding_type": "Value",
             "mutable": false,
             "used": false

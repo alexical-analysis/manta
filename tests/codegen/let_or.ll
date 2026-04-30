@@ -174,7 +174,7 @@ Block_23:                                         ; preds = %Block_17
   ret { i8, [24 x i8] } %load23
 }
 
-define internal void @main() {
+define internal void @manta_main() {
 entry:
   %content = alloca { i64, ptr }, align 8
   %"<match target>" = alloca { i8, [24 x i8] }, align 8
@@ -237,4 +237,11 @@ Block_10:                                         ; preds = %Block_2
   store { i8, [24 x i8] } %read_file5, ptr %panic, align 1
   call void @panic()
   unreachable
+}
+
+define i32 @main() {
+entry:
+  call void @"manta_<init>"()
+  call void @manta_main()
+  ret i32 0
 }

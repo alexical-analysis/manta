@@ -1,17 +1,17 @@
 {
-  "name": 1,
+  "name": 18446744073709551588,
   "decls": [
     {
       "Mod": {
-        "name": 1
+        "name": 18446744073709551588
       }
     },
     {
       "Use": {
         "modules": [
+          4,
           5,
-          6,
-          7
+          6
         ]
       }
     },
@@ -19,7 +19,7 @@
       "Type": {
         "public": false,
         "id": 144,
-        "name": 10,
+        "name": 9,
         "type_spec": {
           "Struct": {
             "fields": []
@@ -31,22 +31,22 @@
       "Type": {
         "public": false,
         "id": 229,
-        "name": 14,
+        "name": 13,
         "type_spec": {
           "Enum": {
             "variants": [
               {
-                "name": 16,
+                "name": 15,
                 "payload": {
                   "Named": {
                     "id": 250,
                     "module": null,
-                    "name": 10
+                    "name": 9
                   }
                 }
               },
               {
-                "name": 17,
+                "name": 16,
                 "payload": null
               }
             ]
@@ -58,11 +58,11 @@
       "Function": {
         "public": false,
         "id": 341,
-        "name": 19,
+        "name": 18,
         "params": [
           {
             "id": 352,
-            "name": 20
+            "name": 19
           }
         ],
         "body": {
@@ -73,7 +73,7 @@
                 "value": {
                   "DotAccess": {
                     "target": null,
-                    "field": 17
+                    "field": 16
                   }
                 }
               }
@@ -88,7 +88,7 @@
             "Named": {
               "id": 362,
               "module": null,
-              "name": 14
+              "name": 13
             }
           }
         }
@@ -98,11 +98,11 @@
       "Function": {
         "public": false,
         "id": 464,
-        "name": 23,
+        "name": 22,
         "params": [
           {
             "id": 476,
-            "name": 24
+            "name": 23
           }
         ],
         "body": {
@@ -115,7 +115,7 @@
               "Named": {
                 "id": 478,
                 "module": null,
-                "name": 10
+                "name": 9
               }
             }
           ],
@@ -127,16 +127,16 @@
       "Type": {
         "public": false,
         "id": 565,
-        "name": 25,
+        "name": 24,
         "type_spec": {
           "Enum": {
             "variants": [
               {
-                "name": 16,
+                "name": 15,
                 "payload": "String"
               },
               {
-                "name": 17,
+                "name": 16,
                 "payload": null
               }
             ]
@@ -148,11 +148,11 @@
       "Function": {
         "public": false,
         "id": 694,
-        "name": 26,
+        "name": 25,
         "params": [
           {
             "id": 715,
-            "name": 24
+            "name": 23
           }
         ],
         "body": {
@@ -163,7 +163,7 @@
                 "value": {
                   "DotAccess": {
                     "target": null,
-                    "field": 17
+                    "field": 16
                   }
                 }
               }
@@ -176,7 +176,7 @@
               "Named": {
                 "id": 717,
                 "module": null,
-                "name": 10
+                "name": 9
               }
             }
           ],
@@ -184,7 +184,7 @@
             "Named": {
               "id": 723,
               "module": null,
-              "name": 25
+              "name": 24
             }
           }
         }
@@ -194,11 +194,11 @@
       "Function": {
         "public": false,
         "id": 837,
-        "name": 27,
+        "name": 26,
         "params": [
           {
             "id": 852,
-            "name": 28
+            "name": 27
           }
         ],
         "body": {
@@ -217,31 +217,31 @@
       "Type": {
         "public": false,
         "id": 926,
-        "name": 29,
+        "name": 28,
         "type_spec": {
           "Enum": {
             "variants": [
               {
-                "name": 16,
+                "name": 15,
                 "payload": "String"
+              },
+              {
+                "name": 29,
+                "payload": {
+                  "Named": {
+                    "id": 966,
+                    "module": null,
+                    "name": 13
+                  }
+                }
               },
               {
                 "name": 30,
                 "payload": {
                   "Named": {
-                    "id": 966,
-                    "module": null,
-                    "name": 14
-                  }
-                }
-              },
-              {
-                "name": 31,
-                "payload": {
-                  "Named": {
                     "id": 986,
                     "module": null,
-                    "name": 25
+                    "name": 24
                   }
                 }
               }
@@ -254,11 +254,11 @@
       "Function": {
         "public": false,
         "id": 1051,
-        "name": 32,
+        "name": 31,
         "params": [
           {
             "id": 1064,
-            "name": 20
+            "name": 19
           }
         ],
         "body": {
@@ -271,9 +271,9 @@
                   "EnumVariant": {
                     "id": 1093,
                     "enum_name": null,
-                    "variant": 16,
+                    "variant": 15,
                     "payload": {
-                      "Some": 24
+                      "Some": 23
                     }
                   }
                 },
@@ -283,7 +283,7 @@
                       "Identifier": {
                         "id": 1102,
                         "module": null,
-                        "name": 19
+                        "name": 18
                       }
                     },
                     "args": [
@@ -291,7 +291,7 @@
                         "Identifier": {
                           "id": 1110,
                           "module": null,
-                          "name": 20
+                          "name": 19
                         }
                       }
                     ]
@@ -301,7 +301,7 @@
                   "Wrap": {
                     "DotAccess": {
                       "target": null,
-                      "field": 30
+                      "field": 29
                     }
                   }
                 }
@@ -320,7 +320,7 @@
                               "Identifier": {
                                 "id": 1142,
                                 "module": null,
-                                "name": 23
+                                "name": 22
                               }
                             },
                             "args": [
@@ -328,7 +328,7 @@
                                 "Identifier": {
                                   "id": 1151,
                                   "module": null,
-                                  "name": 24
+                                  "name": 23
                                 }
                               }
                             ]
@@ -347,9 +347,9 @@
                   "EnumVariant": {
                     "id": 1165,
                     "enum_name": null,
-                    "variant": 16,
+                    "variant": 15,
                     "payload": {
-                      "Some": 28
+                      "Some": 27
                     }
                   }
                 },
@@ -359,7 +359,7 @@
                       "Identifier": {
                         "id": 1174,
                         "module": null,
-                        "name": 26
+                        "name": 25
                       }
                     },
                     "args": [
@@ -367,7 +367,7 @@
                         "Identifier": {
                           "id": 1192,
                           "module": null,
-                          "name": 24
+                          "name": 23
                         }
                       }
                     ]
@@ -377,7 +377,7 @@
                   "Wrap": {
                     "DotAccess": {
                       "target": null,
-                      "field": 31
+                      "field": 30
                     }
                   }
                 }
@@ -390,7 +390,7 @@
                     "func": {
                       "DotAccess": {
                         "target": null,
-                        "field": 16
+                        "field": 15
                       }
                     },
                     "args": [
@@ -398,7 +398,7 @@
                         "Identifier": {
                           "id": 1224,
                           "module": null,
-                          "name": 28
+                          "name": 27
                         }
                       }
                     ]
@@ -416,7 +416,7 @@
             "Named": {
               "id": 1074,
               "module": null,
-              "name": 29
+              "name": 28
             }
           }
         }
@@ -426,7 +426,7 @@
       "Function": {
         "public": false,
         "id": 1261,
-        "name": 1,
+        "name": 18446744073709551588,
         "params": [],
         "body": {
           "id": 1271,
@@ -438,9 +438,9 @@
                   "EnumVariant": {
                     "id": 1281,
                     "enum_name": null,
-                    "variant": 16,
+                    "variant": 15,
                     "payload": {
-                      "Some": 38
+                      "Some": 37
                     }
                   }
                 },
@@ -450,12 +450,12 @@
                       "Identifier": {
                         "id": 1296,
                         "module": null,
-                        "name": 32
+                        "name": 31
                       }
                     },
                     "args": [
                       {
-                        "StringLiteral": 39
+                        "StringLiteral": 38
                       }
                     ]
                   }
@@ -463,7 +463,7 @@
                 "except": {
                   "Or": {
                     "id": 1320,
-                    "binding": 41,
+                    "binding": 40,
                     "body": {
                       "id": 1326,
                       "statements": [
@@ -475,12 +475,12 @@
                                   "Identifier": {
                                     "id": 1336,
                                     "module": null,
-                                    "name": 27
+                                    "name": 26
                                   }
                                 },
                                 "args": [
                                   {
-                                    "StringLiteral": 42
+                                    "StringLiteral": 41
                                   }
                                 ]
                               }
@@ -506,7 +506,7 @@
                       "Identifier": {
                         "id": 1388,
                         "module": null,
-                        "name": 27
+                        "name": 26
                       }
                     },
                     "args": [
@@ -514,7 +514,7 @@
                         "Identifier": {
                           "id": 1400,
                           "module": null,
-                          "name": 38
+                          "name": 37
                         }
                       }
                     ]
@@ -529,9 +529,9 @@
                   "EnumVariant": {
                     "id": 1480,
                     "enum_name": null,
-                    "variant": 16,
+                    "variant": 15,
                     "payload": {
-                      "Some": 38
+                      "Some": 37
                     }
                   }
                 },
@@ -541,12 +541,12 @@
                       "Identifier": {
                         "id": 1495,
                         "module": null,
-                        "name": 32
+                        "name": 31
                       }
                     },
                     "args": [
                       {
-                        "StringLiteral": 43
+                        "StringLiteral": 42
                       }
                     ]
                   }
@@ -562,7 +562,7 @@
                       "Identifier": {
                         "id": 1531,
                         "module": null,
-                        "name": 27
+                        "name": 26
                       }
                     },
                     "args": [
@@ -570,7 +570,7 @@
                         "Identifier": {
                           "id": 1543,
                           "module": null,
-                          "name": 38
+                          "name": 37
                         }
                       }
                     ]
@@ -589,9 +589,9 @@
   ],
   "errors": [],
   "using_modules": [
+    4,
     5,
-    6,
-    7
+    6
   ],
   "sym_table": {
     "scopes": [
@@ -740,7 +740,7 @@
           },
           {
             "id": 14,
-            "name": 10,
+            "name": 9,
             "binding_type": {
               "Type": {
                 "Struct": {
@@ -753,23 +753,23 @@
           },
           {
             "id": 15,
-            "name": 14,
+            "name": 13,
             "binding_type": {
               "Type": {
                 "Enum": {
                   "variants": [
                     {
-                      "name": 16,
+                      "name": 15,
                       "payload": {
                         "Named": {
                           "id": 250,
                           "module": null,
-                          "name": 10
+                          "name": 9
                         }
                       }
                     },
                     {
-                      "name": 17,
+                      "name": 16,
                       "payload": null
                     }
                   ]
@@ -781,7 +781,7 @@
           },
           {
             "id": 16,
-            "name": 19,
+            "name": 18,
             "binding_type": {
               "Func": {
                 "Function": {
@@ -792,7 +792,7 @@
                     "Named": {
                       "id": 362,
                       "module": null,
-                      "name": 14
+                      "name": 13
                     }
                   }
                 }
@@ -803,7 +803,7 @@
           },
           {
             "id": 17,
-            "name": 23,
+            "name": 22,
             "binding_type": {
               "Func": {
                 "Function": {
@@ -812,7 +812,7 @@
                       "Named": {
                         "id": 478,
                         "module": null,
-                        "name": 10
+                        "name": 9
                       }
                     }
                   ],
@@ -825,17 +825,17 @@
           },
           {
             "id": 18,
-            "name": 25,
+            "name": 24,
             "binding_type": {
               "Type": {
                 "Enum": {
                   "variants": [
                     {
-                      "name": 16,
+                      "name": 15,
                       "payload": "String"
                     },
                     {
-                      "name": 17,
+                      "name": 16,
                       "payload": null
                     }
                   ]
@@ -847,7 +847,7 @@
           },
           {
             "id": 19,
-            "name": 26,
+            "name": 25,
             "binding_type": {
               "Func": {
                 "Function": {
@@ -856,7 +856,7 @@
                       "Named": {
                         "id": 717,
                         "module": null,
-                        "name": 10
+                        "name": 9
                       }
                     }
                   ],
@@ -864,7 +864,7 @@
                     "Named": {
                       "id": 723,
                       "module": null,
-                      "name": 25
+                      "name": 24
                     }
                   }
                 }
@@ -875,7 +875,7 @@
           },
           {
             "id": 20,
-            "name": 27,
+            "name": 26,
             "binding_type": {
               "Func": {
                 "Function": {
@@ -891,32 +891,32 @@
           },
           {
             "id": 21,
-            "name": 29,
+            "name": 28,
             "binding_type": {
               "Type": {
                 "Enum": {
                   "variants": [
                     {
-                      "name": 16,
+                      "name": 15,
                       "payload": "String"
+                    },
+                    {
+                      "name": 29,
+                      "payload": {
+                        "Named": {
+                          "id": 966,
+                          "module": null,
+                          "name": 13
+                        }
+                      }
                     },
                     {
                       "name": 30,
                       "payload": {
                         "Named": {
-                          "id": 966,
-                          "module": null,
-                          "name": 14
-                        }
-                      }
-                    },
-                    {
-                      "name": 31,
-                      "payload": {
-                        "Named": {
                           "id": 986,
                           "module": null,
-                          "name": 25
+                          "name": 24
                         }
                       }
                     }
@@ -929,7 +929,7 @@
           },
           {
             "id": 22,
-            "name": 32,
+            "name": 31,
             "binding_type": {
               "Func": {
                 "Function": {
@@ -940,7 +940,7 @@
                     "Named": {
                       "id": 1074,
                       "module": null,
-                      "name": 29
+                      "name": 28
                     }
                   }
                 }
@@ -951,7 +951,7 @@
           },
           {
             "id": 23,
-            "name": 1,
+            "name": 18446744073709551588,
             "binding_type": {
               "Func": {
                 "Function": {
@@ -970,7 +970,7 @@
         "bindings": [
           {
             "id": 24,
-            "name": 20,
+            "name": 19,
             "binding_type": "Value",
             "mutable": false,
             "used": false
@@ -986,7 +986,7 @@
         "bindings": [
           {
             "id": 25,
-            "name": 24,
+            "name": 23,
             "binding_type": "Value",
             "mutable": false,
             "used": false
@@ -1002,7 +1002,7 @@
         "bindings": [
           {
             "id": 26,
-            "name": 24,
+            "name": 23,
             "binding_type": "Value",
             "mutable": false,
             "used": false
@@ -1018,7 +1018,7 @@
         "bindings": [
           {
             "id": 27,
-            "name": 28,
+            "name": 27,
             "binding_type": "Value",
             "mutable": false,
             "used": false
@@ -1034,7 +1034,7 @@
         "bindings": [
           {
             "id": 28,
-            "name": 20,
+            "name": 19,
             "binding_type": "Value",
             "mutable": false,
             "used": true
@@ -1046,14 +1046,14 @@
         "bindings": [
           {
             "id": 29,
-            "name": 24,
+            "name": 23,
             "binding_type": "Value",
             "mutable": false,
             "used": true
           },
           {
             "id": 30,
-            "name": 28,
+            "name": 27,
             "binding_type": "Value",
             "mutable": false,
             "used": true
@@ -1073,14 +1073,14 @@
         "bindings": [
           {
             "id": 31,
-            "name": 38,
+            "name": 37,
             "binding_type": "Value",
             "mutable": false,
             "used": true
           },
           {
             "id": 33,
-            "name": 38,
+            "name": 37,
             "binding_type": "Value",
             "mutable": false,
             "used": true
@@ -1092,7 +1092,7 @@
         "bindings": [
           {
             "id": 32,
-            "name": 41,
+            "name": 40,
             "binding_type": "Value",
             "mutable": false,
             "used": false

@@ -24,7 +24,7 @@
   "functions": [
     {
       "linkage": "Private",
-      "name": 15,
+      "name": 14,
       "params": [],
       "return_type": "I32",
       "local_map": {},
@@ -58,7 +58,7 @@
     },
     {
       "linkage": "Private",
-      "name": 1,
+      "name": 18446744073709551588,
       "params": [],
       "return_type": "I32",
       "local_map": {
@@ -75,7 +75,7 @@
               "U64"
             ]
           },
-          "name": 21
+          "name": 20
         },
         {
           "type_spec": {
@@ -84,7 +84,7 @@
               "I32"
             ]
           },
-          "name": 28
+          "name": 27
         },
         {
           "type_spec": {
@@ -94,7 +94,7 @@
               "U64"
             ]
           },
-          "name": 33
+          "name": 32
         }
       ],
       "blocks": [
@@ -257,7 +257,7 @@
         },
         {
           "Call": {
-            "func": 15,
+            "func": 14,
             "args": []
           }
         },

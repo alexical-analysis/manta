@@ -15,31 +15,31 @@
     {
       "Identifier": {
         "module": null,
+        "name": 7
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 12
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 16
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551588
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
         "name": 8
-      }
-    },
-    {
-      "Identifier": {
-        "module": null,
-        "name": 13
-      }
-    },
-    {
-      "Identifier": {
-        "module": null,
-        "name": 17
-      }
-    },
-    {
-      "Identifier": {
-        "module": null,
-        "name": 1
-      }
-    },
-    {
-      "Identifier": {
-        "module": null,
-        "name": 9
       }
     },
     {
@@ -78,7 +78,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 18
+        "name": 17
       }
     },
     {
@@ -90,7 +90,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 20
+        "name": 19
       }
     },
     {
@@ -112,7 +112,7 @@
     {
       "EnumConstructor": {
         "target": null,
-        "variant": 16,
+        "variant": 15,
         "payload": null
       }
     },
@@ -138,7 +138,7 @@
     {
       "EnumConstructor": {
         "target": null,
-        "variant": 15,
+        "variant": 14,
         "payload": "23"
       }
     },
@@ -191,7 +191,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 28
+        "name": 27
       }
     },
     {
@@ -209,20 +209,20 @@
     {
       "Identifier": {
         "module": null,
-        "name": 33
+        "name": 32
       }
     },
     {
       "Pattern": {
         "EnumVariant": {
           "enum_name": null,
-          "variant": 15,
+          "variant": 14,
           "payload": "33"
         }
       }
     },
     {
-      "StringLiteral": 34
+      "StringLiteral": 33
     },
     {
       "Call": {
@@ -249,13 +249,13 @@
       "Pattern": {
         "EnumVariant": {
           "enum_name": null,
-          "variant": 16,
+          "variant": 15,
           "payload": null
         }
       }
     },
     {
-      "StringLiteral": 36
+      "StringLiteral": 35
     },
     {
       "Call": {
@@ -400,11 +400,11 @@
                 "Enum": {
                   "variants": [
                     {
-                      "name": 15,
+                      "name": 14,
                       "payload": "Int32"
                     },
                     {
-                      "name": 16,
+                      "name": 15,
                       "payload": null
                     }
                   ]
@@ -433,11 +433,11 @@
         "Enum": {
           "variants": [
             {
-              "name": 15,
+              "name": 14,
               "payload": "Int32"
             },
             {
-              "name": 16,
+              "name": 15,
               "payload": null
             }
           ]
@@ -458,11 +458,11 @@
                 "Enum": {
                   "variants": [
                     {
-                      "name": 15,
+                      "name": 14,
                       "payload": "Int32"
                     },
                     {
-                      "name": 16,
+                      "name": 15,
                       "payload": null
                     }
                   ]
@@ -488,11 +488,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 15,
+                  "name": 14,
                   "payload": "Int32"
                 },
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": null
                 }
               ]
@@ -515,11 +515,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 15,
+                  "name": 14,
                   "payload": "Int32"
                 },
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": null
                 }
               ]
@@ -536,11 +536,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 15,
+                  "name": 14,
                   "payload": "Int32"
                 },
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": null
                 }
               ]
@@ -560,11 +560,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 15,
+                  "name": 14,
                   "payload": "Int32"
                 },
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": null
                 }
               ]
@@ -579,11 +579,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 15,
+                  "name": 14,
                   "payload": "Int32"
                 },
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": null
                 }
               ]
@@ -600,11 +600,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 15,
+                  "name": 14,
                   "payload": "Int32"
                 },
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": null
                 }
               ]
@@ -619,11 +619,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 15,
+                  "name": 14,
                   "payload": "Int32"
                 },
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": null
                 }
               ]
@@ -641,11 +641,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 15,
+                  "name": 14,
                   "payload": "Int32"
                 },
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": null
                 }
               ]
@@ -660,11 +660,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 15,
+                  "name": 14,
                   "payload": "Int32"
                 },
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": null
                 }
               ]

@@ -57,7 +57,7 @@ entry:
   ret void
 }
 
-define internal void @main() {
+define internal void @manta_main() {
 entry:
   %check_this = alloca i1, align 1
   %nine = alloca i64, align 8
@@ -94,4 +94,11 @@ Block_8:                                          ; preds = %Block_3
 
 Block_9:                                          ; preds = %Block_8
   br label %Block_6
+}
+
+define i32 @main() {
+entry:
+  call void @"manta_<init>"()
+  call void @manta_main()
+  ret i32 0
 }

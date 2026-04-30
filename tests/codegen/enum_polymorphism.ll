@@ -94,7 +94,7 @@ Block_7:                                          ; preds = %entry
   unreachable
 }
 
-define internal void @main() {
+define internal void @manta_main() {
 entry:
   %tmp3 = alloca [8 x i8], align 1
   %tmp = alloca [8 x i8], align 1
@@ -121,4 +121,11 @@ entry:
   %load8 = load double, ptr %circle_area, align 8
   call void @fmt_println(double %load8)
   ret void
+}
+
+define i32 @main() {
+entry:
+  call void @"manta_<init>"()
+  call void @manta_main()
+  ret i32 0
 }

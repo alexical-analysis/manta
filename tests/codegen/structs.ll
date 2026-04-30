@@ -53,7 +53,7 @@ entry:
   ret i32 2
 }
 
-define internal i32 @main() {
+define internal i32 @manta_main() {
 entry:
   %a = alloca { i32, double, i64 }, align 8
   %b = alloca { i8, i32 }, align 8
@@ -79,4 +79,11 @@ entry:
   %struct_gep10 = getelementptr inbounds nuw { i32, double, i64 }, ptr %c, i32 0, i32 0
   %load11 = load i32, ptr %struct_gep10, align 4
   ret i32 %load11
+}
+
+define i32 @main() {
+entry:
+  call void @"manta_<init>"()
+  %manta_main = call i32 @manta_main()
+  ret i32 0
 }

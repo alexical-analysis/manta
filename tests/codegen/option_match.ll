@@ -81,7 +81,7 @@ Block_3:                                          ; preds = %entry
   ret { i8, [4 x i8] } %set_pay
 }
 
-define internal void @main() {
+define internal void @manta_main() {
 entry:
   %r = alloca { i8, [4 x i8] }, align 8
   %v = alloca i32, align 4
@@ -116,4 +116,11 @@ Block_6:                                          ; preds = %Block_5
 
 Block_7:                                          ; preds = %entry
   unreachable
+}
+
+define i32 @main() {
+entry:
+  call void @"manta_<init>"()
+  call void @manta_main()
+  ret i32 0
 }

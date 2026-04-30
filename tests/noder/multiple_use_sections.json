@@ -15,19 +15,19 @@
     {
       "Identifier": {
         "module": null,
+        "name": 7
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551588
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
         "name": 8
-      }
-    },
-    {
-      "Identifier": {
-        "module": null,
-        "name": 1
-      }
-    },
-    {
-      "Identifier": {
-        "module": null,
-        "name": 9
       }
     },
     {
@@ -59,7 +59,7 @@
       }
     },
     {
-      "StringLiteral": 12
+      "StringLiteral": 11
     },
     {
       "Call": {

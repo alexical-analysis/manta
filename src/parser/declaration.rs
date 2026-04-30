@@ -114,7 +114,7 @@ mod tests {
         UseDecl,
     };
     use crate::parser::lexer::{Lexer, SourceID};
-    use crate::str_store::{StrID, StrStore};
+    use crate::str_store::{self, StrID, StrStore};
     use pretty_assertions::assert_eq;
 
     macro_rules! test_parse_declaration {
@@ -195,7 +195,7 @@ mod tests {
                 FunctionDecl {
                     public: false,
                     id: SourceID::from_usize(0),
-                    name: StrID::from_usize(1),
+                    name: str_store::MAIN,
                     params: vec![],
                     function_type: FunctionType {
                         params: vec![],
@@ -209,10 +209,10 @@ mod tests {
                                     func: Box::new(Expr::Identifier(IdentifierExpr {
                                         id: SourceID::from_usize(28),
                                         module: None,
-                                        name: StrID::from_usize(5)
+                                        name: StrID::from_usize(4)
                                     })),
 
-                                    args: vec![Expr::StringLiteral(StrID::from_usize(6))],
+                                    args: vec![Expr::StringLiteral(StrID::from_usize(5))],
                                 }),
                             }),
                             Stmt::Return(ReturnStmt { value: None }),

@@ -24,7 +24,7 @@
   "functions": [
     {
       "linkage": "Private",
-      "name": 9,
+      "name": 8,
       "params": [
         1
       ],
@@ -37,7 +37,7 @@
           "type_spec": {
             "Ptr": "I32"
           },
-          "name": 10
+          "name": 9
         }
       ],
       "blocks": [
@@ -57,7 +57,7 @@
     },
     {
       "linkage": "Private",
-      "name": 14,
+      "name": 13,
       "params": [
         1
       ],
@@ -68,7 +68,7 @@
       "locals": [
         {
           "type_spec": "String",
-          "name": 15
+          "name": 14
         }
       ],
       "blocks": [
@@ -88,7 +88,7 @@
     },
     {
       "linkage": "Private",
-      "name": 22,
+      "name": 21,
       "params": [
         1
       ],
@@ -113,19 +113,19 @@
       "locals": [
         {
           "type_spec": "Bool",
-          "name": 23
+          "name": 22
         },
         {
           "type_spec": {
             "Ptr": "I32"
           },
-          "name": 10
+          "name": 9
         },
         {
           "type_spec": {
             "Ptr": "I32"
           },
-          "name": 10
+          "name": 9
         },
         {
           "type_spec": "OpaquePtr",
@@ -397,7 +397,7 @@
     },
     {
       "linkage": "Private",
-      "name": 1,
+      "name": 18446744073709551588,
       "params": [],
       "return_type": "Unit",
       "local_map": {
@@ -423,7 +423,7 @@
           "type_spec": {
             "Ptr": "I32"
           },
-          "name": 10
+          "name": 9
         }
       ],
       "blocks": [
@@ -520,7 +520,7 @@
         },
         {
           "Call": {
-            "func": 22,
+            "func": 21,
             "args": [
               1
             ]
@@ -575,7 +575,7 @@
         },
         {
           "Call": {
-            "func": 9,
+            "func": 8,
             "args": [
               7
             ]
@@ -584,13 +584,13 @@
         {
           "Const": {
             "value": {
-              "String": 35
+              "String": 34
             }
           }
         },
         {
           "Call": {
-            "func": 14,
+            "func": 13,
             "args": [
               9
             ]
