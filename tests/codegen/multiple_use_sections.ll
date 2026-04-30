@@ -56,8 +56,15 @@ entry:
   ret void
 }
 
-define internal void @main() {
+define internal void @manta_main() {
 entry:
   call void @fmt_println({ i64, ptr } { i64 7, ptr @const_str })
   ret void
+}
+
+define i32 @main() {
+entry:
+  call void @"manta_<init>"()
+  call void @manta_main()
+  ret i32 0
 }

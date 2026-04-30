@@ -107,7 +107,7 @@ Block_7:                                          ; preds = %Block_2
   unreachable
 }
 
-define internal void @main() {
+define internal void @manta_main() {
 entry:
   %"<match target>" = alloca { i8, [8 x i8] }, align 8
   %p = alloca ptr, align 8
@@ -142,4 +142,11 @@ Block_6:                                          ; preds = %Block_5
 
 Block_7:                                          ; preds = %entry
   unreachable
+}
+
+define i32 @main() {
+entry:
+  call void @"manta_<init>"()
+  call void @manta_main()
+  ret i32 0
 }

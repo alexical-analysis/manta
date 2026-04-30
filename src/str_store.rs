@@ -63,6 +63,8 @@ pub const ALLOC: StrID = StrID(usize::MAX - 23);
 pub const MATCH_TARGET: StrID = StrID(usize::MAX - 24);
 pub const PRINT: StrID = StrID(usize::MAX - 25);
 pub const EPRINT: StrID = StrID(usize::MAX - 26);
+pub const MAIN: StrID = StrID(usize::MAX - 27);
+pub const MANTA_MAIN: StrID = StrID(usize::MAX - 28);
 
 fn constant_str_id(s: &str) -> Option<StrID> {
     match s {
@@ -88,6 +90,8 @@ fn constant_str_id(s: &str) -> Option<StrID> {
         "alloc" => Some(ALLOC),
         "print" => Some(PRINT),
         "eprint" => Some(EPRINT),
+        "main" => Some(MAIN),
+        "manta_main" => Some(MANTA_MAIN),
 
         "_" => Some(UNDERSCORE),
 
@@ -127,6 +131,8 @@ pub fn constant_id_str(id: StrID) -> Option<&'static str> {
         PRINT => Some("print"),
         EPRINT => Some("eprint"),
         UNDERSCORE => Some("_"),
+        MAIN => Some("main"),
+        MANTA_MAIN => Some("manta_main"),
 
         // this is not a valid identifier so we can use it in the compiler
         // without worrying about conflicting with user identifiers

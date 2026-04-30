@@ -292,6 +292,39 @@ pub fn build_manta_eprint<'ctx>(
     eprint_fn
 }
 
+pub fn build_entry<'ctx>(
+    context: &'ctx Context,
+    builder: &Builder<'ctx>,
+    module: &Module<'ctx>,
+    manta_main: FunctionValue<'ctx>,
+    init_functions: &[FunctionValue<'ctx>],
+) -> FunctionValue<'ctx> {
+    let entry_type = context.i32_type().fn_type(&[], false);
+    // TODO: this eventually needs to adhear to the platform spec. For now,
+    let entry_fn = module.add_function("main", entry_type, Some(Linkage::External));
+
+    let entry_block = context.append_basic_block(entry_fn, "entry");
+    builder.position_at_end(entry_block);
+
+    // TODO: need to run all module init functions here
+    for init in init_functions {
+        builder
+            .build_call(*init, &[], "init_call")
+            .expect("failed to build call");
+    }
+
+    builder
+        .build_call(manta_main, &[], "manta_main")
+        .expect("failed to build call");
+
+    let return_value = context.i32_type().const_zero().as_basic_value_enum();
+    builder
+        .build_return(Some(&return_value))
+        .expect("failed to build return");
+
+    entry_fn
+}
+
 pub struct FuncBuilder<'ctx, 'a> {
     context: &'ctx Context,
     builder: &'a Builder<'ctx>,

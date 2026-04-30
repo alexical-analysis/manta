@@ -48,7 +48,7 @@ entry:
   ret void
 }
 
-define internal i64 @main() {
+define internal i64 @manta_main() {
 entry:
   %a = alloca i64, align 8
   %b = alloca i1, align 1
@@ -157,4 +157,11 @@ Block_30:                                         ; preds = %Block_28
 Block_31:                                         ; preds = %Block_27
   %load11 = load i64, ptr %a, align 8
   ret i64 %load11
+}
+
+define i32 @main() {
+entry:
+  call void @"manta_<init>"()
+  %manta_main = call i64 @manta_main()
+  ret i32 0
 }

@@ -21,7 +21,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 10
+        "name": 18446744073709551588
       }
     },
     {
@@ -59,7 +59,7 @@
       }
     },
     {
-      "StringLiteral": 11
+      "StringLiteral": 10
     },
     {
       "Call": {

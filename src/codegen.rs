@@ -178,13 +178,6 @@ impl<'ctx> Codegen<'ctx> {
             import_path,
             &module.init,
         );
-        self.function_map.insert(
-            module.init.name,
-            FuncData {
-                function: init_func,
-                return_type: module.init.return_type.clone(),
-            },
-        );
 
         let builtin_names: HashSet<StrID> = HashSet::from([
             str_store::FREE,
@@ -199,8 +192,28 @@ impl<'ctx> Codegen<'ctx> {
                 continue;
             }
 
-            let func_value =
-                builder::build_func_value(self.context, &llvm_module, str_store, import_path, func);
+            let func_value;
+            if func.name == str_store::MAIN {
+                let mut main_func = func.clone();
+                main_func.name = str_store::MANTA_MAIN;
+
+                func_value = builder::build_func_value(
+                    self.context,
+                    &llvm_module,
+                    str_store,
+                    import_path,
+                    &main_func,
+                );
+            } else {
+                func_value = builder::build_func_value(
+                    self.context,
+                    &llvm_module,
+                    str_store,
+                    import_path,
+                    func,
+                );
+            }
+
             self.function_map.insert(
                 func.name,
                 FuncData {
@@ -208,6 +221,17 @@ impl<'ctx> Codegen<'ctx> {
                     return_type: func.return_type.clone(),
                 },
             );
+
+            if func.name == str_store::MAIN {
+                // TODO: need to actually pass ALL module init functions here, not just the main one
+                builder::build_entry(
+                    self.context,
+                    &builder,
+                    &llvm_module,
+                    func_value,
+                    &[init_func],
+                );
+            }
         }
 
         // code gen the init function

@@ -55,7 +55,7 @@
     },
     {
       "linkage": "Private",
-      "name": 10,
+      "name": 18446744073709551588,
       "params": [],
       "return_type": "Unit",
       "local_map": {},
@@ -79,7 +79,7 @@
         {
           "Const": {
             "value": {
-              "String": 11
+              "String": 10
             }
           }
         },

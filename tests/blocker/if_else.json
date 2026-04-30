@@ -24,7 +24,7 @@
   "functions": [
     {
       "linkage": "Private",
-      "name": 8,
+      "name": 7,
       "params": [
         1
       ],
@@ -35,7 +35,7 @@
       "locals": [
         {
           "type_spec": "String",
-          "name": 9
+          "name": 8
         }
       ],
       "blocks": [
@@ -55,7 +55,7 @@
     },
     {
       "linkage": "Private",
-      "name": 1,
+      "name": 18446744073709551588,
       "params": [],
       "return_type": "Unit",
       "local_map": {
@@ -65,11 +65,11 @@
       "locals": [
         {
           "type_spec": "Bool",
-          "name": 13
+          "name": 12
         },
         {
           "type_spec": "I64",
-          "name": 18
+          "name": 17
         }
       ],
       "blocks": [
@@ -203,13 +203,13 @@
         {
           "Const": {
             "value": {
-              "String": 17
+              "String": 16
             }
           }
         },
         {
           "Call": {
-            "func": 8,
+            "func": 7,
             "args": [
               4
             ]
@@ -259,13 +259,13 @@
         {
           "Const": {
             "value": {
-              "String": 22
+              "String": 21
             }
           }
         },
         {
           "Call": {
-            "func": 8,
+            "func": 7,
             "args": [
               11
             ]
@@ -274,13 +274,13 @@
         {
           "Const": {
             "value": {
-              "String": 17
+              "String": 16
             }
           }
         },
         {
           "Call": {
-            "func": 8,
+            "func": 7,
             "args": [
               13
             ]

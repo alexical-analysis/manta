@@ -82,7 +82,7 @@
   {
     "kind": "Identifier",
     "source_id": 116,
-    "lexeme_id": 10
+    "lexeme_id": 18446744073709551588
   },
   {
     "kind": "OpenParen",
@@ -112,7 +112,7 @@
   {
     "kind": "Str",
     "source_id": 141,
-    "lexeme_id": 11
+    "lexeme_id": 10
   },
   {
     "kind": "CloseParen",
@@ -137,6 +137,6 @@
   {
     "kind": "Eof",
     "source_id": 168,
-    "lexeme_id": 12
+    "lexeme_id": 11
   }
 ]

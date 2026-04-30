@@ -24,7 +24,7 @@
   "functions": [
     {
       "linkage": "Private",
-      "name": 1,
+      "name": 18446744073709551588,
       "params": [],
       "return_type": "I64",
       "local_map": {
@@ -38,27 +38,27 @@
       "locals": [
         {
           "type_spec": "I64",
-          "name": 8
+          "name": 7
         },
         {
           "type_spec": "Bool",
-          "name": 11
+          "name": 10
         },
         {
           "type_spec": "Bool",
-          "name": 24
+          "name": 23
         },
         {
           "type_spec": "F64",
-          "name": 25
+          "name": 24
         },
         {
           "type_spec": "I64",
-          "name": 30
+          "name": 29
         },
         {
           "type_spec": "I64",
-          "name": 11
+          "name": 10
         }
       ],
       "blocks": [

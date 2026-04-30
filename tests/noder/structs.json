@@ -15,25 +15,25 @@
     {
       "Identifier": {
         "module": null,
-        "name": 4
+        "name": 3
       }
     },
     {
       "Identifier": {
         "module": null,
-        "name": 11
+        "name": 10
       }
     },
     {
       "Identifier": {
         "module": null,
-        "name": 15
+        "name": 14
       }
     },
     {
       "Identifier": {
         "module": null,
-        "name": 1
+        "name": 18446744073709551588
       }
     },
     {
@@ -74,7 +74,7 @@
     },
     {
       "StructConstructorField": {
-        "name": 7,
+        "name": 6,
         "value": "12"
       }
     },
@@ -83,7 +83,7 @@
     },
     {
       "StructConstructorField": {
-        "name": 8,
+        "name": 7,
         "value": "14"
       }
     },
@@ -92,7 +92,7 @@
     },
     {
       "StructConstructorField": {
-        "name": 9,
+        "name": 8,
         "value": "16"
       }
     },
@@ -108,7 +108,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 21
+        "name": 20
       }
     },
     {
@@ -128,14 +128,14 @@
     },
     {
       "StructConstructorField": {
-        "name": 7,
+        "name": 6,
         "value": "22"
       }
     },
     {
       "FieldAccess": {
         "target": "19",
-        "field": 7
+        "field": 6
       }
     },
     {
@@ -150,7 +150,7 @@
     },
     {
       "StructConstructorField": {
-        "name": 8,
+        "name": 7,
         "value": "26"
       }
     },
@@ -165,7 +165,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 28
+        "name": 27
       }
     },
     {
@@ -183,7 +183,7 @@
     {
       "FieldAccess": {
         "target": "29",
-        "field": 8
+        "field": 7
       }
     },
     {
@@ -211,7 +211,7 @@
     },
     {
       "StructConstructorField": {
-        "name": 7,
+        "name": 6,
         "value": "36"
       }
     },
@@ -220,14 +220,14 @@
     },
     {
       "StructConstructorField": {
-        "name": 8,
+        "name": 7,
         "value": "38"
       }
     },
     {
       "FieldAccess": {
         "target": "19",
-        "field": 9
+        "field": 8
       }
     },
     {
@@ -242,7 +242,7 @@
     },
     {
       "StructConstructorField": {
-        "name": 9,
+        "name": 8,
         "value": "42"
       }
     },
@@ -258,7 +258,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 33
+        "name": 32
       }
     },
     {
@@ -276,7 +276,7 @@
     {
       "FieldAccess": {
         "target": "45",
-        "field": 7
+        "field": 6
       }
     },
     {
@@ -394,15 +394,15 @@
         "Struct": {
           "fields": [
             {
-              "name": 7,
+              "name": 6,
               "type_spec": "Int32"
             },
             {
-              "name": 8,
+              "name": 7,
               "type_spec": "Float64"
             },
             {
-              "name": 9,
+              "name": 8,
               "type_spec": "UInt64"
             }
           ]
@@ -412,11 +412,11 @@
         "Struct": {
           "fields": [
             {
-              "name": 7,
+              "name": 6,
               "type_spec": "UInt8"
             },
             {
-              "name": 8,
+              "name": 7,
               "type_spec": "Int32"
             }
           ]
@@ -435,15 +435,15 @@
             "Struct": {
               "fields": [
                 {
-                  "name": 7,
+                  "name": 6,
                   "type_spec": "Int32"
                 },
                 {
-                  "name": 8,
+                  "name": 7,
                   "type_spec": "Float64"
                 },
                 {
-                  "name": 9,
+                  "name": 8,
                   "type_spec": "UInt64"
                 }
               ]
@@ -458,11 +458,11 @@
             "Struct": {
               "fields": [
                 {
-                  "name": 7,
+                  "name": 6,
                   "type_spec": "UInt8"
                 },
                 {
-                  "name": 8,
+                  "name": 7,
                   "type_spec": "Int32"
                 }
               ]
@@ -477,15 +477,15 @@
             "Struct": {
               "fields": [
                 {
-                  "name": 7,
+                  "name": 6,
                   "type_spec": "Int32"
                 },
                 {
-                  "name": 8,
+                  "name": 7,
                   "type_spec": "Float64"
                 },
                 {
-                  "name": 9,
+                  "name": 8,
                   "type_spec": "UInt64"
                 }
               ]
@@ -506,15 +506,15 @@
             "Struct": {
               "fields": [
                 {
-                  "name": 7,
+                  "name": 6,
                   "type_spec": "Int32"
                 },
                 {
-                  "name": 8,
+                  "name": 7,
                   "type_spec": "Float64"
                 },
                 {
-                  "name": 9,
+                  "name": 8,
                   "type_spec": "UInt64"
                 }
               ]
@@ -529,11 +529,11 @@
             "Struct": {
               "fields": [
                 {
-                  "name": 7,
+                  "name": 6,
                   "type_spec": "UInt8"
                 },
                 {
-                  "name": 8,
+                  "name": 7,
                   "type_spec": "Int32"
                 }
               ]
@@ -560,15 +560,15 @@
             "Struct": {
               "fields": [
                 {
-                  "name": 7,
+                  "name": 6,
                   "type_spec": "Int32"
                 },
                 {
-                  "name": 8,
+                  "name": 7,
                   "type_spec": "Float64"
                 },
                 {
-                  "name": 9,
+                  "name": 8,
                   "type_spec": "UInt64"
                 }
               ]
@@ -591,11 +591,11 @@
             "Struct": {
               "fields": [
                 {
-                  "name": 7,
+                  "name": 6,
                   "type_spec": "UInt8"
                 },
                 {
-                  "name": 8,
+                  "name": 7,
                   "type_spec": "Int32"
                 }
               ]
@@ -624,15 +624,15 @@
             "Struct": {
               "fields": [
                 {
-                  "name": 7,
+                  "name": 6,
                   "type_spec": "Int32"
                 },
                 {
-                  "name": 8,
+                  "name": 7,
                   "type_spec": "Float64"
                 },
                 {
-                  "name": 9,
+                  "name": 8,
                   "type_spec": "UInt64"
                 }
               ]

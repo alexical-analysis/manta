@@ -15,25 +15,31 @@
     {
       "Identifier": {
         "module": null,
-        "name": 10
+        "name": 9
       }
     },
     {
       "Identifier": {
         "module": null,
-        "name": 14
+        "name": 13
       }
     },
     {
       "Identifier": {
         "module": null,
-        "name": 19
+        "name": 18
       }
     },
     {
       "Identifier": {
         "module": null,
-        "name": 23
+        "name": 22
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 24
       }
     },
     {
@@ -51,25 +57,19 @@
     {
       "Identifier": {
         "module": null,
-        "name": 27
+        "name": 28
       }
     },
     {
       "Identifier": {
         "module": null,
-        "name": 29
+        "name": 31
       }
     },
     {
       "Identifier": {
         "module": null,
-        "name": 32
-      }
-    },
-    {
-      "Identifier": {
-        "module": null,
-        "name": 1
+        "name": 18446744073709551588
       }
     },
     {
@@ -85,7 +85,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 20
+        "name": 19
       }
     },
     {
@@ -97,7 +97,7 @@
     {
       "EnumConstructor": {
         "target": null,
-        "variant": 17,
+        "variant": 16,
         "payload": null
       }
     },
@@ -126,7 +126,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 24
+        "name": 23
       }
     },
     {
@@ -165,7 +165,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 24
+        "name": 23
       }
     },
     {
@@ -177,7 +177,7 @@
     {
       "EnumConstructor": {
         "target": null,
-        "variant": 17,
+        "variant": 16,
         "payload": null
       }
     },
@@ -206,7 +206,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 28
+        "name": 27
       }
     },
     {
@@ -245,7 +245,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 20
+        "name": 19
       }
     },
     {
@@ -265,14 +265,14 @@
     {
       "Identifier": {
         "module": null,
-        "name": 24
+        "name": 23
       }
     },
     {
       "Pattern": {
         "EnumVariant": {
           "enum_name": null,
-          "variant": 16,
+          "variant": 15,
           "payload": "41"
         }
       }
@@ -280,7 +280,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 24
+        "name": 23
       }
     },
     {
@@ -317,7 +317,7 @@
     {
       "EnumConstructor": {
         "target": null,
-        "variant": 30,
+        "variant": 29,
         "payload": "48"
       }
     },
@@ -386,14 +386,14 @@
     {
       "Identifier": {
         "module": null,
-        "name": 28
+        "name": 27
       }
     },
     {
       "Pattern": {
         "EnumVariant": {
           "enum_name": null,
-          "variant": 16,
+          "variant": 15,
           "payload": "59"
         }
       }
@@ -401,7 +401,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 28
+        "name": 27
       }
     },
     {
@@ -438,7 +438,7 @@
     {
       "EnumConstructor": {
         "target": null,
-        "variant": 31,
+        "variant": 30,
         "payload": "66"
       }
     },
@@ -479,7 +479,7 @@
     {
       "EnumConstructor": {
         "target": null,
-        "variant": 16,
+        "variant": 15,
         "payload": "61"
       }
     },
@@ -511,7 +511,7 @@
       }
     },
     {
-      "StringLiteral": 39
+      "StringLiteral": 38
     },
     {
       "Call": {
@@ -524,14 +524,14 @@
     {
       "Identifier": {
         "module": null,
-        "name": 38
+        "name": 37
       }
     },
     {
       "Pattern": {
         "EnumVariant": {
           "enum_name": null,
-          "variant": 16,
+          "variant": 15,
           "payload": "79"
         }
       }
@@ -539,7 +539,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 38
+        "name": 37
       }
     },
     {
@@ -570,7 +570,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 41
+        "name": 40
       }
     },
     {
@@ -581,7 +581,7 @@
       }
     },
     {
-      "StringLiteral": 42
+      "StringLiteral": 41
     },
     {
       "Call": {
@@ -628,7 +628,7 @@
       }
     },
     {
-      "StringLiteral": 43
+      "StringLiteral": 42
     },
     {
       "Call": {
@@ -641,14 +641,14 @@
     {
       "Identifier": {
         "module": null,
-        "name": 38
+        "name": 37
       }
     },
     {
       "Pattern": {
         "EnumVariant": {
           "enum_name": null,
-          "variant": 16,
+          "variant": 15,
           "payload": "97"
         }
       }
@@ -656,7 +656,7 @@
     {
       "Identifier": {
         "module": null,
-        "name": 38
+        "name": 37
       }
     },
     {
@@ -919,7 +919,7 @@
                 "Enum": {
                   "variants": [
                     {
-                      "name": 16,
+                      "name": 15,
                       "payload": {
                         "Named": {
                           "name": "2",
@@ -932,7 +932,7 @@
                       }
                     },
                     {
-                      "name": 17,
+                      "name": 16,
                       "payload": null
                     }
                   ]
@@ -980,11 +980,11 @@
                 "Enum": {
                   "variants": [
                     {
-                      "name": 16,
+                      "name": 15,
                       "payload": "String"
                     },
                     {
-                      "name": 17,
+                      "name": 16,
                       "payload": null
                     }
                   ]
@@ -1014,11 +1014,11 @@
                 "Enum": {
                   "variants": [
                     {
-                      "name": 16,
+                      "name": 15,
                       "payload": "String"
                     },
                     {
-                      "name": 30,
+                      "name": 29,
                       "payload": {
                         "Named": {
                           "name": "3",
@@ -1026,7 +1026,7 @@
                             "Enum": {
                               "variants": [
                                 {
-                                  "name": 16,
+                                  "name": 15,
                                   "payload": {
                                     "Named": {
                                       "name": "2",
@@ -1039,7 +1039,7 @@
                                   }
                                 },
                                 {
-                                  "name": 17,
+                                  "name": 16,
                                   "payload": null
                                 }
                               ]
@@ -1049,7 +1049,7 @@
                       }
                     },
                     {
-                      "name": 31,
+                      "name": 30,
                       "payload": {
                         "Named": {
                           "name": "6",
@@ -1057,11 +1057,11 @@
                             "Enum": {
                               "variants": [
                                 {
-                                  "name": 16,
+                                  "name": 15,
                                   "payload": "String"
                                 },
                                 {
-                                  "name": 17,
+                                  "name": 16,
                                   "payload": null
                                 }
                               ]
@@ -1092,7 +1092,7 @@
         "Enum": {
           "variants": [
             {
-              "name": 16,
+              "name": 15,
               "payload": {
                 "Named": {
                   "name": "2",
@@ -1105,7 +1105,7 @@
               }
             },
             {
-              "name": 17,
+              "name": 16,
               "payload": null
             }
           ]
@@ -1124,7 +1124,7 @@
                 "Enum": {
                   "variants": [
                     {
-                      "name": 16,
+                      "name": 15,
                       "payload": {
                         "Named": {
                           "name": "2",
@@ -1137,7 +1137,7 @@
                       }
                     },
                     {
-                      "name": 17,
+                      "name": 16,
                       "payload": null
                     }
                   ]
@@ -1178,11 +1178,11 @@
         "Enum": {
           "variants": [
             {
-              "name": 16,
+              "name": 15,
               "payload": "String"
             },
             {
-              "name": 17,
+              "name": 16,
               "payload": null
             }
           ]
@@ -1219,11 +1219,11 @@
                 "Enum": {
                   "variants": [
                     {
-                      "name": 16,
+                      "name": 15,
                       "payload": "String"
                     },
                     {
-                      "name": 17,
+                      "name": 16,
                       "payload": null
                     }
                   ]
@@ -1246,11 +1246,11 @@
         "Enum": {
           "variants": [
             {
-              "name": 16,
+              "name": 15,
               "payload": "String"
             },
             {
-              "name": 30,
+              "name": 29,
               "payload": {
                 "Named": {
                   "name": "3",
@@ -1258,7 +1258,7 @@
                     "Enum": {
                       "variants": [
                         {
-                          "name": 16,
+                          "name": 15,
                           "payload": {
                             "Named": {
                               "name": "2",
@@ -1271,7 +1271,7 @@
                           }
                         },
                         {
-                          "name": 17,
+                          "name": 16,
                           "payload": null
                         }
                       ]
@@ -1281,7 +1281,7 @@
               }
             },
             {
-              "name": 31,
+              "name": 30,
               "payload": {
                 "Named": {
                   "name": "6",
@@ -1289,11 +1289,11 @@
                     "Enum": {
                       "variants": [
                         {
-                          "name": 16,
+                          "name": 15,
                           "payload": "String"
                         },
                         {
-                          "name": 17,
+                          "name": 16,
                           "payload": null
                         }
                       ]
@@ -1318,11 +1318,11 @@
                 "Enum": {
                   "variants": [
                     {
-                      "name": 16,
+                      "name": 15,
                       "payload": "String"
                     },
                     {
-                      "name": 30,
+                      "name": 29,
                       "payload": {
                         "Named": {
                           "name": "3",
@@ -1330,7 +1330,7 @@
                             "Enum": {
                               "variants": [
                                 {
-                                  "name": 16,
+                                  "name": 15,
                                   "payload": {
                                     "Named": {
                                       "name": "2",
@@ -1343,7 +1343,7 @@
                                   }
                                 },
                                 {
-                                  "name": 17,
+                                  "name": 16,
                                   "payload": null
                                 }
                               ]
@@ -1353,7 +1353,7 @@
                       }
                     },
                     {
-                      "name": 31,
+                      "name": 30,
                       "payload": {
                         "Named": {
                           "name": "6",
@@ -1361,11 +1361,11 @@
                             "Enum": {
                               "variants": [
                                 {
-                                  "name": 16,
+                                  "name": 15,
                                   "payload": "String"
                                 },
                                 {
-                                  "name": 17,
+                                  "name": 16,
                                   "payload": null
                                 }
                               ]
@@ -1412,7 +1412,7 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": {
                     "Named": {
                       "name": "2",
@@ -1425,7 +1425,7 @@
                   }
                 },
                 {
-                  "name": 17,
+                  "name": 16,
                   "payload": null
                 }
               ]
@@ -1443,7 +1443,7 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": {
                     "Named": {
                       "name": "2",
@@ -1456,7 +1456,7 @@
                   }
                 },
                 {
-                  "name": 17,
+                  "name": 16,
                   "payload": null
                 }
               ]
@@ -1474,11 +1474,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": "String"
                 },
                 {
-                  "name": 17,
+                  "name": 16,
                   "payload": null
                 }
               ]
@@ -1496,11 +1496,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": "String"
                 },
                 {
-                  "name": 17,
+                  "name": 16,
                   "payload": null
                 }
               ]
@@ -1518,11 +1518,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": "String"
                 },
                 {
-                  "name": 30,
+                  "name": 29,
                   "payload": {
                     "Named": {
                       "name": "3",
@@ -1530,7 +1530,7 @@
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": {
                                 "Named": {
                                   "name": "2",
@@ -1543,7 +1543,7 @@
                               }
                             },
                             {
-                              "name": 17,
+                              "name": 16,
                               "payload": null
                             }
                           ]
@@ -1553,7 +1553,7 @@
                   }
                 },
                 {
-                  "name": 31,
+                  "name": 30,
                   "payload": {
                     "Named": {
                       "name": "6",
@@ -1561,11 +1561,11 @@
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": "String"
                             },
                             {
-                              "name": 17,
+                              "name": 16,
                               "payload": null
                             }
                           ]
@@ -1590,7 +1590,7 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": {
                     "Named": {
                       "name": "2",
@@ -1603,7 +1603,7 @@
                   }
                 },
                 {
-                  "name": 17,
+                  "name": 16,
                   "payload": null
                 }
               ]
@@ -1628,7 +1628,7 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": {
                     "Named": {
                       "name": "2",
@@ -1641,7 +1641,7 @@
                   }
                 },
                 {
-                  "name": 17,
+                  "name": 16,
                   "payload": null
                 }
               ]
@@ -1656,7 +1656,7 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": {
                     "Named": {
                       "name": "2",
@@ -1669,7 +1669,7 @@
                   }
                 },
                 {
-                  "name": 17,
+                  "name": 16,
                   "payload": null
                 }
               ]
@@ -1696,7 +1696,7 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": {
                     "Named": {
                       "name": "2",
@@ -1709,7 +1709,7 @@
                   }
                 },
                 {
-                  "name": 17,
+                  "name": 16,
                   "payload": null
                 }
               ]
@@ -1724,7 +1724,7 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": {
                     "Named": {
                       "name": "2",
@@ -1737,7 +1737,7 @@
                   }
                 },
                 {
-                  "name": 17,
+                  "name": 16,
                   "payload": null
                 }
               ]
@@ -1752,7 +1752,7 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": {
                     "Named": {
                       "name": "2",
@@ -1765,7 +1765,7 @@
                   }
                 },
                 {
-                  "name": 17,
+                  "name": 16,
                   "payload": null
                 }
               ]
@@ -1782,11 +1782,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": "String"
                 },
                 {
-                  "name": 30,
+                  "name": 29,
                   "payload": {
                     "Named": {
                       "name": "3",
@@ -1794,7 +1794,7 @@
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": {
                                 "Named": {
                                   "name": "2",
@@ -1807,7 +1807,7 @@
                               }
                             },
                             {
-                              "name": 17,
+                              "name": 16,
                               "payload": null
                             }
                           ]
@@ -1817,7 +1817,7 @@
                   }
                 },
                 {
-                  "name": 31,
+                  "name": 30,
                   "payload": {
                     "Named": {
                       "name": "6",
@@ -1825,11 +1825,11 @@
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": "String"
                             },
                             {
-                              "name": 17,
+                              "name": 16,
                               "payload": null
                             }
                           ]
@@ -1855,11 +1855,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": "String"
                 },
                 {
-                  "name": 17,
+                  "name": 16,
                   "payload": null
                 }
               ]
@@ -1875,11 +1875,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": "String"
                 },
                 {
-                  "name": 17,
+                  "name": 16,
                   "payload": null
                 }
               ]
@@ -1894,11 +1894,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": "String"
                 },
                 {
-                  "name": 17,
+                  "name": 16,
                   "payload": null
                 }
               ]
@@ -1916,11 +1916,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": "String"
                 },
                 {
-                  "name": 17,
+                  "name": 16,
                   "payload": null
                 }
               ]
@@ -1935,11 +1935,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": "String"
                 },
                 {
-                  "name": 17,
+                  "name": 16,
                   "payload": null
                 }
               ]
@@ -1954,11 +1954,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": "String"
                 },
                 {
-                  "name": 17,
+                  "name": 16,
                   "payload": null
                 }
               ]
@@ -1975,11 +1975,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": "String"
                 },
                 {
-                  "name": 30,
+                  "name": 29,
                   "payload": {
                     "Named": {
                       "name": "3",
@@ -1987,7 +1987,7 @@
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": {
                                 "Named": {
                                   "name": "2",
@@ -2000,7 +2000,7 @@
                               }
                             },
                             {
-                              "name": 17,
+                              "name": 16,
                               "payload": null
                             }
                           ]
@@ -2010,7 +2010,7 @@
                   }
                 },
                 {
-                  "name": 31,
+                  "name": 30,
                   "payload": {
                     "Named": {
                       "name": "6",
@@ -2018,11 +2018,11 @@
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": "String"
                             },
                             {
-                              "name": 17,
+                              "name": 16,
                               "payload": null
                             }
                           ]
@@ -2044,11 +2044,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": "String"
                 },
                 {
-                  "name": 30,
+                  "name": 29,
                   "payload": {
                     "Named": {
                       "name": "3",
@@ -2056,7 +2056,7 @@
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": {
                                 "Named": {
                                   "name": "2",
@@ -2069,7 +2069,7 @@
                               }
                             },
                             {
-                              "name": 17,
+                              "name": 16,
                               "payload": null
                             }
                           ]
@@ -2079,7 +2079,7 @@
                   }
                 },
                 {
-                  "name": 31,
+                  "name": 30,
                   "payload": {
                     "Named": {
                       "name": "6",
@@ -2087,11 +2087,11 @@
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": "String"
                             },
                             {
-                              "name": 17,
+                              "name": 16,
                               "payload": null
                             }
                           ]
@@ -2116,11 +2116,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": "String"
                 },
                 {
-                  "name": 30,
+                  "name": 29,
                   "payload": {
                     "Named": {
                       "name": "3",
@@ -2128,7 +2128,7 @@
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": {
                                 "Named": {
                                   "name": "2",
@@ -2141,7 +2141,7 @@
                               }
                             },
                             {
-                              "name": 17,
+                              "name": 16,
                               "payload": null
                             }
                           ]
@@ -2151,7 +2151,7 @@
                   }
                 },
                 {
-                  "name": 31,
+                  "name": 30,
                   "payload": {
                     "Named": {
                       "name": "6",
@@ -2159,11 +2159,11 @@
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": "String"
                             },
                             {
-                              "name": 17,
+                              "name": 16,
                               "payload": null
                             }
                           ]
@@ -2185,11 +2185,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": "String"
                 },
                 {
-                  "name": 30,
+                  "name": 29,
                   "payload": {
                     "Named": {
                       "name": "3",
@@ -2197,7 +2197,7 @@
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": {
                                 "Named": {
                                   "name": "2",
@@ -2210,7 +2210,7 @@
                               }
                             },
                             {
-                              "name": 17,
+                              "name": 16,
                               "payload": null
                             }
                           ]
@@ -2220,7 +2220,7 @@
                   }
                 },
                 {
-                  "name": 31,
+                  "name": 30,
                   "payload": {
                     "Named": {
                       "name": "6",
@@ -2228,11 +2228,11 @@
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": "String"
                             },
                             {
-                              "name": 17,
+                              "name": 16,
                               "payload": null
                             }
                           ]
@@ -2253,11 +2253,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": "String"
                 },
                 {
-                  "name": 30,
+                  "name": 29,
                   "payload": {
                     "Named": {
                       "name": "3",
@@ -2265,7 +2265,7 @@
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": {
                                 "Named": {
                                   "name": "2",
@@ -2278,29 +2278,7 @@
                               }
                             },
                             {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                },
-                {
-                  "name": 31,
-                  "payload": {
-                    "Named": {
-                      "name": "6",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
                               "name": 16,
-                              "payload": "String"
-                            },
-                            {
-                              "name": 17,
                               "payload": null
                             }
                           ]
@@ -2308,419 +2286,21 @@
                       }
                     }
                   }
-                }
-              ]
-            }
-          }
-        }
-      },
-      "Unit",
-      "Unit",
-      "String",
-      {
-        "Named": {
-          "name": "9",
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 16,
-                  "payload": "String"
                 },
                 {
                   "name": 30,
                   "payload": {
                     "Named": {
-                      "name": "3",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": {
-                                "Named": {
-                                  "name": "2",
-                                  "type_spec": {
-                                    "Struct": {
-                                      "fields": []
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                },
-                {
-                  "name": 31,
-                  "payload": {
-                    "Named": {
                       "name": "6",
                       "type_spec": {
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": "String"
                             },
                             {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      },
-      {
-        "Named": {
-          "name": "9",
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 16,
-                  "payload": "String"
-                },
-                {
-                  "name": 30,
-                  "payload": {
-                    "Named": {
-                      "name": "3",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
                               "name": 16,
-                              "payload": {
-                                "Named": {
-                                  "name": "2",
-                                  "type_spec": {
-                                    "Struct": {
-                                      "fields": []
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                },
-                {
-                  "name": 31,
-                  "payload": {
-                    "Named": {
-                      "name": "6",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": "String"
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      },
-      {
-        "Named": {
-          "name": "9",
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 16,
-                  "payload": "String"
-                },
-                {
-                  "name": 30,
-                  "payload": {
-                    "Named": {
-                      "name": "3",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": {
-                                "Named": {
-                                  "name": "2",
-                                  "type_spec": {
-                                    "Struct": {
-                                      "fields": []
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                },
-                {
-                  "name": 31,
-                  "payload": {
-                    "Named": {
-                      "name": "6",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": "String"
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      },
-      "Unit",
-      "String",
-      "Unit",
-      "Unit",
-      "Unit",
-      "Unit",
-      "Unit",
-      "String",
-      {
-        "Named": {
-          "name": "9",
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 16,
-                  "payload": "String"
-                },
-                {
-                  "name": 30,
-                  "payload": {
-                    "Named": {
-                      "name": "3",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": {
-                                "Named": {
-                                  "name": "2",
-                                  "type_spec": {
-                                    "Struct": {
-                                      "fields": []
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                },
-                {
-                  "name": 31,
-                  "payload": {
-                    "Named": {
-                      "name": "6",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": "String"
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      },
-      "String",
-      {
-        "Named": {
-          "name": "9",
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 16,
-                  "payload": "String"
-                },
-                {
-                  "name": 30,
-                  "payload": {
-                    "Named": {
-                      "name": "3",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": {
-                                "Named": {
-                                  "name": "2",
-                                  "type_spec": {
-                                    "Struct": {
-                                      "fields": []
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                },
-                {
-                  "name": 31,
-                  "payload": {
-                    "Named": {
-                      "name": "6",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": "String"
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      },
-      {
-        "Named": {
-          "name": "9",
-          "type_spec": {
-            "Enum": {
-              "variants": [
-                {
-                  "name": 16,
-                  "payload": "String"
-                },
-                {
-                  "name": 30,
-                  "payload": {
-                    "Named": {
-                      "name": "3",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": {
-                                "Named": {
-                                  "name": "2",
-                                  "type_spec": {
-                                    "Struct": {
-                                      "fields": []
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            {
-                              "name": 17,
-                              "payload": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                },
-                {
-                  "name": 31,
-                  "payload": {
-                    "Named": {
-                      "name": "6",
-                      "type_spec": {
-                        "Enum": {
-                          "variants": [
-                            {
-                              "name": 16,
-                              "payload": "String"
-                            },
-                            {
-                              "name": 17,
                               "payload": null
                             }
                           ]
@@ -2744,11 +2324,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": "String"
                 },
                 {
-                  "name": 30,
+                  "name": 29,
                   "payload": {
                     "Named": {
                       "name": "3",
@@ -2756,7 +2336,7 @@
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": {
                                 "Named": {
                                   "name": "2",
@@ -2769,7 +2349,7 @@
                               }
                             },
                             {
-                              "name": 17,
+                              "name": 16,
                               "payload": null
                             }
                           ]
@@ -2779,7 +2359,7 @@
                   }
                 },
                 {
-                  "name": 31,
+                  "name": 30,
                   "payload": {
                     "Named": {
                       "name": "6",
@@ -2787,11 +2367,11 @@
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": "String"
                             },
                             {
-                              "name": 17,
+                              "name": 16,
                               "payload": null
                             }
                           ]
@@ -2812,11 +2392,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": "String"
                 },
                 {
-                  "name": 30,
+                  "name": 29,
                   "payload": {
                     "Named": {
                       "name": "3",
@@ -2824,7 +2404,7 @@
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": {
                                 "Named": {
                                   "name": "2",
@@ -2837,7 +2417,7 @@
                               }
                             },
                             {
-                              "name": 17,
+                              "name": 16,
                               "payload": null
                             }
                           ]
@@ -2847,7 +2427,7 @@
                   }
                 },
                 {
-                  "name": 31,
+                  "name": 30,
                   "payload": {
                     "Named": {
                       "name": "6",
@@ -2855,11 +2435,11 @@
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": "String"
                             },
                             {
-                              "name": 17,
+                              "name": 16,
                               "payload": null
                             }
                           ]
@@ -2880,11 +2460,11 @@
             "Enum": {
               "variants": [
                 {
-                  "name": 16,
+                  "name": 15,
                   "payload": "String"
                 },
                 {
-                  "name": 30,
+                  "name": 29,
                   "payload": {
                     "Named": {
                       "name": "3",
@@ -2892,7 +2472,7 @@
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": {
                                 "Named": {
                                   "name": "2",
@@ -2905,7 +2485,7 @@
                               }
                             },
                             {
-                              "name": 17,
+                              "name": 16,
                               "payload": null
                             }
                           ]
@@ -2915,7 +2495,7 @@
                   }
                 },
                 {
-                  "name": 31,
+                  "name": 30,
                   "payload": {
                     "Named": {
                       "name": "6",
@@ -2923,11 +2503,431 @@
                         "Enum": {
                           "variants": [
                             {
-                              "name": 16,
+                              "name": 15,
                               "payload": "String"
                             },
                             {
-                              "name": 17,
+                              "name": 16,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Unit",
+      "String",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Unit",
+      "String",
+      {
+        "Named": {
+          "name": "9",
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 15,
+                  "payload": "String"
+                },
+                {
+                  "name": 29,
+                  "payload": {
+                    "Named": {
+                      "name": "3",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 15,
+                              "payload": {
+                                "Named": {
+                                  "name": "2",
+                                  "type_spec": {
+                                    "Struct": {
+                                      "fields": []
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "name": 16,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 30,
+                  "payload": {
+                    "Named": {
+                      "name": "6",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 15,
+                              "payload": "String"
+                            },
+                            {
+                              "name": 16,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "String",
+      {
+        "Named": {
+          "name": "9",
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 15,
+                  "payload": "String"
+                },
+                {
+                  "name": 29,
+                  "payload": {
+                    "Named": {
+                      "name": "3",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 15,
+                              "payload": {
+                                "Named": {
+                                  "name": "2",
+                                  "type_spec": {
+                                    "Struct": {
+                                      "fields": []
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "name": 16,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 30,
+                  "payload": {
+                    "Named": {
+                      "name": "6",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 15,
+                              "payload": "String"
+                            },
+                            {
+                              "name": 16,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "Named": {
+          "name": "9",
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 15,
+                  "payload": "String"
+                },
+                {
+                  "name": 29,
+                  "payload": {
+                    "Named": {
+                      "name": "3",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 15,
+                              "payload": {
+                                "Named": {
+                                  "name": "2",
+                                  "type_spec": {
+                                    "Struct": {
+                                      "fields": []
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "name": 16,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 30,
+                  "payload": {
+                    "Named": {
+                      "name": "6",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 15,
+                              "payload": "String"
+                            },
+                            {
+                              "name": 16,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Unit",
+      "Unit",
+      "String",
+      {
+        "Named": {
+          "name": "9",
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 15,
+                  "payload": "String"
+                },
+                {
+                  "name": 29,
+                  "payload": {
+                    "Named": {
+                      "name": "3",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 15,
+                              "payload": {
+                                "Named": {
+                                  "name": "2",
+                                  "type_spec": {
+                                    "Struct": {
+                                      "fields": []
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "name": 16,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 30,
+                  "payload": {
+                    "Named": {
+                      "name": "6",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 15,
+                              "payload": "String"
+                            },
+                            {
+                              "name": 16,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "Named": {
+          "name": "9",
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 15,
+                  "payload": "String"
+                },
+                {
+                  "name": 29,
+                  "payload": {
+                    "Named": {
+                      "name": "3",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 15,
+                              "payload": {
+                                "Named": {
+                                  "name": "2",
+                                  "type_spec": {
+                                    "Struct": {
+                                      "fields": []
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "name": 16,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 30,
+                  "payload": {
+                    "Named": {
+                      "name": "6",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 15,
+                              "payload": "String"
+                            },
+                            {
+                              "name": 16,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "Named": {
+          "name": "9",
+          "type_spec": {
+            "Enum": {
+              "variants": [
+                {
+                  "name": 15,
+                  "payload": "String"
+                },
+                {
+                  "name": 29,
+                  "payload": {
+                    "Named": {
+                      "name": "3",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 15,
+                              "payload": {
+                                "Named": {
+                                  "name": "2",
+                                  "type_spec": {
+                                    "Struct": {
+                                      "fields": []
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "name": 16,
+                              "payload": null
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": 30,
+                  "payload": {
+                    "Named": {
+                      "name": "6",
+                      "type_spec": {
+                        "Enum": {
+                          "variants": [
+                            {
+                              "name": 15,
+                              "payload": "String"
+                            },
+                            {
+                              "name": 16,
                               "payload": null
                             }
                           ]

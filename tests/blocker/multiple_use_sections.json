@@ -24,7 +24,7 @@
   "functions": [
     {
       "linkage": "Private",
-      "name": 8,
+      "name": 7,
       "params": [
         1
       ],
@@ -35,7 +35,7 @@
       "locals": [
         {
           "type_spec": "String",
-          "name": 9
+          "name": 8
         }
       ],
       "blocks": [
@@ -55,7 +55,7 @@
     },
     {
       "linkage": "Private",
-      "name": 1,
+      "name": 18446744073709551588,
       "params": [],
       "return_type": "Unit",
       "local_map": {},
@@ -79,13 +79,13 @@
         {
           "Const": {
             "value": {
-              "String": 12
+              "String": 11
             }
           }
         },
         {
           "Call": {
-            "func": 8,
+            "func": 7,
             "args": [
               1
             ]
