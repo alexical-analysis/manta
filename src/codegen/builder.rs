@@ -310,6 +310,18 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
         llvm_function: FunctionValue<'ctx>,
         str_store: &StrStore,
     ) -> Self {
+        if matches!(function.linkage, MirLinkage::External(_)) {
+            return FuncBuilder {
+                context,
+                builder,
+                mir_function: function,
+                current_block: function.entry_block,
+                block_map: BTreeMap::new(),
+                local_map: HashMap::new(),
+                value_map: HashMap::new(),
+            };
+        }
+
         // pre-gen all the blocks
         let mut block_map = BTreeMap::new();
         let mut entry_block = None;
