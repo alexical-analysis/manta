@@ -205,7 +205,15 @@ fn parse_struct_constructor(
         if comma.kind != TokenKind::Comma {
             break;
         }
+
         lexer.next_token();
+
+        // in the multi-line case a comma may appear before the final closing brace, not just between
+        // fields, so we need to handle that case here as well
+        let close = lexer.peek();
+        if close.kind == TokenKind::CloseBrace {
+            break;
+        }
     }
 
     // Consume the semicolon between each field, this will either be explicit or inserted by the
