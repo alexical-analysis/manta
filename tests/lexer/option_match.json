@@ -457,7 +457,7 @@
   {
     "kind": "Semicolon",
     "source_id": 511,
-    "lexeme_id": 34
+    "lexeme_id": 18446744073709551586
   },
   {
     "kind": "CloseBrace",
@@ -497,7 +497,7 @@
   {
     "kind": "Str",
     "source_id": 546,
-    "lexeme_id": 35
+    "lexeme_id": 34
   },
   {
     "kind": "CloseParen",
@@ -507,7 +507,7 @@
   {
     "kind": "Semicolon",
     "source_id": 572,
-    "lexeme_id": 34
+    "lexeme_id": 18446744073709551586
   },
   {
     "kind": "CloseBrace",
@@ -542,6 +542,6 @@
   {
     "kind": "Eof",
     "source_id": 582,
-    "lexeme_id": 34
+    "lexeme_id": 18446744073709551586
   }
 ]

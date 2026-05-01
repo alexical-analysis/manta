@@ -907,7 +907,7 @@ mod test {
                             pattern: Pattern::EnumVariant(EnumVariantPat {
                                 id: SourceID::from_usize(42),
                                 enum_name: None,
-                                variant: StrID::from_usize(12),
+                                variant: StrID::from_usize(11),
                                 payload: Payload::None,
                             }),
                             body: BlockStmt {
@@ -919,7 +919,7 @@ mod test {
                                             module: None,
                                             name: StrID::from_usize(8)
                                         })),
-                                        args: vec![Expr::StringLiteral(StrID::from_usize(13))],
+                                        args: vec![Expr::StringLiteral(StrID::from_usize(12))],
                                     }),
                                 })],
                             },
@@ -975,8 +975,8 @@ mod test {
                             pattern: Pattern::EnumVariant(EnumVariantPat {
                                 id: SourceID::from_usize(54),
                                 enum_name: None,
-                                variant: StrID::from_usize(12),
-                                payload: Payload::Some(StrID::from_usize(13)),
+                                variant: StrID::from_usize(11),
+                                payload: Payload::Some(StrID::from_usize(12)),
                             }),
                             body: BlockStmt {
                                 id: SourceID::from_usize(68),
@@ -990,7 +990,7 @@ mod test {
                                         args: vec![Expr::Identifier(IdentifierExpr {
                                             id: SourceID::from_usize(78),
                                             module: None,
-                                            name: StrID::from_usize(13)
+                                            name: StrID::from_usize(12)
                                         })],
                                     }),
                                 })],
@@ -1001,7 +1001,7 @@ mod test {
                             pattern: Pattern::EnumVariant(EnumVariantPat {
                                 id: SourceID::from_usize(89),
                                 enum_name: None,
-                                variant: StrID::from_usize(14),
+                                variant: StrID::from_usize(13),
                                 payload: Payload::None,
                             }),
                             body: BlockStmt {
@@ -1013,7 +1013,7 @@ mod test {
                                             module: None,
                                             name: StrID::from_usize(8)
                                         })),
-                                        args: vec![Expr::StringLiteral(StrID::from_usize(15))],
+                                        args: vec![Expr::StringLiteral(StrID::from_usize(14))],
                                     }),
                                 })],
                             },
@@ -1064,8 +1064,8 @@ mod test {
                             pattern: Pattern::EnumVariant(EnumVariantPat {
                                 id: SourceID::from_usize(48),
                                 enum_name: None,
-                                variant: StrID::from_usize(12),
-                                payload: Payload::Some(StrID::from_usize(13)),
+                                variant: StrID::from_usize(11),
+                                payload: Payload::Some(StrID::from_usize(12)),
                             }),
                             body: BlockStmt {
                                 id: SourceID::from_usize(58),
@@ -1077,11 +1077,11 @@ mod test {
                                             name: StrID::from_usize(5)
                                         })),
                                         args: vec![
-                                            Expr::StringLiteral(StrID::from_usize(14)),
+                                            Expr::StringLiteral(StrID::from_usize(13)),
                                             Expr::Identifier(IdentifierExpr {
                                                 id: SourceID::from_usize(82),
                                                 module: None,
-                                                name: StrID::from_usize(13)
+                                                name: StrID::from_usize(12)
                                             }),
                                         ],
                                     }),

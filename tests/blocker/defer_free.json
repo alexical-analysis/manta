@@ -302,7 +302,7 @@
         },
         {
           "type_spec": "U64",
-          "name": 40
+          "name": 39
         },
         {
           "type_spec": {
@@ -318,7 +318,7 @@
         },
         {
           "type_spec": "U64",
-          "name": 40
+          "name": 39
         },
         {
           "type_spec": {

@@ -10,7 +10,7 @@ mod parser;
 mod pub_mod;
 mod str_store;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fs::{self, File};
 use std::io::Write;
@@ -21,7 +21,8 @@ use std::time::Instant;
 use clap::{Parser, Subcommand};
 use compiler::Compiler;
 
-use crate::str_store::StrStore;
+use crate::parser::module::Module as ParseModule;
+use crate::str_store::{StrID, StrStore};
 
 /// The CLI for the Manta programming language
 #[derive(Parser, Debug)]
@@ -79,6 +80,83 @@ enum Commands {
     },
 }
 
+struct Node {
+    import_path: StrID,
+    deps: Vec<Node>,
+}
+
+struct ModuleDAG {
+    root: Node,
+}
+
+struct DfsIter<'a> {
+    stack: Vec<(&'a Node, usize)>,
+}
+
+impl<'a> Iterator for DfsIter<'a> {
+    type Item = StrID;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            let (node, child_idx) = self.stack.last_mut()?;
+            if *child_idx < node.deps.len() {
+                let child = &node.deps[*child_idx];
+                *child_idx += 1;
+                self.stack.push((child, 0));
+            } else {
+                let (node, _) = self.stack.pop()?;
+                return Some(node.import_path);
+            }
+        }
+    }
+}
+
+impl ModuleDAG {
+    fn dfs_iter(&self) -> DfsIter<'_> {
+        DfsIter {
+            stack: vec![(&self.root, 0)],
+        }
+    }
+
+    fn new(ast_map: &HashMap<StrID, ParseModule>) -> Self {
+        let mut visited = HashSet::new();
+        let root = Self::build_dag(str_store::EMPTY_STR, &ast_map, &mut visited);
+
+        ModuleDAG { root }
+    }
+
+    fn build_dag(
+        import_path: StrID,
+        ast_map: &HashMap<StrID, ParseModule>,
+        visited: &mut HashSet<StrID>,
+    ) -> Node {
+        if visited.contains(&import_path) {
+            // TODO: need to return this as an actual error
+            panic!("import cycle detected {:?}", visited);
+        }
+
+        visited.insert(import_path);
+
+        let parse_module = ast_map
+            .get(&import_path)
+            .expect(format!("failed to get parse module {:?}", import_path).as_str());
+        let deps = parse_module.get_using_modules();
+
+        let mut dep_nodes = vec![];
+        for dep in deps {
+            let node = Self::build_dag(*dep, ast_map, visited);
+            dep_nodes.push(node)
+        }
+
+        visited.remove(&import_path);
+
+        Node {
+            import_path,
+            deps: dep_nodes,
+        }
+    }
+}
+
 fn build(
     save_temps: bool,
     target_dir: &Option<PathBuf>,
@@ -112,8 +190,10 @@ fn build(
     let start = Instant::now();
 
     let mut str_store = StrStore::new();
-    let mut mod_map = HashMap::new();
-    let mut object_files = vec![];
+    let mut ast_map = HashMap::new();
+    let mut compiler_map = HashMap::new();
+
+    // first parse all the modules in the project
     for module in &modules {
         line_count += module.line_count();
 
@@ -125,15 +205,51 @@ fn build(
         let mod_name = mod_name.to_string_lossy().to_string();
         println!("building module {:?}", &mod_name);
 
+        let compiler = Compiler::new(import_path.into(), mod_name.clone(), module);
+        let parse_module = compiler
+            .parse(&mut str_store)
+            .expect("failed to parse module");
+
+        let import_str = import_path.to_string_lossy();
+        let import_id = str_store.get_id(&import_str);
+
+        ast_map.insert(import_id, parse_module);
+        compiler_map.insert(import_id, compiler);
+    }
+
+    let module_dag = ModuleDAG::new(&ast_map);
+
+    let mut mod_map = HashMap::new();
+    let mut object_files = vec![];
+
+    // now actually compile all the modules
+    for import_path in module_dag.dfs_iter() {
+        if mod_map.contains_key(&import_path) {
+            // this module was already compiled as part of a different dependency path
+            continue;
+        }
+
+        let import_str = str_store
+            .get_string(import_path)
+            .expect("missing import path");
+        let root = obj_dir.join("root").join(import_str);
+
+        let mod_name = root.file_name().expect("failed to get module name");
+        let mod_name = mod_name.to_string_lossy().to_string();
+        println!("building module {:?}", &mod_name);
+
         let object_file = root.join(mod_name.clone() + ".o");
 
-        let mut compiler = Compiler::new(import_path.into(), mod_name.clone(), module);
+        let compiler = compiler_map
+            .get_mut(&import_path)
+            .expect("failed to get compiler");
+        let parse_module = ast_map.get(&import_path).expect("failed to get the ast");
+
         let node_tree = compiler
-            .compile(&mut str_store, &mod_map, &object_file, save_temps)
+            .compile(&str_store, &mod_map, parse_module, &object_file, save_temps)
             .expect("failed to compile module");
 
-        let mod_id = str_store.get_id(&mod_name);
-        mod_map.insert(mod_id, node_tree);
+        mod_map.insert(import_path, node_tree);
 
         object_files.push(object_file)
     }

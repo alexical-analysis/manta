@@ -372,6 +372,10 @@ impl Module {
         &self.errors
     }
 
+    pub fn get_using_modules(&self) -> &[StrID] {
+        &self.using_modules
+    }
+
     fn get_module(decls: &[Decl]) -> (StrID, Vec<ParseError>) {
         let mut module_name = str_store::NIL;
         let mut errors = vec![];

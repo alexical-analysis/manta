@@ -652,7 +652,7 @@
   {
     "kind": "Semicolon",
     "source_id": 1037,
-    "lexeme_id": 36
+    "lexeme_id": 18446744073709551586
   },
   {
     "kind": "CloseBrace",
@@ -672,7 +672,7 @@
   {
     "kind": "Star",
     "source_id": 1048,
-    "lexeme_id": 37
+    "lexeme_id": 36
   },
   {
     "kind": "OpenSquare",
@@ -722,7 +722,7 @@
   {
     "kind": "At",
     "source_id": 1067,
-    "lexeme_id": 38
+    "lexeme_id": 37
   },
   {
     "kind": "OpenSquare",
@@ -747,7 +747,7 @@
   {
     "kind": "Bang",
     "source_id": 1074,
-    "lexeme_id": 39
+    "lexeme_id": 38
   },
   {
     "kind": "Semicolon",
@@ -787,7 +787,7 @@
   {
     "kind": "Semicolon",
     "source_id": 1098,
-    "lexeme_id": 36
+    "lexeme_id": 18446744073709551586
   },
   {
     "kind": "CloseBrace",
@@ -822,7 +822,7 @@
   {
     "kind": "Identifier",
     "source_id": 1113,
-    "lexeme_id": 40
+    "lexeme_id": 39
   },
   {
     "kind": "CloseParen",
@@ -857,7 +857,7 @@
   {
     "kind": "Star",
     "source_id": 1130,
-    "lexeme_id": 37
+    "lexeme_id": 36
   },
   {
     "kind": "Identifier",
@@ -922,6 +922,6 @@
   {
     "kind": "Eof",
     "source_id": 1168,
-    "lexeme_id": 36
+    "lexeme_id": 18446744073709551586
   }
 ]
