@@ -65,6 +65,7 @@ pub const PRINT: StrID = StrID(usize::MAX - 25);
 pub const EPRINT: StrID = StrID(usize::MAX - 26);
 pub const MAIN: StrID = StrID(usize::MAX - 27);
 pub const MANTA_MAIN: StrID = StrID(usize::MAX - 28);
+pub const EMPTY_STR: StrID = StrID(usize::MAX - 29);
 
 fn constant_str_id(s: &str) -> Option<StrID> {
     match s {
@@ -80,8 +81,6 @@ fn constant_str_id(s: &str) -> Option<StrID> {
         "f64" => Some(F64),
         "str" => Some(STR),
         "bool" => Some(BOOL),
-
-        // keywords used throughout the complier
         "panic" => Some(PANIC),
         "size_of" => Some(SIZEOF),
         "align_of" => Some(ALIGNOF),
@@ -92,11 +91,8 @@ fn constant_str_id(s: &str) -> Option<StrID> {
         "eprint" => Some(EPRINT),
         "main" => Some(MAIN),
         "manta_main" => Some(MANTA_MAIN),
-
+        "" => Some(EMPTY_STR),
         "_" => Some(UNDERSCORE),
-
-        // these are not a valid identifier so we can use it in the compiler
-        // without worrying about conflicting with user identifiers
         "<wrap>" => Some(WRAP),
         "<inner let>" => Some(INNERLET),
         "<init>" => Some(INIT),
@@ -120,8 +116,6 @@ pub fn constant_id_str(id: StrID) -> Option<&'static str> {
         F64 => Some("f64"),
         STR => Some("str"),
         BOOL => Some("bool"),
-
-        // keywords used throughout the complier
         PANIC => Some("panic"),
         SIZEOF => Some("size_of"),
         ALIGNOF => Some("align_of"),
@@ -133,17 +127,13 @@ pub fn constant_id_str(id: StrID) -> Option<&'static str> {
         UNDERSCORE => Some("_"),
         MAIN => Some("main"),
         MANTA_MAIN => Some("manta_main"),
-
-        // this is not a valid identifier so we can use it in the compiler
-        // without worrying about conflicting with user identifiers
         WRAP => Some("<wrap>"),
         INNERLET => Some("<inner let>"),
         INIT => Some("<init>"),
         DEFER => Some("<defer>"),
         MATCH_TARGET => Some("<match target>"),
-
-        // Nil is also not a valid identifier
         NIL => Some("<nil>"),
+        EMPTY_STR => Some(""),
         _ => None,
     }
 }
@@ -261,7 +251,7 @@ mod tests {
         let id1 = store.get_id("");
         let id2 = store.get_id("");
         assert_eq!(id1, id2);
-        assert_eq!(id1, StrID(0));
+        assert_eq!(id1, EMPTY_STR);
     }
 
     #[test]

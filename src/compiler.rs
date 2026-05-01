@@ -10,6 +10,7 @@ use crate::file_set::FileSet;
 use crate::noder::Module as HirModule;
 use crate::noder::Noder;
 use crate::parser::Parser;
+use crate::parser::module::Module as ParseModule;
 use crate::str_store::StrID;
 use crate::str_store::StrStore;
 
@@ -33,18 +34,32 @@ impl<'fs> Compiler<'fs> {
         }
     }
 
+    /// parse the module associated with this compiler
+    pub fn parse(&self, str_store: &mut StrStore) -> Result<ParseModule, Box<dyn Error>> {
+        println!("building ast module...");
+        let parser = Parser::new(self.file_set);
+        let module = parser.parse_module(str_store);
+
+        if !module.get_errors().is_empty() {
+            panic!("errors in the parser: {:?}", module.get_errors())
+        }
+
+        Ok(module)
+    }
+
     /// Compiles the source to a .o file and write the result to the object_file path.
     pub fn compile(
         &mut self,
-        str_store: &mut StrStore,
+        str_store: &StrStore,
         mod_map: &HashMap<StrID, HirModule>,
+        module: &ParseModule,
         object_file: &PathBuf,
         save_temps: bool,
     ) -> Result<HirModule, Box<dyn Error>> {
         let context = Context::create();
         let mut generator = Codegen::new(&context);
 
-        let (module, node_tree) = self.compile_module(str_store, mod_map, &mut generator);
+        let (module, node_tree) = self.pipeline(str_store, mod_map, module, &mut generator);
         if save_temps {
             let mut ll_file = object_file.clone();
             ll_file.set_extension("ll");
@@ -63,20 +78,13 @@ impl<'fs> Compiler<'fs> {
         Ok(node_tree)
     }
 
-    fn compile_module<'ctx>(
+    fn pipeline<'ctx>(
         &mut self,
-        str_store: &mut StrStore,
+        str_store: &StrStore,
         mod_map: &HashMap<StrID, HirModule>,
+        module: &ParseModule,
         generator: &mut Codegen<'ctx>,
     ) -> (Module<'ctx>, HirModule) {
-        println!("building ast module...");
-        let parser = Parser::new(self.file_set);
-        let module = parser.parse_module(str_store);
-
-        if !module.get_errors().is_empty() {
-            panic!("errors in the parser: {:?}", module.get_errors())
-        }
-
         // build the HIR from the AST
         println!("building hir module...");
         let node_tree = Noder::new().node_module(mod_map, &module);

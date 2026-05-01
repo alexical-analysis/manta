@@ -322,7 +322,7 @@
   {
     "kind": "Semicolon",
     "source_id": 538,
-    "lexeme_id": 28
+    "lexeme_id": 18446744073709551586
   },
   {
     "kind": "CloseBrace",
@@ -387,7 +387,7 @@
   {
     "kind": "Semicolon",
     "source_id": 574,
-    "lexeme_id": 28
+    "lexeme_id": 18446744073709551586
   },
   {
     "kind": "CloseBrace",
@@ -447,12 +447,12 @@
   {
     "kind": "LetKeyword",
     "source_id": 601,
-    "lexeme_id": 29
+    "lexeme_id": 28
   },
   {
     "kind": "Identifier",
     "source_id": 605,
-    "lexeme_id": 30
+    "lexeme_id": 29
   },
   {
     "kind": "Equal",
@@ -482,7 +482,7 @@
   {
     "kind": "Int",
     "source_id": 627,
-    "lexeme_id": 31
+    "lexeme_id": 30
   },
   {
     "kind": "CloseParen",
@@ -497,12 +497,12 @@
   {
     "kind": "LetKeyword",
     "source_id": 635,
-    "lexeme_id": 29
+    "lexeme_id": 28
   },
   {
     "kind": "Identifier",
     "source_id": 639,
-    "lexeme_id": 32
+    "lexeme_id": 31
   },
   {
     "kind": "Equal",
@@ -522,7 +522,7 @@
   {
     "kind": "Identifier",
     "source_id": 658,
-    "lexeme_id": 30
+    "lexeme_id": 29
   },
   {
     "kind": "CloseParen",
@@ -547,7 +547,7 @@
   {
     "kind": "Identifier",
     "source_id": 682,
-    "lexeme_id": 32
+    "lexeme_id": 31
   },
   {
     "kind": "CloseParen",
@@ -562,12 +562,12 @@
   {
     "kind": "LetKeyword",
     "source_id": 700,
-    "lexeme_id": 29
+    "lexeme_id": 28
   },
   {
     "kind": "Identifier",
     "source_id": 704,
-    "lexeme_id": 33
+    "lexeme_id": 32
   },
   {
     "kind": "Equal",
@@ -597,7 +597,7 @@
   {
     "kind": "Int",
     "source_id": 726,
-    "lexeme_id": 34
+    "lexeme_id": 33
   },
   {
     "kind": "CloseParen",
@@ -612,12 +612,12 @@
   {
     "kind": "LetKeyword",
     "source_id": 733,
-    "lexeme_id": 29
+    "lexeme_id": 28
   },
   {
     "kind": "Identifier",
     "source_id": 737,
-    "lexeme_id": 35
+    "lexeme_id": 34
   },
   {
     "kind": "Equal",
@@ -637,7 +637,7 @@
   {
     "kind": "Identifier",
     "source_id": 756,
-    "lexeme_id": 33
+    "lexeme_id": 32
   },
   {
     "kind": "CloseParen",
@@ -662,7 +662,7 @@
   {
     "kind": "Identifier",
     "source_id": 780,
-    "lexeme_id": 35
+    "lexeme_id": 34
   },
   {
     "kind": "CloseParen",
@@ -687,6 +687,6 @@
   {
     "kind": "Eof",
     "source_id": 795,
-    "lexeme_id": 28
+    "lexeme_id": 18446744073709551586
   }
 ]

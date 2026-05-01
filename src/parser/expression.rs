@@ -328,7 +328,7 @@ mod tests {
         StructType, StructTypeField, StructValueField, TypeSpec, UnaryExpr, UnaryOp,
     };
     use crate::parser::lexer::{Lexer, SourceID};
-    use crate::str_store::{StrID, StrStore};
+    use crate::str_store::{self, StrID, StrStore};
     use pretty_assertions::assert_eq;
 
     macro_rules! test_parse_expressions {
@@ -379,7 +379,7 @@ mod tests {
         parse_expression_empty_string {
             input: r#""""#,
             want_var: Expr::StringLiteral(s),
-            want_value: assert_eq!(s, StrID::from_usize(0)),
+            want_value: assert_eq!(s, str_store::EMPTY_STR),
         },
         parse_expression_int_literal {
             input: "42",

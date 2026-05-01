@@ -1026,7 +1026,7 @@
       "locals": [
         {
           "type_spec": "String",
-          "name": 37
+          "name": 36
         },
         {
           "type_spec": {
@@ -1061,7 +1061,7 @@
         },
         {
           "type_spec": "String",
-          "name": 37
+          "name": 36
         },
         {
           "type_spec": {
@@ -1092,11 +1092,11 @@
               ]
             }
           },
-          "name": 40
+          "name": 39
         },
         {
           "type_spec": "String",
-          "name": 37
+          "name": 36
         },
         {
           "type_spec": {
@@ -1131,7 +1131,7 @@
         },
         {
           "type_spec": "String",
-          "name": 37
+          "name": 36
         },
         {
           "type_spec": {
@@ -1297,7 +1297,7 @@
         {
           "Const": {
             "value": {
-              "String": 38
+              "String": 37
             }
           }
         },
@@ -1381,7 +1381,7 @@
         {
           "Const": {
             "value": {
-              "String": 41
+              "String": 40
             }
           }
         },
@@ -1414,7 +1414,7 @@
         {
           "Const": {
             "value": {
-              "String": 42
+              "String": 41
             }
           }
         },

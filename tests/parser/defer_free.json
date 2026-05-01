@@ -386,7 +386,7 @@
                     "enum_name": null,
                     "variant": 13,
                     "payload": {
-                      "Some": 40
+                      "Some": 39
                     }
                   }
                 },
@@ -894,7 +894,7 @@
           },
           {
             "id": 29,
-            "name": 40,
+            "name": 39,
             "binding_type": "Value",
             "mutable": false,
             "used": false
