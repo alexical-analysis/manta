@@ -493,22 +493,6 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
                 let value = self.context.i64_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::Int(i), TypeSpec::U8) => {
-                let value = self.context.i8_type().const_int(*i, false);
-                value.into()
-            }
-            (ConstValue::Int(i), TypeSpec::U16) => {
-                let value = self.context.i16_type().const_int(*i, false);
-                value.into()
-            }
-            (ConstValue::Int(i), TypeSpec::U32) => {
-                let value = self.context.i32_type().const_int(*i, false);
-                value.into()
-            }
-            (ConstValue::Int(i), TypeSpec::U64) => {
-                let value = self.context.i64_type().const_int(*i, false);
-                value.into()
-            }
             (ConstValue::Float(f), TypeSpec::F32) => {
                 let value = self.context.f32_type().const_float(*f);
                 value.into()
@@ -902,7 +886,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
 
         // there's currently a bug where i64/u64 loads don't have the correct alignment. We
         // explicitly set the alignment here to compensate
-        if matches!(pointee_ty, TypeSpec::I64 | TypeSpec::U64 | TypeSpec::F64) {
+        if matches!(pointee_ty, TypeSpec::I64 | TypeSpec::F64) {
             load.as_instruction_value()
                 .expect("failed to get load instruction")
                 .set_alignment(8)
@@ -977,7 +961,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
             .build_store(ptr, value)
             .expect("failed to build store instruction");
 
-        if matches!(pointee_typ, TypeSpec::I64 | TypeSpec::U64 | TypeSpec::F64) {
+        if matches!(pointee_typ, TypeSpec::I64 | TypeSpec::F64) {
             store
                 .set_alignment(8)
                 .expect("failed to set 8 widht aligment");
@@ -1085,12 +1069,6 @@ pub fn convert_type_spec<'ctx>(
         TypeSpec::I16 => context.i16_type().into(),
         TypeSpec::I32 => context.i32_type().into(),
         TypeSpec::I64 => context.i64_type().into(),
-
-        // LLVM has no unsigned; signedness is in ops so we just use the basic int types here
-        TypeSpec::U8 => context.i8_type().into(),
-        TypeSpec::U16 => context.i16_type().into(),
-        TypeSpec::U32 => context.i32_type().into(),
-        TypeSpec::U64 => context.i64_type().into(),
 
         TypeSpec::F32 => context.f32_type().into(),
         TypeSpec::F64 => context.f64_type().into(),

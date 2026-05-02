@@ -839,7 +839,7 @@
           }
         },
         "Unit",
-        "U8",
+        "I8",
         {
           "Struct": []
         },
@@ -905,7 +905,7 @@
           }
         },
         "Unit",
-        "U8",
+        "I8",
         "String",
         "Unit",
         "String",
@@ -1552,7 +1552,7 @@
           }
         },
         "Unit",
-        "U8",
+        "I8",
         "String",
         "Unit",
         "String",
@@ -1592,7 +1592,7 @@
           }
         },
         "Unit",
-        "U8",
+        "I8",
         "String",
         "Unit",
         "String",
