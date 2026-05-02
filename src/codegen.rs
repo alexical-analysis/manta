@@ -372,14 +372,7 @@ impl<'ctx> Codegen<'ctx> {
                 Some(value)
             }
             Instruction::Add { lhs, rhs } => match inst_type_spec {
-                TypeSpec::I8
-                | TypeSpec::I16
-                | TypeSpec::I32
-                | TypeSpec::I64
-                | TypeSpec::U8
-                | TypeSpec::U16
-                | TypeSpec::U32
-                | TypeSpec::U64 => {
+                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs of addition expr")
@@ -411,14 +404,7 @@ impl<'ctx> Codegen<'ctx> {
                 _ => panic!("unsupported arguments for addition"),
             },
             Instruction::Sub { lhs, rhs } => match inst_type_spec {
-                TypeSpec::I8
-                | TypeSpec::I16
-                | TypeSpec::I32
-                | TypeSpec::I64
-                | TypeSpec::U8
-                | TypeSpec::U16
-                | TypeSpec::U32
-                | TypeSpec::U64 => {
+                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs of subtraction expr")
@@ -480,7 +466,7 @@ impl<'ctx> Codegen<'ctx> {
                 _ => panic!("unsupported arguments for signed division"),
             },
             Instruction::UDiv { lhs, rhs } => match inst_type_spec {
-                TypeSpec::U8 | TypeSpec::U16 | TypeSpec::U32 | TypeSpec::U64 => {
+                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs of division expr")
@@ -497,14 +483,7 @@ impl<'ctx> Codegen<'ctx> {
                 _ => panic!("unsupported arguments for unsigned division"),
             },
             Instruction::Mul { lhs, rhs } => match inst_type_spec {
-                TypeSpec::I8
-                | TypeSpec::I16
-                | TypeSpec::I32
-                | TypeSpec::I64
-                | TypeSpec::U8
-                | TypeSpec::U16
-                | TypeSpec::U32
-                | TypeSpec::U64 => {
+                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs for multiplication expr")
@@ -552,7 +531,7 @@ impl<'ctx> Codegen<'ctx> {
                 _ => panic!("unsupported arguments for signed modulous"),
             },
             Instruction::UMod { lhs, rhs } => match inst_type_spec {
-                TypeSpec::U8 | TypeSpec::U16 | TypeSpec::U32 | TypeSpec::U64 => {
+                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs for modulo expr")
@@ -575,11 +554,7 @@ impl<'ctx> Codegen<'ctx> {
                     | TypeSpec::I8
                     | TypeSpec::I16
                     | TypeSpec::I32
-                    | TypeSpec::I64
-                    | TypeSpec::U8
-                    | TypeSpec::U16
-                    | TypeSpec::U32
-                    | TypeSpec::U64 => {
+                    | TypeSpec::I64 => {
                         self.gen_int_compare(func_builder, IntPredicate::EQ, lhs, rhs)
                     }
                     TypeSpec::F32 | TypeSpec::F64 => {
@@ -602,11 +577,7 @@ impl<'ctx> Codegen<'ctx> {
                     | TypeSpec::I8
                     | TypeSpec::I16
                     | TypeSpec::I32
-                    | TypeSpec::I64
-                    | TypeSpec::U8
-                    | TypeSpec::U16
-                    | TypeSpec::U32
-                    | TypeSpec::U64 => {
+                    | TypeSpec::I64 => {
                         self.gen_int_compare(func_builder, IntPredicate::NE, lhs, rhs)
                     }
                     TypeSpec::F32 | TypeSpec::F64 => {
@@ -638,10 +609,10 @@ impl<'ctx> Codegen<'ctx> {
                 let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
                     TypeSpec::Bool
-                    | TypeSpec::U8
-                    | TypeSpec::U16
-                    | TypeSpec::U32
-                    | TypeSpec::U64 => {
+                    | TypeSpec::I8
+                    | TypeSpec::I16
+                    | TypeSpec::I32
+                    | TypeSpec::I64 => {
                         self.gen_int_compare(func_builder, IntPredicate::ULT, lhs, rhs)
                     }
                     _ => panic!("unsupported args for unsigned less than"),
@@ -670,10 +641,10 @@ impl<'ctx> Codegen<'ctx> {
                 let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
                     TypeSpec::Bool
-                    | TypeSpec::U8
-                    | TypeSpec::U16
-                    | TypeSpec::U32
-                    | TypeSpec::U64 => {
+                    | TypeSpec::I8
+                    | TypeSpec::I16
+                    | TypeSpec::I32
+                    | TypeSpec::I64 => {
                         self.gen_int_compare(func_builder, IntPredicate::UGT, lhs, rhs)
                     }
                     _ => panic!("unsupported args for unsigned greater than"),
@@ -695,10 +666,10 @@ impl<'ctx> Codegen<'ctx> {
                 let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
                     TypeSpec::Bool
-                    | TypeSpec::U8
-                    | TypeSpec::U16
-                    | TypeSpec::U32
-                    | TypeSpec::U64 => {
+                    | TypeSpec::I8
+                    | TypeSpec::I16
+                    | TypeSpec::I32
+                    | TypeSpec::I64 => {
                         self.gen_int_compare(func_builder, IntPredicate::ULE, lhs, rhs)
                     }
                     _ => panic!("unsupported args for unsigned less than or equal"),
@@ -720,10 +691,10 @@ impl<'ctx> Codegen<'ctx> {
                 let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
                     TypeSpec::Bool
-                    | TypeSpec::U8
-                    | TypeSpec::U16
-                    | TypeSpec::U32
-                    | TypeSpec::U64 => {
+                    | TypeSpec::I8
+                    | TypeSpec::I16
+                    | TypeSpec::I32
+                    | TypeSpec::I64 => {
                         self.gen_int_compare(func_builder, IntPredicate::UGE, lhs, rhs)
                     }
                     _ => panic!("unsupported args for unsigned greater than or equal"),
@@ -912,10 +883,10 @@ impl<'ctx> Codegen<'ctx> {
                 let (tag_ts, payload_ts) = match &variant_type {
                     TypeSpec::Enum { tag_size, variants } => {
                         let tag_ts = match &tag_size {
-                            TagSize::U8 => TypeSpec::U8,
-                            TagSize::U16 => TypeSpec::U16,
-                            TagSize::U32 => TypeSpec::U32,
-                            TagSize::U64 => TypeSpec::U64,
+                            TagSize::U8 => TypeSpec::I8,
+                            TagSize::U16 => TypeSpec::I16,
+                            TagSize::U32 => TypeSpec::I32,
+                            TagSize::U64 => TypeSpec::I64,
                         };
 
                         let payload_ts = match tag {
@@ -943,7 +914,7 @@ impl<'ctx> Codegen<'ctx> {
                         }
 
                         TypeSpec::Array {
-                            elem: Box::new(TypeSpec::U8),
+                            elem: Box::new(TypeSpec::I8),
                             len: bytes as usize,
                         }
                     }
@@ -999,14 +970,7 @@ impl<'ctx> Codegen<'ctx> {
                 Some(result.into())
             }
             Instruction::BitwiseAnd { lhs, rhs } => match inst_type_spec {
-                TypeSpec::I8
-                | TypeSpec::I16
-                | TypeSpec::I32
-                | TypeSpec::I64
-                | TypeSpec::U8
-                | TypeSpec::U16
-                | TypeSpec::U32
-                | TypeSpec::U64 => {
+                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs for bitwise-and expr")
@@ -1023,14 +987,7 @@ impl<'ctx> Codegen<'ctx> {
                 _ => panic!("invalid type for bitwise and"),
             },
             Instruction::BitwiseOr { lhs, rhs } => match inst_type_spec {
-                TypeSpec::I8
-                | TypeSpec::I16
-                | TypeSpec::I32
-                | TypeSpec::I64
-                | TypeSpec::U8
-                | TypeSpec::U16
-                | TypeSpec::U32
-                | TypeSpec::U64 => {
+                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs for bitwise-or expr")
@@ -1047,14 +1004,7 @@ impl<'ctx> Codegen<'ctx> {
                 _ => panic!("invalid type for bitwise or"),
             },
             Instruction::BitwiseXOr { lhs, rhs } => match inst_type_spec {
-                TypeSpec::I8
-                | TypeSpec::I16
-                | TypeSpec::I32
-                | TypeSpec::I64
-                | TypeSpec::U8
-                | TypeSpec::U16
-                | TypeSpec::U32
-                | TypeSpec::U64 => {
+                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs for bitwise-xor expr")
@@ -1251,22 +1201,6 @@ impl<'ctx> Codegen<'ctx> {
                 value.into()
             }
             (ConstValue::Int(i), TypeSpec::I64) => {
-                let value = self.context.i64_type().const_int(*i, false);
-                value.into()
-            }
-            (ConstValue::Int(i), TypeSpec::U8) => {
-                let value = self.context.i8_type().const_int(*i, false);
-                value.into()
-            }
-            (ConstValue::Int(i), TypeSpec::U16) => {
-                let value = self.context.i16_type().const_int(*i, false);
-                value.into()
-            }
-            (ConstValue::Int(i), TypeSpec::U32) => {
-                let value = self.context.i32_type().const_int(*i, false);
-                value.into()
-            }
-            (ConstValue::Int(i), TypeSpec::U64) => {
                 let value = self.context.i64_type().const_int(*i, false);
                 value.into()
             }

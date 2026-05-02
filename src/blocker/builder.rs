@@ -937,10 +937,10 @@ impl FunctionBuilder {
     ) -> ValueId {
         let tag_type = match target_type {
             TypeSpec::Enum { tag_size, .. } => match tag_size {
-                TagSize::U8 => TypeSpec::U8,
-                TagSize::U16 => TypeSpec::U16,
-                TagSize::U32 => TypeSpec::U32,
-                TagSize::U64 => TypeSpec::U64,
+                TagSize::U8 => TypeSpec::I8,
+                TagSize::U16 => TypeSpec::I16,
+                TagSize::U32 => TypeSpec::I32,
+                TagSize::U64 => TypeSpec::I64,
             },
             _ => panic!("incorrect type for enum match"),
         };

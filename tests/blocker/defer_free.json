@@ -130,7 +130,7 @@
         "Enum": {
           "tag_size": "U8",
           "variants": [
-            "U64",
+            "I64",
             "Unit"
           ]
         }
@@ -148,7 +148,7 @@
         },
         {
           "type_spec": {
-            "Slice": "U8"
+            "Slice": "I8"
           },
           "name": 25
         }
@@ -182,7 +182,7 @@
           "Enum": {
             "tag_size": "U8",
             "variants": [
-              "U64",
+              "I64",
               "Unit"
             ]
           }
@@ -215,7 +215,7 @@
               "Enum": {
                 "tag_size": "U8",
                 "variants": [
-                  "U64",
+                  "I64",
                   "Unit"
                 ]
               }
@@ -283,7 +283,7 @@
         {
           "type_spec": {
             "Ptr": {
-              "Slice": "U8"
+              "Slice": "I8"
             }
           },
           "name": 25
@@ -291,7 +291,7 @@
         {
           "type_spec": {
             "Ptr": {
-              "Slice": "U8"
+              "Slice": "I8"
             }
           },
           "name": 25
@@ -301,7 +301,7 @@
           "name": 18446744073709551601
         },
         {
-          "type_spec": "U64",
+          "type_spec": "I64",
           "name": 39
         },
         {
@@ -309,7 +309,7 @@
             "Enum": {
               "tag_size": "U8",
               "variants": [
-                "U64",
+                "I64",
                 "Unit"
               ]
             }
@@ -317,7 +317,7 @@
           "name": 18446744073709551591
         },
         {
-          "type_spec": "U64",
+          "type_spec": "I64",
           "name": 39
         },
         {
@@ -325,7 +325,7 @@
             "Enum": {
               "tag_size": "U8",
               "variants": [
-                "U64",
+                "I64",
                 "Unit"
               ]
             }
@@ -353,7 +353,7 @@
                   "Enum": {
                     "tag_size": "U8",
                     "variants": [
-                      "U64",
+                      "I64",
                       "Unit"
                     ]
                   }
@@ -1042,7 +1042,7 @@
           }
         },
         "Unit",
-        "U8",
+        "I8",
         {
           "Struct": []
         },
@@ -1083,7 +1083,7 @@
                 "Enum": {
                   "tag_size": "U8",
                   "variants": [
-                    "U64",
+                    "I64",
                     "Unit"
                   ]
                 }
@@ -1097,16 +1097,16 @@
         "Unit",
         {
           "Struct": [
-            "U64",
-            "U64",
-            "U64"
+            "I64",
+            "I64",
+            "I64"
           ]
         },
         "OpaquePtr",
         "Unit",
         {
           "Ptr": {
-            "Slice": "U8"
+            "Slice": "I8"
           }
         },
         "Unit",
@@ -1114,7 +1114,7 @@
         "String",
         {
           "Ptr": {
-            "Slice": "U8"
+            "Slice": "I8"
           }
         },
         "Unit",
@@ -1122,29 +1122,29 @@
           "Struct": []
         },
         {
-          "Slice": "U8"
+          "Slice": "I8"
         },
         {
           "Enum": {
             "tag_size": "U8",
             "variants": [
-              "U64",
+              "I64",
               "Unit"
             ]
           }
         },
         "Unit",
-        "U8",
-        "U64",
+        "I8",
+        "I64",
         "Unit",
-        "U64",
+        "I64",
         "Unit",
         "Unit",
         {
           "Enum": {
             "tag_size": "U8",
             "variants": [
-              "U64",
+              "I64",
               "Unit"
             ]
           }
@@ -1169,7 +1169,7 @@
                 "Enum": {
                   "tag_size": "U8",
                   "variants": [
-                    "U64",
+                    "I64",
                     "Unit"
                   ]
                 }
@@ -1197,7 +1197,7 @@
                 "Enum": {
                   "tag_size": "U8",
                   "variants": [
-                    "U64",
+                    "I64",
                     "Unit"
                   ]
                 }
@@ -1228,7 +1228,7 @@
                 "Enum": {
                   "tag_size": "U8",
                   "variants": [
-                    "U64",
+                    "I64",
                     "Unit"
                   ]
                 }

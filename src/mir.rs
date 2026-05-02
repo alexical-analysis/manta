@@ -21,11 +21,6 @@ pub enum TypeSpec {
     I16,
     I32,
     I64,
-    // TODO: do we need unsigned types? We already encode signedness in ops
-    U8,
-    U16,
-    U32,
-    U64,
     F32,
     F64,
     Bool,

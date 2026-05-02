@@ -1184,7 +1184,7 @@ impl<'a> Blocker<'a> {
                     ConstValue::Int(layout.align),
                     ConstValue::Int(0), // flags reserved for future use
                 ]);
-                let meta_type = TypeSpec::Struct(vec![TypeSpec::U64, TypeSpec::U64, TypeSpec::U64]);
+                let meta_type = TypeSpec::Struct(vec![TypeSpec::I64, TypeSpec::I64, TypeSpec::I64]);
                 self.fn_builder.emit_const(block_id, meta_type, meta_value)
             }
             Node::Alloc { meta_type, .. } => {
@@ -1206,10 +1206,10 @@ fn lower_type_spec(hir_ts: &hir::TypeSpec) -> TypeSpec {
         hir::TypeSpec::Int16 => TypeSpec::I16,
         hir::TypeSpec::Int32 => TypeSpec::I32,
         hir::TypeSpec::Int64 => TypeSpec::I64,
-        hir::TypeSpec::UInt8 => TypeSpec::U8,
-        hir::TypeSpec::UInt16 => TypeSpec::U16,
-        hir::TypeSpec::UInt32 => TypeSpec::U32,
-        hir::TypeSpec::UInt64 => TypeSpec::U64,
+        hir::TypeSpec::UInt8 => TypeSpec::I8,
+        hir::TypeSpec::UInt16 => TypeSpec::I16,
+        hir::TypeSpec::UInt32 => TypeSpec::I32,
+        hir::TypeSpec::UInt64 => TypeSpec::I64,
         hir::TypeSpec::Float32 => TypeSpec::F32,
         hir::TypeSpec::Float64 => TypeSpec::F64,
         hir::TypeSpec::Bool => TypeSpec::Bool,
@@ -1293,10 +1293,10 @@ pub fn type_layout(ts: &TypeSpec, arch: Arch) -> Layout {
     // TODO: need to support sizes of less than 1 byte for packed structs
     let ptr = arch.ptr_size();
     match ts {
-        TypeSpec::Bool | TypeSpec::I8 | TypeSpec::U8 => Layout { size: 1, align: 1 },
-        TypeSpec::I16 | TypeSpec::U16 => Layout { size: 2, align: 2 },
-        TypeSpec::I32 | TypeSpec::U32 | TypeSpec::F32 => Layout { size: 4, align: 4 },
-        TypeSpec::I64 | TypeSpec::U64 | TypeSpec::F64 => Layout { size: 8, align: 8 },
+        TypeSpec::Bool | TypeSpec::I8 => Layout { size: 1, align: 1 },
+        TypeSpec::I16 => Layout { size: 2, align: 2 },
+        TypeSpec::I32 | TypeSpec::F32 => Layout { size: 4, align: 4 },
+        TypeSpec::I64 | TypeSpec::F64 => Layout { size: 8, align: 8 },
         TypeSpec::Ptr(_) | TypeSpec::OpaquePtr => Layout {
             size: ptr,
             align: ptr,
@@ -1534,7 +1534,7 @@ mod tests {
     #[test]
     fn struct_layout_padding_between_fields() {
         // u8 then i32: u8 at 0, pad to 4, i32 at 4 → total 8
-        let l = struct_layout(&[TypeSpec::U8, TypeSpec::I32], Arch::W64);
+        let l = struct_layout(&[TypeSpec::I8, TypeSpec::I32], Arch::W64);
         assert_eq!(l.size, 8);
         assert_eq!(l.align, 4);
     }
@@ -1542,7 +1542,7 @@ mod tests {
     #[test]
     fn struct_layout_trailing_padding() {
         // i32 then u8: i32 at 0, u8 at 4, raw end=5, padded to 8
-        let l = struct_layout(&[TypeSpec::I32, TypeSpec::U8], Arch::W64);
+        let l = struct_layout(&[TypeSpec::I32, TypeSpec::I8], Arch::W64);
         assert_eq!(l.size, 8);
         assert_eq!(l.align, 4);
     }
