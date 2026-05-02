@@ -2,268 +2,448 @@
 
 ## Problem
 
-There are many common patterns in programming that require a meta construct beyond direct syntax. For 
-example, sometimes coding patterns can become extremely repetitive and verbose to handle the various
-variants of a given syntax. Defining a dozen different variants of a Vector or Matrix, or
-support printing functionality for a dozen variants in an Enum, are good examples. While these can be written manually 
-it is often not desirable to do so both because it is tedious but also because the resulting code becomes
-difficult to read and prone to small errors that can be difficult to find in the sea of syntax.
+There are several key problems that comptime support in manta could help resolve. The first is bundling
+assets into a final binary. For retro consoles like the GBA there is no file system that can be relied
+on to load assets. Instead, all palettes, tile-sets, tile-maps, sprite sheets, and audio data need to
+be embedded in the final ROM. In many C programs this is solved by using generated literals in header
+files but this can really tank compile time performance. Having the ability to embed data directly using
+comptime supports Manta's performance as well as its key use case for retro console dev.
 
-There are also concerns about performance baked into this problem. A developer may reasonably want to
-compute some complex expression ahead of runtime to preserve CPU cycles during runtime. Look up tables
-are a great example of this and can provide a massive performance gain at the cost of memory. The tradeoff
-is often well worth it.
+Another key use case is handling conditional compilation. Because of the extremely varied nature of
+the compile targets that manta seeks to support, excellent conditional compilation is essential. While
+larger conditional compilation (i.e swapping out entire modules for specific targets) deserves its
+own proposal, smaller swaps (i.e. print on mac vs linux vs windows) could leverage comptime to make
+this simpler.
 
-There are also other patterns that become strictly impossible for the developer to implement without
-some sort of pre-runtime pattern. This includes things like custom invariant checking, requiring specific
-values to be known at compile time, and providing zero-cost abstractions as part of an API or SDK. While
-some of these considerations can be baked directly into a compiler, or handled by external code generators,
-these systems lose flexibility and security of a dedicated, blessed method provided by the compiler.
+Pre-computing expensive calculations is another key use case of comptime. Systems like the N64 and GBA
+often leveraged look up tables (LUT) to maintain stable framerates and reduce the load on the CPU. This
+can be achieved by building custom code generation flows but having a built-in comptime concept could
+massively improve the standardization and ergonomics of generating and using LUTs.
+
+Generics are another use case that could be covered by comptime. Zig is the prime example of this as
+it lets the comptime interpreter access the type system to avoid needing a separate generics system.
+Having a single unified system for creating generic types and doing comptime work could help keep manta
+simple while also supporting more complex coding patterns.
+
+Comptime could also be used in a similar way to macros. Macros are often conceived as syntax to syntax
+functions. If the compiler's interpreter had close enough integration to compilation itself, the comptime
+system could manipulate the AST performing user specified checks as well as making modifications and
+additions to the AST. Such a robust system would be powerful and also reduce the need for a more traditional
+macro system.
 
 ### Design Considerations
 
 Given Manta's goals of being a productive language for retro console development there are a few key
 aspects of this proposal worth highlighting.
 
-Moving complex calculations from runtime to pre-runtime/compile-time is absolutely essential. Many retro
-consoles have much weaker CPUs than modern hardware and require a lot of work to ensure good performance.
-Patterns like generating look up tables (LUTs) and pre-computing complex but deterministic physics
-or lighting information are a key consideration for any meta-programming or compile-time system.
+The performance requirements for retro console development are much more strict than most modern targets.
+This means that performance tradeoffs need to be carefully considered. For example, Manta forgoes a garbage
+collector because, despite the real benefit to developer ergonomics, the performance cost is just not
+acceptable for legacy hardware targets.
 
-Generic types and polymorphic function monomorphization is another key goal. Runtime generic systems like Go's
-interfaces are powerful but have CPU and memory costs. Providing a tool that allows developers to move
-the more simple polymorphic patterns into a pre-runtime system is another key consideration.
+Developer ergonomics still matter. When the tradeoff makes sense it's actually ok to prioritize the developer
+experience over performance. Languages like Zig and Rust provide ecosystems that are extremely focused
+on optimizing performance and do an excellent job. Manta should be willing to give up performance for
+developer experience when reasonable. Examples of this include Go style interfaces which do have a small
+performance cost but provide a lot of developer ergonomics.
 
-Simplifying syntax is an often touted benefit of comptime tools. Quite often there are simple repeated
-patterns that show up in code. Sometimes it's fine to just have this code written out and using tools
-like nvim macros can make this process less painful at time of writing. However
-there are legitimate use cases where compressing syntactic patterns into a generic or comptime can
-improve both legibility and usability. Manta seeks to support more readable code as a core goal.
+Balancing these two goals is a difficult balance as they are often in direct competition. Carefully
+considering features with this in mind will hopefully help set Manta apart as a retro development ecosystem.
 
-The system should be as simple as possible without sacrificing the other core goals. For ultimate performance
-and control languages like Rust, C, or Zig will likely be preferable to Manta. This is fine as the goal
-for Manta is to provide the necessary performance while still prioritizing developer productivity. Given 
-this fact, it is appropriate to leave some use cases/performance on the table in order to prioritize
-simplicity. This however should be done very carefully.
-
-### Non-goals
-
-Covering every possible use case of a generics or macro system is out of scope of this proposal. While
-there are a lot of very interesting and powerful things that can be accomplished by a good macro system
-or a complex generics system, such possibilities can often add complexity to the language. These sorts
-of systems often do lead to some additional complexity which is fine but targeting the 80% of most common
-use cases often provides huge benefits at a comparatively low cost.
-
-Preventing every last unnecessary CPU cycle is also not a core requirement. While this system should allow
-developers to help their code perform more efficiently, an 80% approach is also preferred here. On many 
-retro consoles, true performance requires writing key portions of the code in assembly directly anyway.
-Zero cost abstractions can be powerful but often come with a tax in the form of more complex compilation,
-a more nuanced type system or both. This makes sense for some languages but is not a price that Manta
-is interested in paying.
+It's also worth noting that there are separate proposals for generics and macros in development. Collapsing
+all functionality into the comptime system feels elegant but it is not a strict requirement. If doing
+so does not meaningfully improve the language then separately designed systems should be preferred.
 
 ---
 
-## Alternatives Considered
+## Syntax Alternatives Considered
 
-There are several existing patterns for solving the problems described above. Below we consider several
-alternative options for how such systems might be implemented in manta and why we chose not to implement
-them.
+### Option A: Angle Bracket comptime
 
-### Option A: Generics
-
-Generic systems are a load bearing feature of many languages. They range in complexity and usefulness
-depending on how they interact with the language but few mature languages get away without them. Go
-was notable for a long time as a holdout but even it introduced generics eventually. Generics tend to
-be focused on enhancing the capabilities of the type system in the language and look to improve readability
-and consiseness of syntax.
-
-Manta could implement a generic system that works similarly to how other system languages like Rust
-and Go handle things.
-
-```
-type Vec3<T> struct {x: T; y: T}
-
-fn main() {
-  let f32_vec = Vec3<f32>{x: 3.14, y: 2.718}
-  let i64_vec = Vec3<i64>{x: 42, y: 0}
-}
-```
-
-This syntax is both legible and useful in preventing syntax explosion. However, this is deeply tied
-to the type system and does little to address the other concerns about moving comilation out of the
-programs runtime. Generating LUTs and precomuting physics are not common uses cases of most generics
-system and trying to move those computations into a generic type system would likely introduce a large
-amount of complexity to the type system.
-
-This solution was therefor discarded as there are other, more comprehensive systems that we identify
-later on in this proposal.
-
-### Option B: Macros
-
-Macro systems have been another popular option show up in a huge variety of languages including Lisp,
-C, and Rust. The variety of languages that support macros are a testimate to thier flexibility and power.
-Languages like Rust even leverage Marcos along with their generic type system to create exteamly flexible
-syntax and types.
-
-A key advantage of using Macros is that, while they can be used to create generic types. There primary
-beneifit is to reduce repeated code patterns. The unless macro is the quitessential example of this.
-
-```
-macro unless!(check ast::Expr, body ast::Block) ast::Stmt {
-  return `if !${check} ${body}`
-}
-
-fn main() {
-  let a = 20
-  unless a >= 100 {
-    print("a is less than 100")
-  }
-}
-```
-
-Despite the flexibility of a well designed macro system there are a few well known drawbacks to implementing
-such a system in a given language. Firstly macros are notoriously difficult both the debug and to provide
-diagnostics around. Additionally, macro systems tend to quickly become confusing and can be abused quite
-easily. Macros operate on the syntax of the language which while powerful, can lead to an explosion 
-in syntax for complex use cases. 
-
-While well designed hygenic macro systems are powerful, they don't address the key concerns of this
-proposal, therefor we're dismissing this solution for now.
-
----
-
-## Recommendation: Angle Bracket Comptime Expressions
-
-Zig is the key inspriation in this decision as it has a robust compile time interpreter that it uses
-to great effect. There are several benefits that I appreciate about a compile time intepreter.
-
-* The compile time langauge can be a simple super-set of the regualr language reducing added complexity
-* Zig has demonstrated that comptime can be a sutible mechanism for replacing many of the uses cases
-  generics serve in other language eco-systems
-* Comptime is a natural way to move computation out of a program runtime to improve performance.
-* Comptime is easier to debug than macro systems as it often looks much like debuging normal code.
-
-### Syntax Examples
-
-Comptime in Manta uses the angle braces (i.e. `<` and `>`) in the same way the normal language usese
-parens. So for example the following code forces the expression in the angle brackets to be inteprated
-at compile time.
+Comptime in Manta could use angle braces (i.e. `<` and `>`) in the same way the normal language uses
+parens to indicate comptime expressions. So for example the following code forces the expression in the 
+angle brackets to be interpreted at compile time.
 
 ```
 let a = < math::sin(math::cos( 2 * math::PI)) * 30 >
 ```
 
-Because all values in this expression are know to the compiler the full expression can be resolved and
-left as a single constant in the resulting binary.
+Because all values in this expression are known to the compiler the full expression can be resolved and
+left as a single constant in the resulting binary. While the above expression may be caught by a powerful 
+enough optimizing compiler, comptime allows for even more complex expressions that would be unreasonable 
+to expect a compiler to optimize away directly.
 
-While the above expression may be caught by a powerful enough optimizing compiler, comptime allows for
-even more complex expressions that would be unreasonable to expect a compiler to optimize away directly.
+
+While this syntax reads nicely and also makes comptime functions match the form of other languages' generics
+it comes with a heavy cost in parsing complexity. For example parsing ambiguity would be introduced
+for the expression `my_comptime_fn<256>`. The current parser would read this as the identifier `my_comptime_fn`
+is less than the number `256` with a trailing `>`. Special parser logic would be needed to ensure this
+expression was parsed correctly. This is why Rust introduced the turbofish syntax `::<>` and why Go
+decided against using `< >` for its generics systems. Given Manta's goals around developer experience
+and how critical fast parsing can be for efficient compilation, this syntax is not the ideal choice.
+
+### Recommendation: Comptime Keyword
+
+Manta could follow Zig's example and implement a comptime keyword. Likely `comp` would be sufficiently
+descriptive for our use cases.
 
 ```
-// sin_lut is a comptime function because it's paramaters are inside angle brackts
-// angle bracket paramaters support the interpreters type system which includes passing in `type` expressions
-fn sin_lut<T type, n i32> struct{ values [n]T } {
+let a = comp math::sin(math::cos( 2 * math::PI)) * 30
+```
+
+This works exactly the same as the previous example but parsing is trivial as the parser can see the
+`comp` keyword prefix and expect an expression to follow. This supports fast parsing and also makes
+compile time execution obvious.
+
+---
+
+## Comptime Features
+
+Comptime is an extremely flexible feature and given its proximity to the compiler can be made to be
+very powerful. It's worth directly exploring what set of features Manta's comptime should support and
+what the implications for the rest of the language might be.
+
+### exact language match
+
+This is the simplest version of comptime, where the interpreter implements a 1:1 copy of the language.
+This makes for an easy to teach system as essentially the only additional knowledge that a developer
+needs to understand comptime is to wrap their head around the `comp` keyword itself. 
+
+There are some important nuances to consider here. For example, what do types like `usize` become
+in the comptime interpreter? Do they match the compilation target or the system on which the code is
+being compiled? This has real implications for things like LUTs where the width of values in the table
+should match the target. There are other problems with matching the target though as cleaving too closely
+to the target system may limit the usefulness of the interpreter. For example, if the interpreter matches
+1:1, then bundling assets for targets like the GBA becomes impossible as the GBA comptime interpreter
+would not support file operations.
+
+Additionally, ensuring 1:1 compatibility is non-trivial and will require careful work to ensure the
+interpreted language does not diverge from the compiled one. This is a real problem in languages like
+Go where interpreters exist, but do not map well to the actual binary behavior in many cases. Fortunately,
+committing to this early would likely help prevent problematic features from causing the comptime and 
+runtime from diverging.
+
+While the challenges are real, the benefits to the ecosystem are too clear to ignore. This seems like
+an important base addition to the language.
+
+### conditional compilation
+
+Conditional compilation is another key area that comptime can help developers express. In Zig, target
+specific code can be included in the resulting program using the following pattern.
+
+```zig
+const std = @import("std");
+const builtin = @import("builtin");
+
+pub fn openFile(path: []const u8) !void {
+  var open_cmd: []const u8 = "xdg-open";
+  if (comptime builtin.os.tag == .macos) {
+    open_cmd = "open";
+  }
+  
+  var child = std.process.Child.init(&.{ open_cmd, path }, std.heap.page_allocator);
+  _ = try child.spawnAndWait();
+}
+```
+
+Manta could easily opt into a similar pattern using the following syntax.
+
+```
+mod test 
+
+use (
+  "compiler"
+)
+
+fn my_function(path str) {
+  mut open_cmd = "xdg-open"
+  if comp compiler.target.os() == .Mac {
+    open_cmd = "open"
+  }
+  
+  let cmd = exec.new_command(open_cmd, path)
+  let .Ok = cmd.spawn_and_wait() !
+}
+```
+
+This works great for small differences (i.e. minimal differences in system calls or different constants).
+It's also a fairly small addition to the interpreter. The biggest outstanding question introduced by
+this addition is what's included in the "compiler" package and what this package does at runtime. Fortunately,
+this does not need to be fully fleshed out as simply supporting the basic use case of checking the compile
+target can be supported in a backwards compatible way. The most minimal version of "compiler" can be
+built to start and future decisions on that API can be pushed forward once more manta code exists.
+
+Because all this data can be statically inserted at compile time this package could even be available
+at runtime without any odd implications. This could even be a useful way to inject version information
+into a binary, which is something that's often useful in CLIs and other distributable software.
+
+Like the above features, the benefit is clear and the downsides are minimal.
+
+### comptime types
+
+One of the interesting features of Zig's comptime that's worth considering is its types as values approach.
+The comptime interpreter can actually treat Zig types as values and manipulate them during comptime.
+A simple example of using comptime like a generics system is using comptime to create a generic vec3 type.
+
+```
+fn Vec3(comp T type) type {
+  // it's valid to declare types inside comptime functions so that generics are possible
+  type Vec3 struct {
+    x: T,
+    y: T,
+    z: T,
+  }
+  
+  // Note: that method syntax is still in the proposal process. allowing public decls like this is 
+  // the most likely syntax and would need to be supported inside comptime functions
+  pub fn (a *Vec3) dot(b: Vec3) Vec3 {
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+  }
+    
+  return Vec3
+}
+
+// Note: that currently the '=' sign is not required but adding it makes for more clear syntax and it 
+// would be a minimal change to the parser at this stage.
+type Vec3f = Vec3(f64)
+
+fn main() {
+  let a = Vec3f{ x: 0.0, y: 3.14, 2.718 }
+  let b = Vec3f{ x: 0.0, y: 3.14, 2.718 }
+  a.dot(b)
+}
+```
+
+Types could even be matched with other comptime values to create more nuanced types
+
+```
+// this function creates a generic sine lookup table where n is the number of rows and T is the type
+fn SinLUT(comp T type, comp n i32) T {
   match T {
     f32 { /* ok */ } 
     f64 { /* ok */ }
     _ { panic!("Sin LUT must be a floating point type") }
   }
   
-  return struct {
+  type SinLUT struct {
     values [n]T
-    
-    fn of(*self, angle T) T {
+  }
+  
+  pub fn (s *SinLUT) of(angle T) T {
       let i = int(angle / (2 * math::PI) * n) % n
       if i < 0 { i += n }
-      return self.values[i]
-    }
-  } {
-    // nested comptime can be used to ensure certian values are computed as constants
-    // closure are useful for this
-    values: < fn() [n]T {
-      let values = [n]T{n; 0}
-      for i in 0..n {
-       values[i] = math::sin(i * 2 * math::PI / n)
-      }
-      
-      return values
-    }() >
+      return s.values[i]
   }
+  
+  return SinLUT
 }
 
-// calling a comptime function requires the angle braces
-const SIN = sin_lut<f64, 256>
+// this function creates a new sine lookup table at compile time
+fn new_sin_lut(comp T type, comp n i32) comp SinLUT(T, n) {
+    let values = [n]T{n; 0}
+    for i in 0..n {
+      values[i] = math::sin(i * 2 * math::PI / n)
+    }
+      
+    return SinLUT(T, n){ values: values }
+}
+
+// here the lookup table is computed by the compile time interpreter and represented as a literal constant
+// in the final compiled binary. Notice that even though all the parameters are comptime known, in order
+// to ensure the function is fully computed during compile time interpretation, an explicit `comp`
+// keyword is required. This is because the comptime interpreter is conservative and will do the minimum
+// amount of work implied by the comp keyword
+const SIN = comp new_sin_lut(f32, 256)
 
 fn main() {
+  // this just looks up the angle from the lookup table instead of trying to compute sine directly
   let s = SIN.of(math::PI / 2)
   assert!(0.9999 < s && s < 1.00001)
 }
 ```
 
-Comptime can also be used as a replacement for generics in many uses cases.
+While this does have a lot of advantages there are many unknowns with this approach. How does this fit
+with Manta's conceptualization of modules? What about C-to-Manta module interoperability? How will types
+get monomorphized when comptime functions generate the same type all across a Manta codebase?
+
+There are also important differences between the way that Manta and Zig represent types making type
+construction less obvious and elegant in the Manta comptime. Given the significant outstanding questions
+that exist this feature will not be included in the initial comptime implementation. Such a system introduces 
+more complexity than it's worth given Manta's design goals.
+
+### AST access
+
+AST access through compile time modules could make comptime a real powerhouse. Potentially it could be
+a replacement for a macro system and provide the developer with easy access to build custom linting
+rules and syntax checks. Consider the following example commonly used to demonstrate macro power.
 
 ```
-// return the type with it's methods
-fn Vec<size u8, T type> type {
-  return struct{
-    data [size]T
+mod test
+
+use (
+  "ast"
+  "compiler"
+)
+
+fn unless(comp condition bool, comp body compiler::Block) ast::Stmt {
+  // convert the compiler expression into an ast::Expr
+  let condition = comp ast::parse_expr(condition)
+  
+  // invert the condition
+  let condition = ast::Expr(ast::UnaryExpr{
+    op: ast::UnaryNot,
+    expr: condition,
+  })
+  
+  return ast::Stmt.If(ast::If{
+    condition: condition,
+    success: compiler::new_ast_block(body),
+    failure: .None
+  })
+}
+
+fn test() {
+  // the value of a here can be known at compile time
+  let a = 10
+  
+  // this directly injects the ast into the test function
+  comp unless(a > 10, { print("a is not greater than 10") })
+  
+  // after comptime the tests function includes the following code
+  // if !(a > 10) { print("a is not greater than 10") }
+}
+```
+
+To my understanding this is similar to the way that Jai enables powerful compile time behavioral modifications.
+
+Such a comptime interpreter could also be used to add powerful linting and domain specific compile time
+checking of various code. 
+
+```
+fn test(count, len i32) {
+  // comp blocks are just blocks of code that are passed to the interpreter and disappear after execution 
+  comp {
+    let .IntLiteral(count) = ast::parse_expr(count) or {
+      // this becomes a compile time error
+      panic("count must be an int literal")
+    }
     
-    fn add(*self, b Self) Self {
-      let data [size]T
-      for i in 0..size {
-        data[i] = self.data[i] + b.data[i]
-      }
-      
-      return Self{ data: data }
+    let .IntLiteral(len) = ast::parse_expr(len) or {
+      // this becomes a compile time error
+      panic("len must be an int literal")
+    }
+    
+    if count.value >= len.value {
+      panic("count must be less than length")
     }
   }
+  
+  // do the rest of the functions work
 }
 
-// construtors need to be their own comptime function but leveraging closures, a function can be returned
-fn NewVec<size u8, T type> fn(values ...T) Vec<size, T> {
-  return fn(values ...T) Vec<size, T> {
-    return Vec<size, T>{ data: values }
-  }
-}
-
-// a comptime closure (which is what NewVec<3, f64>) returns can be used as the body of a function 
-// decl like this
-fn new_vec3 NewVec<3, f64>
-
-fn main() {
-  // the type of a ad b here are Vec<3, f64>
-  let a = new_vec3(1, 2, 3)
-  let b = new_vec3(4, 5, 6)
+fn use_test() {
+  let a = 10
+  let b = 20
   
-  let c = a.add(b)
+  // this is a compile time error
+  test(a, b)
   
-  // the comptime function can be invoked directly
-  let d = NewVec<4, f32>(1, 2, 3, 4)
+  // this is also a compile time error
+  test(10, 5)
   
-  // the type can also be curly brace constructed as long as there are no `new` blocks for the type
-  let e = Vec<2, i32>{ data: [2]i32{1, 2} }
+  // this is not
+  test(10, 20)
 }
 ```
 
-This does have some extra verbosity since a new comptime function is needed both for the type and for 
-the constructor. This could be resolved by allowing static functions to appear in the struct definition
-but the tradeoff prevents the struct from become a sudo-namespace which is a reasonable tradeoff given
-separating structs and constructors is already an expected pattern in Manta
+While this is powerful there are several major drawbacks that I see to this approach. The first is the significant
+spike in complexity that comes along with a system like this. There are many nuances and edge cases
+around making a system like this reasonable and manageable. Introducing this amount of power and complexity
+makes learning and using the comptime system much more of a burden on developers. It also spikes the
+complexity of implementing the compiler which is not a cost that can be fully ignored.
 
-### Weaknesses of this approach
+Another problem here is the classic question of how such code would be debuggable. The example simply
+panics from inside the comp block but likely a more mature system would need ways to interact with 
+the compiler's error reporting system. Also, debuggability for the comptime interpreter becomes even
+more complex as now the underlying AST can fully shift as part of the interpreter's work, meaning errors
+may not actually have any error site in the original code, nor in the comptime code, but only in the
+intermediate representation created in between the two.
 
-While comptime has many benefits, there are undeniably drawback to incoporating such a system. A key
-concern is that the compiler must now support both an interpreted runtime as well as a compiled runtime.
-Ensureing these two runtimes have predictably equivilant behavior is a non-trivial undertaking for a
-compiler, and yet and absolutly essential requirment to build developer trust.
+This also requires a somewhat stable interface to the internals of the compiler. Developers will expect
+a more or less consistent view of the AST and other IRs that are accessible. This would likely result
+in either an increased difficulty in implementing compiler features or a split between the public and
+private AST types. This is a high cost to accept so early on in the project.
 
-There are also many tasks that can be accomplished by a sutibly complex macro system of generic type
-system which can not be easily reproduced by comptime. A simple example is that a macro system can fully
-modify the AST of a program making it nearly as powerful as the compiler itself. Comptime is a more
-constrained system and can only support what the interpreter provides. Similarly, generic systems like
-Rust's which track lifetimes and traits may be non-trivial to support in a comptime interpreter.
+Finally, this has the potential to majorly violate developers' expectations in unusual ways. Forbidding
+syntax that would normally be acceptable is fine in theory but I worry that in practice it would be 
+abused and contorted into an unmanageable mess by any but the most careful practitioners. It also breaks
+developers' ability to pattern match code as specific linting and compiler constraints could be lurking
+anywhere in the code.
 
-While these concerns are real, we believe they are an acceptable tradeoff for the time being. Importantly
-a good comptime system does not preclude the possiblity of later introducing a generics or macro system
-if such systems are introduced early while breaking changes are still acceptable. The current phase of
-the commpiler allows such ideation.
+While powerful, I think this feature should be rejected as it creates too many open questions and ambiguity.
+In a sense this would allow developers to be co-authors of the compiler in their own codebase, but this
+has serious implications. The performance and flexibility provided by an interpreter that interacts
+with the compiler's AST is unmatched but the tradeoffs are just not ones Manta is willing to make.
+
+### Recommendation
+
+We recommend the following features be implemented for the initial version of manta comptime.
+
+First, a minimal 1:1 version of the language should be supported with some caveats. Firstly, the interpreter 
+should be consistent across compile targets and should be based on the `native` platform. This means
+the interpreter should support file system access, system calls, and other OS specific interactions
+in a cross platform way. This is already true of many interpreters like Python, or the Beam VM and so
+there is plenty of quality prior art to reference when building this interpreted runtime. This will
+cause the comptime and runtime diverge in meaningful ways, but consistent compilation behavior is worth
+this drawback.
+
+Additionally, the interpreted runtime should respect the target architecutre for types like `usize`
+and `isize`. Again, this does introduce some differences that may be surprizing to developers. However,
+given the goals of Manta and it's comptime system it's the better option. This will prevent unusual 
+bugs with generated LUTs and make pre-computing important data easier to get right.
+
+Second, conditional compilation is an important inclusion. Especially for more minor differences between
+systems this will be critical in supporting cross-compilation and even has some additional benefits like
+support for injecting version information.
+
+Additional features like comptime types, AST access and other more powerful features should be rejected
+for the comptime interpreters initial implementation. The complexity and risks outweigh of those features
+outweight beneifits at this stage of the compilers design. It seems likely to me that a more targeted 
+generics or macro system could provide the same benefits at a lower complexity cost. Given both macros 
+and generics proposals are in flight, it seems appropriate to move forward without these features.
+
+## Outstanding Questions
+
+There are a few questions that are still outstanding in the proposal. The first is how to handle infinite
+loops in comptime code. A compiler that hangs is real hit to developer expreience and there needs to
+be real though put into how to handle this. Before this proposal is fully implementing this will need 
+to be resolved.
+
+Semantics of comp are another key thing to resolve. Right now most of the semantics are left vauge and
+there are only a few examples to go on. We need much stronger plans to ensure implementation is smooth.
+
+Specificing the execution order of comptime code is another key design question that's not directly
+addressed. The current idea is to run the inteprater durring noding but that needs significant work 
+before it can be fully atriculated here.
+
+## Drawbacks of Comptime
+
+While comptime has many benefits, there are undeniably drawbacks to incorporating comptime into manta. 
+A key concern is that the compiler must now support both an interpreted runtime as well as a compiled 
+runtime. Ensuring these two runtimes have predictably equivalent behavior is a non-trivial undertaking 
+for a compiler, and yet an absolutely essential requirement to build developer trust.
+
+There are also many tasks that can be accomplished by a suitably robust macro system / generic type system 
+which cannot be easily reproduced by comptime. A simple example is that a macro system can fully
+modify the AST of a program making it nearly as powerful as the compiler itself. Comptime could be made 
+to support such capabilities but it may not be as obvious as a well designed template macro system. 
+Additionally a simpler and more constrained comptime system can only support what the interpreter 
+provides meaning this compatibility is not necessarily going to be supported. Similarly, generic systems 
+like Rust's which track lifetimes and traits may be non-trivial to support in a comptime interpreter.
+
+Comptime can also be just as difficult to debug as complex macros or generics. Any time there is some
+process running at compile time that can make changes to the underlying code a mismatch between the
+plain text of the code and the code's behavior is broken. There is now some intermediate system (in this
+case the interpreted manta code) that is making less visible modifications to the system. This can be
+powerful but requires meta-textual thinking and introduces some of the complexities of dynamic languages
+into the mix.
