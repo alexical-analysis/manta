@@ -2,7 +2,8 @@ use serde::Serialize;
 use std::collections::BTreeMap;
 
 use crate::ast::{
-    BlockStmt, Decl, Expr, FunctionType, LetExcept, Pattern, Payload, Stmt, TypeSpec,
+    BlockStmt, Decl, Expr, FunctionType, ImportStatement, LetExcept, Pattern, Payload, Stmt,
+    TypeSpec,
 };
 use crate::parser::ParseError;
 use crate::parser::lexer::{Token, TokenKind};
@@ -287,7 +288,7 @@ pub struct Module {
     name: StrID,
     decls: Vec<Decl>,
     errors: Vec<ParseError>,
-    using_modules: Vec<StrID>,
+    using_modules: Vec<ImportStatement>,
     sym_table: SymTable,
 }
 
@@ -320,7 +321,7 @@ impl Module {
                 None => module = Some(file_module),
             }
 
-            let (mut using, mut use_errors) = Self::get_using(&file.decls);
+            let (mut using, mut use_errors) = Self::get_using_block(&file.decls);
             using_modules.append(&mut using);
             errors.append(&mut use_errors);
 
@@ -372,7 +373,7 @@ impl Module {
         &self.errors
     }
 
-    pub fn get_using_modules(&self) -> &[StrID] {
+    pub fn get_imports(&self) -> &[ImportStatement] {
         &self.using_modules
     }
 
@@ -402,8 +403,8 @@ impl Module {
                 // TODO: need to get the actual tokens here
                 Token {
                     kind: TokenKind::Identifier,
-                    source_id: SourceID::from_usize(0),
-                    lexeme_id: StrID::from_usize(0),
+                    source_id: SourceID::from_usize(9999999),
+                    lexeme_id: StrID::from_usize(9999999),
                 },
                 "file is missing module name".to_string(),
             ));
@@ -412,7 +413,7 @@ impl Module {
         (module_name, errors)
     }
 
-    fn get_using(decls: &[Decl]) -> (Vec<StrID>, Vec<ParseError>) {
+    fn get_using_block(decls: &[Decl]) -> (Vec<ImportStatement>, Vec<ParseError>) {
         let mut using_modules = vec![];
         let mut errors = vec![];
         for (i, decl) in decls.iter().enumerate() {

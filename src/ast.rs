@@ -76,6 +76,18 @@ pub struct VarDecl {
     pub value: Expr,
 }
 
+/// ImportStatement is a line in a use block that brings in an external dependency
+///
+/// Example:
+/// ```manta
+/// import "core/math"
+/// import ( "core/math" as mth )
+#[derive(Debug, PartialEq, Clone, Serialize)]
+pub struct ImportStatement {
+    pub path: StrID,
+    pub alias: Option<StrID>,
+}
+
 /// Use declaration
 ///
 /// Example:
@@ -85,7 +97,7 @@ pub struct VarDecl {
 /// ```
 #[derive(Debug, PartialEq, Clone, Serialize)]
 pub struct UseDecl {
-    pub modules: Vec<StrID>,
+    pub modules: Vec<ImportStatement>,
 }
 
 /// Mod declaration

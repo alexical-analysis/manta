@@ -9,7 +9,10 @@
     {
       "Use": {
         "modules": [
-          4
+          {
+            "path": 4,
+            "alias": null
+          }
         ]
       }
     },
@@ -461,7 +464,10 @@
   ],
   "errors": [],
   "using_modules": [
-    4
+    {
+      "path": 4,
+      "alias": null
+    }
   ],
   "sym_table": {
     "scopes": [

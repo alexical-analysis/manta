@@ -1448,8 +1448,9 @@ mod tests {
         let parser = Parser::new(&file_set);
         let module = parser.parse_module(&mut str_store);
 
-        let noder = Noder::new();
-        let hir_module = noder.node_module(&HashMap::new(), &module);
+        let mod_map = HashMap::new();
+        let noder = Noder::new(&[], &mod_map);
+        let hir_module = noder.node_module(&module);
 
         let blocker = Blocker::new(&hir_module);
         let mir_module = blocker.build_module();
@@ -1581,6 +1582,7 @@ mod tests {
     test_blocker_function!(
         test_blocker_const_int {
             got: Module {
+                name: StrID::from_usize(1),
                 tree: NodeTree {
                     nodes: vec![
                         Node::Identifier {
@@ -1657,6 +1659,7 @@ mod tests {
         },
         test_blocker_const_bool_true {
             got: Module {
+                name: StrID::from_usize(1),
                 tree: NodeTree {
                     nodes: vec![
                         Node::Identifier {
@@ -1733,6 +1736,7 @@ mod tests {
         },
         test_blocker_const_bool_false {
             got: Module {
+                name: StrID::from_usize(1),
                 tree: NodeTree {
                     nodes: vec![
                         Node::Identifier {
@@ -1809,6 +1813,7 @@ mod tests {
         },
         test_blocker_const_float {
             got: Module {
+                name: StrID::from_usize(1),
                 tree: NodeTree {
                     nodes: vec![
                         Node::Identifier {
@@ -1885,6 +1890,7 @@ mod tests {
         },
         test_blocker_const_string {
             got: Module {
+                name: StrID::from_usize(1),
                 tree: NodeTree {
                     nodes: vec![
                         Node::Identifier {

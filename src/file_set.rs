@@ -1,6 +1,5 @@
 use std::error::Error;
 use std::io;
-use std::path::Path;
 use std::{fs, path::PathBuf};
 
 pub struct File {

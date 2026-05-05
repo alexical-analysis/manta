@@ -47,6 +47,7 @@ pub enum TokenKind {
     VarKeyword,
     OrKeyword,
     WrapKeyword,
+    AsKeyword,
     OpenBrace,
     CloseBrace,
     OpenParen,
@@ -361,6 +362,7 @@ impl<'a> Lexer<'a> {
             "var" => TokenKind::VarKeyword,
             "or" => TokenKind::OrKeyword,
             "wrap" => TokenKind::WrapKeyword,
+            "as" => TokenKind::AsKeyword,
             _ => TokenKind::Identifier,
         };
 
