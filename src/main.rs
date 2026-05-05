@@ -4,6 +4,7 @@ mod codegen;
 mod compiler;
 mod file_set;
 mod hir;
+mod manta_mod;
 mod mir;
 mod noder;
 mod parser;
@@ -12,11 +13,13 @@ mod str_store;
 
 use std::error::Error;
 use std::fs::{self, File};
-use std::io::Write;
+use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use clap::{Parser, Subcommand};
+
+use crate::manta_mod::{MantaMod, Semver};
 
 /// The CLI for the Manta programming language
 #[derive(Parser, Debug)]
@@ -128,9 +131,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             // TODO: need to actually track the correct semver here once I start using semver to
             // track manta versions
-            let contents = format!("manta 0.0.0\n{}\n", mod_name);
-            let mut file = File::create("manta.mod")?;
-            file.write_all(contents.as_bytes())?;
+            let file = File::create("manta.mod")?;
+            let w = BufWriter::new(file);
+
+            let project_mod = MantaMod::new(Semver::new_zero(), mod_name.clone());
+            project_mod.write_to(w)?;
         }
         Commands::Fmt { .. } => {
             todo!("format command");
