@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
-use std::fs;
+use std::fs::{self, File};
+use std::io::BufReader;
 use std::path::PathBuf;
 use std::process::Command;
 use std::time::Instant;
@@ -9,11 +10,12 @@ use crate::blocker::Blocker;
 use crate::codegen::Codegen;
 use crate::codegen::optimizer;
 use crate::file_set::{self, FileSet};
+use crate::manta_mod::MantaMod;
 use crate::noder::Module as HirModule;
 use crate::noder::Noder;
 use crate::parser::Parser;
 use crate::parser::module::Module as ParseModule;
-use crate::str_store::{self, StrID, StrStore};
+use crate::str_store::{StrID, StrStore};
 
 use inkwell::context::Context;
 use inkwell::module::Module;
@@ -60,9 +62,9 @@ impl ModuleDAG {
         }
     }
 
-    fn new(ast_map: &HashMap<StrID, ParseModule>) -> Self {
+    fn new(project_name: StrID, ast_map: &HashMap<StrID, ParseModule>) -> Self {
         let mut visited = HashSet::new();
-        let root = Self::build_dag(str_store::EMPTY_STR, &ast_map, &mut visited);
+        let root = Self::build_dag(project_name, &ast_map, &mut visited);
 
         ModuleDAG { root }
     }
@@ -114,9 +116,12 @@ pub fn compile_program(
         None => env::current_dir()?,
     };
 
-    if !workspace.join("manta.mod").exists() {
-        return Err(String::from("path does not contain manta.mod file").into());
-    }
+    let project_mod = workspace.join("manta.mod");
+    let f = File::open(project_mod)?;
+    let r = BufReader::new(f);
+
+    let project_mod = MantaMod::from_reader(r)?;
+    let project_name = project_mod.project_name;
 
     let obj_dir = match save_temps {
         true => {
@@ -134,6 +139,8 @@ pub fn compile_program(
     let start = Instant::now();
 
     let mut str_store = StrStore::new();
+    let project_name_id = str_store.get_id(&project_name);
+
     let mut ast_map = HashMap::new();
     let mut compiler_map = HashMap::new();
 
@@ -142,7 +149,7 @@ pub fn compile_program(
         line_count += module.line_count();
 
         let import_path = module.root_dir().strip_prefix(&workspace)?;
-        let root = obj_dir.join("root").join(import_path);
+        let root = obj_dir.join(&project_name).join(import_path);
         fs::create_dir_all(&root)?;
 
         let mod_name = root.file_name().expect("failed to get module name");
@@ -161,7 +168,7 @@ pub fn compile_program(
         compiler_map.insert(import_id, compiler);
     }
 
-    let module_dag = ModuleDAG::new(&ast_map);
+    let module_dag = ModuleDAG::new(project_name_id, &ast_map);
 
     let mut mod_map = HashMap::new();
     let mut object_files = vec![];

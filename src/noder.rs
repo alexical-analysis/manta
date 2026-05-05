@@ -178,6 +178,7 @@ pub struct Noder {
     tree: NodeTree,
     roots: Vec<NodeID>,
     module_decls: HashMap<StrID, HashMap<StrID, NodeID>>,
+    // public_decls is a list of top level public declarations mapping names to nodes in the node tree
     public_decls: HashMap<StrID, NodeID>,
     within_loop: bool,
 }
