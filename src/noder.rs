@@ -108,8 +108,8 @@ impl NodeTree {
 #[derive(Serialize)]
 pub struct Module {
     #[serde(flatten)]
-    pub name: StrID,
     pub tree: NodeTree,
+    pub name: StrID,
     pub roots: Vec<NodeID>,
     pub public_decls: HashMap<StrID, NodeID>,
 }
