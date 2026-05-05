@@ -1339,8 +1339,9 @@ mod tests {
         let parser = Parser::new(&file_set);
         let module = parser.parse_module(&mut str_store);
 
-        let noder = Noder::new();
-        let hir_module = noder.node_module(&HashMap::new(), &module);
+        let mod_map = HashMap::new();
+        let noder = Noder::new(&[], &mod_map);
+        let hir_module = noder.node_module(&module);
 
         let blocker = Blocker::new(&hir_module);
         let mir_module = blocker.build_module();

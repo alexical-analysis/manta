@@ -4,7 +4,10 @@
     {
       "Use": {
         "modules": [
-          2
+          {
+            "path": 2,
+            "alias": null
+          }
         ]
       }
     },
@@ -74,8 +77,8 @@
       "Custom": [
         {
           "kind": "Identifier",
-          "source_id": 0,
-          "lexeme_id": 0
+          "source_id": 9999999,
+          "lexeme_id": 9999999
         },
         "file is missing module name"
       ]

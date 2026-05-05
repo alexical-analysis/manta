@@ -1,4 +1,4 @@
-use crate::ast::{Decl, UseDecl};
+use crate::ast::{Decl, ImportStatement, UseDecl};
 use crate::parser::ParseError;
 use crate::parser::declaration::{DeclParselet, DeclParser};
 use crate::parser::lexer::{Lexer, Token, TokenKind};
@@ -41,7 +41,7 @@ impl DeclParselet for UseDeclParselet {
 /// Parse the list of module names in an import statement
 /// Syntax: STRING+
 /// Similar to Go imports, no commas needed
-fn parse_import_modules(lexer: &mut Lexer) -> Result<Vec<StrID>, ParseError> {
+fn parse_import_modules(lexer: &mut Lexer) -> Result<Vec<ImportStatement>, ParseError> {
     let mut modules = vec![];
 
     // Parse module names until closing paren
@@ -51,7 +51,22 @@ fn parse_import_modules(lexer: &mut Lexer) -> Result<Vec<StrID>, ParseError> {
         }
 
         let token = lexer.next_token();
-        let module = token.lexeme_id;
+        let import_path = token.lexeme_id;
+
+        // check if this import is aliased
+        let mut alias = None;
+        if lexer.peek().kind == TokenKind::AsKeyword {
+            lexer.next_token();
+            let alias_token = lexer.next_token();
+            if alias_token.kind != TokenKind::Identifier {
+                return Err(ParseError::UnexpectedToken(
+                    alias_token,
+                    "Expected identifer as package alias".to_string(),
+                ));
+            }
+
+            alias = Some(alias_token.lexeme_id);
+        }
 
         let token = lexer.next_token();
         if token.kind != TokenKind::Semicolon {
@@ -61,7 +76,10 @@ fn parse_import_modules(lexer: &mut Lexer) -> Result<Vec<StrID>, ParseError> {
             ));
         }
 
-        modules.push(module);
+        modules.push(ImportStatement {
+            path: import_path,
+            alias,
+        });
     }
 
     if modules.is_empty() {

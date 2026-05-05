@@ -9,9 +9,18 @@
     {
       "Use": {
         "modules": [
-          4,
-          5,
-          6
+          {
+            "path": 4,
+            "alias": null
+          },
+          {
+            "path": 5,
+            "alias": null
+          },
+          {
+            "path": 6,
+            "alias": null
+          }
         ]
       }
     },
@@ -589,9 +598,18 @@
   ],
   "errors": [],
   "using_modules": [
-    4,
-    5,
-    6
+    {
+      "path": 4,
+      "alias": null
+    },
+    {
+      "path": 5,
+      "alias": null
+    },
+    {
+      "path": 6,
+      "alias": null
+    }
   ],
   "sym_table": {
     "scopes": [

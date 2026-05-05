@@ -109,9 +109,9 @@ mod tests {
     use super::*;
     use crate::ast::{
         AllocExpr, BinaryExpr, BinaryOp, BlockStmt, CallExpr, ConstDecl, EnumType, EnumVariant,
-        Expr, ExprStmt, FunctionDecl, FunctionType, IdentifierExpr, IfStmt, MetaTypeExpr,
-        NamedType, Parameter, ReturnStmt, Stmt, StructType, StructTypeField, TypeDecl, TypeSpec,
-        UseDecl,
+        Expr, ExprStmt, FunctionDecl, FunctionType, IdentifierExpr, IfStmt, ImportStatement,
+        MetaTypeExpr, NamedType, Parameter, ReturnStmt, Stmt, StructType, StructTypeField,
+        TypeDecl, TypeSpec, UseDecl,
     };
     use crate::parser::lexer::{Lexer, SourceID};
     use crate::str_store::{self, StrID, StrStore};
@@ -607,7 +607,10 @@ mod tests {
             want_value: assert_eq!(
                 decl,
                 UseDecl {
-                    modules: vec![StrID::from_usize(2)]
+                    modules: vec![ImportStatement {
+                        path: StrID::from_usize(2),
+                        alias: None
+                    }]
                 }
             ),
         },
@@ -615,16 +618,25 @@ mod tests {
             input: r#"use (
                 "std"
                 "io"
-                "math"
+                "math" as m
             )"#,
             want_var: Decl::Use(decl),
             want_value: assert_eq!(
                 decl,
                 UseDecl {
                     modules: vec![
-                        StrID::from_usize(2),
-                        StrID::from_usize(4),
-                        StrID::from_usize(5),
+                        ImportStatement {
+                            path: StrID::from_usize(2),
+                            alias: None
+                        },
+                        ImportStatement {
+                            path: StrID::from_usize(4),
+                            alias: None
+                        },
+                        ImportStatement {
+                            path: StrID::from_usize(5),
+                            alias: Some(StrID::from_usize(7)),
+                        },
                     ],
                 },
             ),

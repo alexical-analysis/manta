@@ -7,8 +7,8 @@ use std::fmt::Debug;
 use std::ops::Deref;
 
 use crate::ast::{
-    self, BinaryOp, BlockStmt, Decl, Expr, IdentifierExpr, LetExcept, LetStmt, Pattern, Payload,
-    ReturnStmt, Stmt, UnaryOp, VarDecl,
+    self, BinaryOp, BlockStmt, Decl, Expr, IdentifierExpr, ImportStatement, LetExcept, LetStmt,
+    Pattern, Payload, ReturnStmt, Stmt, UnaryOp, VarDecl,
 };
 use crate::hir::{
     ArrayType, DefaultPat, EnumType, EnumVariant, EnumVariantPat, FunctionType, NamedType, Node,
@@ -108,6 +108,7 @@ impl NodeTree {
 #[derive(Serialize)]
 pub struct Module {
     #[serde(flatten)]
+    pub name: StrID,
     pub tree: NodeTree,
     pub roots: Vec<NodeID>,
     pub public_decls: HashMap<StrID, NodeID>,
@@ -171,33 +172,62 @@ impl Module {
 
         None
     }
+
+    /// Returns the name of the module
+    pub fn name(&self) -> StrID {
+        self.name
+    }
 }
 
 /// Noder builds a module from the result of the Parser
-pub struct Noder {
+pub struct Noder<'m> {
     tree: NodeTree,
     roots: Vec<NodeID>,
-    module_decls: HashMap<StrID, HashMap<StrID, NodeID>>,
+    // forward_decls tracks all the declarations created to link functions between modules, it maps
+    // import paths to a map of public decl name to nodes in the node tree
+    forward_decls: HashMap<StrID, HashMap<StrID, NodeID>>,
     // public_decls is a list of top level public declarations mapping names to nodes in the node tree
     public_decls: HashMap<StrID, NodeID>,
+    // mod_map maps the import path to the correct module
+    mod_map: &'m HashMap<StrID, Module>,
+    // import_maps mapps import aliases to import paths
+    import_map: HashMap<StrID, StrID>,
     within_loop: bool,
 }
 
-impl Noder {
-    pub fn new() -> Self {
+impl<'m> Noder<'m> {
+    pub fn new(imports: &[ImportStatement], mod_map: &'m HashMap<StrID, Module>) -> Self {
+        let mut import_map = HashMap::new();
+        for import in imports {
+            if let Some(alias) = import.alias {
+                import_map.insert(alias, import.path);
+            }
+
+            // since there's not an explicit alias, we need to search the module map to find the correct
+            // name for the module
+            for (import_path, module) in mod_map {
+                if import.path == *import_path {
+                    import_map.insert(module.name(), import.path);
+                    break;
+                }
+            }
+        }
+
         Noder {
             tree: NodeTree::new(),
             roots: vec![],
-            module_decls: HashMap::new(),
+            forward_decls: HashMap::new(),
             public_decls: HashMap::new(),
+            mod_map,
+            import_map,
             within_loop: false,
         }
     }
 
-    pub fn node_module(mut self, mod_map: &HashMap<StrID, Module>, module: &ParseModule) -> Module {
-        // TODO: given we're pre-populating this maybe the mod_map belongs in the Noder?
-        for (import_path, _) in mod_map {
-            self.module_decls.insert(*import_path, HashMap::new());
+    pub fn node_module(mut self, module: &ParseModule) -> Module {
+        // make sure all the imported modules have a pre-populated map
+        for (_, import_path) in &self.import_map {
+            self.forward_decls.insert(*import_path, HashMap::new());
         }
 
         // TODO: remove when these builtin functions are removed
@@ -223,7 +253,7 @@ impl Noder {
         }
 
         for decl in module.get_decls() {
-            self.node_decl(mod_map, &module, decl);
+            self.node_decl(&module, decl);
         }
 
         let mut typer = Typer::new();
@@ -231,6 +261,7 @@ impl Noder {
         typer.type_node_tree(&mut self.tree, &self.roots);
 
         Module {
+            name: module.name(),
             tree: self.tree,
             roots: self.roots,
             public_decls: self.public_decls,
@@ -431,7 +462,7 @@ impl Noder {
         }
     }
 
-    fn node_decl(&mut self, mod_map: &HashMap<StrID, Module>, module: &ParseModule, decl: &Decl) {
+    fn node_decl(&mut self, module: &ParseModule, decl: &Decl) {
         match decl {
             Decl::Function(decl) => {
                 let mut params = vec![];
@@ -478,7 +509,7 @@ impl Noder {
                     .get(binding.id)
                     .expect("function not pre-registered in symbol_map");
 
-                let body_id = self.node_fn_body(mod_map, module, &decl.body, return_type);
+                let body_id = self.node_fn_body(module, &decl.body, return_type);
                 let func_id = self.add_root_node(Node::FunctionDecl {
                     public: decl.public,
                     ident: ident_id,
@@ -526,7 +557,7 @@ impl Noder {
                     public: decl.public,
                     ident: ident_id,
                 });
-                let value_node = self.node_expr(mod_map, module, &decl.value);
+                let value_node = self.node_expr(module, &decl.value);
                 self.add_root_node(Node::Assign {
                     target: ident_id,
                     value: value_node,
@@ -549,7 +580,7 @@ impl Noder {
                     public: decl.public,
                     ident: ident_id,
                 });
-                let value_node = self.node_expr(mod_map, module, &decl.value);
+                let value_node = self.node_expr(module, &decl.value);
                 self.add_root_node(Node::Assign {
                     target: ident_id,
                     value: value_node,
@@ -565,14 +596,13 @@ impl Noder {
 
     fn node_fn_body(
         &mut self,
-        mod_map: &HashMap<StrID, Module>,
         module: &ParseModule,
         block: &BlockStmt,
         return_type: TypeSpec,
     ) -> NodeID {
         let mut stmt_ids = vec![];
         for stmt in &block.statements {
-            let ids = self.node_stmt(mod_map, module, stmt);
+            let ids = self.node_stmt(module, stmt);
             stmt_ids.extend(ids);
         }
 
@@ -584,7 +614,7 @@ impl Noder {
                 Some(Stmt::Return(_)) => { /* we're good, the final statement is a return */ }
                 Some(_) | None => {
                     let ret_stmt = &Stmt::Return(ReturnStmt { value: None });
-                    let return_id = self.node_stmt(mod_map, module, ret_stmt);
+                    let return_id = self.node_stmt(module, ret_stmt);
                     stmt_ids.push(*return_id.first().expect("failed to node statement"))
                 }
             }
@@ -595,15 +625,10 @@ impl Noder {
         })
     }
 
-    fn node_block(
-        &mut self,
-        mod_map: &HashMap<StrID, Module>,
-        module: &ParseModule,
-        block: &BlockStmt,
-    ) -> NodeID {
+    fn node_block(&mut self, module: &ParseModule, block: &BlockStmt) -> NodeID {
         let mut stmt_ids = vec![];
         for stmt in &block.statements {
-            let ids = self.node_stmt(mod_map, module, stmt);
+            let ids = self.node_stmt(module, stmt);
             stmt_ids.extend(ids);
         }
 
@@ -612,14 +637,9 @@ impl Noder {
         })
     }
 
-    fn node_stmt(
-        &mut self,
-        mod_map: &HashMap<StrID, Module>,
-        module: &ParseModule,
-        stmt: &Stmt,
-    ) -> Vec<NodeID> {
+    fn node_stmt(&mut self, module: &ParseModule, stmt: &Stmt) -> Vec<NodeID> {
         match stmt {
-            Stmt::Let(stmt) => self.node_let(mod_map, module, stmt),
+            Stmt::Let(stmt) => self.node_let(module, stmt),
             Stmt::Assign(stmt) => {
                 // Enforce mutability: walk through the l_value expression to find the root
                 // identifier, then check that it is mutable. This means `let p = &x` blocks
@@ -641,18 +661,18 @@ impl Noder {
                     ),
                 }
 
-                let l_id = self.node_expr(mod_map, module, &stmt.lvalue);
-                let r_id = self.node_expr(mod_map, module, &stmt.rvalue);
+                let l_id = self.node_expr(module, &stmt.lvalue);
+                let r_id = self.node_expr(module, &stmt.rvalue);
 
                 vec![self.add_node(Node::Assign {
                     target: l_id,
                     value: r_id,
                 })]
             }
-            Stmt::Expr(stmt) => vec![self.node_expr(mod_map, module, &stmt.expr)],
+            Stmt::Expr(stmt) => vec![self.node_expr(module, &stmt.expr)],
             Stmt::Return(stmt) => {
                 let value = if let Some(v) = &stmt.value {
-                    let value_id = self.node_expr(mod_map, module, v);
+                    let value_id = self.node_expr(module, v);
                     Some(value_id)
                 } else {
                     None
@@ -661,15 +681,15 @@ impl Noder {
                 vec![self.add_node(Node::Return { value })]
             }
             Stmt::Defer(stmt) => {
-                let block_id = self.node_block(mod_map, module, &stmt.block);
+                let block_id = self.node_block(module, &stmt.block);
                 vec![self.add_node(Node::Defer { block: block_id })]
             }
             Stmt::Match(stmt) => {
-                let target_id = self.node_expr(mod_map, module, &stmt.target);
+                let target_id = self.node_expr(module, &stmt.target);
                 let mut arms = vec![];
                 for arm in &stmt.arms {
                     let pat_id = self.node_pattern(module, &arm.pattern);
-                    let block_id = self.node_block(mod_map, module, &arm.body);
+                    let block_id = self.node_block(module, &arm.body);
 
                     let arm_id = self.add_node(Node::MatchArm {
                         pattern: pat_id,
@@ -684,14 +704,11 @@ impl Noder {
                     arms,
                 })]
             }
-            Stmt::Block(stmt) => vec![self.node_block(mod_map, module, stmt)],
+            Stmt::Block(stmt) => vec![self.node_block(module, stmt)],
             Stmt::If(stmt) => {
-                let check_id = self.node_expr(mod_map, module, &stmt.check);
-                let success_id = self.node_block(mod_map, module, &stmt.success);
-                let fail_id = stmt
-                    .fail
-                    .as_ref()
-                    .map(|fail| self.node_block(mod_map, module, fail));
+                let check_id = self.node_expr(module, &stmt.check);
+                let success_id = self.node_block(module, &stmt.success);
+                let fail_id = stmt.fail.as_ref().map(|fail| self.node_block(module, fail));
 
                 vec![self.add_node(Node::If {
                     condition: check_id,
@@ -702,7 +719,7 @@ impl Noder {
             Stmt::Loop(stmt) => {
                 let prev = self.within_loop;
                 self.within_loop = true;
-                let body = self.node_block(mod_map, module, &stmt.body);
+                let body = self.node_block(module, &stmt.body);
                 self.within_loop = prev;
 
                 vec![self.add_node(Node::Loop { body })]
@@ -713,7 +730,7 @@ impl Noder {
                     statements: vec![break_id],
                 });
 
-                let check = self.node_expr(mod_map, module, &stmt.check);
+                let check = self.node_expr(module, &stmt.check);
                 let not_check = self.add_node(Node::Unary {
                     operator: UnaryOp::Not,
                     operand: check,
@@ -726,7 +743,7 @@ impl Noder {
 
                 let prev = self.within_loop;
                 self.within_loop = true;
-                let body = self.node_block(mod_map, module, &stmt.body);
+                let body = self.node_block(module, &stmt.body);
                 self.within_loop = prev;
 
                 // insert the check into the head of the body
@@ -760,7 +777,7 @@ impl Noder {
 
                 self.tree.symbol_map.add(binding.id, binding_id);
 
-                let start_id = self.node_expr(mod_map, module, &stmt.range.start);
+                let start_id = self.node_expr(module, &stmt.range.start);
                 let initial_assign_id = self.add_node(Node::Assign {
                     target: binding_id,
                     value: start_id,
@@ -771,7 +788,7 @@ impl Noder {
                     statements: vec![break_id],
                 });
 
-                let end_id = self.node_expr(mod_map, module, &stmt.range.end);
+                let end_id = self.node_expr(module, &stmt.range.end);
 
                 let comp_op = match stmt.range.inclusive {
                     true => BinaryOp::GreaterThan,
@@ -802,7 +819,7 @@ impl Noder {
 
                 let prev = self.within_loop;
                 self.within_loop = true;
-                let body = self.node_block(mod_map, module, &stmt.body);
+                let body = self.node_block(module, &stmt.body);
                 self.within_loop = prev;
 
                 // insert the check into the head of the body and the increment into the tail
@@ -956,15 +973,10 @@ impl Noder {
         }
     }
 
-    fn node_let(
-        &mut self,
-        mod_map: &HashMap<StrID, Module>,
-        module: &ParseModule,
-        stmt: &LetStmt,
-    ) -> Vec<NodeID> {
+    fn node_let(&mut self, module: &ParseModule, stmt: &LetStmt) -> Vec<NodeID> {
         let mut nodes = vec![];
         let mut arms = vec![];
-        let value_id = self.node_expr(mod_map, module, &stmt.value);
+        let value_id = self.node_expr(module, &stmt.value);
 
         match &stmt.pattern {
             Pattern::EnumVariant(pat) => {
@@ -1221,7 +1233,7 @@ impl Noder {
 
                         self.tree.symbol_map.add(binding.id, ident_id);
 
-                        let body_id = self.node_block(mod_map, module, body);
+                        let body_id = self.node_block(module, body);
 
                         self.add_node(Node::MatchArm {
                             pattern: pat_id,
@@ -1239,7 +1251,7 @@ impl Noder {
                                 payload: None,
                             })));
 
-                        let body_id = self.node_block(mod_map, module, body);
+                        let body_id = self.node_block(module, body);
                         self.add_node(Node::MatchArm {
                             pattern: pat_id,
                             body: body_id,
@@ -1443,12 +1455,7 @@ impl Noder {
         enum_constructor_id
     }
 
-    fn node_expr(
-        &mut self,
-        mod_map: &HashMap<StrID, Module>,
-        module: &ParseModule,
-        expr: &Expr,
-    ) -> NodeID {
+    fn node_expr(&mut self, module: &ParseModule, expr: &Expr) -> NodeID {
         match expr {
             Expr::IntLiteral(expr) => self.add_node(Node::IntLiteral(*expr)),
             Expr::UIntLiteral(expr) => self.add_node(Node::UIntLiteral(*expr)),
@@ -1456,30 +1463,40 @@ impl Noder {
             Expr::StringLiteral(expr) => self.add_node(Node::StringLiteral(*expr)),
             Expr::BoolLiteral(expr) => self.add_node(Node::BoolLiteral(*expr)),
             Expr::Identifier(expr) => match expr.module {
-                Some(module) => {
-                    // TODO: need to look up the import_path using the module alias
-                    let module_decl_map = self
-                        .module_decls
-                        .get(&module)
+                Some(alias) => {
+                    let import_path = *self
+                        .import_map
+                        .get(&alias)
+                        .expect("failed to find module import path");
+
+                    let forward_decl_map = self
+                        .forward_decls
+                        .get(&import_path)
                         .expect("failed to find module");
 
-                    if let Some(node_id) = module_decl_map.get(&expr.name) {
+                    if let Some(node_id) = forward_decl_map.get(&expr.name) {
+                        // this has has already been added to this module so we can just return it
                         return *node_id;
                     }
 
-                    // The external identifier has not been declare in this node tree yet
-                    let mod_node_tree = mod_map.get(&module).expect("failed to find module");
-                    let external_node = mod_node_tree
+                    // The external identifier has not been declared in this node tree yet
+                    let external_mod = self
+                        .mod_map
+                        .get(&import_path)
+                        .expect("failed to find module");
+                    let external_node = external_mod
                         .find_public_decl(expr.name)
                         .expect("failed to find module identifier");
                     let clone_id =
-                        self.node_external_decl(&mod_node_tree.tree, module, external_node);
+                        self.node_external_decl(&external_mod.tree, import_path, external_node);
 
-                    let module_decl_map = self
-                        .module_decls
-                        .get_mut(&module)
+                    // make sure we track the new forward decl for this alias, need to get this map
+                    // again so the borrow checker will let us node the exernal decl
+                    let forward_decl_map = self
+                        .forward_decls
+                        .get_mut(&import_path)
                         .expect("failed to find module");
-                    module_decl_map.insert(expr.name, clone_id);
+                    forward_decl_map.insert(expr.name, clone_id);
 
                     clone_id
                 }
@@ -1502,8 +1519,8 @@ impl Noder {
                 }
             },
             Expr::Binary(expr) => {
-                let left_id = self.node_expr(mod_map, module, &expr.left);
-                let right_id = self.node_expr(mod_map, module, &expr.right);
+                let left_id = self.node_expr(module, &expr.left);
+                let right_id = self.node_expr(module, &expr.right);
                 self.add_node(Node::Binary {
                     left: left_id,
                     operator: expr.operator,
@@ -1511,18 +1528,18 @@ impl Noder {
                 })
             }
             Expr::Unary(expr) => {
-                let expr_id = self.node_expr(mod_map, module, &expr.operand);
+                let expr_id = self.node_expr(module, &expr.operand);
                 self.add_node(Node::Unary {
                     operator: expr.operator,
                     operand: expr_id,
                 })
             }
             Expr::Call(expr) => {
-                let func_id = self.node_expr(mod_map, module, &expr.func);
+                let func_id = self.node_expr(module, &expr.func);
 
                 let mut args = vec![];
                 for arg in &expr.args {
-                    let param_id = self.node_expr(mod_map, module, arg);
+                    let param_id = self.node_expr(module, arg);
                     args.push(param_id);
                 }
 
@@ -1581,7 +1598,7 @@ impl Noder {
                         .find(|f| f.name == field_type.name)
                         .expect("unknown field name in struct constructor");
 
-                    let value_id = self.node_expr(mod_map, module, &field.value);
+                    let value_id = self.node_expr(module, &field.value);
                     let field_id = self.add_node(Node::StructConstructorField {
                         name: field.name,
                         value: value_id,
@@ -1597,8 +1614,8 @@ impl Noder {
                 struct_id
             }
             Expr::Index(expr) => {
-                let target_id = self.node_expr(mod_map, module, &expr.target);
-                let idx_id = self.node_expr(mod_map, module, &expr.index);
+                let target_id = self.node_expr(module, &expr.target);
+                let idx_id = self.node_expr(module, &expr.index);
 
                 self.add_node(Node::Index {
                     target: target_id,
@@ -1606,8 +1623,8 @@ impl Noder {
                 })
             }
             Expr::Range(expr) => {
-                let start_id = self.node_expr(mod_map, module, &expr.start);
-                let end_id = self.node_expr(mod_map, module, &expr.end);
+                let start_id = self.node_expr(module, &expr.start);
+                let end_id = self.node_expr(module, &expr.end);
                 self.add_node(Node::Range {
                     start: start_id,
                     end: end_id,
@@ -1627,7 +1644,7 @@ impl Noder {
                     }
                 };
 
-                let target_id = self.node_expr(mod_map, module, target);
+                let target_id = self.node_expr(module, target);
 
                 let binding = match target.deref() {
                     Expr::Identifier(ident) => {
@@ -1682,10 +1699,10 @@ impl Noder {
                 node_id
             }
             Expr::Alloc(expr) => {
-                let meta_id = self.node_expr(mod_map, module, &expr.meta_type);
+                let meta_id = self.node_expr(module, &expr.meta_type);
                 let mut options = vec![];
                 for opt in &expr.options {
-                    let opt_id = self.node_expr(mod_map, module, opt);
+                    let opt_id = self.node_expr(module, opt);
                     options.push(opt_id);
                 }
 
@@ -1699,7 +1716,7 @@ impl Noder {
                 node_id
             }
             Expr::Free(expr) => {
-                let ptr_id = self.node_expr(mod_map, module, &expr.expr);
+                let ptr_id = self.node_expr(module, &expr.expr);
                 self.add_node(Node::Free { expr: ptr_id })
             }
         }
@@ -1912,8 +1929,9 @@ mod tests {
         let parser = Parser::new(&file_set);
         let module = parser.parse_module(&mut str_store);
 
-        let noder = Noder::new();
-        let node_tree = noder.node_module(&HashMap::new(), &module);
+        let mod_map = HashMap::new();
+        let noder = Noder::new(&[], &mod_map);
+        let node_tree = noder.node_module(&module);
 
         let total = node_tree.tree.nodes.len();
         let untyped: Vec<usize> = (0..total)
@@ -1995,8 +2013,9 @@ mod tests {
                     let decl = $decl;
                     let module = ParseModule::new(vec![ParserFile::new(vec![], vec![decl])]);
 
-                    let noder = Noder::new();
-                    let node_tree = noder.node_module(&HashMap::new(), &module);
+                    let mod_map = HashMap::new();
+                    let noder = Noder::new(&[], &mod_map);
+                    let node_tree = noder.node_module(&module);
 
                     let expected = $expected;
 
@@ -2019,6 +2038,7 @@ mod tests {
                 value: Expr::IntLiteral(42)
             }),
             expected: Module {
+                name: StrID::from_usize(1),
                 tree: NodeTree {
                     // NodeID(0): print builtin, NodeID(1): eprint builtin
                     // NodeID(2): Identifier, NodeID(3): VarDecl (root), NodeID(4): IntLiteral, NodeID(5): Assign (root)
@@ -2083,6 +2103,7 @@ mod tests {
         node_invalid_decl {
             decl: Decl::Invalid,
             expected: Module {
+                name: StrID::from_usize(1),
                 tree: NodeTree {
                     // NodeID(0): print builtin, NodeID(1): eprint builtin, NodeID(2): Invalid
                     nodes: vec![
@@ -2133,6 +2154,7 @@ mod tests {
                 value: Expr::BoolLiteral(true)
             }),
             expected: Module {
+                name: StrID::from_usize(1),
                 tree: NodeTree {
                     // NodeID(0): print builtin, NodeID(1): eprint builtin
                     // NodeID(2): Identifier, NodeID(3): VarDecl (root), NodeID(4): BoolLiteral, NodeID(5): Assign (root)
@@ -2202,6 +2224,7 @@ mod tests {
                 value: Expr::FloatLiteral(3.45)
             }),
             expected: Module {
+                name: StrID::from_usize(1),
                 tree: NodeTree {
                     // NodeID(0): print builtin, NodeID(1): eprint builtin
                     // NodeID(2): Identifier, NodeID(3): VarDecl (root), NodeID(4): FloatLiteral, NodeID(5): Assign (root)
@@ -2271,6 +2294,7 @@ mod tests {
                 type_spec: ast::TypeSpec::Int64,
             }),
             expected: Module {
+                name: StrID::from_usize(1),
                 tree: NodeTree {
                     // NodeID(0): print builtin, NodeID(1): eprint builtin
                     // NodeID(2): Identifier (pre-pass), NodeID(3): TypeDecl (root)
@@ -2347,6 +2371,7 @@ mod tests {
                 }),
             }),
             expected: Module {
+                name: StrID::from_usize(1),
                 tree: NodeTree {
                     // NodeID(0): print builtin, NodeID(1): eprint builtin
                     // NodeID(2): Identifier (pre-pass), NodeID(3): TypeDecl (root)
@@ -2432,6 +2457,7 @@ mod tests {
                 value: Expr::StringLiteral(StrID::from_usize(3))
             }),
             expected: Module {
+                name: StrID::from_usize(1),
                 tree: NodeTree {
                     // NodeID(0): print builtin, NodeID(1): eprint builtin
                     // NodeID(2): Identifier, NodeID(3): VarDecl (root), NodeID(4): StringLiteral, NodeID(5): Assign (root)

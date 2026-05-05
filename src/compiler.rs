@@ -6,6 +6,7 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::time::Instant;
 
+use crate::ast::ImportStatement;
 use crate::blocker::Blocker;
 use crate::codegen::Codegen;
 use crate::codegen::optimizer;
@@ -84,11 +85,11 @@ impl ModuleDAG {
         let parse_module = ast_map
             .get(&import_path)
             .expect(format!("failed to get parse module {:?}", import_path).as_str());
-        let deps = parse_module.get_using_modules();
+        let deps = parse_module.get_imports();
 
         let mut dep_nodes = vec![];
         for dep in deps {
-            let node = Self::build_dag(*dep, ast_map, visited);
+            let node = Self::build_dag(dep.path, ast_map, visited);
             dep_nodes.push(node)
         }
 
@@ -197,7 +198,14 @@ pub fn compile_program(
         let parse_module = ast_map.get(&import_path).expect("failed to get the ast");
 
         let node_tree = compiler
-            .compile(&str_store, &mod_map, parse_module, &object_file, save_temps)
+            .compile(
+                &str_store,
+                parse_module.get_imports(),
+                &mod_map,
+                parse_module,
+                &object_file,
+                save_temps,
+            )
             .expect("failed to compile module");
 
         mod_map.insert(import_path, node_tree);
@@ -261,6 +269,7 @@ impl<'fs> Compiler<'fs> {
     pub fn compile(
         &mut self,
         str_store: &StrStore,
+        imports: &[ImportStatement],
         mod_map: &HashMap<StrID, HirModule>,
         module: &ParseModule,
         object_file: &PathBuf,
@@ -269,7 +278,8 @@ impl<'fs> Compiler<'fs> {
         let context = Context::create();
         let mut generator = Codegen::new(&context);
 
-        let (module, node_tree) = self.pipeline(str_store, mod_map, module, &mut generator);
+        let (module, node_tree) =
+            self.pipeline(str_store, imports, mod_map, module, &mut generator);
         if save_temps {
             let mut ll_file = object_file.clone();
             ll_file.set_extension("ll");
@@ -291,13 +301,14 @@ impl<'fs> Compiler<'fs> {
     fn pipeline<'ctx>(
         &mut self,
         str_store: &StrStore,
+        imports: &[ImportStatement],
         mod_map: &HashMap<StrID, HirModule>,
         module: &ParseModule,
         generator: &mut Codegen<'ctx>,
     ) -> (Module<'ctx>, HirModule) {
         // build the HIR from the AST
         println!("building hir module...");
-        let node_tree = Noder::new().node_module(mod_map, &module);
+        let node_tree = Noder::new(&imports, &mod_map).node_module(&module);
 
         // build the MIR from the HIR
         println!("building mir module...");
