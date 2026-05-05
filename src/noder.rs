@@ -1873,7 +1873,7 @@ mod tests {
 
     use pretty_assertions::assert_eq;
 
-    use crate::ast::{BinaryOp, ConstDecl, TypeDecl, UnaryOp, VarDecl};
+    use crate::ast::{BinaryOp, ConstDecl, ModDecl, TypeDecl, UnaryOp, VarDecl};
     use crate::file_set::{File, FileSet};
     use crate::hir::FunctionType;
     use crate::parser::Parser;
@@ -2011,7 +2011,8 @@ mod tests {
                 fn $case() {
                     // Build module from provided declaration
                     let decl = $decl;
-                    let module = ParseModule::new(vec![ParserFile::new(vec![], vec![decl])]);
+                    let mod_decl = Decl::Mod(ModDecl { name: StrID::from_usize(1) });
+                    let module = ParseModule::new(vec![ParserFile::new(vec![], vec![mod_decl, decl])]);
 
                     let mod_map = HashMap::new();
                     let noder = Noder::new(&[], &mod_map);
