@@ -756,17 +756,8 @@ impl Module {
     ) {
         match type_spec {
             TypeSpec::Named(t) => {
-                if let Some(_module) = t.module {
-                    // TODO: modules are not yet supported just skip things for now
-                    errors.push(ParseError::Custom(
-                        // TODO: need the actual token here
-                        Token {
-                            kind: TokenKind::Identifier,
-                            source_id: SourceID::from_usize(0),
-                            lexeme_id: StrID::from_usize(0),
-                        },
-                        "modules are not yet supported".to_string(),
-                    ));
+                if t.module.is_some() {
+                    // external type specs do not apper in this modules symbol table
                     return;
                 }
 
