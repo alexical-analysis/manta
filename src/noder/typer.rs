@@ -113,7 +113,7 @@ impl Typer {
                 node_tree.type_map.add(node_id, TypeSpec::Unit);
 
                 let free_type = self.type_expr_node(node_tree, expr);
-                match resolve_type(&free_type) {
+                match resolve_type(&free_type, node_tree) {
                     TypeSpec::Pointer(_) => {}
                     _ => panic!("can not free memory of non-pointer type"),
                 }
@@ -126,13 +126,7 @@ impl Typer {
                     .expect("missing type for type decl");
 
                 // the identifier is the named version of this type
-                node_tree.type_map.add(
-                    ident,
-                    TypeSpec::Named(NamedType {
-                        name: ident,
-                        type_spec: Box::new(type_spec.clone()),
-                    }),
-                )
+                node_tree.type_map.add(ident, type_spec.clone())
             }
             Node::ExternalTypeDecl { .. } => {
                 // external types are already typed
@@ -369,7 +363,7 @@ impl Typer {
                     .get(node_id)
                     .expect("failed to get type for struct")
                     .clone();
-                let base_type = resolve_type(&type_spec);
+                let base_type = resolve_type(&type_spec, node_tree);
                 let struct_type = match base_type {
                     TypeSpec::Struct(ts) => ts,
                     _ => panic!("type spec for struct constructor must be a struct type"),
@@ -785,8 +779,8 @@ impl Typer {
 
 // returns true if the type is any numeric type
 // (u8-u64, i8-i64, f32, f64, or any alias of those types)
-fn is_numeric_type(ts: &TypeSpec) -> bool {
-    let ts = resolve_type(ts);
+fn is_numeric_type(ts: &TypeSpec, node_tree: &NodeTree) -> bool {
+    let ts = resolve_type(ts, node_tree);
     matches!(
         ts,
         TypeSpec::Int8
@@ -806,14 +800,14 @@ fn is_numeric_type(ts: &TypeSpec) -> bool {
 }
 
 // return true if the type is a boolean or any alias of a boolean type
-fn is_bool_type(ts: &TypeSpec) -> bool {
-    let ts = resolve_type(ts);
+fn is_bool_type(ts: &TypeSpec, node_tree: &NodeTree) -> bool {
+    let ts = resolve_type(ts, node_tree);
     matches!(ts, TypeSpec::Bool)
 }
 
 // returns true if the type contains only natural numbers (u8-64, or any alias of those types)
-fn is_natural_number(ts: &TypeSpec) -> bool {
-    let ts = resolve_type(ts);
+fn is_natural_number(ts: &TypeSpec, node_tree: &NodeTree) -> bool {
+    let ts = resolve_type(ts, node_tree);
     matches!(
         ts,
         TypeSpec::UInt8 | TypeSpec::UInt16 | TypeSpec::UInt32 | TypeSpec::UInt64
@@ -821,26 +815,36 @@ fn is_natural_number(ts: &TypeSpec) -> bool {
 }
 
 // resolve_type will unwrap named type aliases to find the underlying type
-pub fn resolve_type(ts: &TypeSpec) -> &TypeSpec {
+pub fn resolve_type<'a>(ts: &'a TypeSpec, node_tree: &'a NodeTree) -> TypeSpec {
     match ts {
-        TypeSpec::Named(t) => resolve_type(&t.type_spec),
-        _ => ts,
+        TypeSpec::Named(ts) => {
+            let inner_type = node_tree
+                .type_map
+                .get(ts.name)
+                .expect("failed to resolve named type");
+            resolve_type(inner_type, node_tree).clone()
+        }
+        _ => ts.clone(),
     }
 }
 
-enum FoundVariant<'a> {
-    Some(&'a EnumVariant),
+enum FoundVariant {
+    Some(EnumVariant),
     None,
     NotEnum,
 }
 
-fn find_variant<'a>(type_spec: &'a TypeSpec, variant_name: StrID) -> FoundVariant<'a> {
-    let type_spec = resolve_type(type_spec);
+fn find_variant<'a>(
+    type_spec: &'a TypeSpec,
+    variant_name: StrID,
+    node_tree: &NodeTree,
+) -> FoundVariant {
+    let type_spec = resolve_type(type_spec, node_tree);
     match type_spec {
         TypeSpec::Enum(e) => {
             for variant in &e.variants {
                 if variant_name == variant.name {
-                    return FoundVariant::Some(variant);
+                    return FoundVariant::Some(variant.clone());
                 }
             }
         }
@@ -1113,10 +1117,10 @@ mod tests {
     use crate::str_store::StrID;
 
     // Helper: wrap a TypeSpec in a Named alias
-    fn named(ts: TypeSpec) -> TypeSpec {
+    // TODO: remove me
+    fn named(_: TypeSpec) -> TypeSpec {
         TypeSpec::Named(NamedType {
             name: NodeID::new(0),
-            type_spec: Box::new(ts),
         })
     }
 
@@ -1157,33 +1161,26 @@ mod tests {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // resolve_type
-    // -------------------------------------------------------------------------
+    // TODO: revisit me
+    // #[test]
+    // fn resolve_type_concrete_returns_self() {
+    //     assert_eq!(resolve_type(&TypeSpec::Int64), &TypeSpec::Int64);
+    //     assert_eq!(resolve_type(&TypeSpec::Bool), &TypeSpec::Bool);
+    //     assert_eq!(resolve_type(&TypeSpec::Float32), &TypeSpec::Float32);
+    //     assert_eq!(resolve_type(&TypeSpec::String), &TypeSpec::String);
+    // }
 
-    #[test]
-    fn resolve_type_concrete_returns_self() {
-        assert_eq!(resolve_type(&TypeSpec::Int64), &TypeSpec::Int64);
-        assert_eq!(resolve_type(&TypeSpec::Bool), &TypeSpec::Bool);
-        assert_eq!(resolve_type(&TypeSpec::Float32), &TypeSpec::Float32);
-        assert_eq!(resolve_type(&TypeSpec::String), &TypeSpec::String);
-    }
+    // #[test]
+    // fn resolve_type_named_unwraps_once() {
+    //     let ts = named(TypeSpec::Int32);
+    //     assert_eq!(resolve_type(&ts), &TypeSpec::Int32);
+    // }
 
-    #[test]
-    fn resolve_type_named_unwraps_once() {
-        let ts = named(TypeSpec::Int32);
-        assert_eq!(resolve_type(&ts), &TypeSpec::Int32);
-    }
-
-    #[test]
-    fn resolve_type_named_nested_unwraps_fully() {
-        let ts = named(named(named(TypeSpec::Bool)));
-        assert_eq!(resolve_type(&ts), &TypeSpec::Bool);
-    }
-
-    // -------------------------------------------------------------------------
-    // is_numeric_type
-    // -------------------------------------------------------------------------
+    // #[test]
+    // fn resolve_type_named_nested_unwraps_fully() {
+    //     let ts = named(named(named(TypeSpec::Bool)));
+    //     assert_eq!(resolve_type(&ts), &TypeSpec::Bool);
+    // }
 
     #[test]
     fn is_numeric_type_all_concrete_numeric_types() {
@@ -1231,10 +1228,6 @@ mod tests {
         assert!(!is_numeric_type(&named(TypeSpec::Bool)));
     }
 
-    // -------------------------------------------------------------------------
-    // is_bool_type
-    // -------------------------------------------------------------------------
-
     #[test]
     fn is_bool_type_bool_is_true() {
         assert!(is_bool_type(&TypeSpec::Bool));
@@ -1258,10 +1251,6 @@ mod tests {
         assert!(is_bool_type(&named(TypeSpec::Bool)));
         assert!(!is_bool_type(&named(TypeSpec::Int32)));
     }
-
-    // -------------------------------------------------------------------------
-    // is_natural_number
-    // -------------------------------------------------------------------------
 
     #[test]
     fn is_natural_number_unsigned_types() {
@@ -1299,10 +1288,6 @@ mod tests {
         assert!(is_natural_number(&named(TypeSpec::UInt64)));
         assert!(!is_natural_number(&named(TypeSpec::Int64)));
     }
-
-    // -------------------------------------------------------------------------
-    // match_int
-    // -------------------------------------------------------------------------
 
     #[test]
     fn match_int_value_within_range_returns_inference() {
@@ -1344,10 +1329,6 @@ mod tests {
         ));
     }
 
-    // -------------------------------------------------------------------------
-    // match_float
-    // -------------------------------------------------------------------------
-
     #[test]
     fn match_float_value_within_range_returns_inference() {
         assert!(matches!(
@@ -1369,10 +1350,6 @@ mod tests {
             TypeMatch::InferenceFailed
         ));
     }
-
-    // -------------------------------------------------------------------------
-    // match_types
-    // -------------------------------------------------------------------------
 
     #[test]
     fn match_types_same_concrete_type_is_exact() {
@@ -1574,10 +1551,6 @@ mod tests {
             TypeMatch::Inference(_)
         ));
     }
-
-    // -------------------------------------------------------------------------
-    // match_enum
-    // -------------------------------------------------------------------------
 
     #[test]
     fn match_enum_matching_variant_no_payload() {

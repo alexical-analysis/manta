@@ -1,3 +1,95 @@
+# TODO: Implement Feedback
+
+The following feedback was given by claude code after reviewing this proposal
+
+⏺ Alright, I've read the generics proposal in full along with the comptime proposal and language spec. Here's the full review.
+
+  ---
+  What's Genuinely Good
+
+  The @T / T duality is the proposal's real gem. Surfacing the compile-time/runtime tradeoff as a first-class syntactic choice is novel and well-motivated. No mainstream language does this
+   explicitly at the call site. The grounding in the already-existing meta type is smart — this isn't inventing new machinery, it's extending a coherent concept. The N64 cache-line /
+  code-size argument is exactly the kind of domain-specific reasoning that differentiates a thoughtful proposal from a generic one.
+
+  The alternatives survey is solid. The rejection of angle brackets is well-argued with concrete historical examples (C++ >>, TypeScript <T,>). The "Go eventually added generics anyway"
+  argument against Option C is a good inductive case. You clearly did the homework here.
+
+  The cautionary note on debug-stencil / release-monomorphic being deferred until better understood shows real discipline. That restraint is the right call.
+
+  ---
+  The Real Criticism
+
+  1. The @T stenciling semantics are underspecified at the critical point
+
+  Look at the example:
+
+  fn (s *Slice::<@T>) get(i usize) *T {
+      let offset = @T.size_of * i
+      let item = s.ptr + offset
+      return item
+  }
+
+  What is the type of s.ptr? Is it *u8? *@T? What type does item have? If you write *T as the return type of a stenciled function, that's a type-system lie — at runtime there is no
+  concrete T, there's a pointer-plus-offset. How does the caller use that return value? Can it read a field from it? Pass it to a function expecting *T? This is the central hard problem of
+   GC stenciling, and Go spends considerable complexity on its dictionary-passing scheme to solve it. The proposal shows the motivating syntax but completely sidesteps the type theory that
+   makes it work or breaks it.
+
+  2. :: collision with the module separator is a serious problem
+
+  The language spec uses :: exclusively as the module path operator: os::open_file, math::PI. The recommended syntax is Vec3::<f32>. Now what does math::Vec3::<f32> mean? Three :: tokens
+  in a row. Does the parser read that as module math, then member Vec3, then generic instantiation <f32>? Or module math::Vec3, then generic? This isn't a parsing edge case — it's the
+  bread-and-butter usage pattern for anything in a standard library. The turbofish syntax works in Rust specifically because :: in a turbofish is not the same as :: in a path, and Rust's
+  grammar makes that distinction clear in context. The proposal doesn't address how Manta disambiguates these. And ironically, the proposal claims to choose sigil-prefixed brackets because
+   they avoid ambiguity.
+
+  3. Type constraints / bounds are entirely absent
+
+  The stated motivation is math types: Vec3, matrices, fixed-point values. To write any useful math generic — fn dot::<T>(a Vec3::<T>, b Vec3::<T>) T — you need T to support multiplication
+   and addition. Without bounds, you can't call any methods or operators on a bare T in a monomorphized generic. The proposal never asks: "what constraints can I put on T?" This isn't an
+  edge case — it's the most practically important question for the exact use case driving the proposal.
+
+  4. The A[B] disambiguation is a parser problem, not a noder problem
+
+  The proposal says "simple additions to the noder should easily catch and resolve these ambiguities." This undersells the problem badly. A[B] is syntactically ambiguous — the parser has
+  to decide before it knows types whether this is indexing or generic instantiation. The parser doesn't have type information. Pushing this to the noder means the parser must produce an
+  ambiguous AST node, the noder must resolve it, and then re-attribute the node. This is non-trivial and is why Go's grammar has explicit restrictions on where generics can appear.
+  "Simple" is not the right word for a parser ambiguity that requires a grammar restriction or a two-pass resolution.
+  "Simple" is not the right word for a parser ambiguity that requires a grammar restriction or a two-pass resolution.
+
+  5. The proposal says nothing about generic functions
+
+  Every example is a generic type or a method on a generic type receiver. What does a standalone generic function look like?
+
+  fn max::<T>(a T, b T) T { ... }
+
+  For stenciled generics: you can do pointer math but you can't compare a and b. For monomorphized: you need bounds to compare them. Generic functions are often more common than generic
+  types in a math library (clamp, lerp, abs). The proposal should address this.
+
+  6. The comptime proposal already covers much of this ground — and the two proposals don't talk to each other
+
+  The comptime proposal explicitly identifies generics as a comptime use case and includes a Zig-style fn Vec3(comp T type) type example. The generics proposal mentions none of this. Right
+   now you have two overlapping mechanisms being designed independently. A language designer reading both will immediately ask: "which one do I use for a generic Vec3?" The proposals need
+  explicit carve-outs — what generics does and doesn't do, what comptime does and doesn't do, and why both exist.
+
+  7. The recommendation doesn't follow from the stated analysis
+
+  The stated reason for rejecting square brackets is parsing ambiguity. But the proposal also acknowledges that ::< > still has the >> problem, which it says is solved by "lexing
+  individual >." That same fix applies equally to plain < >. So the actual differentiating advantage of ::< > over [ ] is never cleanly articulated — the technical arguments are
+  inconclusive, and the real reason appears to be aesthetic (it "feels" more natural). That's a valid preference, but the proposal should own it rather than dressing it up as a technical
+  superiority argument.
+
+  8. Minor: the options are out of order (A, B, D, C)
+
+  The syntax section goes A → B → D → C. The implementation section goes A → B → C → D. This will cause reviewers to stumble and wonder if they're missing something. It's a small thing but
+   in a formal proposal it reads as sloppy.
+
+  ---
+  Summary
+
+  The @T dual-mode idea is legitimately interesting and worth building on. The three things that need the most work before this proposal is ready for design review: (1) a concrete
+  type-theoretic account of how stenciled generics interact with the type system at call sites, (2) a proposal for type bounds/constraints (even a minimal one), and (3) explicit
+  reconciliation with the comptime proposal to avoid designing two overlapping generics mechanisms.
+
 # Proposal: Generics
 
 ## Problem

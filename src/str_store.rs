@@ -194,6 +194,7 @@ impl StrStore {
                 self.next_id += 1;
                 self.strings.insert(s.to_string(), id);
                 self.reverse_strings.push(s.to_string());
+                eprintln!("StrStore: {:?}({:?})", s, id);
                 id
             }
         }

@@ -272,7 +272,6 @@ pub struct InferredEnumPat {
 pub struct NamedType {
     // This is always an identifier expression
     pub name: NodeID,
-    pub type_spec: Box<TypeSpec>,
 }
 
 /// Array type with size
