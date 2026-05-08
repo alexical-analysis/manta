@@ -13,7 +13,7 @@ mod str_store;
 
 use std::error::Error;
 use std::fs::{self, File};
-use std::io::{BufWriter, Write};
+use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 

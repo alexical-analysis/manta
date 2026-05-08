@@ -11,7 +11,7 @@ use crate::mir::{
     SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
 };
 use crate::noder::typer::resolve_type;
-use crate::noder::{Module, typer};
+use crate::noder::{Module, NodeTree, SideTable, typer};
 use crate::str_store::{self, StrID};
 
 // Blocker lowers an HIR tree in it's entirety into a valid MirModule
@@ -77,7 +77,7 @@ impl<'a> Blocker<'a> {
             } => {
                 let name = self.get_ident_name(ident);
                 let return_type = match self.module.tree.get_type(node_id) {
-                    Some(ts) => lower_type_spec(ts),
+                    Some(ts) => self.lower_type_spec(ts),
                     None => panic!("missing type for function decl"),
                 };
 
@@ -101,7 +101,7 @@ impl<'a> Blocker<'a> {
                     let name = self.get_ident_name(*ident);
 
                     let ts = match self.module.tree.get_type(*ident) {
-                        Some(ts) => lower_type_spec(ts),
+                        Some(ts) => self.lower_type_spec(ts),
                         None => panic!("missing type for function param"),
                     };
 
@@ -123,7 +123,7 @@ impl<'a> Blocker<'a> {
             } => {
                 let name = self.get_ident_name(ident);
                 let return_type = match self.module.tree.get_type(node_id) {
-                    Some(ts) => lower_type_spec(ts),
+                    Some(ts) => self.lower_type_spec(ts),
                     None => panic!("missing type for function decl"),
                 };
 
@@ -144,7 +144,7 @@ impl<'a> Blocker<'a> {
                     let name = self.get_ident_name(*ident);
 
                     let ts = match self.module.tree.get_type(*ident) {
-                        Some(ts) => lower_type_spec(ts),
+                        Some(ts) => self.lower_type_spec(ts),
                         None => panic!("missing type for function param"),
                     };
 
@@ -203,7 +203,7 @@ impl<'a> Blocker<'a> {
                     .tree
                     .get_type(ident)
                     .expect("missing type for identifier");
-                let ts = lower_type_spec(ts);
+                let ts = self.lower_type_spec(ts);
 
                 self.add_global(ident, public, name, ts);
 
@@ -278,9 +278,9 @@ impl<'a> Blocker<'a> {
                     .get_type(target)
                     .expect("missing type for field access target");
 
-                let base_type = resolve_type(type_spec);
+                let base_type = resolve_type(&self.module.tree.type_map, type_spec);
                 let fields = match base_type {
-                    hir::TypeSpec::Struct(s) => &s.fields,
+                    hir::TypeSpec::Struct(s) => s.fields,
                     _ => panic!("invalid target type for field access"),
                 };
 
@@ -357,7 +357,7 @@ impl<'a> Blocker<'a> {
                     .tree
                     .get_type(ident)
                     .expect("missing type for identifier");
-                let ts = lower_type_spec(ts);
+                let ts = self.lower_type_spec(ts);
 
                 self.fn_builder.get_local(ident, name, ts);
 
@@ -450,7 +450,8 @@ impl<'a> Blocker<'a> {
                     .get_type(target)
                     .expect("missing type for discriminant");
 
-                let discriminant_type = typer::resolve_type(discriminant_type);
+                let discriminant_type =
+                    typer::resolve_type(&self.module.tree.type_map, discriminant_type);
                 match discriminant_type {
                     hir::TypeSpec::UInt8
                     | hir::TypeSpec::UInt16
@@ -652,7 +653,7 @@ impl<'a> Blocker<'a> {
                             .tree
                             .get_type(target)
                             .expect("missing type for match target");
-                        let ts = lower_type_spec(target_ts);
+                        let ts = self.lower_type_spec(target_ts);
 
                         let payload_local = self.fn_builder.get_local(p, name, ts);
                         self.fn_builder.emit_store(
@@ -722,7 +723,7 @@ impl<'a> Blocker<'a> {
             .tree
             .get_type(target)
             .expect("missing type for match target");
-        let ts = lower_type_spec(target_ts);
+        let ts = self.lower_type_spec(target_ts);
 
         // Get the target as a place as well since VariantGetPayload requires a place value instead
         // of just a simple value_id. We check if the target is already a global or local that we
@@ -772,7 +773,8 @@ impl<'a> Blocker<'a> {
 
             match pattern {
                 PatternNode::EnumVariant(pat) => {
-                    let variant_id = get_variant_tag(target_ts, pat.variant);
+                    let variant_id =
+                        get_variant_tag(&self.module.tree.type_map, target_ts, pat.variant);
 
                     let body = *body;
                     match pat.payload {
@@ -782,7 +784,7 @@ impl<'a> Blocker<'a> {
                                 .tree
                                 .get_type(p)
                                 .expect("missing type spec for enum variant");
-                            let ts = lower_type_spec(ts);
+                            let ts = self.lower_type_spec(ts);
 
                             let payload_value = self.fn_builder.emit_variant_get_payload(
                                 arm_block,
@@ -822,7 +824,7 @@ impl<'a> Blocker<'a> {
                     let body = *body;
                     if let Some(p) = pat.payload {
                         let name = self.get_ident_name(p);
-                        let ts = lower_type_spec(target_ts);
+                        let ts = self.lower_type_spec(target_ts);
                         let payload_local = self.fn_builder.get_local(p, name, ts);
                         self.fn_builder.emit_store(
                             arm_block,
@@ -932,7 +934,7 @@ impl<'a> Blocker<'a> {
                             .tree
                             .get_type(pattern_id)
                             .expect("missing type for type spec pattern");
-                        let ts = lower_type_spec(ts);
+                        let ts = self.lower_type_spec(ts);
 
                         // the target type will be UnsafePtr but we need this payload to change the
                         // type into whatever the target match is
@@ -961,7 +963,7 @@ impl<'a> Blocker<'a> {
                     let body = *body;
                     if let Some(p) = pat.payload {
                         let name = self.get_ident_name(p);
-                        let ts = lower_type_spec(target_ts);
+                        let ts = self.lower_type_spec(target_ts);
                         let payload_local = self.fn_builder.get_local(p, name, ts);
                         self.fn_builder.emit_store(
                             arm_block,
@@ -1035,7 +1037,7 @@ impl<'a> Blocker<'a> {
         let node = node.clone();
 
         let ts = match self.module.tree.get_type(node_id) {
-            Some(ts) => lower_type_spec(ts),
+            Some(ts) => self.lower_type_spec(ts),
             None => panic!("missing type for expression node"),
         };
 
@@ -1141,10 +1143,10 @@ impl<'a> Blocker<'a> {
                     .get_type(node_id)
                     .expect("missing type for enum");
 
-                let tag_val = get_variant_tag(ts, variant);
+                let tag_val = get_variant_tag(&self.module.tree.type_map, ts, variant);
                 let payload_val = payload.map(|n| self.block_expression(block_id, n));
 
-                let ts = lower_type_spec(ts);
+                let ts = self.lower_type_spec(ts);
                 self.fn_builder
                     .emit_make_variant(block_id, tag_val, payload_val, ts)
             }
@@ -1161,7 +1163,7 @@ impl<'a> Blocker<'a> {
                     field_values.push(field_value)
                 }
 
-                let ts = lower_type_spec(ts);
+                let ts = self.lower_type_spec(ts);
                 self.fn_builder.emit_make_struct(block_id, field_values, ts)
             }
             Node::StructConstructorField { value, .. } => self.block_expression(block_id, value),
@@ -1198,60 +1200,67 @@ impl<'a> Blocker<'a> {
             _ => panic!("not a valid expression node"),
         }
     }
-}
 
-fn lower_type_spec(hir_ts: &hir::TypeSpec) -> TypeSpec {
-    match hir_ts {
-        hir::TypeSpec::Int8 => TypeSpec::I8,
-        hir::TypeSpec::Int16 => TypeSpec::I16,
-        hir::TypeSpec::Int32 => TypeSpec::I32,
-        hir::TypeSpec::Int64 => TypeSpec::I64,
-        hir::TypeSpec::UInt8 => TypeSpec::I8,
-        hir::TypeSpec::UInt16 => TypeSpec::I16,
-        hir::TypeSpec::UInt32 => TypeSpec::I32,
-        hir::TypeSpec::UInt64 => TypeSpec::I64,
-        hir::TypeSpec::Float32 => TypeSpec::F32,
-        hir::TypeSpec::Float64 => TypeSpec::F64,
-        hir::TypeSpec::Bool => TypeSpec::Bool,
-        // panic types become unit types because the CFG lets us explicitly represent the control
-        // flow of a panic.
-        hir::TypeSpec::Unit | hir::TypeSpec::Panic => TypeSpec::Unit,
-        hir::TypeSpec::String => TypeSpec::String,
-        hir::TypeSpec::Pointer(inner) => TypeSpec::Ptr(Box::new(lower_type_spec(inner))),
-        hir::TypeSpec::UnsafePtr => TypeSpec::OpaquePtr,
-        hir::TypeSpec::Slice(inner) => TypeSpec::Slice(Box::new(lower_type_spec(inner))),
-        hir::TypeSpec::Array(at) => TypeSpec::Array {
-            elem: Box::new(lower_type_spec(&at.type_spec)),
-            len: at.size,
-        },
-        hir::TypeSpec::Struct(st) => TypeSpec::Struct(
-            st.fields
-                .iter()
-                .map(|f| lower_type_spec(&f.type_spec))
-                .collect(),
-        ),
-        hir::TypeSpec::Enum(et) => TypeSpec::Enum {
-            tag_size: tag_size_for(et.variants.len()),
-            variants: et
-                .variants
-                .iter()
-                .map(|v| match v.payload.as_ref() {
-                    Some(ts) => lower_type_spec(ts),
-                    None => TypeSpec::Unit,
-                })
-                .collect(),
-        },
-        hir::TypeSpec::Named(nt) => lower_type_spec(&nt.type_spec),
-        // For function types we lower to the return type, since MirFunction tracks params
-        // separately and mir::TypeSpec has no Function variant.
-        hir::TypeSpec::Function(ft) => lower_type_spec(&ft.return_type),
-        hir::TypeSpec::Any
-        | hir::TypeSpec::IntLiteral(_)
-        | hir::TypeSpec::UIntLiteral(_)
-        | hir::TypeSpec::FloatLiteral(_)
-        | hir::TypeSpec::InferredEnumExpr(_)
-        | hir::TypeSpec::InferredEnumPat(_) => {
-            panic!("unresolved type {:?} reached MIR lowering", hir_ts)
+    fn lower_type_spec(&self, hir_ts: &hir::TypeSpec) -> TypeSpec {
+        match hir_ts {
+            hir::TypeSpec::Int8 => TypeSpec::I8,
+            hir::TypeSpec::Int16 => TypeSpec::I16,
+            hir::TypeSpec::Int32 => TypeSpec::I32,
+            hir::TypeSpec::Int64 => TypeSpec::I64,
+            hir::TypeSpec::UInt8 => TypeSpec::I8,
+            hir::TypeSpec::UInt16 => TypeSpec::I16,
+            hir::TypeSpec::UInt32 => TypeSpec::I32,
+            hir::TypeSpec::UInt64 => TypeSpec::I64,
+            hir::TypeSpec::Float32 => TypeSpec::F32,
+            hir::TypeSpec::Float64 => TypeSpec::F64,
+            hir::TypeSpec::Bool => TypeSpec::Bool,
+            // panic types become unit types because the CFG lets us explicitly represent the control
+            // flow of a panic.
+            hir::TypeSpec::Unit | hir::TypeSpec::Panic => TypeSpec::Unit,
+            hir::TypeSpec::String => TypeSpec::String,
+            hir::TypeSpec::Pointer(inner) => TypeSpec::Ptr(Box::new(self.lower_type_spec(inner))),
+            hir::TypeSpec::UnsafePtr => TypeSpec::OpaquePtr,
+            hir::TypeSpec::Slice(inner) => TypeSpec::Slice(Box::new(self.lower_type_spec(inner))),
+            hir::TypeSpec::Array(at) => TypeSpec::Array {
+                elem: Box::new(self.lower_type_spec(&at.type_spec)),
+                len: at.size,
+            },
+            hir::TypeSpec::Struct(st) => TypeSpec::Struct(
+                st.fields
+                    .iter()
+                    .map(|f| self.lower_type_spec(&f.type_spec))
+                    .collect(),
+            ),
+            hir::TypeSpec::Enum(et) => TypeSpec::Enum {
+                tag_size: tag_size_for(et.variants.len()),
+                variants: et
+                    .variants
+                    .iter()
+                    .map(|v| match v.payload.as_ref() {
+                        Some(ts) => self.lower_type_spec(ts),
+                        None => TypeSpec::Unit,
+                    })
+                    .collect(),
+            },
+            hir::TypeSpec::Named(nt) => {
+                let type_spec = self
+                    .module
+                    .tree
+                    .get_type(nt.name)
+                    .expect("failed to find named type spec");
+                self.lower_type_spec(&type_spec)
+            }
+            // For function types we lower to the return type, since MirFunction tracks params
+            // separately and mir::TypeSpec has no Function variant.
+            hir::TypeSpec::Function(ft) => self.lower_type_spec(&ft.return_type),
+            hir::TypeSpec::Any
+            | hir::TypeSpec::IntLiteral(_)
+            | hir::TypeSpec::UIntLiteral(_)
+            | hir::TypeSpec::FloatLiteral(_)
+            | hir::TypeSpec::InferredEnumExpr(_)
+            | hir::TypeSpec::InferredEnumPat(_) => {
+                panic!("unresolved type {:?} reached MIR lowering", hir_ts)
+            }
         }
     }
 }
@@ -1398,8 +1407,12 @@ fn tag_size_for(variant_count: usize) -> TagSize {
     }
 }
 
-fn get_variant_tag(type_spec: &hir::TypeSpec, variant_name: StrID) -> ConstValue {
-    match typer::resolve_type(type_spec) {
+fn get_variant_tag(
+    type_map: &SideTable<NodeID, hir::TypeSpec>,
+    type_spec: &hir::TypeSpec,
+    variant_name: StrID,
+) -> ConstValue {
+    match typer::resolve_type(type_map, type_spec) {
         hir::TypeSpec::Enum(e) => {
             for (i, v) in e.variants.iter().enumerate() {
                 if variant_name == v.name {
