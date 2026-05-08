@@ -5,7 +5,7 @@ use crate::hir::{
     EnumVariant, InferredEnumExpr, InferredEnumPat, NamedType, Node, NodeID, PatternNode,
     StructType, StructTypeField, TypeSpec,
 };
-use crate::noder::NodeTree;
+use crate::noder::{NodeTree, SideTable};
 use crate::str_store::{self, StrID};
 
 pub struct Typer {
@@ -87,7 +87,7 @@ impl Typer {
                 match (value, &self.return_type.clone()) {
                     (Some(v), Some(ret)) => {
                         let type_spec = self.type_expr_node(node_tree, v);
-                        match match_types(ret, &type_spec) {
+                        match match_types(&node_tree.type_map, ret, &type_spec) {
                             TypeMatch::ExactType => {}
                             TypeMatch::Inference(ts) => {
                                 node_tree.type_map.set(v, ts);
@@ -113,7 +113,7 @@ impl Typer {
                 node_tree.type_map.add(node_id, TypeSpec::Unit);
 
                 let free_type = self.type_expr_node(node_tree, expr);
-                match resolve_type(&free_type) {
+                match resolve_type(&node_tree.type_map, &free_type) {
                     TypeSpec::Pointer(_) => {}
                     _ => panic!("can not free memory of non-pointer type"),
                 }
@@ -123,16 +123,11 @@ impl Typer {
                 let type_spec = node_tree
                     .type_map
                     .get(node_id)
-                    .expect("missing type for type decl");
+                    .expect("missing type for type decl")
+                    .clone();
 
-                // the identifier is the named version of this type
-                node_tree.type_map.add(
-                    ident,
-                    TypeSpec::Named(NamedType {
-                        name: ident,
-                        type_spec: Box::new(type_spec.clone()),
-                    }),
-                )
+                // the identifier is the underlying concreet type
+                node_tree.type_map.add(ident, type_spec)
             }
             Node::ExternalTypeDecl { .. } => {
                 // external types are already typed
@@ -186,7 +181,7 @@ impl Typer {
                 let l_type = self.type_expr_node(node_tree, target);
 
                 // TODO: make sure l_type is assignale (e.g. has a concrete location in memory)
-                match match_types(&l_type, &r_type) {
+                match match_types(&node_tree.type_map, &l_type, &r_type) {
                     TypeMatch::ExactType => {}
                     TypeMatch::Inference(ts) => {
                         node_tree.type_map.set(value, ts.clone());
@@ -267,7 +262,7 @@ impl Typer {
                 let l_type = self.type_expr_node(node_tree, left);
                 let r_type = self.type_expr_node(node_tree, right);
 
-                let operand_type = match match_types(&l_type, &r_type) {
+                let operand_type = match match_types(&node_tree.type_map, &l_type, &r_type) {
                     TypeMatch::ExactType => l_type,
                     TypeMatch::Inference(ts) => {
                         node_tree.type_map.set(left, ts.clone());
@@ -316,11 +311,11 @@ impl Typer {
             } => match target {
                 Some(t) => {
                     let target_ts = self.type_expr_node(node_tree, t);
-                    match find_variant(&target_ts, variant) {
+                    match find_variant(&node_tree.type_map, &target_ts, variant) {
                         FoundVariant::Some(v) => match (payload, &v.payload) {
                             (Some(p), Some(ts)) => {
                                 let pay_id = self.type_expr_node(node_tree, p);
-                                match match_types(&pay_id, ts) {
+                                match match_types(&node_tree.type_map, &pay_id, ts) {
                                     TypeMatch::ExactType => {
                                         node_tree.type_map.add(node_id, target_ts.clone());
                                         target_ts
@@ -369,7 +364,7 @@ impl Typer {
                     .get(node_id)
                     .expect("failed to get type for struct")
                     .clone();
-                let base_type = resolve_type(&type_spec);
+                let base_type = resolve_type(&node_tree.type_map, &type_spec);
                 let struct_type = match base_type {
                     TypeSpec::Struct(ts) => ts,
                     _ => panic!("type spec for struct constructor must be a struct type"),
@@ -378,7 +373,7 @@ impl Typer {
                 for (field, field_type) in fields.iter().zip(struct_type.fields.iter()) {
                     let got_type = self.type_expr_node(node_tree, *field);
                     let expect_type = &field_type.type_spec;
-                    match match_types(expect_type, &got_type) {
+                    match match_types(&node_tree.type_map, expect_type, &got_type) {
                         TypeMatch::ExactType => {
                             // need to update the type for the inner field value as well
                             let value_id = match node_tree.get_node(*field).unwrap() {
@@ -409,7 +404,7 @@ impl Typer {
             Node::StructConstructorField { value, .. } => self.type_expr_node(node_tree, value),
             Node::FieldAccess { target, field } => {
                 let target_type = self.type_expr_node(node_tree, target);
-                match resolve_type(&target_type) {
+                match resolve_type(&node_tree.type_map, &target_type) {
                     TypeSpec::Struct(ts) => {
                         let mut found_field = None;
                         for f in &ts.fields {
@@ -453,7 +448,7 @@ impl Typer {
                     UnaryOp::Not => {
                         // !T -> T
                         let ts = operand_type;
-                        if !is_bool_type(&ts) {
+                        if !is_bool_type(&node_tree.type_map, &ts) {
                             panic!("! can only be used on boolean types")
                         }
                         node_tree.type_map.add(node_id, ts.clone());
@@ -462,7 +457,7 @@ impl Typer {
                     UnaryOp::Negate => {
                         // -T -> T
                         let ts = operand_type;
-                        if !is_numeric_type(&ts) {
+                        if !is_numeric_type(&node_tree.type_map, &ts) {
                             panic!("! can only be used on boolean types")
                         }
                         node_tree.type_map.add(node_id, ts.clone());
@@ -471,7 +466,7 @@ impl Typer {
                     UnaryOp::Positive => {
                         // +T -> T
                         let ts = operand_type;
-                        if !is_numeric_type(&ts) {
+                        if !is_numeric_type(&node_tree.type_map, &ts) {
                             panic!("! can only be used on boolean types")
                         }
                         node_tree.type_map.add(node_id, ts.clone());
@@ -497,7 +492,7 @@ impl Typer {
 
                 for (param, arg) in func_type.params.iter().zip(args.iter()) {
                     let arg_type = self.type_expr_node(node_tree, *arg);
-                    match match_types(param, &arg_type) {
+                    match match_types(&node_tree.type_map, param, &arg_type) {
                         TypeMatch::ExactType => {}
                         TypeMatch::Inference(ts) => node_tree.type_map.set(*arg, ts),
                         TypeMatch::InferenceFailed => {
@@ -516,7 +511,7 @@ impl Typer {
             }
             Node::Index { target, index } => {
                 let index_type = self.type_expr_node(node_tree, index);
-                if !is_natural_number(&index_type) {
+                if !is_natural_number(&node_tree.type_map, &index_type) {
                     panic!("can only index expressions using natural numbers")
                 }
 
@@ -604,7 +599,7 @@ impl Typer {
         match pat {
             PatternNode::IntLiteral(i) => {
                 let ts = TypeSpec::IntLiteral(i);
-                let ts = match match_types(&target_type, &ts) {
+                let ts = match match_types(&node_tree.type_map, &target_type, &ts) {
                     TypeMatch::ExactType => ts,
                     TypeMatch::Inference(ts) => ts,
                     TypeMatch::InferenceFailed => {
@@ -626,7 +621,7 @@ impl Typer {
             }
             PatternNode::UIntLiteral(i) => {
                 let ts = TypeSpec::UIntLiteral(i);
-                let ts = match match_types(&target_type, &ts) {
+                let ts = match match_types(&node_tree.type_map, &target_type, &ts) {
                     TypeMatch::ExactType => ts,
                     TypeMatch::Inference(ts) => ts,
                     TypeMatch::InferenceFailed => {
@@ -648,7 +643,7 @@ impl Typer {
             }
             PatternNode::StringLiteral(_) => {
                 let ts = TypeSpec::String;
-                let ts = match match_types(&target_type, &ts) {
+                let ts = match match_types(&node_tree.type_map, &target_type, &ts) {
                     TypeMatch::ExactType => ts,
                     TypeMatch::Inference(ts) => ts,
                     TypeMatch::InferenceFailed => {
@@ -664,7 +659,7 @@ impl Typer {
             }
             PatternNode::BoolLiteral(_) => {
                 let ts = TypeSpec::Bool;
-                let ts = match match_types(&target_type, &ts) {
+                let ts = match match_types(&node_tree.type_map, &target_type, &ts) {
                     TypeMatch::ExactType => ts,
                     TypeMatch::Inference(ts) => ts,
                     TypeMatch::InferenceFailed => panic!("invalid type for pattern"),
@@ -676,7 +671,7 @@ impl Typer {
             }
             PatternNode::FloatLiteral(f) => {
                 let ts = TypeSpec::FloatLiteral(f);
-                let ts = match match_types(&target_type, &ts) {
+                let ts = match match_types(&node_tree.type_map, &target_type, &ts) {
                     TypeMatch::ExactType => ts,
                     TypeMatch::Inference(ts) => ts,
                     TypeMatch::InferenceFailed => panic!("invalid type for pattern"),
@@ -694,7 +689,7 @@ impl Typer {
                     .expect("missing type for type spec pattern")
                     .clone();
 
-                match match_types(&target_type, &type_spec) {
+                match match_types(&node_tree.type_map, &target_type, &type_spec) {
                     TypeMatch::ExactType => {}
                     TypeMatch::Inference(_) => panic!(
                         "this should not occur since neither type spec patterns, nor match expressions are allowed to be inferrable"
@@ -724,7 +719,7 @@ impl Typer {
                         // If we know the exact type of the enum then we need to make sure we type
                         // the payload based on the variant that matches
                         if let Some(pay) = e.payload {
-                            match find_variant(&ts, e.variant) {
+                            match find_variant(&node_tree.type_map, &ts, e.variant) {
                                 FoundVariant::Some(v) => match &v.payload {
                                     Some(p) => node_tree.type_map.add(pay, p.clone()),
                                     None => panic!("this variant does not have a payload"),
@@ -744,13 +739,13 @@ impl Typer {
                     }),
                 };
 
-                let ts = match match_types(&target_type, &ts) {
+                let ts = match match_types(&node_tree.type_map, &target_type, &ts) {
                     TypeMatch::ExactType => ts,
                     TypeMatch::Inference(ts) => {
                         // if we inferred a type for the enum and the variant has a payload we need
                         // to make sure we extract the variant and set the type on the payload here
                         if let Some(pay) = e.payload {
-                            match find_variant(&ts, e.variant) {
+                            match find_variant(&node_tree.type_map, &ts, e.variant) {
                                 FoundVariant::Some(v) => match &v.payload {
                                     Some(p) => node_tree.type_map.add(pay, p.clone()),
                                     None => panic!("this variant does not have a payload"),
@@ -785,8 +780,8 @@ impl Typer {
 
 // returns true if the type is any numeric type
 // (u8-u64, i8-i64, f32, f64, or any alias of those types)
-fn is_numeric_type(ts: &TypeSpec) -> bool {
-    let ts = resolve_type(ts);
+fn is_numeric_type(type_map: &SideTable<NodeID, TypeSpec>, ts: &TypeSpec) -> bool {
+    let ts = resolve_type(type_map, ts);
     matches!(
         ts,
         TypeSpec::Int8
@@ -806,14 +801,14 @@ fn is_numeric_type(ts: &TypeSpec) -> bool {
 }
 
 // return true if the type is a boolean or any alias of a boolean type
-fn is_bool_type(ts: &TypeSpec) -> bool {
-    let ts = resolve_type(ts);
+fn is_bool_type(type_map: &SideTable<NodeID, TypeSpec>, ts: &TypeSpec) -> bool {
+    let ts = resolve_type(type_map, ts);
     matches!(ts, TypeSpec::Bool)
 }
 
 // returns true if the type contains only natural numbers (u8-64, or any alias of those types)
-fn is_natural_number(ts: &TypeSpec) -> bool {
-    let ts = resolve_type(ts);
+fn is_natural_number(type_map: &SideTable<NodeID, TypeSpec>, ts: &TypeSpec) -> bool {
+    let ts = resolve_type(type_map, ts);
     matches!(
         ts,
         TypeSpec::UInt8 | TypeSpec::UInt16 | TypeSpec::UInt32 | TypeSpec::UInt64
@@ -821,26 +816,34 @@ fn is_natural_number(ts: &TypeSpec) -> bool {
 }
 
 // resolve_type will unwrap named type aliases to find the underlying type
-pub fn resolve_type(ts: &TypeSpec) -> &TypeSpec {
+//
+pub fn resolve_type(type_map: &SideTable<NodeID, TypeSpec>, ts: &TypeSpec) -> TypeSpec {
     match ts {
-        TypeSpec::Named(t) => resolve_type(&t.type_spec),
-        _ => ts,
+        TypeSpec::Named(t) => {
+            let ts = type_map.get(t.name).expect("failed to get named type");
+            resolve_type(type_map, &ts)
+        }
+        _ => ts.clone(),
     }
 }
 
-enum FoundVariant<'a> {
-    Some(&'a EnumVariant),
+enum FoundVariant {
+    Some(EnumVariant),
     None,
     NotEnum,
 }
 
-fn find_variant<'a>(type_spec: &'a TypeSpec, variant_name: StrID) -> FoundVariant<'a> {
-    let type_spec = resolve_type(type_spec);
+fn find_variant(
+    type_map: &SideTable<NodeID, TypeSpec>,
+    type_spec: &TypeSpec,
+    variant_name: StrID,
+) -> FoundVariant {
+    let type_spec = resolve_type(type_map, type_spec);
     match type_spec {
         TypeSpec::Enum(e) => {
             for variant in &e.variants {
                 if variant_name == variant.name {
-                    return FoundVariant::Some(variant);
+                    return FoundVariant::Some(variant.clone());
                 }
             }
         }
@@ -856,7 +859,7 @@ enum TypeMatch {
     Mismatch,
 }
 
-fn match_types(a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
+fn match_types(type_map: &SideTable<NodeID, TypeSpec>, a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
     if a == b {
         return match a {
             TypeSpec::IntLiteral(_) => TypeMatch::Inference(TypeSpec::Int64),
@@ -1038,10 +1041,14 @@ fn match_types(a: &TypeSpec, b: &TypeSpec) -> TypeMatch {
             }
             _ => TypeMatch::Mismatch,
         },
-        (TypeSpec::InferredEnumExpr(inner_a), inner_b) => match_enum_expr(inner_b, inner_a),
-        (inner_a, TypeSpec::InferredEnumExpr(inner_b)) => match_enum_expr(inner_a, inner_b),
-        (TypeSpec::InferredEnumPat(inner_a), inner_b) => match_enum_pat(inner_b, inner_a),
-        (inner_a, TypeSpec::InferredEnumPat(inner_b)) => match_enum_pat(inner_a, inner_b),
+        (TypeSpec::InferredEnumExpr(inner_a), inner_b) => {
+            match_enum_expr(type_map, inner_b, inner_a)
+        }
+        (inner_a, TypeSpec::InferredEnumExpr(inner_b)) => {
+            match_enum_expr(type_map, inner_a, inner_b)
+        }
+        (TypeSpec::InferredEnumPat(inner_a), inner_b) => match_enum_pat(type_map, inner_b, inner_a),
+        (inner_a, TypeSpec::InferredEnumPat(inner_b)) => match_enum_pat(type_map, inner_a, inner_b),
         (TypeSpec::Any, inner_b) => TypeMatch::Inference(inner_b.clone()),
         (inner_a, TypeSpec::Any) => TypeMatch::Inference(inner_a.clone()),
         // unsafe pointers can be pattern matched into any pointer type so we consider this to be
@@ -1076,8 +1083,12 @@ fn match_float(target: &f64, min: f64, max: f64, ts: TypeSpec) -> TypeMatch {
     }
 }
 
-fn match_enum_expr(known: &TypeSpec, unknown: &InferredEnumExpr) -> TypeMatch {
-    match find_variant(known, unknown.variant_name) {
+fn match_enum_expr(
+    type_map: &SideTable<NodeID, TypeSpec>,
+    known: &TypeSpec,
+    unknown: &InferredEnumExpr,
+) -> TypeMatch {
+    match find_variant(type_map, known, unknown.variant_name) {
         FoundVariant::Some(v) => match (&v.payload, &unknown.payload) {
             (Some(a), Some(b)) => {
                 if a == b.deref() {
@@ -1094,8 +1105,12 @@ fn match_enum_expr(known: &TypeSpec, unknown: &InferredEnumExpr) -> TypeMatch {
     }
 }
 
-fn match_enum_pat(known: &TypeSpec, unknown: &InferredEnumPat) -> TypeMatch {
-    match find_variant(known, unknown.variant_name) {
+fn match_enum_pat(
+    type_map: &SideTable<NodeID, TypeSpec>,
+    known: &TypeSpec,
+    unknown: &InferredEnumPat,
+) -> TypeMatch {
+    match find_variant(type_map, known, unknown.variant_name) {
         FoundVariant::Some(v) => match (&v.payload, &unknown.payload) {
             (Some(_), Some(_)) => TypeMatch::Inference(known.clone()),
             (Some(_), None) => TypeMatch::Mismatch,
@@ -1116,7 +1131,6 @@ mod tests {
     fn named(ts: TypeSpec) -> TypeSpec {
         TypeSpec::Named(NamedType {
             name: NodeID::new(0),
-            type_spec: Box::new(ts),
         })
     }
 
@@ -1163,22 +1177,28 @@ mod tests {
 
     #[test]
     fn resolve_type_concrete_returns_self() {
-        assert_eq!(resolve_type(&TypeSpec::Int64), &TypeSpec::Int64);
-        assert_eq!(resolve_type(&TypeSpec::Bool), &TypeSpec::Bool);
-        assert_eq!(resolve_type(&TypeSpec::Float32), &TypeSpec::Float32);
-        assert_eq!(resolve_type(&TypeSpec::String), &TypeSpec::String);
+        let type_map = SideTable::new();
+        assert_eq!(resolve_type(&type_map, &TypeSpec::Int64), TypeSpec::Int64);
+        assert_eq!(resolve_type(&type_map, &TypeSpec::Bool), TypeSpec::Bool);
+        assert_eq!(
+            resolve_type(&type_map, &TypeSpec::Float32),
+            TypeSpec::Float32
+        );
+        assert_eq!(resolve_type(&type_map, &TypeSpec::String), TypeSpec::String);
     }
 
     #[test]
     fn resolve_type_named_unwraps_once() {
         let ts = named(TypeSpec::Int32);
-        assert_eq!(resolve_type(&ts), &TypeSpec::Int32);
+        let type_map = SideTable::new();
+        assert_eq!(resolve_type(&type_map, &ts), TypeSpec::Int32);
     }
 
     #[test]
     fn resolve_type_named_nested_unwraps_fully() {
         let ts = named(named(named(TypeSpec::Bool)));
-        assert_eq!(resolve_type(&ts), &TypeSpec::Bool);
+        let type_map = SideTable::new();
+        assert_eq!(resolve_type(&type_map, &ts), TypeSpec::Bool);
     }
 
     // -------------------------------------------------------------------------
@@ -1187,6 +1207,7 @@ mod tests {
 
     #[test]
     fn is_numeric_type_all_concrete_numeric_types() {
+        let type_map = SideTable::new();
         for ts in [
             TypeSpec::Int8,
             TypeSpec::Int16,
@@ -1199,12 +1220,13 @@ mod tests {
             TypeSpec::Float32,
             TypeSpec::Float64,
         ] {
-            assert!(is_numeric_type(&ts), "{ts:?} should be numeric");
+            assert!(is_numeric_type(&type_map, &ts), "{ts:?} should be numeric");
         }
     }
 
     #[test]
     fn is_numeric_type_non_numeric_types() {
+        let type_map = SideTable::new();
         for ts in [
             TypeSpec::Bool,
             TypeSpec::String,
@@ -1213,22 +1235,27 @@ mod tests {
             TypeSpec::Panic,
             TypeSpec::Any,
         ] {
-            assert!(!is_numeric_type(&ts), "{ts:?} should not be numeric");
+            assert!(
+                !is_numeric_type(&type_map, &ts),
+                "{ts:?} should not be numeric"
+            );
         }
     }
 
     #[test]
     fn is_numeric_type_literals_are_numeric() {
-        assert!(is_numeric_type(&TypeSpec::IntLiteral(42)));
-        assert!(is_numeric_type(&TypeSpec::IntLiteral(-7)));
-        assert!(is_numeric_type(&TypeSpec::FloatLiteral(3.45)));
+        let type_map = SideTable::new();
+        assert!(is_numeric_type(&type_map, &TypeSpec::IntLiteral(42)));
+        assert!(is_numeric_type(&type_map, &TypeSpec::IntLiteral(-7)));
+        assert!(is_numeric_type(&type_map, &TypeSpec::FloatLiteral(3.45)));
     }
 
     #[test]
     fn is_numeric_type_resolves_named_alias() {
-        assert!(is_numeric_type(&named(TypeSpec::Int64)));
-        assert!(is_numeric_type(&named(TypeSpec::Float32)));
-        assert!(!is_numeric_type(&named(TypeSpec::Bool)));
+        let type_map = SideTable::new();
+        assert!(is_numeric_type(&type_map, &named(TypeSpec::Int64)));
+        assert!(is_numeric_type(&type_map, &named(TypeSpec::Float32)));
+        assert!(!is_numeric_type(&type_map, &named(TypeSpec::Bool)));
     }
 
     // -------------------------------------------------------------------------
@@ -1237,11 +1264,13 @@ mod tests {
 
     #[test]
     fn is_bool_type_bool_is_true() {
-        assert!(is_bool_type(&TypeSpec::Bool));
+        let type_map = SideTable::new();
+        assert!(is_bool_type(&type_map, &TypeSpec::Bool));
     }
 
     #[test]
     fn is_bool_type_non_bool_types() {
+        let type_map = SideTable::new();
         for ts in [
             TypeSpec::Int64,
             TypeSpec::Float64,
@@ -1249,14 +1278,15 @@ mod tests {
             TypeSpec::Unit,
             TypeSpec::IntLiteral(1),
         ] {
-            assert!(!is_bool_type(&ts), "{ts:?} should not be bool");
+            assert!(!is_bool_type(&type_map, &ts), "{ts:?} should not be bool");
         }
     }
 
     #[test]
     fn is_bool_type_resolves_named_alias() {
-        assert!(is_bool_type(&named(TypeSpec::Bool)));
-        assert!(!is_bool_type(&named(TypeSpec::Int32)));
+        let type_map = SideTable::new();
+        assert!(is_bool_type(&type_map, &named(TypeSpec::Bool)));
+        assert!(!is_bool_type(&type_map, &named(TypeSpec::Int32)));
     }
 
     // -------------------------------------------------------------------------
@@ -1265,18 +1295,23 @@ mod tests {
 
     #[test]
     fn is_natural_number_unsigned_types() {
+        let type_map = SideTable::new();
         for ts in [
             TypeSpec::UInt8,
             TypeSpec::UInt16,
             TypeSpec::UInt32,
             TypeSpec::UInt64,
         ] {
-            assert!(is_natural_number(&ts), "{ts:?} should be a natural number");
+            assert!(
+                is_natural_number(&type_map, &ts),
+                "{ts:?} should be a natural number"
+            );
         }
     }
 
     #[test]
     fn is_natural_number_signed_and_float_are_not_natural() {
+        let type_map = SideTable::new();
         for ts in [
             TypeSpec::Int8,
             TypeSpec::Int16,
@@ -1288,7 +1323,7 @@ mod tests {
             TypeSpec::String,
         ] {
             assert!(
-                !is_natural_number(&ts),
+                !is_natural_number(&type_map, &ts),
                 "{ts:?} should not be a natural number"
             );
         }
@@ -1296,8 +1331,9 @@ mod tests {
 
     #[test]
     fn is_natural_number_resolves_named_alias() {
-        assert!(is_natural_number(&named(TypeSpec::UInt64)));
-        assert!(!is_natural_number(&named(TypeSpec::Int64)));
+        let type_map = SideTable::new();
+        assert!(is_natural_number(&type_map, &named(TypeSpec::UInt64)));
+        assert!(!is_natural_number(&type_map, &named(TypeSpec::Int64)));
     }
 
     // -------------------------------------------------------------------------
@@ -1376,6 +1412,8 @@ mod tests {
 
     #[test]
     fn match_types_same_concrete_type_is_exact() {
+        let type_map = SideTable::new();
+
         for ts in [
             TypeSpec::Int64,
             TypeSpec::Bool,
@@ -1383,7 +1421,10 @@ mod tests {
             TypeSpec::Float32,
         ] {
             assert!(
-                matches!(match_types(&ts, &ts.clone()), TypeMatch::ExactType),
+                matches!(
+                    match_types(&type_map, &ts, &ts.clone()),
+                    TypeMatch::ExactType
+                ),
                 "{ts:?} == {ts:?} should be ExactType"
             );
         }
@@ -1391,64 +1432,86 @@ mod tests {
 
     #[test]
     fn match_types_same_int_literal_infers_int64() {
+        let type_map = SideTable::new();
+
         assert!(matches!(
-            match_types(&TypeSpec::IntLiteral(5), &TypeSpec::IntLiteral(5)),
+            match_types(
+                &type_map,
+                &TypeSpec::IntLiteral(5),
+                &TypeSpec::IntLiteral(5)
+            ),
             TypeMatch::Inference(TypeSpec::Int64)
         ));
     }
 
     #[test]
     fn match_types_different_int_literals_infer_int64() {
+        let type_map = SideTable::new();
+
         assert!(matches!(
-            match_types(&TypeSpec::IntLiteral(5), &TypeSpec::IntLiteral(10)),
+            match_types(
+                &type_map,
+                &TypeSpec::IntLiteral(5),
+                &TypeSpec::IntLiteral(10)
+            ),
             TypeMatch::Inference(TypeSpec::Int64)
         ));
     }
 
     #[test]
     fn match_types_float_literals_infer_float64() {
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_types(&TypeSpec::FloatLiteral(1.5), &TypeSpec::FloatLiteral(2.5)),
+            match_types(
+                &type_map,
+                &TypeSpec::FloatLiteral(1.5),
+                &TypeSpec::FloatLiteral(2.5)
+            ),
             TypeMatch::Inference(TypeSpec::Float64)
         ));
     }
 
     #[test]
     fn match_types_int_literal_with_int64_in_range() {
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_types(&TypeSpec::IntLiteral(42), &TypeSpec::Int64),
+            match_types(&type_map, &TypeSpec::IntLiteral(42), &TypeSpec::Int64),
             TypeMatch::Inference(TypeSpec::Int64)
         ));
     }
 
     #[test]
     fn match_types_int_literal_with_uint8_in_range() {
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_types(&TypeSpec::IntLiteral(200), &TypeSpec::UInt8),
+            match_types(&type_map, &TypeSpec::IntLiteral(200), &TypeSpec::UInt8),
             TypeMatch::Inference(TypeSpec::UInt8)
         ));
     }
 
     #[test]
     fn match_types_int_literal_with_uint8_out_of_range() {
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_types(&TypeSpec::IntLiteral(300), &TypeSpec::UInt8),
+            match_types(&type_map, &TypeSpec::IntLiteral(300), &TypeSpec::UInt8),
             TypeMatch::InferenceFailed
         ));
     }
 
     #[test]
     fn match_types_int_literal_with_int8_negative_in_range() {
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_types(&TypeSpec::IntLiteral(-100), &TypeSpec::Int8),
+            match_types(&type_map, &TypeSpec::IntLiteral(-100), &TypeSpec::Int8),
             TypeMatch::Inference(TypeSpec::Int8)
         ));
     }
 
     #[test]
     fn match_types_int_literal_with_int8_out_of_range() {
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_types(&TypeSpec::IntLiteral(200), &TypeSpec::Int8),
+            match_types(&type_map, &TypeSpec::IntLiteral(200), &TypeSpec::Int8),
             TypeMatch::InferenceFailed
         ));
     }
@@ -1456,109 +1519,128 @@ mod tests {
     #[test]
     fn match_types_reversed_int_literal_and_int64() {
         // (Int64, IntLiteral) should behave the same as (IntLiteral, Int64)
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_types(&TypeSpec::Int64, &TypeSpec::IntLiteral(42)),
+            match_types(&type_map, &TypeSpec::Int64, &TypeSpec::IntLiteral(42)),
             TypeMatch::Inference(TypeSpec::Int64)
         ));
     }
 
     #[test]
     fn match_types_float_literal_with_float64() {
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_types(&TypeSpec::FloatLiteral(1.5), &TypeSpec::Float64),
+            match_types(&type_map, &TypeSpec::FloatLiteral(1.5), &TypeSpec::Float64),
             TypeMatch::Inference(TypeSpec::Float64)
         ));
     }
 
     #[test]
     fn match_types_float_literal_with_float32() {
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_types(&TypeSpec::FloatLiteral(1.5), &TypeSpec::Float32),
+            match_types(&type_map, &TypeSpec::FloatLiteral(1.5), &TypeSpec::Float32),
             TypeMatch::Inference(TypeSpec::Float32)
         ));
     }
 
     #[test]
     fn match_types_float_literal_against_int_is_mismatch() {
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_types(&TypeSpec::FloatLiteral(1.5), &TypeSpec::Int64),
+            match_types(&type_map, &TypeSpec::FloatLiteral(1.5), &TypeSpec::Int64),
             TypeMatch::Mismatch
         ));
     }
 
     #[test]
     fn match_types_int_literal_with_float64_infers_float64() {
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_types(&TypeSpec::IntLiteral(42), &TypeSpec::Float64),
+            match_types(&type_map, &TypeSpec::IntLiteral(42), &TypeSpec::Float64),
             TypeMatch::Inference(TypeSpec::Float64)
         ));
         assert!(matches!(
-            match_types(&TypeSpec::Float64, &TypeSpec::IntLiteral(42)),
+            match_types(&type_map, &TypeSpec::Float64, &TypeSpec::IntLiteral(42)),
             TypeMatch::Inference(TypeSpec::Float64)
         ));
     }
 
     #[test]
     fn match_types_int_literal_with_float32_infers_float32() {
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_types(&TypeSpec::IntLiteral(42), &TypeSpec::Float32),
+            match_types(&type_map, &TypeSpec::IntLiteral(42), &TypeSpec::Float32),
             TypeMatch::Inference(TypeSpec::Float32)
         ));
         assert!(matches!(
-            match_types(&TypeSpec::Float32, &TypeSpec::IntLiteral(42)),
+            match_types(&type_map, &TypeSpec::Float32, &TypeSpec::IntLiteral(42)),
             TypeMatch::Inference(TypeSpec::Float32)
         ));
     }
 
     #[test]
     fn match_types_int_literal_and_float_literal_infer_float64() {
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_types(&TypeSpec::IntLiteral(5), &TypeSpec::FloatLiteral(1.5)),
+            match_types(
+                &type_map,
+                &TypeSpec::IntLiteral(5),
+                &TypeSpec::FloatLiteral(1.5)
+            ),
             TypeMatch::Inference(TypeSpec::Float64)
         ));
         assert!(matches!(
-            match_types(&TypeSpec::FloatLiteral(1.5), &TypeSpec::IntLiteral(5)),
+            match_types(
+                &type_map,
+                &TypeSpec::FloatLiteral(1.5),
+                &TypeSpec::IntLiteral(5)
+            ),
             TypeMatch::Inference(TypeSpec::Float64)
         ));
     }
 
     #[test]
     fn match_types_any_with_concrete_infers_concrete() {
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_types(&TypeSpec::Any, &TypeSpec::Int64),
+            match_types(&type_map, &TypeSpec::Any, &TypeSpec::Int64),
             TypeMatch::Inference(TypeSpec::Int64)
         ));
         assert!(matches!(
-            match_types(&TypeSpec::Bool, &TypeSpec::Any),
+            match_types(&type_map, &TypeSpec::Bool, &TypeSpec::Any),
             TypeMatch::Inference(TypeSpec::Bool)
         ));
     }
 
     #[test]
     fn match_types_both_any_is_inference_failed() {
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_types(&TypeSpec::Any, &TypeSpec::Any),
+            match_types(&type_map, &TypeSpec::Any, &TypeSpec::Any),
             TypeMatch::InferenceFailed
         ));
     }
 
     #[test]
     fn match_types_inferred_enum_same_is_inference_failed() {
+        let type_map = SideTable::new();
         let ts = TypeSpec::InferredEnumExpr(inferred_enum_expr(1));
         assert!(matches!(
-            match_types(&ts, &ts.clone()),
+            match_types(&type_map, &ts, &ts.clone()),
             TypeMatch::InferenceFailed
         ));
     }
 
     #[test]
     fn match_types_concrete_mismatch() {
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_types(&TypeSpec::Int64, &TypeSpec::Bool),
+            match_types(&type_map, &TypeSpec::Int64, &TypeSpec::Bool),
             TypeMatch::Mismatch
         ));
         assert!(matches!(
-            match_types(&TypeSpec::String, &TypeSpec::Float64),
+            match_types(&type_map, &TypeSpec::String, &TypeSpec::Float64),
             TypeMatch::Mismatch
         ));
     }
@@ -1568,9 +1650,10 @@ mod tests {
         let v_id = 1;
         let known = enum_type(vec![variant(v_id)]);
         let unknown = TypeSpec::InferredEnumExpr(inferred_enum_expr(v_id));
+        let type_map = SideTable::new();
         // (InferredEnum, known) -> match_enum
         assert!(matches!(
-            match_types(&unknown, &known),
+            match_types(&type_map, &unknown, &known),
             TypeMatch::Inference(_)
         ));
     }
@@ -1584,8 +1667,9 @@ mod tests {
         let v_id = 1;
         let known = enum_type(vec![variant(v_id)]);
         let unknown = inferred_enum_expr(v_id);
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_enum_expr(&known, &unknown),
+            match_enum_expr(&type_map, &known, &unknown),
             TypeMatch::Inference(_)
         ));
     }
@@ -1594,8 +1678,9 @@ mod tests {
     fn match_enum_unknown_variant_is_mismatch() {
         let known = enum_type(vec![variant(1)]);
         let unknown = inferred_enum_expr(99);
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_enum_expr(&known, &unknown),
+            match_enum_expr(&type_map, &known, &unknown),
             TypeMatch::Mismatch
         ));
     }
@@ -1605,8 +1690,9 @@ mod tests {
         let v_id = 1;
         let known = enum_type(vec![variant_with(v_id, TypeSpec::Int64)]);
         let unknown = inferred_enum_expr_with(v_id, TypeSpec::Int64);
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_enum_expr(&known, &unknown),
+            match_enum_expr(&type_map, &known, &unknown),
             TypeMatch::Inference(_)
         ));
     }
@@ -1616,8 +1702,9 @@ mod tests {
         let v_id = 1;
         let known = enum_type(vec![variant_with(v_id, TypeSpec::Int64)]);
         let unknown = inferred_enum_expr_with(v_id, TypeSpec::Bool);
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_enum_expr(&known, &unknown),
+            match_enum_expr(&type_map, &known, &unknown),
             TypeMatch::Mismatch
         ));
     }
@@ -1627,8 +1714,9 @@ mod tests {
         let v_id = 1;
         let known = enum_type(vec![variant_with(v_id, TypeSpec::Int64)]);
         let unknown = inferred_enum_expr(v_id); // no payload
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_enum_expr(&known, &unknown),
+            match_enum_expr(&type_map, &known, &unknown),
             TypeMatch::Mismatch
         ));
     }
@@ -1638,8 +1726,9 @@ mod tests {
         let v_id = 1;
         let known = enum_type(vec![variant(v_id)]); // no payload on known variant
         let unknown = inferred_enum_expr_with(v_id, TypeSpec::Int64);
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_enum_expr(&known, &unknown),
+            match_enum_expr(&type_map, &known, &unknown),
             TypeMatch::Mismatch
         ));
     }
@@ -1647,12 +1736,13 @@ mod tests {
     #[test]
     fn match_enum_non_enum_known_is_mismatch() {
         let unknown = inferred_enum_expr(1);
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_enum_expr(&TypeSpec::Int64, &unknown),
+            match_enum_expr(&type_map, &TypeSpec::Int64, &unknown),
             TypeMatch::Mismatch
         ));
         assert!(matches!(
-            match_enum_expr(&TypeSpec::Bool, &unknown),
+            match_enum_expr(&type_map, &TypeSpec::Bool, &unknown),
             TypeMatch::Mismatch
         ));
     }
@@ -1662,8 +1752,9 @@ mod tests {
         let v_id = 1;
         let known = named(enum_type(vec![variant(v_id)]));
         let unknown = inferred_enum_expr(v_id);
+        let type_map = SideTable::new();
         assert!(matches!(
-            match_enum_expr(&known, &unknown),
+            match_enum_expr(&type_map, &known, &unknown),
             TypeMatch::Inference(_)
         ));
     }

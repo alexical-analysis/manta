@@ -8,7 +8,7 @@ use std::ops::Deref;
 
 use crate::ast::{
     self, BinaryOp, BlockStmt, Decl, Expr, IdentifierExpr, ImportStatement, LetExcept, LetStmt,
-    Pattern, Payload, ReturnStmt, Stmt, UnaryOp, VarDecl,
+    Pattern, Payload, ReturnStmt, Stmt, UnaryOp,
 };
 use crate::hir::{
     ArrayType, DefaultPat, EnumType, EnumVariant, EnumVariantPat, FunctionType, NamedType, Node,
@@ -387,9 +387,8 @@ impl<'m> Noder<'m> {
                 let binding = module
                     .find_binding(scope_pos, t.name)
                     .expect("missing binding for type identifier");
-                let type_spec = match &binding.binding_type {
-                    BindingType::Type(t) => t,
-                    _ => panic!("this binding was not for a type"),
+                if !matches!(binding.binding_type, BindingType::Type(_)) {
+                    panic!("this binding was not for a type")
                 };
                 let name_id = self
                     .tree
@@ -397,12 +396,7 @@ impl<'m> Noder<'m> {
                     .get(binding.id)
                     .expect("failed to find declaration name for named type spec");
 
-                let type_spec = self.node_type_spec(module, type_spec);
-                let type_spec = Box::new(type_spec);
-                TypeSpec::Named(NamedType {
-                    name: *name_id,
-                    type_spec,
-                })
+                TypeSpec::Named(NamedType { name: *name_id })
             }
             ast::TypeSpec::Pointer(t) => {
                 let inner = self.node_type_spec(module, t);
@@ -1576,7 +1570,7 @@ impl<'m> Noder<'m> {
                 }
 
                 let type_spec = self.node_type_spec(module, &expr.type_spec);
-                let base_type = resolve_type(&type_spec);
+                let base_type = resolve_type(&self.tree.type_map, &type_spec);
                 let field_types = match base_type {
                     TypeSpec::Struct(ts) => ts.fields.clone(),
                     _ => panic!("invalid type for struct construction"),
@@ -2338,7 +2332,6 @@ mod tests {
                             TypeSpec::Int64,
                             TypeSpec::Named(NamedType {
                                 name: NodeID::new(2),
-                                type_spec: Box::new(TypeSpec::Int64),
                             }),
                         ],
                     },
@@ -2426,18 +2419,6 @@ mod tests {
                             }),
                             TypeSpec::Named(NamedType {
                                 name: NodeID::new(2),
-                                type_spec: Box::new(TypeSpec::Struct(StructType {
-                                    fields: vec![
-                                        StructTypeField {
-                                            name: StrID::from_usize(2),
-                                            type_spec: TypeSpec::Int32
-                                        },
-                                        StructTypeField {
-                                            name: StrID::from_usize(3),
-                                            type_spec: TypeSpec::Int32
-                                        },
-                                    ],
-                                })),
                             }),
                         ],
                     },
