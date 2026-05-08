@@ -149,21 +149,25 @@ pub fn compile_program(
     for module in &modules {
         line_count += module.line_count();
 
-        let import_path = module.root_dir().strip_prefix(&workspace)?;
-        let root = obj_dir.join(&project_name).join(import_path);
+        let rel_path = module.root_dir().strip_prefix(&workspace)?;
+        let root = obj_dir.join(&project_name).join(rel_path);
         fs::create_dir_all(&root)?;
 
         let mod_name = root.file_name().expect("failed to get module name");
         let mod_name = mod_name.to_string_lossy().to_string();
         println!("building module {:?}", &mod_name);
 
-        let compiler = Compiler::new(import_path.into(), mod_name.clone(), module);
+        let import_str = if rel_path.as_os_str().is_empty() {
+            project_name.clone()
+        } else {
+            format!("{}/{}", project_name, rel_path.to_string_lossy())
+        };
+        let import_id = str_store.get_id(&import_str);
+
+        let compiler = Compiler::new(import_str.as_str().into(), mod_name.clone(), module);
         let parse_module = compiler
             .parse(&mut str_store)
             .expect("failed to parse module");
-
-        let import_str = import_path.to_string_lossy();
-        let import_id = str_store.get_id(&import_str);
 
         ast_map.insert(import_id, parse_module);
         compiler_map.insert(import_id, compiler);

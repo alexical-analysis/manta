@@ -397,12 +397,7 @@ impl<'m> Noder<'m> {
                     .get(binding.id)
                     .expect("failed to find declaration name for named type spec");
 
-                let type_spec = self.node_type_spec(module, type_spec);
-                let type_spec = Box::new(type_spec);
-                TypeSpec::Named(NamedType {
-                    name: *name_id,
-                    type_spec,
-                })
+                TypeSpec::Named(NamedType { name: *name_id })
             }
             ast::TypeSpec::Pointer(t) => {
                 let inner = self.node_type_spec(module, t);
@@ -538,6 +533,7 @@ impl<'m> Noder<'m> {
 
                 let decl_id = self.add_root_node(Node::TypeDecl { ident: ident_id });
                 let type_spec = self.node_type_spec(module, &decl.type_spec);
+                self.tree.type_map.add(ident_id, type_spec.clone());
                 self.tree.type_map.add(decl_id, type_spec);
             }
             Decl::Const(decl) => {
@@ -1576,7 +1572,7 @@ impl<'m> Noder<'m> {
                 }
 
                 let type_spec = self.node_type_spec(module, &expr.type_spec);
-                let base_type = resolve_type(&type_spec);
+                let base_type = resolve_type(&type_spec, &self.tree);
                 let field_types = match base_type {
                     TypeSpec::Struct(ts) => ts.fields.clone(),
                     _ => panic!("invalid type for struct construction"),
@@ -2338,7 +2334,6 @@ mod tests {
                             TypeSpec::Int64,
                             TypeSpec::Named(NamedType {
                                 name: NodeID::new(2),
-                                type_spec: Box::new(TypeSpec::Int64),
                             }),
                         ],
                     },
@@ -2426,18 +2421,6 @@ mod tests {
                             }),
                             TypeSpec::Named(NamedType {
                                 name: NodeID::new(2),
-                                type_spec: Box::new(TypeSpec::Struct(StructType {
-                                    fields: vec![
-                                        StructTypeField {
-                                            name: StrID::from_usize(2),
-                                            type_spec: TypeSpec::Int32
-                                        },
-                                        StructTypeField {
-                                            name: StrID::from_usize(3),
-                                            type_spec: TypeSpec::Int32
-                                        },
-                                    ],
-                                })),
                             }),
                         ],
                     },

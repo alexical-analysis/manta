@@ -11,7 +11,7 @@ use crate::mir::{
     SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
 };
 use crate::noder::typer::resolve_type;
-use crate::noder::{Module, typer};
+use crate::noder::{Module, NodeTree, typer};
 use crate::str_store::{self, StrID};
 
 // Blocker lowers an HIR tree in it's entirety into a valid MirModule
@@ -278,9 +278,9 @@ impl<'a> Blocker<'a> {
                     .get_type(target)
                     .expect("missing type for field access target");
 
-                let base_type = resolve_type(type_spec);
+                let base_type = resolve_type(type_spec, &self.module.tree);
                 let fields = match base_type {
-                    hir::TypeSpec::Struct(s) => &s.fields,
+                    hir::TypeSpec::Struct(s) => s.fields,
                     _ => panic!("invalid target type for field access"),
                 };
 
@@ -450,7 +450,7 @@ impl<'a> Blocker<'a> {
                     .get_type(target)
                     .expect("missing type for discriminant");
 
-                let discriminant_type = typer::resolve_type(discriminant_type);
+                let discriminant_type = typer::resolve_type(discriminant_type, &self.module.tree);
                 match discriminant_type {
                     hir::TypeSpec::UInt8
                     | hir::TypeSpec::UInt16
@@ -772,7 +772,7 @@ impl<'a> Blocker<'a> {
 
             match pattern {
                 PatternNode::EnumVariant(pat) => {
-                    let variant_id = get_variant_tag(target_ts, pat.variant);
+                    let variant_id = get_variant_tag(target_ts, pat.variant, &self.module.tree);
 
                     let body = *body;
                     match pat.payload {
@@ -1141,7 +1141,7 @@ impl<'a> Blocker<'a> {
                     .get_type(node_id)
                     .expect("missing type for enum");
 
-                let tag_val = get_variant_tag(ts, variant);
+                let tag_val = get_variant_tag(ts, variant, &self.module.tree);
                 let payload_val = payload.map(|n| self.block_expression(block_id, n));
 
                 let ts = lower_type_spec(ts);
@@ -1241,7 +1241,9 @@ fn lower_type_spec(hir_ts: &hir::TypeSpec) -> TypeSpec {
                 })
                 .collect(),
         },
-        hir::TypeSpec::Named(nt) => lower_type_spec(&nt.type_spec),
+        hir::TypeSpec::Named(nt) => {
+            todo!("need to figure out named type spec lowering")
+        } //self.lower_type_spec(&nt.type_spec),
         // For function types we lower to the return type, since MirFunction tracks params
         // separately and mir::TypeSpec has no Function variant.
         hir::TypeSpec::Function(ft) => lower_type_spec(&ft.return_type),
@@ -1398,8 +1400,12 @@ fn tag_size_for(variant_count: usize) -> TagSize {
     }
 }
 
-fn get_variant_tag(type_spec: &hir::TypeSpec, variant_name: StrID) -> ConstValue {
-    match typer::resolve_type(type_spec) {
+fn get_variant_tag(
+    type_spec: &hir::TypeSpec,
+    variant_name: StrID,
+    node_tree: &NodeTree,
+) -> ConstValue {
+    match typer::resolve_type(type_spec, node_tree) {
         hir::TypeSpec::Enum(e) => {
             for (i, v) in e.variants.iter().enumerate() {
                 if variant_name == v.name {
