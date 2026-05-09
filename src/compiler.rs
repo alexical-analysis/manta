@@ -162,7 +162,10 @@ pub fn compile_program(
             .parse(&mut str_store)
             .expect("failed to parse module");
 
-        let import_str = import_path.to_string_lossy();
+        let import_str = match import_path.to_string_lossy().as_ref() {
+            "" => project_name.clone(),
+            rel => format!("{}/{}", project_name, rel),
+        };
         let import_id = str_store.get_id(&import_str);
 
         ast_map.insert(import_id, parse_module);
