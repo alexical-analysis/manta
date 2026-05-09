@@ -118,16 +118,9 @@ impl Typer {
                     _ => panic!("can not free memory of non-pointer type"),
                 }
             }
-            Node::TypeDecl { ident } => {
-                // TypeDecl nodes must have been pre-typed durring the node-ing phase
-                let type_spec = node_tree
-                    .type_map
-                    .get(node_id)
-                    .expect("missing type for type decl")
-                    .clone();
-
-                // the identifier is the underlying concreet type
-                node_tree.type_map.add(ident, type_spec)
+            Node::TypeDecl { .. } => {
+                // TypeDecl nodes must have been pre-typed during the node-ing phase.
+                // The ident's concrete type is also set during node-ing.
             }
             Node::ExternalTypeDecl { .. } => {
                 // external types are already typed
@@ -1127,13 +1120,6 @@ mod tests {
     use crate::hir::{EnumType, EnumVariant, NamedType};
     use crate::str_store::StrID;
 
-    // Helper: wrap a TypeSpec in a Named alias
-    fn named(ts: TypeSpec) -> TypeSpec {
-        TypeSpec::Named(NamedType {
-            name: NodeID::new(0),
-        })
-    }
-
     // Helper: build a concrete enum TypeSpec from a list of variants
     fn enum_type(variants: Vec<EnumVariant>) -> TypeSpec {
         TypeSpec::Enum(EnumType { variants })
@@ -1189,15 +1175,34 @@ mod tests {
 
     #[test]
     fn resolve_type_named_unwraps_once() {
-        let ts = named(TypeSpec::Int32);
-        let type_map = SideTable::new();
+        let mut type_map = SideTable::new();
+        type_map.add(NodeID::new(0), TypeSpec::Int32);
+        let ts = TypeSpec::Named(NamedType {
+            name: NodeID::new(0),
+        });
         assert_eq!(resolve_type(&type_map, &ts), TypeSpec::Int32);
     }
 
     #[test]
     fn resolve_type_named_nested_unwraps_fully() {
-        let ts = named(named(named(TypeSpec::Bool)));
-        let type_map = SideTable::new();
+        let mut type_map = SideTable::new();
+        type_map.add(
+            NodeID::new(0),
+            TypeSpec::Named(NamedType {
+                name: NodeID::new(1),
+            }),
+        );
+        type_map.add(
+            NodeID::new(1),
+            TypeSpec::Named(NamedType {
+                name: NodeID::new(2),
+            }),
+        );
+        type_map.add(NodeID::new(2), TypeSpec::Bool);
+
+        let ts = TypeSpec::Named(NamedType {
+            name: NodeID::new(0),
+        });
         assert_eq!(resolve_type(&type_map, &ts), TypeSpec::Bool);
     }
 
@@ -1252,10 +1257,29 @@ mod tests {
 
     #[test]
     fn is_numeric_type_resolves_named_alias() {
-        let type_map = SideTable::new();
-        assert!(is_numeric_type(&type_map, &named(TypeSpec::Int64)));
-        assert!(is_numeric_type(&type_map, &named(TypeSpec::Float32)));
-        assert!(!is_numeric_type(&type_map, &named(TypeSpec::Bool)));
+        let mut type_map = SideTable::new();
+        type_map.add(NodeID::new(0), TypeSpec::Int64);
+        type_map.add(NodeID::new(1), TypeSpec::Float32);
+        type_map.add(NodeID::new(2), TypeSpec::Bool);
+
+        assert!(is_numeric_type(
+            &type_map,
+            &TypeSpec::Named(NamedType {
+                name: NodeID::new(0)
+            })
+        ));
+        assert!(is_numeric_type(
+            &type_map,
+            &TypeSpec::Named(NamedType {
+                name: NodeID::new(1)
+            })
+        ));
+        assert!(!is_numeric_type(
+            &type_map,
+            &TypeSpec::Named(NamedType {
+                name: NodeID::new(2)
+            })
+        ));
     }
 
     // -------------------------------------------------------------------------
@@ -1284,9 +1308,22 @@ mod tests {
 
     #[test]
     fn is_bool_type_resolves_named_alias() {
-        let type_map = SideTable::new();
-        assert!(is_bool_type(&type_map, &named(TypeSpec::Bool)));
-        assert!(!is_bool_type(&type_map, &named(TypeSpec::Int32)));
+        let mut type_map = SideTable::new();
+        type_map.add(NodeID::new(0), TypeSpec::Bool);
+        assert!(is_bool_type(
+            &type_map,
+            &TypeSpec::Named(NamedType {
+                name: NodeID::new(0)
+            })
+        ));
+
+        type_map.add(NodeID::new(1), TypeSpec::Int32);
+        assert!(!is_bool_type(
+            &type_map,
+            &TypeSpec::Named(NamedType {
+                name: NodeID::new(1)
+            })
+        ));
     }
 
     // -------------------------------------------------------------------------
@@ -1331,9 +1368,22 @@ mod tests {
 
     #[test]
     fn is_natural_number_resolves_named_alias() {
-        let type_map = SideTable::new();
-        assert!(is_natural_number(&type_map, &named(TypeSpec::UInt64)));
-        assert!(!is_natural_number(&type_map, &named(TypeSpec::Int64)));
+        let mut type_map = SideTable::new();
+        type_map.add(NodeID::new(0), TypeSpec::UInt64);
+        type_map.add(NodeID::new(1), TypeSpec::Int64);
+
+        assert!(is_natural_number(
+            &type_map,
+            &TypeSpec::Named(NamedType {
+                name: NodeID::new(0)
+            })
+        ));
+        assert!(!is_natural_number(
+            &type_map,
+            &TypeSpec::Named(NamedType {
+                name: NodeID::new(1)
+            })
+        ));
     }
 
     // -------------------------------------------------------------------------
@@ -1750,9 +1800,13 @@ mod tests {
     #[test]
     fn match_enum_resolves_named_enum_alias() {
         let v_id = 1;
-        let known = named(enum_type(vec![variant(v_id)]));
+        let mut type_map = SideTable::new();
+        type_map.add(NodeID::new(0), enum_type(vec![variant(v_id)]));
+
+        let known = TypeSpec::Named(NamedType {
+            name: NodeID::new(0),
+        });
         let unknown = inferred_enum_expr(v_id);
-        let type_map = SideTable::new();
         assert!(matches!(
             match_enum_expr(&type_map, &known, &unknown),
             TypeMatch::Inference(_)

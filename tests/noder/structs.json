@@ -1,0 +1,547 @@
+{
+  "nodes": [
+    {
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551590
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551589
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 3
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 10
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 13
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 18446744073709551588
+      }
+    },
+    {
+      "TypeDecl": {
+        "ident": "2"
+      }
+    },
+    {
+      "TypeDecl": {
+        "ident": "3"
+      }
+    },
+    {
+      "IntLiteral": 2
+    },
+    {
+      "Return": {
+        "value": "8"
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          "9"
+        ]
+      }
+    },
+    {
+      "FunctionDecl": {
+        "public": false,
+        "ident": "4",
+        "params": [],
+        "body": "10"
+      }
+    },
+    {
+      "IntLiteral": 10
+    },
+    {
+      "StructConstructorField": {
+        "name": 6,
+        "value": "12"
+      }
+    },
+    {
+      "IntLiteral": 20
+    },
+    {
+      "StructConstructorField": {
+        "name": 7,
+        "value": "14"
+      }
+    },
+    {
+      "IntLiteral": 30
+    },
+    {
+      "StructConstructorField": {
+        "name": 8,
+        "value": "16"
+      }
+    },
+    {
+      "StructConstructor": {
+        "fields": [
+          "13",
+          "15",
+          "17"
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 19
+      }
+    },
+    {
+      "VarDecl": {
+        "public": false,
+        "ident": "19"
+      }
+    },
+    {
+      "Assign": {
+        "target": "19",
+        "value": "18"
+      }
+    },
+    {
+      "IntLiteral": 128
+    },
+    {
+      "StructConstructorField": {
+        "name": 6,
+        "value": "22"
+      }
+    },
+    {
+      "FieldAccess": {
+        "target": "19",
+        "field": 6
+      }
+    },
+    {
+      "IntLiteral": 5
+    },
+    {
+      "Binary": {
+        "left": "24",
+        "operator": "Add",
+        "right": "25"
+      }
+    },
+    {
+      "StructConstructorField": {
+        "name": 7,
+        "value": "26"
+      }
+    },
+    {
+      "StructConstructor": {
+        "fields": [
+          "23",
+          "27"
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 26
+      }
+    },
+    {
+      "VarDecl": {
+        "public": false,
+        "ident": "29"
+      }
+    },
+    {
+      "Assign": {
+        "target": "29",
+        "value": "28"
+      }
+    },
+    {
+      "FieldAccess": {
+        "target": "29",
+        "field": 7
+      }
+    },
+    {
+      "IntLiteral": 2
+    },
+    {
+      "Binary": {
+        "left": "32",
+        "operator": "Divide",
+        "right": "33"
+      }
+    },
+    {
+      "Call": {
+        "func": "4",
+        "args": []
+      }
+    },
+    {
+      "Binary": {
+        "left": "34",
+        "operator": "Add",
+        "right": "35"
+      }
+    },
+    {
+      "StructConstructorField": {
+        "name": 6,
+        "value": "36"
+      }
+    },
+    {
+      "FloatLiteral": 3.1415
+    },
+    {
+      "StructConstructorField": {
+        "name": 7,
+        "value": "38"
+      }
+    },
+    {
+      "FieldAccess": {
+        "target": "19",
+        "field": 8
+      }
+    },
+    {
+      "IntLiteral": 1000
+    },
+    {
+      "Binary": {
+        "left": "40",
+        "operator": "Add",
+        "right": "41"
+      }
+    },
+    {
+      "StructConstructorField": {
+        "name": 8,
+        "value": "42"
+      }
+    },
+    {
+      "StructConstructor": {
+        "fields": [
+          "37",
+          "39",
+          "43"
+        ]
+      }
+    },
+    {
+      "Identifier": {
+        "module": null,
+        "name": 31
+      }
+    },
+    {
+      "VarDecl": {
+        "public": false,
+        "ident": "45"
+      }
+    },
+    {
+      "Assign": {
+        "target": "45",
+        "value": "44"
+      }
+    },
+    {
+      "FieldAccess": {
+        "target": "45",
+        "field": 6
+      }
+    },
+    {
+      "Return": {
+        "value": "48"
+      }
+    },
+    {
+      "Block": {
+        "statements": [
+          "20",
+          "21",
+          "30",
+          "31",
+          "46",
+          "47",
+          "49"
+        ]
+      }
+    },
+    {
+      "FunctionDecl": {
+        "public": false,
+        "ident": "5",
+        "params": [],
+        "body": "50"
+      }
+    }
+  ],
+  "type_map": {
+    "keys": {
+      "0": 0,
+      "1": 1,
+      "2": 4,
+      "3": 6,
+      "4": 2,
+      "5": 3,
+      "6": 5,
+      "7": 7,
+      "8": 15,
+      "9": 14,
+      "10": 13,
+      "11": 8,
+      "12": 19,
+      "13": 20,
+      "14": 21,
+      "15": 22,
+      "16": 23,
+      "17": 24,
+      "18": 9,
+      "19": 25,
+      "20": 17,
+      "21": 18,
+      "22": 28,
+      "23": 29,
+      "24": 30,
+      "25": 31,
+      "26": 32,
+      "27": 33,
+      "28": 10,
+      "29": 34,
+      "30": 26,
+      "31": 27,
+      "32": 37,
+      "33": 38,
+      "34": 39,
+      "35": 40,
+      "36": 41,
+      "37": 42,
+      "38": 43,
+      "39": 44,
+      "40": 45,
+      "41": 46,
+      "42": 47,
+      "43": 48,
+      "44": 11,
+      "45": 49,
+      "46": 35,
+      "47": 36,
+      "48": 51,
+      "49": 50,
+      "50": 16,
+      "51": 12
+    },
+    "values": [
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": "Unit"
+        }
+      },
+      {
+        "Function": {
+          "params": [
+            "String"
+          ],
+          "return_type": "Unit"
+        }
+      },
+      {
+        "Function": {
+          "params": [],
+          "return_type": "Int32"
+        }
+      },
+      {
+        "Function": {
+          "params": [],
+          "return_type": "Int32"
+        }
+      },
+      {
+        "Struct": {
+          "fields": [
+            {
+              "name": 6,
+              "type_spec": "Int32"
+            },
+            {
+              "name": 7,
+              "type_spec": "Float64"
+            },
+            {
+              "name": 8,
+              "type_spec": "UInt64"
+            }
+          ]
+        }
+      },
+      {
+        "Named": {
+          "name": "2"
+        }
+      },
+      {
+        "Struct": {
+          "fields": [
+            {
+              "name": 6,
+              "type_spec": "UInt8"
+            },
+            {
+              "name": 7,
+              "type_spec": "Int32"
+            }
+          ]
+        }
+      },
+      {
+        "Named": {
+          "name": "3"
+        }
+      },
+      {
+        "Function": {
+          "params": [],
+          "return_type": "Int32"
+        }
+      },
+      {
+        "Named": {
+          "name": "2"
+        }
+      },
+      {
+        "Named": {
+          "name": "3"
+        }
+      },
+      {
+        "Named": {
+          "name": "2"
+        }
+      },
+      {
+        "Function": {
+          "params": [],
+          "return_type": "Int32"
+        }
+      },
+      "Unit",
+      "Unit",
+      "Int32",
+      "Unit",
+      "Unit",
+      "Unit",
+      "Int32",
+      "Int32",
+      "Float64",
+      "Float64",
+      "UInt64",
+      "UInt64",
+      {
+        "Named": {
+          "name": "2"
+        }
+      },
+      "Unit",
+      "Unit",
+      "UInt8",
+      "UInt8",
+      "Int32",
+      "Int32",
+      "Int32",
+      "Int32",
+      {
+        "Named": {
+          "name": "3"
+        }
+      },
+      "Unit",
+      "Unit",
+      "Int32",
+      "Int32",
+      "Int32",
+      "Int32",
+      "Int32",
+      "Int32",
+      "Float64",
+      "Float64",
+      "UInt64",
+      "UInt64",
+      "UInt64",
+      "UInt64",
+      {
+        "Named": {
+          "name": "2"
+        }
+      },
+      "Unit",
+      "Int32"
+    ]
+  },
+  "symbol_map": {
+    "keys": {
+      "12": 0,
+      "13": 1,
+      "14": 2,
+      "15": 3,
+      "16": 4,
+      "17": 5,
+      "18": 6,
+      "19": 7,
+      "20": 8
+    },
+    "values": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "19",
+      "29",
+      "45"
+    ]
+  },
+  "name": 18446744073709551588,
+  "roots": [
+    "6",
+    "7",
+    "11",
+    "51"
+  ],
+  "public_decls": {}
+}
