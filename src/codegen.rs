@@ -563,11 +563,12 @@ impl<'ctx> Codegen<'ctx> {
                     TypeSpec::Ptr(_) => todo!("pointer comparison is not yet supported"),
                     TypeSpec::OpaquePtr => todo!("opaque pointer comparison is not yet supported"),
                     TypeSpec::Array { .. } => todo!("array comparison is not yet supported"),
-                    TypeSpec::String => todo!(),
-                    TypeSpec::Slice { .. } => todo!(),
-                    TypeSpec::Struct(_) => todo!(),
-                    TypeSpec::Enum { .. } => todo!(),
+                    TypeSpec::String => todo!("string types equality check"),
+                    TypeSpec::Slice { .. } => todo!("slice types equality check"),
+                    TypeSpec::Struct(_) => todo!("struct type equality check"),
+                    TypeSpec::Enum { .. } => todo!("enum type equality check"),
                     TypeSpec::Unit => panic!("can not compare unit types"),
+                    TypeSpec::Named(_) => todo!("named types equality checks"),
                 }
             }
             Instruction::NotEqual { lhs, rhs } => {
@@ -586,11 +587,12 @@ impl<'ctx> Codegen<'ctx> {
                     TypeSpec::Ptr(_) => todo!("pointer comparison is not yet supported"),
                     TypeSpec::OpaquePtr => todo!("opaque pointer comparison is not yet supported"),
                     TypeSpec::Array { .. } => todo!("array comparison is not yet supported"),
-                    TypeSpec::String => todo!(),
-                    TypeSpec::Slice { .. } => todo!(),
-                    TypeSpec::Struct(_) => todo!(),
-                    TypeSpec::Enum { .. } => todo!(),
+                    TypeSpec::String => todo!("string types not-equal check"),
+                    TypeSpec::Slice { .. } => todo!("slice types not-equal check"),
+                    TypeSpec::Struct(_) => todo!("struct types not-equal check"),
+                    TypeSpec::Enum { .. } => todo!("enum types not-equal check"),
                     TypeSpec::Unit => panic!("can not compare unit types"),
+                    TypeSpec::Named(_) => todo!("named types not-equal check"),
                 }
             }
             Instruction::SLessThan { lhs, rhs } => {

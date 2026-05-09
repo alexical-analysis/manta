@@ -1242,14 +1242,7 @@ impl<'a> Blocker<'a> {
                     })
                     .collect(),
             },
-            hir::TypeSpec::Named(nt) => {
-                let type_spec = self
-                    .module
-                    .tree
-                    .get_type(nt.name)
-                    .expect("failed to find named type spec");
-                self.lower_type_spec(&type_spec)
-            }
+            hir::TypeSpec::Named(nt) => TypeSpec::Named(nt.name),
             // For function types we lower to the return type, since MirFunction tracks params
             // separately and mir::TypeSpec has no Function variant.
             hir::TypeSpec::Function(ft) => self.lower_type_spec(&ft.return_type),
@@ -1351,6 +1344,7 @@ pub fn type_layout(ts: &TypeSpec, arch: Arch) -> Layout {
             });
             Layout { size, align }
         }
+        TypeSpec::Named(_) => todo!("type layout for named types"),
     }
 }
 

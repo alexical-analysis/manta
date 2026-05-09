@@ -48,6 +48,8 @@ pub enum TypeSpec {
     /// The blocker maintains a name→index mapping for field access.
     Struct(Vec<TypeSpec>),
 
+    Named(NodeID),
+
     /// Layout for an enum type. Variants are indexed by variant_id; `None` means a unit variant
     /// (no payload). The discriminant size defaults to a u8 but may be larger in cases where there
     /// are more than 256 variants
