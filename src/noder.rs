@@ -530,6 +530,9 @@ impl<'m> Noder<'m> {
                     .get(binding.id)
                     .expect("type not pre-registered in symbol_map");
 
+                let type_spec = self.node_type_spec(module, &decl.type_spec);
+                self.tree.type_map.add(ident_id, type_spec);
+
                 let decl_id = self.add_root_node(Node::TypeDecl { ident: ident_id });
                 self.tree
                     .type_map
@@ -2318,8 +2321,8 @@ mod tests {
                         keys: BTreeMap::from([
                             (NodeID::new(0), 0),
                             (NodeID::new(1), 1),
-                            (NodeID::new(2), 3),
-                            (NodeID::new(3), 2),
+                            (NodeID::new(3), 3),
+                            (NodeID::new(2), 2),
                         ]),
                         values: vec![
                             TypeSpec::Function(FunctionType {
@@ -2394,8 +2397,8 @@ mod tests {
                         keys: BTreeMap::from([
                             (NodeID::new(0), 0),
                             (NodeID::new(1), 1),
-                            (NodeID::new(2), 3),
-                            (NodeID::new(3), 2),
+                            (NodeID::new(2), 2),
+                            (NodeID::new(3), 3),
                         ]),
                         values: vec![
                             TypeSpec::Function(FunctionType {
