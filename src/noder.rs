@@ -1670,13 +1670,13 @@ impl<'m> Noder<'m> {
                             payload: None,
                         });
                         // Look up the enum type from the symbol map
-                        if let Some(type_decl_id) = self.tree.symbol_map.get(binding.id)
-                            && let Some(enum_type) = self.tree.type_map.get(*type_decl_id)
-                        {
-                            self.tree
-                                .type_map
-                                .add(enum_constructor_id, enum_type.clone());
-                        }
+                        // if let Some(type_decl_id) = self.tree.symbol_map.get(binding.id)
+                        //     && let Some(enum_type) = self.tree.type_map.get(*type_decl_id)
+                        // {
+                        //     self.tree
+                        //         .type_map
+                        //         .add(enum_constructor_id, enum_type.clone());
+                        // }
                         enum_constructor_id
                     }
                     _ => {

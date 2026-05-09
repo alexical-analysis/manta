@@ -310,13 +310,15 @@ impl Typer {
                                 let pay_id = self.type_expr_node(node_tree, p);
                                 match match_types(&node_tree.type_map, &pay_id, ts) {
                                     TypeMatch::ExactType => {
-                                        node_tree.type_map.add(node_id, target_ts.clone());
-                                        target_ts
+                                        let named_type = TypeSpec::Named(NamedType { name: t });
+                                        node_tree.type_map.add(node_id, named_type.clone());
+                                        named_type
                                     }
                                     TypeMatch::Inference(ts) => {
                                         node_tree.type_map.set(p, ts);
-                                        node_tree.type_map.add(node_id, target_ts.clone());
-                                        target_ts
+                                        let named_type = TypeSpec::Named(NamedType { name: t });
+                                        node_tree.type_map.add(node_id, named_type.clone());
+                                        named_type
                                     }
                                     TypeMatch::InferenceFailed => {
                                         panic!("invalid type for variant payload")
@@ -333,8 +335,9 @@ impl Typer {
                                 panic!("variant was not expecing a payload but one was given")
                             }
                             (None, None) => {
-                                node_tree.type_map.add(node_id, target_ts.clone());
-                                target_ts
+                                let named_type = TypeSpec::Named(NamedType { name: t });
+                                node_tree.type_map.add(node_id, named_type.clone());
+                                named_type
                             }
                         },
                         FoundVariant::None => panic!("failed to find variant for enum type"),
