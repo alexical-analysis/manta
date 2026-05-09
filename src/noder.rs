@@ -531,8 +531,9 @@ impl<'m> Noder<'m> {
                     .expect("type not pre-registered in symbol_map");
 
                 let decl_id = self.add_root_node(Node::TypeDecl { ident: ident_id });
-                let type_spec = self.node_type_spec(module, &decl.type_spec);
-                self.tree.type_map.add(decl_id, type_spec);
+                self.tree
+                    .type_map
+                    .add(decl_id, TypeSpec::Named(NamedType { name: ident_id }));
             }
             Decl::Const(decl) => {
                 let scope_pos = module
