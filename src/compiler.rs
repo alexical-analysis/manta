@@ -259,7 +259,8 @@ impl<'fs> Compiler<'fs> {
     pub fn parse(&self, str_store: &mut StrStore) -> Result<ParseModule, Box<dyn Error>> {
         println!("building ast module...");
         let parser = Parser::new(self.file_set);
-        let module = parser.parse_module(str_store);
+        let is_root = self.import_path.as_os_str().is_empty();
+        let module = parser.parse_module(str_store, is_root);
 
         if !module.get_errors().is_empty() {
             panic!("errors in the parser: {:?}", module.get_errors())

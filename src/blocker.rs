@@ -1459,7 +1459,7 @@ mod tests {
         let file = File::new(file_name.to_string(), source);
         let file_set = FileSet::new_from_files(PathBuf::new(), vec![file]);
         let parser = Parser::new(&file_set);
-        let module = parser.parse_module(&mut str_store);
+        let module = parser.parse_module(&mut str_store, true);
 
         let mod_map = HashMap::new();
         let noder = Noder::new(&[], &mod_map);
