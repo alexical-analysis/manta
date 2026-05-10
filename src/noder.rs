@@ -1925,7 +1925,7 @@ mod tests {
         let file = File::new(file_name.to_string(), source);
         let file_set = FileSet::new_from_files(std::path::PathBuf::new(), vec![file]);
         let parser = Parser::new(&file_set);
-        let module = parser.parse_module(&mut str_store);
+        let module = parser.parse_module(&mut str_store, true);
 
         let mod_map = HashMap::new();
         let noder = Noder::new(&[], &mod_map);
@@ -2010,7 +2010,7 @@ mod tests {
                     // Build module from provided declaration
                     let decl = $decl;
                     let mod_decl = Decl::Mod(ModDecl { name: StrID::from_usize(1) });
-                    let module = ParseModule::new(vec![ParserFile::new(vec![], vec![mod_decl, decl])]);
+                    let module = ParseModule::new(vec![ParserFile::new(vec![], vec![mod_decl, decl])], true);
 
                     let mod_map = HashMap::new();
                     let noder = Noder::new(&[], &mod_map);

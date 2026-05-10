@@ -293,7 +293,7 @@ pub struct Module {
 }
 
 impl Module {
-    pub fn new(mut files: Vec<File>) -> Self {
+    pub fn new(mut files: Vec<File>, is_root: bool) -> Self {
         let mut decls = vec![];
         let mut errors = vec![];
         let mut using_modules = vec![];
@@ -333,6 +333,23 @@ impl Module {
             Some(n) => n,
             None => str_store::NIL,
         };
+
+        if !is_root {
+            for decl in &decls {
+                if let Decl::Function(f) = decl {
+                    if f.name == str_store::MAIN {
+                        errors.push(ParseError::Custom(
+                            Token {
+                                kind: TokenKind::Identifier,
+                                source_id: SourceID::from_usize(0),
+                                lexeme_id: StrID::from_usize(0),
+                            },
+                            "only the root module may define a main function".to_string(),
+                        ));
+                    }
+                }
+            }
+        }
 
         let sym_table = Self::build_sym_table(&mut errors, &decls);
 

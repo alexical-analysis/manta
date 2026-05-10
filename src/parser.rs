@@ -42,7 +42,7 @@ impl<'fs> Parser<'fs> {
     }
 
     /// Parse a Manta module
-    pub fn parse_module(&self, str_store: &mut StrStore) -> Module {
+    pub fn parse_module(&self, str_store: &mut StrStore, is_root: bool) -> Module {
         let mut files = vec![];
 
         for file in self.file_set.files() {
@@ -50,7 +50,7 @@ impl<'fs> Parser<'fs> {
             files.push(parsed)
         }
 
-        Module::new(files)
+        Module::new(files, is_root)
     }
 
     fn parse_file(&self, str_store: &mut StrStore, source: &String, base: usize) -> File {
@@ -113,7 +113,7 @@ mod tests {
         let file = File::new(file_name.to_string(), source);
         let file_set = FileSet::new_from_files(std::path::PathBuf::new(), vec![file]);
         let parser = Parser::new(&file_set);
-        let ast = parser.parse_module(&mut str_store);
+        let ast = parser.parse_module(&mut str_store, true);
 
         let json_output =
             serde_json::to_string_pretty(&ast).expect("Failed to serialize AST to JSON");
