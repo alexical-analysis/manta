@@ -8,7 +8,7 @@ use crate::str_store::StrID;
 // This is a desugared, simplified version of the AST with a single node type.
 
 /// NodeID is the unique identifier for a gien node in the HIR tree
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Copy, Clone, Hash)]
 pub struct NodeID {
     id: u32,
 }

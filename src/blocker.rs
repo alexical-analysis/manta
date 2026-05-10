@@ -1,33 +1,38 @@
 mod builder;
+pub mod types;
 
 use std::collections::BTreeMap;
 
 use builder::{Cfg, FunctionBuilder};
 
 use crate::ast::{BinaryOp, UnaryOp};
+use crate::blocker::types::TypeContext;
 use crate::hir::{self, Node, NodeID, PatternNode};
 use crate::mir::{
     BlockId, ConstValue, Global, GlobalId, MirFunction, MirModule, Place, PlaceBase, Projection,
-    SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
+    SwitchArm, TagSize, Terminator, TypeSpec, TypeValue, ValueId,
 };
 use crate::noder::typer::resolve_type;
-use crate::noder::{Module, NodeTree, SideTable, typer};
+use crate::noder::{Module, SideTable, typer};
 use crate::str_store::{self, StrID};
 
 // Blocker lowers an HIR tree in it's entirety into a valid MirModule
-pub struct Blocker<'a> {
+pub struct Blocker<'ctx, 'a> {
+    type_context: &'ctx mut TypeContext,
     globals: Vec<Global>, // Indexed by GlobalId
     global_map: BTreeMap<NodeID, GlobalId>,
     module: &'a Module,
     fn_builder: FunctionBuilder,
 }
 
-impl<'a> Blocker<'a> {
-    pub fn new(module: &'a Module) -> Self {
+impl<'ctx, 'a> Blocker<'ctx, 'a> {
+    pub fn new(type_context: &'ctx mut TypeContext, module: &'a Module) -> Self {
         // create the init function builder to start, it needs to be public so it can be run from the
         // main projects init function
-        let fn_builder = FunctionBuilder::new_public(str_store::INIT, TypeSpec::Unit);
+        let unit_type = type_context.type_unit();
+        let fn_builder = FunctionBuilder::new_public(str_store::INIT, unit_type);
         Blocker {
+            type_context,
             globals: vec![],
             global_map: BTreeMap::new(),
             module,
@@ -58,7 +63,7 @@ impl<'a> Blocker<'a> {
             }
         }
 
-        MirModule::new(self.globals, init, functions)
+        MirModule::new(self.globals, init, self.type_context, functions)
     }
 
     fn block_function(&mut self, node_id: NodeID) -> Option<MirFunction> {
@@ -76,8 +81,8 @@ impl<'a> Blocker<'a> {
                 body,
             } => {
                 let name = self.get_ident_name(ident);
-                let return_type = match self.module.tree.get_type(node_id) {
-                    Some(ts) => self.lower_type_spec(ts),
+                let return_type = match self.type_map.get_node_type_id(node_id) {
+                    Some(ts) => ts,
                     None => panic!("missing type for function decl"),
                 };
 
@@ -101,7 +106,7 @@ impl<'a> Blocker<'a> {
                     let name = self.get_ident_name(*ident);
 
                     let ts = match self.module.tree.get_type(*ident) {
-                        Some(ts) => self.lower_type_spec(ts),
+                        Some(ts) => self.type_map.get_node_type_id(*ident),
                         None => panic!("missing type for function param"),
                     };
 
@@ -223,7 +228,7 @@ impl<'a> Blocker<'a> {
         }
     }
 
-    fn add_global(&mut self, node: NodeID, public: bool, name: StrID, type_spec: TypeSpec) {
+    fn add_global(&mut self, node: NodeID, public: bool, name: StrID, type_spec: TypeValue) {
         let global = Global {
             public,
             name,
@@ -322,7 +327,7 @@ impl<'a> Blocker<'a> {
                 // in the first place
                 let value = self.fn_builder.emit_const(
                     block_id,
-                    TypeSpec::String,
+                    TypeValue::String,
                     ConstValue::String(str_store::UNDERSCORE),
                 );
                 self.fn_builder
@@ -1046,7 +1051,7 @@ impl<'a> Blocker<'a> {
                 // This is necessary because int literals can technically be coerced into floating point types
                 // in certian situations.
                 let const_value = match ts {
-                    TypeSpec::F32 | TypeSpec::F64 => ConstValue::Float(i as f64),
+                    TypeValue::F32 | TypeValue::F64 => ConstValue::Float(i as f64),
                     _ => ConstValue::Int(i as u64),
                 };
                 self.fn_builder.emit_const(block_id, ts, const_value)
@@ -1055,7 +1060,7 @@ impl<'a> Blocker<'a> {
                 // This is necessary because int literals can technically be coerced into floating point types
                 // in certian situations.
                 let const_value = match ts {
-                    TypeSpec::F32 | TypeSpec::F64 => ConstValue::Float(i as f64),
+                    TypeValue::F32 | TypeValue::F64 => ConstValue::Float(i as f64),
                     _ => ConstValue::Int(i),
                 };
                 self.fn_builder.emit_const(block_id, ts, const_value)
@@ -1186,7 +1191,8 @@ impl<'a> Blocker<'a> {
                     ConstValue::Int(layout.align),
                     ConstValue::Int(0), // flags reserved for future use
                 ]);
-                let meta_type = TypeSpec::Struct(vec![TypeSpec::I64, TypeSpec::I64, TypeSpec::I64]);
+                let meta_type =
+                    TypeValue::Struct(vec![TypeValue::I64, TypeValue::I64, TypeValue::I64]);
                 self.fn_builder.emit_const(block_id, meta_type, meta_value)
             }
             Node::Alloc { meta_type, .. } => {
@@ -1201,51 +1207,83 @@ impl<'a> Blocker<'a> {
         }
     }
 
-    fn lower_type_spec(&self, hir_ts: &hir::TypeSpec) -> TypeSpec {
+    fn lower_type_spec(
+        &self,
+        type_map: &mut TypeBuilder,
+        node_id: Option<NodeID>,
+        hir_ts: &hir::TypeSpec,
+    ) -> TypeSpec {
         match hir_ts {
-            hir::TypeSpec::Int8 => TypeSpec::I8,
-            hir::TypeSpec::Int16 => TypeSpec::I16,
-            hir::TypeSpec::Int32 => TypeSpec::I32,
-            hir::TypeSpec::Int64 => TypeSpec::I64,
-            hir::TypeSpec::UInt8 => TypeSpec::I8,
-            hir::TypeSpec::UInt16 => TypeSpec::I16,
-            hir::TypeSpec::UInt32 => TypeSpec::I32,
-            hir::TypeSpec::UInt64 => TypeSpec::I64,
-            hir::TypeSpec::Float32 => TypeSpec::F32,
-            hir::TypeSpec::Float64 => TypeSpec::F64,
-            hir::TypeSpec::Bool => TypeSpec::Bool,
+            hir::TypeSpec::Int8 => type_map.type_i8(node_id),
+            hir::TypeSpec::Int16 => type_map.type_i16(node_id),
+            hir::TypeSpec::Int32 => type_map.type_i32(node_id),
+            hir::TypeSpec::Int64 => type_map.type_i64(node_id),
+            hir::TypeSpec::UInt8 => type_map.type_i8(node_id),
+            hir::TypeSpec::UInt16 => type_map.type_i16(node_id),
+            hir::TypeSpec::UInt32 => type_map.type_i32(node_id),
+            hir::TypeSpec::UInt64 => type_map.type_i64(node_id),
+            hir::TypeSpec::Float32 => type_map.type_f32(node_id),
+            hir::TypeSpec::Float64 => type_map.type_f64(node_id),
+            hir::TypeSpec::Bool => type_map.type_bool(node_id),
+            hir::TypeSpec::String => type_map.type_str(node_id),
+            hir::TypeSpec::UnsafePtr => type_map.type_opaque_ptr(node_id),
             // panic types become unit types because the CFG lets us explicitly represent the control
             // flow of a panic.
-            hir::TypeSpec::Unit | hir::TypeSpec::Panic => TypeSpec::Unit,
-            hir::TypeSpec::String => TypeSpec::String,
-            hir::TypeSpec::Pointer(inner) => TypeSpec::Ptr(Box::new(self.lower_type_spec(inner))),
-            hir::TypeSpec::UnsafePtr => TypeSpec::OpaquePtr,
-            hir::TypeSpec::Slice(inner) => TypeSpec::Slice(Box::new(self.lower_type_spec(inner))),
-            hir::TypeSpec::Array(at) => TypeSpec::Array {
-                elem: Box::new(self.lower_type_spec(&at.type_spec)),
-                len: at.size,
-            },
-            hir::TypeSpec::Struct(st) => TypeSpec::Struct(
-                st.fields
+            hir::TypeSpec::Unit | hir::TypeSpec::Panic => type_map.type_unit(node_id),
+            hir::TypeSpec::Pointer(inner) => {
+                let inner = self.lower_type_spec(type_map, None, inner);
+                type_map.add_type_spec(node_id, TypeValue::Ptr(inner))
+            }
+            hir::TypeSpec::Slice(inner) => {
+                let inner = self.lower_type_spec(type_map, None, inner);
+                type_map.add_type_spec(node_id, TypeValue::Slice(inner))
+            }
+            hir::TypeSpec::Array(at) => {
+                let elem = self.lower_type_spec(type_map, None, &at.type_spec);
+                type_map.add_type_spec(node_id, TypeValue::Array { elem, len: at.size })
+            }
+            hir::TypeSpec::Struct(st) => {
+                let fields = st
+                    .fields
                     .iter()
-                    .map(|f| self.lower_type_spec(&f.type_spec))
-                    .collect(),
-            ),
-            hir::TypeSpec::Enum(et) => TypeSpec::Enum {
-                tag_size: tag_size_for(et.variants.len()),
-                variants: et
+                    .map(|f| self.lower_type_spec(type_map, None, &f.type_spec))
+                    .collect();
+
+                type_map.add_type_spec(node_id, TypeValue::Struct(fields))
+            }
+            hir::TypeSpec::Enum(et) => {
+                let variants = et
                     .variants
                     .iter()
                     .map(|v| match v.payload.as_ref() {
-                        Some(ts) => self.lower_type_spec(ts),
-                        None => TypeSpec::Unit,
+                        Some(ts) => self.lower_type_spec(type_map, None, ts),
+                        None => type_map.type_unit(node_id),
                     })
-                    .collect(),
-            },
-            hir::TypeSpec::Named(nt) => TypeSpec::Named(nt.name),
+                    .collect();
+
+                type_map.add_type_spec(
+                    node_id,
+                    TypeValue::Enum {
+                        tag_size: tag_size_for(et.variants.len()),
+                        variants,
+                    },
+                )
+            }
+            hir::TypeSpec::Named(nt) => {
+                let inner = match type_map.get_node_type_id(nt.name) {
+                    Some(id) => id,
+                    None => {
+                        let id = type_map.add_empty_type_spec();
+                        type_map.map_node_type_id(nt.name, id);
+                        id
+                    }
+                };
+
+                type_map.add_type_spec(node_id, TypeValue::Named(inner))
+            }
             // For function types we lower to the return type, since MirFunction tracks params
             // separately and mir::TypeSpec has no Function variant.
-            hir::TypeSpec::Function(ft) => self.lower_type_spec(&ft.return_type),
+            hir::TypeSpec::Function(ft) => self.lower_type_spec(type_map, node_id, &ft.return_type),
             hir::TypeSpec::Any
             | hir::TypeSpec::IntLiteral(_)
             | hir::TypeSpec::UIntLiteral(_)
@@ -1291,30 +1329,30 @@ impl Arch {
 }
 
 /// Returns the layout for a MIR TypeSpec on the given target architecture.
-pub fn type_layout(ts: &TypeSpec, arch: Arch) -> Layout {
+pub fn type_layout(ts: &TypeValue, arch: Arch) -> Layout {
     // TODO: need to support sizes of less than 1 byte for packed structs
     let ptr = arch.ptr_size();
     match ts {
-        TypeSpec::Bool | TypeSpec::I8 => Layout { size: 1, align: 1 },
-        TypeSpec::I16 => Layout { size: 2, align: 2 },
-        TypeSpec::I32 | TypeSpec::F32 => Layout { size: 4, align: 4 },
-        TypeSpec::I64 | TypeSpec::F64 => Layout { size: 8, align: 8 },
-        TypeSpec::Ptr(_) | TypeSpec::OpaquePtr => Layout {
+        TypeValue::Bool | TypeValue::I8 => Layout { size: 1, align: 1 },
+        TypeValue::I16 => Layout { size: 2, align: 2 },
+        TypeValue::I32 | TypeValue::F32 => Layout { size: 4, align: 4 },
+        TypeValue::I64 | TypeValue::F64 => Layout { size: 8, align: 8 },
+        TypeValue::Ptr(_) | TypeValue::OpaquePtr => Layout {
             size: ptr,
             align: ptr,
         },
         // String is a fat pointer: { ptr: *u8, len: usize }
-        TypeSpec::String => Layout {
+        TypeValue::String => Layout {
             size: ptr * 2,
             align: ptr,
         },
         // Slice is a fat pointer: { ptr: *T, len: usize, cap: usize }
-        TypeSpec::Slice(_) => Layout {
+        TypeValue::Slice(_) => Layout {
             size: ptr * 3,
             align: ptr,
         },
-        TypeSpec::Unit => Layout { size: 0, align: 0 },
-        TypeSpec::Array { elem, len } => {
+        TypeValue::Unit => Layout { size: 0, align: 0 },
+        TypeValue::Array { elem, len } => {
             let elem_layout = type_layout(elem, arch);
             let stride = align_up(elem_layout);
             Layout {
@@ -1322,8 +1360,8 @@ pub fn type_layout(ts: &TypeSpec, arch: Arch) -> Layout {
                 align: elem_layout.align,
             }
         }
-        TypeSpec::Struct(fields) => struct_layout(fields, arch),
-        TypeSpec::Enum { tag_size, variants } => {
+        TypeValue::Struct(fields) => struct_layout(fields, arch),
+        TypeValue::Enum { tag_size, variants } => {
             let tag_bytes = match tag_size {
                 TagSize::U8 => 1u64,
                 TagSize::U16 => 2,
@@ -1344,13 +1382,13 @@ pub fn type_layout(ts: &TypeSpec, arch: Arch) -> Layout {
             });
             Layout { size, align }
         }
-        TypeSpec::Named(_) => todo!("type layout for named types"),
+        TypeValue::Named(_) => todo!("type layout for named types"),
     }
 }
 
 /// Computes the layout of a struct by walking its fields in order, inserting alignment padding
 /// between fields and after the last field so the struct size is a multiple of its alignment.
-fn struct_layout(fields: &[TypeSpec], arch: Arch) -> Layout {
+fn struct_layout(fields: &[TypeValue], arch: Arch) -> Layout {
     let mut offset = 0u64;
     let mut align = 1u64;
     for field in fields {
@@ -1534,7 +1572,7 @@ mod tests {
     #[test]
     fn struct_layout_single_field() {
         // Just an i32: size=4, align=4, no padding needed
-        let l = struct_layout(&[TypeSpec::I32], Arch::W64);
+        let l = struct_layout(&[TypeValue::I32], Arch::W64);
         assert_eq!(l.size, 4);
         assert_eq!(l.align, 4);
     }
@@ -1542,7 +1580,7 @@ mod tests {
     #[test]
     fn struct_layout_padding_between_fields() {
         // u8 then i32: u8 at 0, pad to 4, i32 at 4 → total 8
-        let l = struct_layout(&[TypeSpec::I8, TypeSpec::I32], Arch::W64);
+        let l = struct_layout(&[TypeValue::I8, TypeValue::I32], Arch::W64);
         assert_eq!(l.size, 8);
         assert_eq!(l.align, 4);
     }
@@ -1550,7 +1588,7 @@ mod tests {
     #[test]
     fn struct_layout_trailing_padding() {
         // i32 then u8: i32 at 0, u8 at 4, raw end=5, padded to 8
-        let l = struct_layout(&[TypeSpec::I32, TypeSpec::I8], Arch::W64);
+        let l = struct_layout(&[TypeValue::I32, TypeValue::I8], Arch::W64);
         assert_eq!(l.size, 8);
         assert_eq!(l.align, 4);
     }
@@ -1558,7 +1596,7 @@ mod tests {
     #[test]
     fn struct_layout_all_same_alignment() {
         // Three i32s: no padding, size=12, align=4
-        let l = struct_layout(&[TypeSpec::I32, TypeSpec::I32, TypeSpec::I32], Arch::W64);
+        let l = struct_layout(&[TypeValue::I32, TypeValue::I32, TypeValue::I32], Arch::W64);
         assert_eq!(l.size, 12);
         assert_eq!(l.align, 4);
     }
@@ -1566,7 +1604,7 @@ mod tests {
     #[test]
     fn struct_layout_w32_pointer_size() {
         // A pointer on W32 is 4 bytes
-        let l = struct_layout(&[TypeSpec::OpaquePtr], Arch::W32);
+        let l = struct_layout(&[TypeValue::OpaquePtr], Arch::W32);
         assert_eq!(l.size, 4);
         assert_eq!(l.align, 4);
     }
@@ -1637,14 +1675,14 @@ mod tests {
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     params: vec![],
-                    return_type: TypeSpec::Unit,
+                    return_type: TypeValue::Unit,
                     value_types: vec![],
                 },
                 functions: vec![MirFunction {
                     linkage: Linkage::Private,
                     name: StrID::from_usize(1),
                     params: vec![],
-                    return_type: TypeSpec::I32,
+                    return_type: TypeValue::I32,
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![
@@ -1660,7 +1698,7 @@ mod tests {
                     instructions: vec![Instruction::Const {
                         value: ConstValue::Int(42),
                     },],
-                    value_types: vec![TypeSpec::I32],
+                    value_types: vec![TypeValue::I32],
                 }],
             },
         },
@@ -1706,7 +1744,7 @@ mod tests {
                     linkage: Linkage::Public,
                     name: str_store::INIT,
                     params: vec![],
-                    return_type: TypeSpec::Unit,
+                    return_type: TypeValue::Unit,
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![Some(BasicBlock {
@@ -1721,7 +1759,7 @@ mod tests {
                     linkage: Linkage::Private,
                     name: StrID::from_usize(1),
                     params: vec![],
-                    return_type: TypeSpec::Bool,
+                    return_type: TypeValue::Bool,
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![
@@ -1737,7 +1775,7 @@ mod tests {
                     instructions: vec![Instruction::Const {
                         value: ConstValue::Bool(true)
                     }],
-                    value_types: vec![TypeSpec::Bool],
+                    value_types: vec![TypeValue::Bool],
                 }],
             },
         },
@@ -1783,7 +1821,7 @@ mod tests {
                     linkage: Linkage::Public,
                     name: str_store::INIT,
                     params: vec![],
-                    return_type: TypeSpec::Unit,
+                    return_type: TypeValue::Unit,
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![Some(BasicBlock {
@@ -1798,7 +1836,7 @@ mod tests {
                     linkage: Linkage::Private,
                     name: StrID::from_usize(1),
                     params: vec![],
-                    return_type: TypeSpec::Bool,
+                    return_type: TypeValue::Bool,
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![
@@ -1814,7 +1852,7 @@ mod tests {
                     instructions: vec![Instruction::Const {
                         value: ConstValue::Bool(false)
                     }],
-                    value_types: vec![TypeSpec::Bool],
+                    value_types: vec![TypeValue::Bool],
                 }],
             },
         },
@@ -1860,7 +1898,7 @@ mod tests {
                     linkage: Linkage::Public,
                     name: str_store::INIT,
                     params: vec![],
-                    return_type: TypeSpec::Unit,
+                    return_type: TypeValue::Unit,
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![Some(BasicBlock {
@@ -1875,7 +1913,7 @@ mod tests {
                     linkage: Linkage::Private,
                     name: StrID::from_usize(1),
                     params: vec![],
-                    return_type: TypeSpec::F64,
+                    return_type: TypeValue::F64,
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![
@@ -1891,7 +1929,7 @@ mod tests {
                     instructions: vec![Instruction::Const {
                         value: ConstValue::Float(3.45)
                     }],
-                    value_types: vec![TypeSpec::F64],
+                    value_types: vec![TypeValue::F64],
                 }],
             },
         },
@@ -1937,7 +1975,7 @@ mod tests {
                     linkage: Linkage::Public,
                     name: str_store::INIT,
                     params: vec![],
-                    return_type: TypeSpec::Unit,
+                    return_type: TypeValue::Unit,
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![Some(BasicBlock {
@@ -1952,7 +1990,7 @@ mod tests {
                     linkage: Linkage::Private,
                     name: StrID::from_usize(1),
                     params: vec![],
-                    return_type: TypeSpec::String,
+                    return_type: TypeValue::String,
                     local_map: BTreeMap::new(),
                     locals: vec![],
                     blocks: vec![
@@ -1968,7 +2006,7 @@ mod tests {
                     instructions: vec![Instruction::Const {
                         value: ConstValue::String(StrID::from_usize(99))
                     }],
-                    value_types: vec![TypeSpec::String],
+                    value_types: vec![TypeValue::String],
                 }],
             },
         },
