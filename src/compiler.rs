@@ -187,7 +187,7 @@ pub fn compile_program(
         let import_str = str_store
             .get_string(import_path)
             .expect("missing import path");
-        let root = obj_dir.join("root").join(import_str);
+        let root = obj_dir.join(import_str);
 
         let mod_name = root.file_name().expect("failed to get module name");
         let mod_name = mod_name.to_string_lossy().to_string();

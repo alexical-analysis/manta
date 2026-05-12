@@ -935,6 +935,12 @@ impl<'m> Noder<'m> {
 
                     self.tree.symbol_map.add(binding.id, payload_ident);
                     payload = Some(payload_ident)
+                } else if pat.payload == Payload::Default {
+                    let wildcard_id =
+                        self.add_node(Node::Pattern(PatternNode::Default(DefaultPat {
+                            payload: None,
+                        })));
+                    payload = Some(wildcard_id);
                 }
 
                 self.add_node(Node::Pattern(PatternNode::EnumVariant(EnumVariantPat {
