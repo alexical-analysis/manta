@@ -779,26 +779,33 @@ impl<'a> Blocker<'a> {
                     let body = *body;
                     match pat.payload {
                         Some(p) => {
-                            let ts = self
-                                .module
-                                .tree
-                                .get_type(p)
-                                .expect("missing type spec for enum variant");
-                            let ts = self.lower_type_spec(ts);
-
-                            let payload_value = self.fn_builder.emit_variant_get_payload(
-                                arm_block,
-                                target_place.clone(),
-                                ts.clone(),
+                            let is_wildcard = matches!(
+                                self.module.tree.get_node(p),
+                                Some(Node::Pattern(PatternNode::Default(_)))
                             );
 
-                            let name = self.get_ident_name(p);
-                            let payload_local = self.fn_builder.get_local(p, name, ts);
-                            self.fn_builder.emit_store(
-                                arm_block,
-                                Place::local(payload_local),
-                                payload_value,
-                            );
+                            if !is_wildcard {
+                                let ts = self
+                                    .module
+                                    .tree
+                                    .get_type(p)
+                                    .expect("missing type spec for enum variant");
+                                let ts = self.lower_type_spec(ts);
+
+                                let payload_value = self.fn_builder.emit_variant_get_payload(
+                                    arm_block,
+                                    target_place.clone(),
+                                    ts.clone(),
+                                );
+
+                                let name = self.get_ident_name(p);
+                                let payload_local = self.fn_builder.get_local(p, name, ts);
+                                self.fn_builder.emit_store(
+                                    arm_block,
+                                    Place::local(payload_local),
+                                    payload_value,
+                                );
+                            }
                         }
                         None => {
                             // nothing to do because there's no payload to set up into a local
