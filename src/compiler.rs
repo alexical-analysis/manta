@@ -218,10 +218,7 @@ pub fn compile_program(
 
     let out_file = match out_file {
         Some(f) => f.clone(),
-        None => match workspace.file_name() {
-            Some(dir) => dir.to_string_lossy().to_string(),
-            None => "main".to_string(),
-        },
+        None => project_name.clone(),
     };
 
     link_module(&object_files, &out_file)?;
