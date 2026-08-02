@@ -114,26 +114,27 @@ generics. The main issue that I see with Rusts use of the turbofish syntax is th
 the expected syntax established by the rest of the language. The turbofish syntax does read naturally
 and were it used througout the language for generics it would be initutitive in all contexts. 
 
-Another advatage of this approach is it neatly avoid most parsing ambiguity. There case of `>>` will
-still present a parsing challenge. However, this is mostly resolved by simply lexing individual `>` rather
-than lexing the `>>` token as a single lexeme. Then the responsibility is on the parser to correctly
-consume trailing `>` when parsing generics and binary operators will need to be clever enough to recognize
-double `>` as a single right shift. These however, should be simple enough to implement.
+Another advatage of this approach is it neatly avoid most parsing ambiguity. In fact, by using `:<>`
+with a single `:` rather than the double colon the ambiguity between `::<>` and `::` can be entierly
+avoided when lexing. There is still the case of `>>` which will present a parsing challenge. However, 
+simply lexing individual `>` rather than lexing the `>>` token as it's own lexeme, will allow the the 
+parser to correctly consume trailing `>` when parsing generics. Parsing binary right shift will need
+some additional parser work but it should still be possible to implement it as a special case.
 
 ```
-type Vec3::<T> struct {x: T; y: T}
+type Vec3:<T> struct {x: T; y: T}
 
 fn main() {
-  let f32_vec = Vec3::<f32>{x: 3.14, y: 2.718}
-  let i64_vec = Vec3::<i64>{x: 42, y: 0}
+  let f32_vec = Vec3:<f32>{x: 3.14, y: 2.718}
+  let i64_vec = Vec3:<i64>{x: 42, y: 0}
 }
 ```
 
-This syntax does still introduce a non-standard generic syntax but does have the beneifit of being a 
-known pattern in Rust which should ease learning. It also reads more closely to common generic syntax 
-given it's use of angle brackets. It should be easy to teach, intuitive and sidestep many of the issues
-present in other systems at the slight cost of a few extra characters. This tradeoff aligns well with
-the philosophy behind Manta and would be an excellent choice.
+This syntax does still introduce a non-standard generic syntax but does have the beneifit of being similar 
+to a known syntaxtic pattern in Rust which should ease learning. It also reads more closely to common 
+generic syntax given it's use of angle brackets. It should be easy to teach, intuitive and sidestep 
+many of the issues present in other systems at the slight cost of a few extra characters. This tradeoff 
+aligns well with the philosophy behind Manta and would be an excellent choice.
 
 ## Option C: Direct generic datastructure support
 

@@ -1,0 +1,174 @@
+# New Compiler Data Structures
+
+This is the vision for the compiler after the refactor is complete.
+Much of what is details here is based on the work done in the [pup project](https://github.com/alexical-analysis/pup).
+
+## Keywords and concepts
+
+Manta uses a heirachical structure to create the gloabl state that passes through the compiler pipeline.
+It contains the following structures for organizing ownership.
+- `Context`: This is the global owning structure that all other data structure blong to.
+- `Stores`: These actually own the underlying data for the compiler pipeline. They are structured in phases
+    so that each major step in the pipeline can access all the underlying data for a given phase with
+    a relativly small number of handles.
+- `Builders`: Each pipeline phase has a builder that takes the previous phases output and builds it's
+    own output. These are named uniqely based on the work they do (e.g., Parser, Noder, Grapher)
+
+The `Context` is the top level type and owns all the underlying data structures through the various stores.
+Stores are the actual owning structures and contain `Value` types. Values are the actual data structures
+which contain the underlying data. For example in the `AstStore` owns `DeclValue`s, among other types.
+`DeclValue` are the actual enum that represents module declarations, use declarations and other top
+level Manta decls. For clarity `Value` types always contain the `Value` suffix (i.e. DeclValue).
+
+In order to simplify ownership and lifetimes, data store types do not hand out `Value`s directly. Instead
+they return `Key` types which are simple u32 values. These often function as simple indexes into the
+underlying store but the internal implementation need not be so direct. Working with indexes makes building
+comples relationships and composit structures cheep to copy, and masivly simplifies borrow checking.
+Unlike `Value` types which always contain the `Value` suffix for clarity, `Key` types are often just
+named after the type they represent. For example, the `AstStore` contains the `DeclValue` type and returns
+`Decl` types which are the key types that can be used by the different builders. This is done because
+it's more common to work with Key types in complex builder phases.
+
+## Type System
+
+The type system contains 2 broad type categories, these being checked types (`CheckedTy`) and unchecked
+types (`UncheckedTy`).
+`UncheckedTy` should be used for all types before the checking step has been run.
+Part of the job of the type checker is resolve all unchecked types into checked types.
+This means that unchecked types represent the results of steps like parsing, and type inference.
+These phases may result in unclear, or overly flexible types since only fully type checking can resolve
+the concreet underlying types for all expression in Manta.
+
+## Testing
+
+The current test suites in the Manta codebase are far too brittle.
+They are so tightly coupled to specific internal details that even small changes to data structures can
+trigger huge test changes in dozens of tests.
+While the unit tests have been painful, the integration tests have been truely great.
+Espeically the pattern where the tests rely on golden files that can be automatically regnerated has
+made even larg change to the code base easy to test.
+Additionaly, the generated diffs have proven useful in identifying buggy behavior, much more so than
+the low level unit tests.
+Especially given this is a personal project, I'm going to much more on borad integration tests and leave
+the lower level unit tests as future work if they prove useful.
+This will initially mean deleting a lot of tests but I think that's fine.
+
+## Compiler Context
+
+The compiler `Context` is the gloabl data structure that owns the results of each phase of the compiler.
+Rather than owning all the underlying data directly though, most data is owned by store types.
+The `Context` owns the following stores:
+- `StrStore`: This is the global string cache where all strings get interred.
+- `CheckTyStore`: This is the global store for all checked types in the entire program.
+- `UncheckedTyStore`: This is the global store for all unchecked types in the entire program.
+- `AstStore`: This stores all the declarations, expressions, and statements produce by the Parser.
+- `HirStore`: This stores all the de-surgared code which is a less rich representation, but eaiser for
+    downstream passes to work with.
+- `GraphStore`: This stores the program as a graph structure with basic blocks and is used for things
+    like controll flow analysis.
+- `ModuleStore`: This stores all the top level module data for every module in the modules in the program.
+
+It is important to note that the various stores in the context store structures for the whole program,
+rather than storing just what is needed for the current module.
+This is important for things like type checking where types in one module may be needed to fully infer
+data types in other modules.
+
+### StrStore
+
+The StrStore stores each unique string in the program once inside an interal arena.
+Because the tokens in a codebase often resue the same strings, doing this reduces the total amount of
+text that must be stored during compilation.
+It also preserves the ability to compare strings for equality since the resulting `Key` for each interred
+string which be the same for identical strings.
+Important types for this store are:
+- `MStr`: for Manta string, it's the `Key` type which is stable for string comparison.
+- `&str`: The `StrStore` is the structure that actually owns the string data so all phases that actually
+    need the string bytes can only access them by borrowing.
+
+### UncheckedTyStore
+
+The `UncheckedTyStore` contains all types produced in phases before type checking has taken place.
+Like the `StrStore` this uses an internal arena where unique types are ownly stored a single time.
+This means the the `UncheckedTy` can be used to quickly check for type equality.
+Important types for this store are:
+- `UncheckedTy`: This is the `Key` for `UncheckTyValue` and can be used to directly compare types for equality.
+- `UncheckedTyValue`: This enum can be use to represent any type in a Manta program including types yet
+    to be infered such as the `UncheckTyValue::Any` type.
+
+### CheckedTyStore
+
+The `CheckedTyStore` contains all types that have been succefully infered and type checked by the Manta
+type checker.
+Only concreet, sizable types can be represented as `CheckedTyValue` structs.
+The `CheckTyStore` uses an internal arena to sotore uniqe types only once.
+This means the `CheckedTy` can be used to quickly check for type equality.
+Important types for this store are:
+- `CheckedTy`: This is the `Key` for `CheckedTyValue` and can be used to directly compare types for equality.
+- `CheckedTyValue`: This enum can be used to represent any concreet type in a Manta program. The types
+    must be sizable and and can not be waiting for inference.
+
+### AstStore
+
+The `AstStore` is used by the parser to build the initial AST representation of a module.
+It contains top level declarations, as well as the expressions and statements that build up those declarations.
+The `AstStore` also contains positional data for these structures so that diagnositc information can
+be correctly provided.
+Important types for this store are:
+- `Pos`: This is a u32 that points to the canonical starting point for a declaration, statment or expression
+    in the whole code base. The same byte offset in different files will have a unique position so `Pos`
+    can be used to determine both the starting byte of the fragment as well as the file that contains it.
+- `Decl`: The `Key` type for `DeclValue`.
+- `DeclValue`: Represents a top level Manta declaration.
+- `Stmt`: The `Key` for the `StmtValue`.
+- `StmtValue`: Represents a statement in the Manta language.
+- `Expr`: The `Key` type for the `ExprValue`.
+- `ExprValue`: Represents an expression in the Manta language.
+
+### HirStore
+
+The `HirStore` is a lot like the `AstStore`.
+The main difference is that while the `AstStore` tends to map closely to the actual source code the
+`HirStore` is a lower level representation of the code.
+The `HirStore` contains the de-sugard, standarized representation of the code.
+The goal with this pase is to simplify future phases by giving them a less nuanced tree to walk.
+Important types for this store are similar to the `AstStore` and include:
+- `Decl`: The `Key` type for `DeclValue`.
+- `DeclValue`: Represents a top level Manta declaration.
+- `Stmt`: The `Key` for the `StmtValue`
+- `StmtValue`: Represents a statement in the Manta language.
+- `Expr`: The `Key` type for the `ExprValue`.
+- `ExprValue`: Represents an expression in the Manta language.
+
+### GraphStore
+
+The `GraphStore` store the program as a control flow graph.
+Like other compilers this changes the tree structure of the early Manta phases into a web of connected Nodes.
+In this case the Nodes are modeld as basic blocks and all the edges represent controll flow structures.
+Examples include function `return`s, `break` statments and the Manta `defer`.
+This allows the complier to build the correct controll flow for the block based `defer` which can get
+very complex, as well as validating that `match` statments are exaustive and that all functions return.
+Important types for this store are:
+- `Inst`: The `Key` type for the `InstValue`.
+- `InstValue`: An instruction in a Manta basic block.
+- `Local`: The `Key` type for the `LocalValue`.
+- `LocalValue`: Represents local value in a Manta function.
+- `Func`: The `Key` type for the `FuncValue`.
+- `FuncValue`: This is a Manta function in the control flow graph.
+- `Block`: The `Key` type for a basic block in a Manta function.
+- `BlockValue`: This is a basic block in a Manta function. This represents a node in the control flow graph.
+- `Terminator`: The `Key` type for the `TerminatorValue`.
+- `TerminatorValue`: This is a terminator for a basic block. This represents an edge in the control flow graph.
+
+### ModuleStore
+
+A Manta program is made up of modules which can be imported into other modules creating a dependency DAG.
+In order to support single pass compilation, import cycles are not allowed.
+The module store tracks all the modules in a program and how they relate to each other.
+The module sture itself is just a simple vector of `ModuleValue`s which are keyed by `Module`s.
+The imporant structure here is the `ModuleValue` which contains the following data.
+- `name`: The `MStr` for the module name.
+- `deps`: A map of module alias names (`MStr`s) to `Module`s.
+- `path`: The data needed to locate the module in the file heirarchy.
+- `ast`: This is a list of the `ast::Decl` that make up the module.
+- `hir`: This is a list of the `hir::Decl` that make up the module.
+- `func`: This is a list of the `Func`s that make up the module.
