@@ -155,7 +155,7 @@ pub fn compile_program(
 
         let mod_name = root.file_name().expect("failed to get module name");
         let mod_name = mod_name.to_string_lossy().to_string();
-        println!("building module {:?}", &mod_name);
+        println!("parsing module {:?}", &mod_name);
 
         let compiler = Compiler::new(import_path.into(), mod_name.clone(), module);
         let parse_module = compiler
@@ -191,7 +191,7 @@ pub fn compile_program(
 
         let mod_name = root.file_name().expect("failed to get module name");
         let mod_name = mod_name.to_string_lossy().to_string();
-        println!("building module {:?}", &mod_name);
+        println!("compiling module {:?}", &mod_name);
 
         let object_file = root.join(mod_name.clone() + ".o");
 

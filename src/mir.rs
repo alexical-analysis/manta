@@ -1,11 +1,12 @@
 use std::collections::BTreeMap;
 use std::fmt;
 
+use crate::blocker::types::TypeContext;
 use crate::hir::NodeID;
 use crate::str_store::StrID;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialOrd, Eq, Ord, Clone, PartialEq, Serialize, Deserialize)]
 pub enum TagSize {
     U8,
     U16,
@@ -13,10 +14,35 @@ pub enum TagSize {
     U64,
 }
 
+/// NodeID is the unique identifier for a given type in the Module
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Copy, Clone, Serialize, Deserialize)]
+pub struct TypeSpec(u32);
+
+impl TypeSpec {
+    pub fn id(&self) -> u32 {
+        self.0
+    }
+    pub fn idx(&self) -> usize {
+        self.0 as usize
+    }
+}
+
+impl From<u32> for TypeSpec {
+    fn from(v: u32) -> Self {
+        TypeSpec(v)
+    }
+}
+
+impl From<usize> for TypeSpec {
+    fn from(v: usize) -> Self {
+        TypeSpec(v as u32)
+    }
+}
+
 /// MIR-level type: all variants are concrete and map directly to LLVM types.
 /// No inference artifacts or HIR back-references.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum TypeSpec {
+#[derive(Debug, PartialOrd, Eq, Ord, Clone, PartialEq, Serialize, Deserialize)]
+pub enum TypeValue {
     I8,
     I16,
     I32,
@@ -27,14 +53,14 @@ pub enum TypeSpec {
     Unit,
 
     /// Typed pointer: *T
-    Ptr(Box<TypeSpec>),
+    Ptr(TypeSpec),
 
     /// Opaque pointer for alloc/free (LLVM `ptr` with no inner type)
     OpaquePtr,
 
     /// Fixed-size array: [N x T]
     Array {
-        elem: Box<TypeSpec>,
+        elem: TypeSpec,
         len: usize,
     },
 
@@ -42,11 +68,14 @@ pub enum TypeSpec {
     String,
 
     /// Growable slice fat pointer: { ptr: *T, len: usize, cap: usize }
-    Slice(Box<TypeSpec>),
+    Slice(TypeSpec),
 
     /// Struct with positional fields (no names needed at this level).
     /// The blocker maintains a name→index mapping for field access.
     Struct(Vec<TypeSpec>),
+
+    // A named type, this needs to be evaluated lazily
+    Named(TypeSpec),
 
     /// Layout for an enum type. Variants are indexed by variant_id; `None` means a unit variant
     /// (no payload). The discriminant size defaults to a u8 but may be larger in cases where there
@@ -125,7 +154,7 @@ impl GlobalId {
 /// Metadata about a global variable.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Global {
-    pub type_spec: TypeSpec,
+    pub type_spec: TypeValue,
     pub name: StrID,
     pub public: bool,
 }
@@ -514,18 +543,25 @@ impl MirFunction {
 }
 
 /// A collection of MIR functions (represents the entire program at the MIR level).
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Serialize)]
 pub struct MirModule {
     pub globals: Vec<Global>,
     pub init: MirFunction,
+    pub type_context: TypeContext,
     pub functions: Vec<MirFunction>,
 }
 
-impl MirModule {
-    pub fn new(globals: Vec<Global>, init: MirFunction, functions: Vec<MirFunction>) -> Self {
+impl MirModule<'ctx> {
+    pub fn new(
+        globals: Vec<Global>,
+        init: MirFunction,
+        type_context: &'ctx TypeContext,
+        functions: Vec<MirFunction>,
+    ) -> Self {
         MirModule {
             globals,
             init,
+            type_context,
             functions,
         }
     }

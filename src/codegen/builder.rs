@@ -15,7 +15,7 @@ use inkwell::{AddressSpace, FloatPredicate, IntPredicate};
 use crate::blocker::{self, Arch};
 use crate::mir::{
     self, BlockId, ConstValue, Instruction, Linkage as MirLinkage, LocalId, MirFunction, SwitchArm,
-    TagSize, TypeSpec, ValueId,
+    TagSize, TypeValue, ValueId,
 };
 use crate::str_store::{self, StrStore};
 
@@ -449,7 +449,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
         self.value_map.get(&value_id)
     }
 
-    pub fn get_value_type(&self, value_id: ValueId) -> &TypeSpec {
+    pub fn get_value_type(&self, value_id: ValueId) -> &TypeValue {
         self.mir_function.get_value_type(value_id)
     }
 
@@ -459,7 +459,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
             .expect("failed to get local value from local map")
     }
 
-    pub fn get_local_type_spec(&self, local_id: LocalId) -> &TypeSpec {
+    pub fn get_local_type_spec(&self, local_id: LocalId) -> &TypeValue {
         &self.mir_function.get_local(local_id).type_spec
     }
 
@@ -467,48 +467,48 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
         self.value_map.insert(value_id, value);
     }
 
-    fn convert_type_spec(&self, type_spec: &TypeSpec) -> Option<BasicTypeEnum<'ctx>> {
+    fn convert_type_spec(&self, type_spec: &TypeValue) -> Option<BasicTypeEnum<'ctx>> {
         convert_type_spec(self.context, type_spec)
     }
 
     fn convert_const(
         &self,
         const_value: &ConstValue,
-        type_spec: &TypeSpec,
+        type_spec: &TypeValue,
     ) -> BasicValueEnum<'ctx> {
         match (const_value, type_spec) {
-            (ConstValue::Int(i), TypeSpec::I8) => {
+            (ConstValue::Int(i), TypeValue::I8) => {
                 let value = self.context.i8_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::Int(i), TypeSpec::I16) => {
+            (ConstValue::Int(i), TypeValue::I16) => {
                 let value = self.context.i16_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::Int(i), TypeSpec::I32) => {
+            (ConstValue::Int(i), TypeValue::I32) => {
                 let value = self.context.i32_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::Int(i), TypeSpec::I64) => {
+            (ConstValue::Int(i), TypeValue::I64) => {
                 let value = self.context.i64_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::Float(f), TypeSpec::F32) => {
+            (ConstValue::Float(f), TypeValue::F32) => {
                 let value = self.context.f32_type().const_float(*f);
                 value.into()
             }
-            (ConstValue::Float(f), TypeSpec::F64) => {
+            (ConstValue::Float(f), TypeValue::F64) => {
                 let value = self.context.f64_type().const_float(*f);
                 value.into()
             }
-            (ConstValue::Bool(b), TypeSpec::Bool) => {
+            (ConstValue::Bool(b), TypeValue::Bool) => {
                 let value = match b {
                     true => self.context.bool_type().const_int(1, false),
                     false => self.context.bool_type().const_zero(),
                 };
                 value.into()
             }
-            (ConstValue::Array(values), TypeSpec::Array { elem, .. }) => {
+            (ConstValue::Array(values), TypeValue::Array { elem, .. }) => {
                 let mut basic_values = vec![];
                 for value in values {
                     let const_value = self.convert_const(value, elem);
@@ -674,7 +674,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
             .expect("failed to build switch terminator");
     }
 
-    pub fn build_alloca(&mut self, type_spec: &TypeSpec, name: &str) -> PointerValue<'ctx> {
+    pub fn build_alloca(&mut self, type_spec: &TypeValue, name: &str) -> PointerValue<'ctx> {
         let block_id = self.current_block;
         self.position_at_entry_block();
 
@@ -872,7 +872,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
 
     pub fn build_load(
         &self,
-        pointee_ty: &TypeSpec,
+        pointee_ty: &TypeValue,
         ptr: PointerValue<'ctx>,
     ) -> BasicValueEnum<'ctx> {
         let llvm_pointee_ty = self
@@ -886,7 +886,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
 
         // there's currently a bug where i64/u64 loads don't have the correct alignment. We
         // explicitly set the alignment here to compensate
-        if matches!(pointee_ty, TypeSpec::I64 | TypeSpec::F64) {
+        if matches!(pointee_ty, TypeValue::I64 | TypeValue::F64) {
             load.as_instruction_value()
                 .expect("failed to get load instruction")
                 .set_alignment(8)
@@ -898,7 +898,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
 
     pub fn build_extract_payload(
         &self,
-        enum_type: &TypeSpec,
+        enum_type: &TypeValue,
         ptr: PointerValue<'ctx>,
     ) -> PointerValue<'ctx> {
         let pointee_ty = self
@@ -952,7 +952,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
 
     pub fn build_store(
         &self,
-        pointee_typ: &TypeSpec,
+        pointee_typ: &TypeValue,
         ptr: PointerValue<'ctx>,
         value: BasicValueEnum<'ctx>,
     ) {
@@ -961,7 +961,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
             .build_store(ptr, value)
             .expect("failed to build store instruction");
 
-        if matches!(pointee_typ, TypeSpec::I64 | TypeSpec::F64) {
+        if matches!(pointee_typ, TypeValue::I64 | TypeValue::F64) {
             store
                 .set_alignment(8)
                 .expect("failed to set 8 widht aligment");
@@ -970,7 +970,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
 
     pub fn build_gep(
         &self,
-        pointee_ty: &TypeSpec,
+        pointee_ty: &TypeValue,
         ptr: PointerValue<'ctx>,
         indexes: &[IntValue<'ctx>],
     ) -> PointerValue<'ctx> {
@@ -987,7 +987,7 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
 
     pub fn build_struct_gep(
         &self,
-        pointee_ty: &TypeSpec,
+        pointee_ty: &TypeValue,
         ptr: PointerValue<'ctx>,
         field: usize,
     ) -> PointerValue<'ctx> {
@@ -1058,41 +1058,43 @@ impl<'ctx, 'a> FuncBuilder<'ctx, 'a> {
 
 pub fn convert_type_spec<'ctx>(
     context: &'ctx Context,
-    type_spec: &TypeSpec,
+    type_spec: &TypeValue,
 ) -> Option<BasicTypeEnum<'ctx>> {
-    if matches!(type_spec, TypeSpec::Unit) {
+    if matches!(type_spec, TypeValue::Unit) {
         return None;
     }
 
     let ts = match type_spec {
-        TypeSpec::I8 => context.i8_type().into(),
-        TypeSpec::I16 => context.i16_type().into(),
-        TypeSpec::I32 => context.i32_type().into(),
-        TypeSpec::I64 => context.i64_type().into(),
+        TypeValue::I8 => context.i8_type().into(),
+        TypeValue::I16 => context.i16_type().into(),
+        TypeValue::I32 => context.i32_type().into(),
+        TypeValue::I64 => context.i64_type().into(),
 
-        TypeSpec::F32 => context.f32_type().into(),
-        TypeSpec::F64 => context.f64_type().into(),
-        TypeSpec::Bool => context.bool_type().into(),
-        TypeSpec::Ptr(_) | TypeSpec::OpaquePtr => context.ptr_type(AddressSpace::default()).into(),
-        TypeSpec::Array { elem, len } => convert_type_spec(context, elem)
+        TypeValue::F32 => context.f32_type().into(),
+        TypeValue::F64 => context.f64_type().into(),
+        TypeValue::Bool => context.bool_type().into(),
+        TypeValue::Ptr(_) | TypeValue::OpaquePtr => context {
+           .ptr_type(AddressSpace::default()).into(),
+        }
+        TypeValue::Array { elem, len } => convert_type_spec(context, elem)
             .expect("can not get array of unit types")
             .array_type(*len as u32)
             .into(),
-        TypeSpec::Struct(fields) => {
+        TypeValue::Struct(fields) => {
             let field_types: Vec<_> = fields
                 .iter()
                 .map(|f| convert_type_spec(context, f).expect("can not have a field of unit type"))
                 .collect();
             context.struct_type(&field_types, false).into()
         }
-        TypeSpec::String => {
+        TypeValue::String => {
             let len_type = context.i64_type();
             let ptr_type = context.ptr_type(AddressSpace::default());
             context
                 .struct_type(&[len_type.into(), ptr_type.into()], false)
                 .into()
         }
-        TypeSpec::Enum { tag_size, variants } => {
+        TypeValue::Enum { tag_size, variants } => {
             let tag_type = match tag_size {
                 TagSize::U8 => context.i8_type(),
                 TagSize::U16 => context.i16_type(),
@@ -1115,7 +1117,7 @@ pub fn convert_type_spec<'ctx>(
                 .struct_type(&[tag_type.into(), raw_data_type.into()], false)
                 .into()
         }
-        TypeSpec::Slice(_) => context
+        TypeValue::Slice(_) => context
             .struct_type(
                 &[
                     context.i64_type().into(),

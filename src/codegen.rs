@@ -15,7 +15,7 @@ use inkwell::{FloatPredicate, IntPredicate};
 use crate::blocker::{self, Arch};
 use crate::mir::{
     self, ConstValue, GlobalId, Instruction, MirModule, Place, PlaceBase, Projection, TagSize,
-    Terminator, TypeSpec, ValueId,
+    Terminator, TypeValue, ValueId,
 };
 use crate::str_store::{self, StrID, StrStore};
 
@@ -29,12 +29,12 @@ struct GlobalString<'ctx> {
 
 struct GlobalData<'ctx> {
     global_value: GlobalValue<'ctx>,
-    type_spec: TypeSpec,
+    type_spec: TypeValue,
 }
 
 struct FuncData<'ctx> {
     function: FunctionValue<'ctx>,
-    return_type: TypeSpec,
+    return_type: TypeValue,
 }
 
 pub struct Codegen<'ctx> {
@@ -109,7 +109,7 @@ impl<'ctx> Codegen<'ctx> {
             str_store::FREE,
             FuncData {
                 function: *c_funcs.get("free").expect("failed to get free() c dep"),
-                return_type: TypeSpec::Unit,
+                return_type: TypeValue::Unit,
             },
         );
 
@@ -124,7 +124,7 @@ impl<'ctx> Codegen<'ctx> {
             str_store::PANIC,
             FuncData {
                 function: panic_fn,
-                return_type: TypeSpec::Unit,
+                return_type: TypeValue::Unit,
             },
         );
 
@@ -138,7 +138,7 @@ impl<'ctx> Codegen<'ctx> {
             str_store::ALLOC,
             FuncData {
                 function: alloc_fn,
-                return_type: TypeSpec::OpaquePtr,
+                return_type: TypeValue::OpaquePtr,
             },
         );
 
@@ -152,7 +152,7 @@ impl<'ctx> Codegen<'ctx> {
             str_store::PRINT,
             FuncData {
                 function: print_fn,
-                return_type: TypeSpec::Unit,
+                return_type: TypeValue::Unit,
             },
         );
 
@@ -166,7 +166,7 @@ impl<'ctx> Codegen<'ctx> {
             str_store::EPRINT,
             FuncData {
                 function: eprint_fn,
-                return_type: TypeSpec::Unit,
+                return_type: TypeValue::Unit,
             },
         );
 
@@ -289,7 +289,7 @@ impl<'ctx> Codegen<'ctx> {
             .expect("failed to optimize module")
     }
 
-    fn convert_type_spec(&self, type_spec: &TypeSpec) -> Option<BasicTypeEnum<'ctx>> {
+    fn convert_type_spec(&self, type_spec: &TypeValue) -> Option<BasicTypeEnum<'ctx>> {
         builder::convert_type_spec(self.context, type_spec)
     }
 
@@ -372,7 +372,7 @@ impl<'ctx> Codegen<'ctx> {
                 Some(value)
             }
             Instruction::Add { lhs, rhs } => match inst_type_spec {
-                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                TypeValue::I8 | TypeValue::I16 | TypeValue::I32 | TypeValue::I64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs of addition expr")
@@ -386,7 +386,7 @@ impl<'ctx> Codegen<'ctx> {
                     let value = func_builder.build_int_add(lhs, rhs);
                     Some(value)
                 }
-                TypeSpec::F32 | TypeSpec::F64 => {
+                TypeValue::F32 | TypeValue::F64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs of addition expr")
@@ -400,11 +400,11 @@ impl<'ctx> Codegen<'ctx> {
                     let value = func_builder.build_float_add(lhs, rhs);
                     Some(value)
                 }
-                TypeSpec::String => todo!("concatenating strings is not yet supported"),
+                TypeValue::String => todo!("concatenating strings is not yet supported"),
                 _ => panic!("unsupported arguments for addition"),
             },
             Instruction::Sub { lhs, rhs } => match inst_type_spec {
-                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                TypeValue::I8 | TypeValue::I16 | TypeValue::I32 | TypeValue::I64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs of subtraction expr")
@@ -418,7 +418,7 @@ impl<'ctx> Codegen<'ctx> {
                     let value = func_builder.build_int_sub(lhs, rhs);
                     Some(value)
                 }
-                TypeSpec::F32 | TypeSpec::F64 => {
+                TypeValue::F32 | TypeValue::F64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs of subtraction expr")
@@ -435,7 +435,7 @@ impl<'ctx> Codegen<'ctx> {
                 _ => panic!("unsupported arguments for addition"),
             },
             Instruction::SDiv { lhs, rhs } => match inst_type_spec {
-                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                TypeValue::I8 | TypeValue::I16 | TypeValue::I32 | TypeValue::I64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs of division expr")
@@ -449,7 +449,7 @@ impl<'ctx> Codegen<'ctx> {
                     let value = func_builder.build_int_signed_div(lhs, rhs);
                     Some(value)
                 }
-                TypeSpec::F32 | TypeSpec::F64 => {
+                TypeValue::F32 | TypeValue::F64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs of division expr")
@@ -466,7 +466,7 @@ impl<'ctx> Codegen<'ctx> {
                 _ => panic!("unsupported arguments for signed division"),
             },
             Instruction::UDiv { lhs, rhs } => match inst_type_spec {
-                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                TypeValue::I8 | TypeValue::I16 | TypeValue::I32 | TypeValue::I64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs of division expr")
@@ -483,7 +483,7 @@ impl<'ctx> Codegen<'ctx> {
                 _ => panic!("unsupported arguments for unsigned division"),
             },
             Instruction::Mul { lhs, rhs } => match inst_type_spec {
-                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                TypeValue::I8 | TypeValue::I16 | TypeValue::I32 | TypeValue::I64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs for multiplication expr")
@@ -497,7 +497,7 @@ impl<'ctx> Codegen<'ctx> {
                     let value = func_builder.build_int_mul(lhs, rhs);
                     Some(value)
                 }
-                TypeSpec::F32 | TypeSpec::F64 => {
+                TypeValue::F32 | TypeValue::F64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs for multiplication expr")
@@ -514,7 +514,7 @@ impl<'ctx> Codegen<'ctx> {
                 _ => panic!("unsupported arguments for multiplication"),
             },
             Instruction::SMod { lhs, rhs } => match inst_type_spec {
-                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                TypeValue::I8 | TypeValue::I16 | TypeValue::I32 | TypeValue::I64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs for modulo expr")
@@ -531,7 +531,7 @@ impl<'ctx> Codegen<'ctx> {
                 _ => panic!("unsupported arguments for signed modulous"),
             },
             Instruction::UMod { lhs, rhs } => match inst_type_spec {
-                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                TypeValue::I8 | TypeValue::I16 | TypeValue::I32 | TypeValue::I64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs for modulo expr")
@@ -550,56 +550,62 @@ impl<'ctx> Codegen<'ctx> {
             Instruction::Equal { lhs, rhs } => {
                 let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
-                    TypeSpec::Bool
-                    | TypeSpec::I8
-                    | TypeSpec::I16
-                    | TypeSpec::I32
-                    | TypeSpec::I64 => {
+                    TypeValue::Bool
+                    | TypeValue::I8
+                    | TypeValue::I16
+                    | TypeValue::I32
+                    | TypeValue::I64 => {
                         self.gen_int_compare(func_builder, IntPredicate::EQ, lhs, rhs)
                     }
-                    TypeSpec::F32 | TypeSpec::F64 => {
+                    TypeValue::F32 | TypeValue::F64 => {
                         self.gen_float_compare(func_builder, FloatPredicate::OEQ, lhs, rhs)
                     }
-                    TypeSpec::Ptr(_) => todo!("pointer comparison is not yet supported"),
-                    TypeSpec::OpaquePtr => todo!("opaque pointer comparison is not yet supported"),
-                    TypeSpec::Array { .. } => todo!("array comparison is not yet supported"),
-                    TypeSpec::String => todo!(),
-                    TypeSpec::Slice { .. } => todo!(),
-                    TypeSpec::Struct(_) => todo!(),
-                    TypeSpec::Enum { .. } => todo!(),
-                    TypeSpec::Unit => panic!("can not compare unit types"),
+                    TypeValue::Ptr(_) => todo!("pointer comparison is not yet supported"),
+                    TypeValue::OpaquePtr => {
+                        todo!("opaque pointer comparison is not yet supported")
+                    }
+                    TypeValue::Array { .. } => todo!("array comparison is not yet supported"),
+                    TypeValue::String => todo!("string types equality check"),
+                    TypeValue::Slice { .. } => todo!("slice types equality check"),
+                    TypeValue::Struct(_) => todo!("struct type equality check"),
+                    TypeValue::Enum { .. } => todo!("enum type equality check"),
+                    TypeValue::Unit => panic!("can not compare unit types"),
+                    TypeValue::Named(_) => todo!("named types equality checks"),
                 }
             }
             Instruction::NotEqual { lhs, rhs } => {
                 let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
-                    TypeSpec::Bool
-                    | TypeSpec::I8
-                    | TypeSpec::I16
-                    | TypeSpec::I32
-                    | TypeSpec::I64 => {
+                    TypeValue::Bool
+                    | TypeValue::I8
+                    | TypeValue::I16
+                    | TypeValue::I32
+                    | TypeValue::I64 => {
                         self.gen_int_compare(func_builder, IntPredicate::NE, lhs, rhs)
                     }
-                    TypeSpec::F32 | TypeSpec::F64 => {
+                    TypeValue::F32 | TypeValue::F64 => {
                         self.gen_float_compare(func_builder, FloatPredicate::ONE, lhs, rhs)
                     }
-                    TypeSpec::Ptr(_) => todo!("pointer comparison is not yet supported"),
-                    TypeSpec::OpaquePtr => todo!("opaque pointer comparison is not yet supported"),
-                    TypeSpec::Array { .. } => todo!("array comparison is not yet supported"),
-                    TypeSpec::String => todo!(),
-                    TypeSpec::Slice { .. } => todo!(),
-                    TypeSpec::Struct(_) => todo!(),
-                    TypeSpec::Enum { .. } => todo!(),
-                    TypeSpec::Unit => panic!("can not compare unit types"),
+                    TypeValue::Ptr(_) => todo!("pointer comparison is not yet supported"),
+                    TypeValue::OpaquePtr => {
+                        todo!("opaque pointer comparison is not yet supported")
+                    }
+                    TypeValue::Array { .. } => todo!("array comparison is not yet supported"),
+                    TypeValue::String => todo!("string types not-equal check"),
+                    TypeValue::Slice { .. } => todo!("slice types not-equal check"),
+                    TypeValue::Struct(_) => todo!("struct types not-equal check"),
+                    TypeValue::Enum { .. } => todo!("enum types not-equal check"),
+                    TypeValue::Unit => panic!("can not compare unit types"),
+                    TypeValue::Named(_) => todo!("named types not-equal check"),
                 }
             }
             Instruction::SLessThan { lhs, rhs } => {
                 let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
-                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                    TypeValue::I8 | TypeValue::I16 | TypeValue::I32 | TypeValue::I64 => {
                         self.gen_int_compare(func_builder, IntPredicate::SLT, lhs, rhs)
                     }
-                    TypeSpec::F32 | TypeSpec::F64 => {
+                    TypeValue::F32 | TypeValue::F64 => {
                         self.gen_float_compare(func_builder, FloatPredicate::OLT, lhs, rhs)
                     }
                     _ => panic!("unsupported args for signed less than"),
@@ -608,11 +614,11 @@ impl<'ctx> Codegen<'ctx> {
             Instruction::ULessThan { lhs, rhs } => {
                 let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
-                    TypeSpec::Bool
-                    | TypeSpec::I8
-                    | TypeSpec::I16
-                    | TypeSpec::I32
-                    | TypeSpec::I64 => {
+                    TypeValue::Bool
+                    | TypeValue::I8
+                    | TypeValue::I16
+                    | TypeValue::I32
+                    | TypeValue::I64 => {
                         self.gen_int_compare(func_builder, IntPredicate::ULT, lhs, rhs)
                     }
                     _ => panic!("unsupported args for unsigned less than"),
@@ -621,10 +627,10 @@ impl<'ctx> Codegen<'ctx> {
             Instruction::SGreaterThan { lhs, rhs } => {
                 let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
-                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                    TypeValue::I8 | TypeValue::I16 | TypeValue::I32 | TypeValue::I64 => {
                         self.gen_int_compare(func_builder, IntPredicate::SGT, lhs, rhs)
                     }
-                    TypeSpec::F32 | TypeSpec::F64 => {
+                    TypeValue::F32 | TypeValue::F64 => {
                         self.gen_float_compare(func_builder, FloatPredicate::OGT, lhs, rhs)
                     }
                     _ => {
@@ -640,11 +646,11 @@ impl<'ctx> Codegen<'ctx> {
             Instruction::UGreaterThan { lhs, rhs } => {
                 let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
-                    TypeSpec::Bool
-                    | TypeSpec::I8
-                    | TypeSpec::I16
-                    | TypeSpec::I32
-                    | TypeSpec::I64 => {
+                    TypeValue::Bool
+                    | TypeValue::I8
+                    | TypeValue::I16
+                    | TypeValue::I32
+                    | TypeValue::I64 => {
                         self.gen_int_compare(func_builder, IntPredicate::UGT, lhs, rhs)
                     }
                     _ => panic!("unsupported args for unsigned greater than"),
@@ -653,10 +659,10 @@ impl<'ctx> Codegen<'ctx> {
             Instruction::SLessThanEqual { lhs, rhs } => {
                 let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
-                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                    TypeValue::I8 | TypeValue::I16 | TypeValue::I32 | TypeValue::I64 => {
                         self.gen_int_compare(func_builder, IntPredicate::SLE, lhs, rhs)
                     }
-                    TypeSpec::F32 | TypeSpec::F64 => {
+                    TypeValue::F32 | TypeValue::F64 => {
                         self.gen_float_compare(func_builder, FloatPredicate::OLE, lhs, rhs)
                     }
                     _ => panic!("unsupported args for signed less than or equal"),
@@ -665,11 +671,11 @@ impl<'ctx> Codegen<'ctx> {
             Instruction::ULessThanEqual { lhs, rhs } => {
                 let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
-                    TypeSpec::Bool
-                    | TypeSpec::I8
-                    | TypeSpec::I16
-                    | TypeSpec::I32
-                    | TypeSpec::I64 => {
+                    TypeValue::Bool
+                    | TypeValue::I8
+                    | TypeValue::I16
+                    | TypeValue::I32
+                    | TypeValue::I64 => {
                         self.gen_int_compare(func_builder, IntPredicate::ULE, lhs, rhs)
                     }
                     _ => panic!("unsupported args for unsigned less than or equal"),
@@ -678,10 +684,10 @@ impl<'ctx> Codegen<'ctx> {
             Instruction::SGreaterThanEqual { lhs, rhs } => {
                 let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
-                    TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                    TypeValue::I8 | TypeValue::I16 | TypeValue::I32 | TypeValue::I64 => {
                         self.gen_int_compare(func_builder, IntPredicate::SGE, lhs, rhs)
                     }
-                    TypeSpec::F32 | TypeSpec::F64 => {
+                    TypeValue::F32 | TypeValue::F64 => {
                         self.gen_float_compare(func_builder, FloatPredicate::OGE, lhs, rhs)
                     }
                     _ => panic!("unsupported args for signed greater than or equal"),
@@ -690,11 +696,11 @@ impl<'ctx> Codegen<'ctx> {
             Instruction::UGreaterThanEqual { lhs, rhs } => {
                 let type_spec = func_builder.get_value_type(lhs);
                 match type_spec {
-                    TypeSpec::Bool
-                    | TypeSpec::I8
-                    | TypeSpec::I16
-                    | TypeSpec::I32
-                    | TypeSpec::I64 => {
+                    TypeValue::Bool
+                    | TypeValue::I8
+                    | TypeValue::I16
+                    | TypeValue::I32
+                    | TypeValue::I64 => {
                         self.gen_int_compare(func_builder, IntPredicate::UGE, lhs, rhs)
                     }
                     _ => panic!("unsupported args for unsigned greater than or equal"),
@@ -820,7 +826,7 @@ impl<'ctx> Codegen<'ctx> {
                 let func_name = func_name.as_str();
 
                 match func_data.return_type {
-                    TypeSpec::Unit => {
+                    TypeValue::Unit => {
                         func_builder.build_void_call(func_name, func_data.function, &llvm_args);
                         None
                     }
@@ -881,12 +887,12 @@ impl<'ctx> Codegen<'ctx> {
                 let poison_struct = struct_type.get_undef();
 
                 let (tag_ts, payload_ts) = match &variant_type {
-                    TypeSpec::Enum { tag_size, variants } => {
+                    TypeValue::Enum { tag_size, variants } => {
                         let tag_ts = match &tag_size {
-                            TagSize::U8 => TypeSpec::I8,
-                            TagSize::U16 => TypeSpec::I16,
-                            TagSize::U32 => TypeSpec::I32,
-                            TagSize::U64 => TypeSpec::I64,
+                            TagSize::U8 => TypeValue::I8,
+                            TagSize::U16 => TypeValue::I16,
+                            TagSize::U32 => TypeValue::I32,
+                            TagSize::U64 => TypeValue::I64,
                         };
 
                         let payload_ts = match tag {
@@ -903,7 +909,7 @@ impl<'ctx> Codegen<'ctx> {
                 };
 
                 let opaque_ts = match &variant_type {
-                    TypeSpec::Enum { variants, .. } => {
+                    TypeValue::Enum { variants, .. } => {
                         let mut bytes = 0;
                         for ts in variants {
                             // TODO: actually repsect the correct arch here
@@ -913,8 +919,8 @@ impl<'ctx> Codegen<'ctx> {
                             }
                         }
 
-                        TypeSpec::Array {
-                            elem: Box::new(TypeSpec::I8),
+                        TypeValue::Array {
+                            elem: Box::new(TypeValue::I8),
                             len: bytes as usize,
                         }
                     }
@@ -970,7 +976,7 @@ impl<'ctx> Codegen<'ctx> {
                 Some(result.into())
             }
             Instruction::BitwiseAnd { lhs, rhs } => match inst_type_spec {
-                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                TypeValue::I8 | TypeValue::I16 | TypeValue::I32 | TypeValue::I64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs for bitwise-and expr")
@@ -987,7 +993,7 @@ impl<'ctx> Codegen<'ctx> {
                 _ => panic!("invalid type for bitwise and"),
             },
             Instruction::BitwiseOr { lhs, rhs } => match inst_type_spec {
-                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                TypeValue::I8 | TypeValue::I16 | TypeValue::I32 | TypeValue::I64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs for bitwise-or expr")
@@ -1004,7 +1010,7 @@ impl<'ctx> Codegen<'ctx> {
                 _ => panic!("invalid type for bitwise or"),
             },
             Instruction::BitwiseXOr { lhs, rhs } => match inst_type_spec {
-                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                TypeValue::I8 | TypeValue::I16 | TypeValue::I32 | TypeValue::I64 => {
                     let lhs = func_builder
                         .get_llvm_value(lhs)
                         .expect("failed to get lhs for bitwise-xor expr")
@@ -1021,7 +1027,7 @@ impl<'ctx> Codegen<'ctx> {
                 _ => panic!("invalid type for bitwise xor"),
             },
             Instruction::BoolNot { op } => match inst_type_spec {
-                TypeSpec::Bool => {
+                TypeValue::Bool => {
                     let op = func_builder
                         .get_llvm_value(op)
                         .expect("failed to get op for boolean not expr")
@@ -1033,7 +1039,7 @@ impl<'ctx> Codegen<'ctx> {
                 _ => panic!("invalid type for boolean not"),
             },
             Instruction::Negate { op } => match inst_type_spec {
-                TypeSpec::I8 | TypeSpec::I16 | TypeSpec::I32 | TypeSpec::I64 => {
+                TypeValue::I8 | TypeValue::I16 | TypeValue::I32 | TypeValue::I64 => {
                     let op = func_builder
                         .get_llvm_value(op)
                         .expect("failed to get op for numeric negation expr")
@@ -1042,7 +1048,7 @@ impl<'ctx> Codegen<'ctx> {
                     let value = func_builder.build_int_neg(op);
                     Some(value)
                 }
-                TypeSpec::F32 | TypeSpec::F64 => {
+                TypeValue::F32 | TypeValue::F64 => {
                     let op = func_builder
                         .get_llvm_value(op)
                         .expect("failed to get op for numeric negation expr")
@@ -1090,8 +1096,8 @@ impl<'ctx> Codegen<'ctx> {
         func_builder: &mut FuncBuilder<'ctx, 'a>,
         place: Place,
         ptr: PointerValue<'ctx>,
-        type_spec: TypeSpec,
-    ) -> (PointerValue<'ctx>, TypeSpec) {
+        type_spec: TypeValue,
+    ) -> (PointerValue<'ctx>, TypeValue) {
         let mut ptr = ptr;
         let mut current_type = type_spec;
         for proj in &place.projections {
@@ -1102,7 +1108,7 @@ impl<'ctx> Codegen<'ctx> {
                         .into_pointer_value();
 
                     current_type = match current_type {
-                        TypeSpec::Ptr(ts) => *ts,
+                        TypeValue::Ptr(ts) => *ts,
                         _ => panic!("can not dereference non-pointer type"),
                     };
                 }
@@ -1110,7 +1116,7 @@ impl<'ctx> Codegen<'ctx> {
                     ptr = func_builder.build_struct_gep(&current_type, ptr, *field);
 
                     current_type = match current_type {
-                        TypeSpec::Struct(ts) => ts[*field].clone(),
+                        TypeValue::Struct(ts) => ts[*field].clone(),
                         _ => panic!("can not access field on non-struct type"),
                     };
                 }
@@ -1128,7 +1134,7 @@ impl<'ctx> Codegen<'ctx> {
                     current_type = match current_type {
                         // TODO: need to add a check here using len to ensure that
                         // access is not out of bound and panic if it is
-                        TypeSpec::Array { elem, .. } => *elem,
+                        TypeValue::Array { elem, .. } => *elem,
                         _ => panic!("can not index array type"),
                     };
                 }
@@ -1185,41 +1191,41 @@ impl<'ctx> Codegen<'ctx> {
         module: &Module<'ctx>,
         str_store: &StrStore,
         const_value: &ConstValue,
-        type_spec: &TypeSpec,
+        type_spec: &TypeValue,
     ) -> BasicValueEnum<'ctx> {
         match (const_value, type_spec) {
-            (ConstValue::Int(i), TypeSpec::I8) => {
+            (ConstValue::Int(i), TypeValue::I8) => {
                 let value = self.context.i8_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::Int(i), TypeSpec::I16) => {
+            (ConstValue::Int(i), TypeValue::I16) => {
                 let value = self.context.i16_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::Int(i), TypeSpec::I32) => {
+            (ConstValue::Int(i), TypeValue::I32) => {
                 let value = self.context.i32_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::Int(i), TypeSpec::I64) => {
+            (ConstValue::Int(i), TypeValue::I64) => {
                 let value = self.context.i64_type().const_int(*i, false);
                 value.into()
             }
-            (ConstValue::Float(f), TypeSpec::F32) => {
+            (ConstValue::Float(f), TypeValue::F32) => {
                 let value = self.context.f32_type().const_float(*f);
                 value.into()
             }
-            (ConstValue::Float(f), TypeSpec::F64) => {
+            (ConstValue::Float(f), TypeValue::F64) => {
                 let value = self.context.f64_type().const_float(*f);
                 value.into()
             }
-            (ConstValue::Bool(b), TypeSpec::Bool) => {
+            (ConstValue::Bool(b), TypeValue::Bool) => {
                 let value = match b {
                     true => self.context.bool_type().const_int(1, false),
                     false => self.context.bool_type().const_zero(),
                 };
                 value.into()
             }
-            (ConstValue::Array(values), TypeSpec::Array { elem, .. }) => {
+            (ConstValue::Array(values), TypeValue::Array { elem, .. }) => {
                 let mut basic_values = vec![];
                 for value in values {
                     let const_value = self.gen_const(module, str_store, value, elem);
@@ -1252,7 +1258,7 @@ impl<'ctx> Codegen<'ctx> {
                     _ => todo!("TODO: not all array types are supported yet"),
                 }
             }
-            (ConstValue::Struct(values), TypeSpec::Struct(ts)) => {
+            (ConstValue::Struct(values), TypeValue::Struct(ts)) => {
                 let mut fields = vec![];
                 for (v, ts) in values.iter().zip(ts.iter()) {
                     let field_const = self.gen_const(module, str_store, v, ts);
@@ -1262,7 +1268,7 @@ impl<'ctx> Codegen<'ctx> {
                 let value = self.context.const_struct(&fields, false);
                 value.into()
             }
-            (ConstValue::String(s), TypeSpec::String) => {
+            (ConstValue::String(s), TypeValue::String) => {
                 let global_str = match self.global_strings.get(s) {
                     Some(global) => *global,
                     None => {

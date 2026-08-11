@@ -1,9 +1,10 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
+use crate::blocker::types::TypeContext;
 use crate::hir::NodeID;
 use crate::mir::{
     BasicBlock, BlockId, ConstValue, Instruction, Linkage, Local, LocalId, MirFunction, Place,
-    SwitchArm, TagSize, Terminator, TypeSpec, ValueId,
+    SwitchArm, TagSize, Terminator, TypeSpec, TypeValue, ValueId,
 };
 use crate::str_store::{self, StrID};
 
@@ -331,6 +332,7 @@ impl Cfg {
     // specified block unconditionally and set a local value for a future return
     fn return_to(
         &self,
+        type_context: &mut TypeContext,
         fn_builder: &mut FunctionBuilder,
         return_to: BlockId,
         local_id: Option<LocalId>,
@@ -346,7 +348,12 @@ impl Cfg {
             fn_builder.unset_terminator(*block_id);
 
             if let Some(local_id) = local_id {
-                fn_builder.emit_store(*block_id, Place::local(local_id), value.unwrap())
+                fn_builder.emit_store(
+                    type_context,
+                    *block_id,
+                    Place::local(local_id),
+                    value.unwrap(),
+                )
             }
 
             fn_builder.set_terminator(*block_id, Terminator::Jump { target: return_to });
@@ -449,7 +456,7 @@ impl FunctionBuilder {
         })
     }
 
-    pub fn close_scope(&mut self) -> BlockId {
+    pub fn close_scope(&mut self, type_context: &mut TypeContext) -> BlockId {
         let mut scope = self
             .scopes
             .pop()
@@ -477,14 +484,17 @@ impl FunctionBuilder {
         block.continue_to(self, defer_threads.continue_cfg.entry);
 
         // need to create a local if this function has an expected return value
-        let ret_local = match self.return_type.clone() {
-            TypeSpec::Unit => None,
-            ts => {
-                let local = self.add_local(str_store::DEFER, ts);
-                Some(local)
-            }
-        };
-        block.return_to(self, defer_threads.return_cfg.entry, ret_local);
+        let mut ret_local = None;
+        if type_context.is_unit_type(self.return_type) {
+            let local = self.add_local(str_store::DEFER, self.return_type);
+            ret_local = Some(local);
+        }
+        block.return_to(
+            type_context,
+            self,
+            defer_threads.return_cfg.entry,
+            ret_local,
+        );
 
         // TODO: nee a similar local for tracking defer values
 
@@ -636,13 +646,19 @@ impl FunctionBuilder {
         )
     }
 
-    pub fn emit_div(&mut self, block_id: BlockId, left: ValueId, right: ValueId) -> ValueId {
+    pub fn emit_div(
+        &mut self,
+        type_context: &mut TypeContext,
+        block_id: BlockId,
+        left: ValueId,
+        right: ValueId,
+    ) -> ValueId {
         let ts = self
             .value_types
             .get(left.as_idx())
             .expect("missing type for given value id");
 
-        let inst = if is_signed_type(ts) {
+        let inst = if type_context.is_signed_type(ts.clone()) {
             Instruction::SDiv {
                 lhs: left,
                 rhs: right,
@@ -657,13 +673,19 @@ impl FunctionBuilder {
         self.add_instruction(block_id, ts.clone(), inst)
     }
 
-    pub fn emit_mod(&mut self, block_id: BlockId, left: ValueId, right: ValueId) -> ValueId {
+    pub fn emit_mod(
+        &mut self,
+        type_context: &mut TypeContext,
+        block_id: BlockId,
+        left: ValueId,
+        right: ValueId,
+    ) -> ValueId {
         let ts = self
             .value_types
             .get(left.as_idx())
             .expect("missing type for given value id");
 
-        let inst = if is_signed_type(ts) {
+        let inst = if type_context.is_signed_type(*ts) {
             Instruction::SMod {
                 lhs: left,
                 rhs: right,
@@ -678,10 +700,18 @@ impl FunctionBuilder {
         self.add_instruction(block_id, ts.clone(), inst)
     }
 
-    pub fn emit_equal(&mut self, block_id: BlockId, left: ValueId, right: ValueId) -> ValueId {
+    pub fn emit_equal(
+        &mut self,
+        type_context: &mut TypeContext,
+        block_id: BlockId,
+        left: ValueId,
+        right: ValueId,
+    ) -> ValueId {
+        let bool_type = type_context.type_bool();
+
         self.add_instruction(
             block_id,
-            TypeSpec::Bool,
+            bool_type,
             Instruction::Equal {
                 lhs: left,
                 rhs: right,
@@ -689,10 +719,18 @@ impl FunctionBuilder {
         )
     }
 
-    pub fn emit_not_equal(&mut self, block_id: BlockId, left: ValueId, right: ValueId) -> ValueId {
+    pub fn emit_not_equal(
+        &mut self,
+        type_context: &mut TypeContext,
+        block_id: BlockId,
+        left: ValueId,
+        right: ValueId,
+    ) -> ValueId {
+        let bool_type = type_context.type_bool();
+
         self.add_instruction(
             block_id,
-            TypeSpec::Bool,
+            bool_type,
             Instruction::NotEqual {
                 lhs: left,
                 rhs: right,
@@ -700,13 +738,19 @@ impl FunctionBuilder {
         )
     }
 
-    pub fn emit_less_than(&mut self, block_id: BlockId, left: ValueId, right: ValueId) -> ValueId {
+    pub fn emit_less_than(
+        &mut self,
+        type_context: &mut TypeContext,
+        block_id: BlockId,
+        left: ValueId,
+        right: ValueId,
+    ) -> ValueId {
         let ts = self
             .value_types
             .get(left.as_idx())
             .expect("missing type for given value id");
 
-        let inst = if is_signed_type(ts) {
+        let inst = if type_context.is_signed_type(*ts) {
             Instruction::SLessThan {
                 lhs: left,
                 rhs: right,
@@ -718,11 +762,13 @@ impl FunctionBuilder {
             }
         };
 
-        self.add_instruction(block_id, TypeSpec::Bool, inst)
+        let bool_type = type_context.type_bool();
+        self.add_instruction(block_id, bool_type, inst)
     }
 
     pub fn emit_less_or_equal(
         &mut self,
+        type_context: &mut TypeContext,
         block_id: BlockId,
         left: ValueId,
         right: ValueId,
@@ -732,7 +778,7 @@ impl FunctionBuilder {
             .get(left.as_idx())
             .expect("missing type for given value id");
 
-        let inst = if is_signed_type(ts) {
+        let inst = if type_context.is_signed_type(*ts) {
             Instruction::SLessThanEqual {
                 lhs: left,
                 rhs: right,
@@ -744,11 +790,13 @@ impl FunctionBuilder {
             }
         };
 
-        self.add_instruction(block_id, TypeSpec::Bool, inst)
+        let bool_type = type_context.type_bool();
+        self.add_instruction(block_id, bool_type, inst)
     }
 
     pub fn emit_greater_than(
         &mut self,
+        type_context: &mut TypeContext,
         block_id: BlockId,
         left: ValueId,
         right: ValueId,
@@ -758,7 +806,7 @@ impl FunctionBuilder {
             .get(left.as_idx())
             .expect("missing type for given value id");
 
-        let inst = if is_signed_type(ts) {
+        let inst = if type_context.is_signed_type(*ts) {
             Instruction::SGreaterThan {
                 lhs: left,
                 rhs: right,
@@ -770,11 +818,13 @@ impl FunctionBuilder {
             }
         };
 
-        self.add_instruction(block_id, TypeSpec::Bool, inst)
+        let bool_type = type_context.type_bool();
+        self.add_instruction(block_id, bool_type, inst)
     }
 
     pub fn emit_greater_or_equal(
         &mut self,
+        type_context: &mut TypeContext,
         block_id: BlockId,
         left: ValueId,
         right: ValueId,
@@ -784,7 +834,7 @@ impl FunctionBuilder {
             .get(left.as_idx())
             .expect("missing type for given value id");
 
-        let inst = if is_signed_type(ts) {
+        let inst = if type_context.is_signed_type(*ts) {
             Instruction::SGreaterThanEqual {
                 lhs: left,
                 rhs: right,
@@ -796,18 +846,21 @@ impl FunctionBuilder {
             }
         };
 
-        self.add_instruction(block_id, TypeSpec::Bool, inst)
+        let bool_type = type_context.type_bool();
+        self.add_instruction(block_id, bool_type, inst)
     }
 
     pub fn emit_logical_and(
         &mut self,
+        type_context: &mut TypeContext,
         block_id: BlockId,
         left: ValueId,
         right: ValueId,
     ) -> ValueId {
+        let bool_type = type_context.type_bool();
         self.add_instruction(
             block_id,
-            TypeSpec::Bool,
+            bool_type,
             Instruction::LogicalAnd {
                 lhs: left,
                 rhs: right,
@@ -815,10 +868,18 @@ impl FunctionBuilder {
         )
     }
 
-    pub fn emit_logical_or(&mut self, block_id: BlockId, left: ValueId, right: ValueId) -> ValueId {
+    pub fn emit_logical_or(
+        &mut self,
+        type_context: &mut TypeContext,
+        block_id: BlockId,
+        left: ValueId,
+        right: ValueId,
+    ) -> ValueId {
+        let bool_type = type_context.type_bool();
+
         self.add_instruction(
             block_id,
-            TypeSpec::Bool,
+            bool_type,
             Instruction::LogicalOr {
                 lhs: left,
                 rhs: right,
@@ -884,8 +945,15 @@ impl FunctionBuilder {
         )
     }
 
-    pub fn emit_bool_not(&mut self, block_id: BlockId, value: ValueId) -> ValueId {
-        self.add_instruction(block_id, TypeSpec::Bool, Instruction::BoolNot { op: value })
+    pub fn emit_bool_not(
+        &mut self,
+        type_context: &mut TypeContext,
+        block_id: BlockId,
+        value: ValueId,
+    ) -> ValueId {
+        let bool_type = type_context.type_bool();
+
+        self.add_instruction(block_id, bool_type, Instruction::BoolNot { op: value })
     }
 
     pub fn emit_negate(&mut self, block_id: BlockId, value: ValueId) -> ValueId {
@@ -907,16 +975,26 @@ impl FunctionBuilder {
         self.add_instruction(block_id, result_type, Instruction::AddressOf { place })
     }
 
-    pub fn emit_alloc(&mut self, block_id: BlockId, meta_type: ValueId) -> ValueId {
-        self.add_instruction(
-            block_id,
-            TypeSpec::OpaquePtr,
-            Instruction::Alloc { meta_type },
-        )
+    pub fn emit_alloc(
+        &mut self,
+        type_context: &mut TypeContext,
+        block_id: BlockId,
+        meta_type: ValueId,
+    ) -> ValueId {
+        let opaque_ptr_type = type_context.type_opaque_ptr();
+
+        self.add_instruction(block_id, opaque_ptr_type, Instruction::Alloc { meta_type })
     }
 
-    pub fn emit_free(&mut self, block_id: BlockId, ptr: ValueId) -> ValueId {
-        self.add_instruction(block_id, TypeSpec::Unit, Instruction::Free { ptr })
+    pub fn emit_free(
+        &mut self,
+        type_context: &mut TypeContext,
+        block_id: BlockId,
+        ptr: ValueId,
+    ) -> ValueId {
+        let unit_type = type_context.type_unit();
+
+        self.add_instruction(block_id, unit_type, Instruction::Free { ptr })
     }
 
     pub fn emit_call(
@@ -931,16 +1009,17 @@ impl FunctionBuilder {
 
     pub fn emit_variant_get_tag(
         &mut self,
+        type_context: &mut TypeContext,
         block: BlockId,
         target: ValueId,
-        target_type: TypeSpec,
+        target_type: TypeValue,
     ) -> ValueId {
         let tag_type = match target_type {
-            TypeSpec::Enum { tag_size, .. } => match tag_size {
-                TagSize::U8 => TypeSpec::I8,
-                TagSize::U16 => TypeSpec::I16,
-                TagSize::U32 => TypeSpec::I32,
-                TagSize::U64 => TypeSpec::I64,
+            TypeValue::Enum { tag_size, .. } => match tag_size {
+                TagSize::U8 => type_context.type_i8(),
+                TagSize::U16 => type_context.type_i16(),
+                TagSize::U32 => type_context.type_i32(),
+                TagSize::U64 => type_context.type_i64(),
             },
             _ => panic!("incorrect type for enum match"),
         };
@@ -986,12 +1065,15 @@ impl FunctionBuilder {
     }
 
     /// Emit a store of `value` to a place. Produces Unit.
-    pub fn emit_store(&mut self, block_id: BlockId, place: Place, value: ValueId) {
-        self.add_instruction(
-            block_id,
-            TypeSpec::Unit,
-            Instruction::Store { place, value },
-        );
+    pub fn emit_store(
+        &mut self,
+        type_context: &mut TypeContext,
+        block_id: BlockId,
+        place: Place,
+        value: ValueId,
+    ) {
+        let unit_type = type_context.type_unit();
+        self.add_instruction(block_id, unit_type, Instruction::Store { place, value });
     }
 
     pub fn emit_const(
@@ -1109,7 +1191,7 @@ impl FunctionBuilder {
                 linkage: self.linkage.clone(),
                 name: self.name,
                 params: self.params.clone(),
-                return_type: self.return_type.clone(),
+                return_type: self.return_type,
                 blocks: vec![],
                 entry_block: BlockId::from_u32(1),
                 local_map: BTreeMap::new(),
@@ -1179,32 +1261,21 @@ impl FunctionBuilder {
     }
 }
 
-fn is_signed_type(ts: &TypeSpec) -> bool {
-    matches!(
-        ts,
-        TypeSpec::I8
-            | TypeSpec::I16
-            | TypeSpec::I32
-            | TypeSpec::I64
-            | TypeSpec::F32
-            | TypeSpec::F64
-    )
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::str_store::StrID;
 
-    fn test_builder() -> FunctionBuilder {
-        FunctionBuilder::new_private(StrID::from_usize(1), TypeSpec::Unit)
+    fn test_builder(type_context: &mut TypeContext) -> FunctionBuilder {
+        FunctionBuilder::new_private(StrID::from_usize(1), type_context.type_unit())
     }
 
     // A single block with a Return terminator should be cloned to a new block
     // with a different ID but the same terminator.
     #[test]
     fn test_cfg_clone_single_block() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let entry = fb.add_block();
         fb.set_terminator(entry, Terminator::Return { value: None });
 
@@ -1221,7 +1292,8 @@ mod tests {
     // entry should jump to the cloned successor, not the original.
     #[test]
     fn test_cfg_clone_linear_chain() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         fb.set_terminator(a, Terminator::Jump { target: b });
@@ -1246,7 +1318,8 @@ mod tests {
     // but point to the two new arm blocks.
     #[test]
     fn test_cfg_clone_branch() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
@@ -1293,7 +1366,8 @@ mod tests {
     // be cloned and the cloned switch should reference the new block IDs.
     #[test]
     fn test_cfg_clone_switch_variant() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let entry = fb.add_block();
         let default = fb.add_block();
         let arm_block = fb.add_block();
@@ -1343,7 +1417,8 @@ mod tests {
     // should point to the cloned entry, not the original.
     #[test]
     fn test_cfg_clone_cycle() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         fb.set_terminator(a, Terminator::Jump { target: b });
@@ -1369,7 +1444,8 @@ mod tests {
 
     #[test]
     fn test_all_blocks_terminate_single_block_with_terminator() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         fb.set_terminator(a, Terminator::Return { value: None });
 
@@ -1380,7 +1456,8 @@ mod tests {
 
     #[test]
     fn test_all_blocks_terminate_single_block_missing_terminator() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         // no terminator set
 
@@ -1399,7 +1476,8 @@ mod tests {
                 msg: ValueId::nil(),
             },
         ] {
-            let mut fb = test_builder();
+            let mut type_context = TypeContext::new();
+            let mut fb = test_builder(&mut type_context);
             let a = fb.add_block();
             fb.set_terminator(a, term);
 
@@ -1411,7 +1489,8 @@ mod tests {
 
     #[test]
     fn test_all_blocks_terminate_linear_chain_all_terminated() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         fb.set_terminator(a, Terminator::Jump { target: b });
@@ -1424,7 +1503,8 @@ mod tests {
 
     #[test]
     fn test_all_blocks_terminate_linear_chain_missing_terminator() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         fb.set_terminator(a, Terminator::Jump { target: b });
@@ -1437,7 +1517,8 @@ mod tests {
 
     #[test]
     fn test_all_blocks_terminate_branch_all_terminated() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
@@ -1460,7 +1541,8 @@ mod tests {
 
     #[test]
     fn test_all_blocks_terminate_branch_one_arm_missing() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
@@ -1483,7 +1565,8 @@ mod tests {
 
     #[test]
     fn test_all_blocks_terminate_switch_all_terminated() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let entry = fb.add_block();
         let default = fb.add_block();
         let arm_block = fb.add_block();
@@ -1509,7 +1592,8 @@ mod tests {
 
     #[test]
     fn test_all_blocks_terminate_switch_arm_missing() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let entry = fb.add_block();
         let default = fb.add_block();
         let arm_block = fb.add_block();
@@ -1537,7 +1621,8 @@ mod tests {
     // back-edge is short-circuited by the visited set.
     #[test]
     fn test_all_blocks_terminate_cycle_all_terminated() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         fb.set_terminator(a, Terminator::Jump { target: b });
@@ -1554,7 +1639,8 @@ mod tests {
     // missing terminator on c must still be caught.
     #[test]
     fn test_all_blocks_terminate_cycle_missing_terminator() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
@@ -1579,7 +1665,8 @@ mod tests {
 
     #[test]
     fn test_can_return_single_block_returns() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         fb.set_terminator(a, Terminator::Return { value: None });
 
@@ -1590,7 +1677,8 @@ mod tests {
 
     #[test]
     fn test_can_return_single_block_unreachable() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         fb.set_terminator(a, Terminator::Unreachable);
 
@@ -1601,7 +1689,8 @@ mod tests {
 
     #[test]
     fn test_can_return_single_block_panic() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         fb.set_terminator(
             a,
@@ -1617,7 +1706,8 @@ mod tests {
 
     #[test]
     fn test_can_return_single_block_no_terminator() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         // no terminator set
 
@@ -1628,7 +1718,8 @@ mod tests {
 
     #[test]
     fn test_can_return_linear_chain_returns() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         fb.set_terminator(a, Terminator::Jump { target: b });
@@ -1641,7 +1732,8 @@ mod tests {
 
     #[test]
     fn test_can_return_linear_chain_no_return() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         fb.set_terminator(a, Terminator::Jump { target: b });
@@ -1655,7 +1747,8 @@ mod tests {
     // Only one arm needs to return for can_return to be true.
     #[test]
     fn test_can_return_branch_one_arm_returns() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
@@ -1678,7 +1771,8 @@ mod tests {
 
     #[test]
     fn test_can_return_branch_no_arm_returns() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
@@ -1706,7 +1800,8 @@ mod tests {
 
     #[test]
     fn test_can_return_switch_one_arm_returns() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let entry = fb.add_block();
         let default = fb.add_block();
         let arm_block = fb.add_block();
@@ -1732,7 +1827,8 @@ mod tests {
 
     #[test]
     fn test_can_return_switch_no_arm_returns() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let entry = fb.add_block();
         let default = fb.add_block();
         let arm_block = fb.add_block();
@@ -1765,7 +1861,8 @@ mod tests {
     // b loops back to a and also branches to c which returns.
     #[test]
     fn test_can_return_cycle_with_return() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
@@ -1790,7 +1887,8 @@ mod tests {
     // the visited set and the remaining paths all end in non-return terminators.
     #[test]
     fn test_can_return_cycle_without_return() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
@@ -1816,7 +1914,8 @@ mod tests {
     // A block with no terminator should have it set to jump to the target.
     #[test]
     fn test_jump_to_single_block_no_terminator() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let target = fb.add_block();
         fb.set_terminator(target, Terminator::Return { value: None });
@@ -1838,7 +1937,8 @@ mod tests {
                 msg: ValueId::nil(),
             },
         ] {
-            let mut fb = test_builder();
+            let mut type_context = TypeContext::new();
+            let mut fb = test_builder(&mut type_context);
             let a = fb.add_block();
             let target = fb.add_block();
             fb.set_terminator(target, Terminator::Return { value: None });
@@ -1856,7 +1956,8 @@ mod tests {
     // be wired up.
     #[test]
     fn test_jump_to_linear_chain_wires_tail() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let target = fb.add_block();
@@ -1876,7 +1977,8 @@ mod tests {
     // Both arms of a branch with no terminators should be wired up.
     #[test]
     fn test_jump_to_branch_wires_both_arms() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
@@ -1905,7 +2007,8 @@ mod tests {
     // Only the arm without a terminator should be wired up; the other is left alone.
     #[test]
     fn test_jump_to_branch_wires_only_missing_arm() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
@@ -1936,7 +2039,8 @@ mod tests {
     // off-loop block with no terminator should still be wired up correctly.
     #[test]
     fn test_jump_to_cycle_wires_off_loop_block() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
@@ -1977,7 +2081,8 @@ mod tests {
     // A block with a Panic terminator should have it replaced with a Jump to the target.
     #[test]
     fn test_panic_to_single_block_panics() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let target = fb.add_block();
         fb.set_terminator(target, Terminator::Return { value: None });
@@ -1999,7 +2104,8 @@ mod tests {
     #[test]
     fn test_panic_to_leaves_existing_terminators_alone() {
         for term in [Terminator::Return { value: None }, Terminator::Unreachable] {
-            let mut fb = test_builder();
+            let mut type_context = TypeContext::new();
+            let mut fb = test_builder(&mut type_context);
             let a = fb.add_block();
             let target = fb.add_block();
             fb.set_terminator(target, Terminator::Return { value: None });
@@ -2016,7 +2122,8 @@ mod tests {
     // In a linear chain where the tail panics, only the tail should be replaced.
     #[test]
     fn test_panic_to_linear_chain_wires_tail() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let target = fb.add_block();
@@ -2041,7 +2148,8 @@ mod tests {
     // Both arms of a branch that panic should be replaced.
     #[test]
     fn test_panic_to_branch_wires_both_arms() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
@@ -2081,7 +2189,8 @@ mod tests {
     // Only the arm that panics should be replaced; the other is left alone.
     #[test]
     fn test_panic_to_branch_wires_only_panicking_arm() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
@@ -2117,7 +2226,8 @@ mod tests {
     // panics is still replaced correctly.
     #[test]
     fn test_panic_to_cycle_wires_off_loop_block() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
@@ -2163,14 +2273,15 @@ mod tests {
     // A unit return (no value) should be replaced with a Jump and no store emitted.
     #[test]
     fn test_return_to_unit_return_single_block() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let target = fb.add_block();
         fb.set_terminator(target, Terminator::Unreachable);
         fb.set_terminator(a, Terminator::Return { value: None });
 
         let cfg = Cfg::new(&mut fb, a);
-        cfg.return_to(&mut fb, target, None);
+        cfg.return_to(&mut type_context, &mut fb, target, None);
 
         let a_terminator = fb.get_block(a).terminator.clone();
         let a_instructions = fb.get_block(a).instructions.clone();
@@ -2181,12 +2292,13 @@ mod tests {
     // A value return should be replaced with a store to the local followed by a Jump.
     #[test]
     fn test_return_to_value_return_single_block() {
-        let mut fb = FunctionBuilder::new_private(StrID::from_usize(1), TypeSpec::I32);
+        let mut type_context = TypeContext::new();
+        let mut fb = FunctionBuilder::new_private(StrID::from_usize(1), type_context.type_i32());
         let a = fb.add_block();
         let target = fb.add_block();
         fb.set_terminator(target, Terminator::Unreachable);
-        let return_val = fb.emit_const(a, TypeSpec::I32, ConstValue::Int(42));
-        let local = fb.add_local(StrID::from_usize(2), TypeSpec::I32);
+        let return_val = fb.emit_const(a, type_context.type_i32(), ConstValue::Int(42));
+        let local = fb.add_local(StrID::from_usize(2), type_context.type_i32());
         fb.set_terminator(
             a,
             Terminator::Return {
@@ -2195,7 +2307,7 @@ mod tests {
         );
 
         let cfg = Cfg::new(&mut fb, a);
-        cfg.return_to(&mut fb, target, Some(local));
+        cfg.return_to(&mut type_context, &mut fb, target, Some(local));
 
         let a_terminator = fb.get_block(a).terminator.clone();
         assert_eq!(a_terminator, Some(Terminator::Jump { target }));
@@ -2220,14 +2332,15 @@ mod tests {
             },
             Terminator::Unreachable,
         ] {
-            let mut fb = test_builder();
+            let mut type_context = TypeContext::new();
+            let mut fb = test_builder(&mut type_context);
             let a = fb.add_block();
             let target = fb.add_block();
             fb.set_terminator(target, Terminator::Unreachable);
             fb.set_terminator(a, term.clone());
 
             let cfg = Cfg::new(&mut fb, a);
-            cfg.return_to(&mut fb, target, None);
+            cfg.return_to(&mut type_context, &mut fb, target, None);
 
             let a_terminator = fb.get_block(a).terminator.clone();
             assert_eq!(a_terminator, Some(term));
@@ -2237,7 +2350,8 @@ mod tests {
     // In a linear chain where the tail returns, only the tail should be replaced.
     #[test]
     fn test_return_to_linear_chain_wires_tail() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let target = fb.add_block();
@@ -2246,7 +2360,7 @@ mod tests {
         fb.set_terminator(b, Terminator::Return { value: None });
 
         let cfg = Cfg::new(&mut fb, a);
-        cfg.return_to(&mut fb, target, None);
+        cfg.return_to(&mut type_context, &mut fb, target, None);
 
         let a_terminator = fb.get_block(a).terminator.clone();
         let b_terminator = fb.get_block(b).terminator.clone();
@@ -2257,7 +2371,8 @@ mod tests {
     // Both arms of a branch that return should be replaced.
     #[test]
     fn test_return_to_branch_wires_both_arms() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
@@ -2276,7 +2391,7 @@ mod tests {
         fb.set_terminator(c, Terminator::Return { value: None });
 
         let cfg = Cfg::new(&mut fb, a);
-        cfg.return_to(&mut fb, target, None);
+        cfg.return_to(&mut type_context, &mut fb, target, None);
 
         let b_terminator = fb.get_block(b).terminator.clone();
         let c_terminator = fb.get_block(c).terminator.clone();
@@ -2287,7 +2402,8 @@ mod tests {
     // Only the arm that returns should be replaced; the other is left alone.
     #[test]
     fn test_return_to_branch_wires_only_returning_arm() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
@@ -2311,7 +2427,7 @@ mod tests {
         fb.set_terminator(c, Terminator::Return { value: None });
 
         let cfg = Cfg::new(&mut fb, a);
-        cfg.return_to(&mut fb, target, None);
+        cfg.return_to(&mut type_context, &mut fb, target, None);
 
         let b_terminator = fb.get_block(b).terminator.clone();
         let c_terminator = fb.get_block(c).terminator.clone();
@@ -2328,7 +2444,8 @@ mod tests {
     // returns is still replaced correctly.
     #[test]
     fn test_return_to_cycle_wires_off_loop_block() {
-        let mut fb = test_builder();
+        let mut type_context = TypeContext::new();
+        let mut fb = test_builder(&mut type_context);
         let a = fb.add_block();
         let b = fb.add_block();
         let c = fb.add_block();
@@ -2347,7 +2464,7 @@ mod tests {
         fb.set_terminator(c, Terminator::Return { value: None });
 
         let cfg = Cfg::new(&mut fb, a);
-        cfg.return_to(&mut fb, target, None);
+        cfg.return_to(&mut type_context, &mut fb, target, None);
 
         let a_terminator = fb.get_block(a).terminator.clone();
         let b_terminator = fb.get_block(b).terminator.clone();

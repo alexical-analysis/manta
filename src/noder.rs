@@ -2,7 +2,7 @@ pub mod typer;
 
 use serde::Serialize;
 use std::cmp::Ord;
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet, btree_map};
 use std::fmt::Debug;
 use std::ops::Deref;
 
@@ -19,44 +19,34 @@ use crate::parser::module::{BindingType, Module as ParseModule, SymID};
 use crate::str_store::{self, StrID};
 
 #[derive(Serialize)]
-pub(crate) struct SideTable<K, V> {
-    pub(crate) keys: BTreeMap<K, usize>,
-    pub(crate) values: Vec<V>,
-}
+pub(crate) struct SideTable<K, V>(BTreeMap<K, V>);
 
 impl<K: Ord + Debug, V: Debug> SideTable<K, V> {
     fn new() -> Self {
-        SideTable {
-            keys: BTreeMap::new(),
-            values: vec![],
-        }
+        SideTable(BTreeMap::new())
     }
 
     fn add(&mut self, key: K, value: V) {
-        if self.keys.contains_key(&key) {
+        if self.0.contains_key(&key) {
             panic!("can not add the same key twice")
         }
 
-        let id = self.values.len();
-        self.values.push(value);
-        self.keys.insert(key, id);
+        self.0.insert(key, value);
     }
 
     fn get(&self, key: K) -> Option<&V> {
-        match self.keys.get(&key) {
-            Some(i) => self.values.get(*i),
-            _ => None,
-        }
+        self.0.get(&key)
     }
 
     fn set(&mut self, key: K, value: V) {
-        match self.keys.get(&key) {
-            Some(k) => match self.values.get_mut(*k) {
-                Some(v) => *v = value,
-                None => panic!("missing value for key {:?}", key),
-            },
+        match self.0.get_mut(&key) {
+            Some(v) => *v = value,
             None => panic!("setting value {:?} for unknown key {:?}", value, key),
         }
+    }
+
+    pub fn iter(&self) -> btree_map::Iter<K, V> {
+        self.0.iter()
     }
 }
 
@@ -2070,36 +2060,31 @@ mod tests {
                             value: NodeID::new(4)
                         },
                     ],
-                    type_map: SideTable {
-                        // inserted: (NodeID(0), print_func), (NodeID(1), eprint_func)
-                        // then typer: (NodeID(3), Unit), (NodeID(5), Unit), (NodeID(4), Int64), (NodeID(2), Int64)
-                        keys: BTreeMap::from([
-                            (NodeID::new(0), 0),
-                            (NodeID::new(1), 1),
-                            (NodeID::new(2), 5),
-                            (NodeID::new(3), 2),
-                            (NodeID::new(4), 4),
-                            (NodeID::new(5), 3),
-                        ]),
-                        values: vec![
+                    type_map: SideTable(BTreeMap::from([
+                        (
+                            NodeID::new(0),
                             TypeSpec::Function(FunctionType {
                                 params: vec![TypeSpec::String],
                                 return_type: Box::new(TypeSpec::Unit)
-                            }),
+                            })
+                        ),
+                        (
+                            NodeID::new(1),
                             TypeSpec::Function(FunctionType {
                                 params: vec![TypeSpec::String],
                                 return_type: Box::new(TypeSpec::Unit)
-                            }),
-                            TypeSpec::Unit,
-                            TypeSpec::Unit,
-                            TypeSpec::Int64,
-                            TypeSpec::Int64,
-                        ],
-                    },
-                    symbol_map: SideTable {
-                        keys: BTreeMap::from([(12_usize, 0), (13_usize, 1), (14_usize, 2)]),
-                        values: vec![NodeID::new(0), NodeID::new(1), NodeID::new(2)],
-                    },
+                            })
+                        ),
+                        (NodeID::new(2), TypeSpec::Int64),
+                        (NodeID::new(3), TypeSpec::Unit),
+                        (NodeID::new(4), TypeSpec::Int64),
+                        (NodeID::new(5), TypeSpec::Unit),
+                    ]),),
+                    symbol_map: SideTable(BTreeMap::from([
+                        (12_usize, NodeID::new(0)),
+                        (13_usize, NodeID::new(1)),
+                        (14_usize, NodeID::new(2))
+                    ]),),
                 },
                 roots: vec![NodeID::new(3), NodeID::new(5)],
                 public_decls: HashMap::from([]),
