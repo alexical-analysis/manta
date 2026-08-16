@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::parser::lexer::SourceID;
+use crate::parser::lexer::Pos;
 use crate::str_store::StrID;
 
 /// Top-level declarations in a Manta program
@@ -26,7 +26,7 @@ pub enum Decl {
 #[derive(Debug, PartialEq, Serialize)]
 pub struct FunctionDecl {
     pub public: bool,
-    pub id: SourceID,
+    pub id: Pos,
     pub name: StrID,
     pub params: Vec<Parameter>,
     pub body: BlockStmt,
@@ -36,7 +36,7 @@ pub struct FunctionDecl {
 #[derive(Debug, PartialEq, Serialize)]
 pub struct TypeDecl {
     pub public: bool,
-    pub id: SourceID,
+    pub id: Pos,
     pub name: StrID,
     pub type_spec: TypeSpec,
 }
@@ -44,7 +44,7 @@ pub struct TypeDecl {
 /// Function parameter
 #[derive(Debug, PartialEq, Serialize)]
 pub struct Parameter {
-    pub id: SourceID,
+    pub id: Pos,
     pub name: StrID,
 }
 
@@ -57,7 +57,7 @@ pub struct Parameter {
 #[derive(Debug, PartialEq, Serialize)]
 pub struct ConstDecl {
     pub public: bool,
-    pub id: SourceID,
+    pub id: Pos,
     pub name: StrID,
     pub value: Expr,
 }
@@ -71,7 +71,7 @@ pub struct ConstDecl {
 #[derive(Debug, PartialEq, Serialize)]
 pub struct VarDecl {
     pub public: bool,
-    pub id: SourceID,
+    pub id: Pos,
     pub name: StrID,
     pub value: Expr,
 }
@@ -141,7 +141,7 @@ pub enum TypeSpec {
 /// Used defined named type
 #[derive(Debug, PartialEq, Clone, Serialize)]
 pub struct NamedType {
-    pub id: SourceID,
+    pub id: Pos,
     pub module: Option<StrID>,
     pub name: StrID,
 }
@@ -206,7 +206,7 @@ pub struct StructValueField {
 /// A block of statements
 #[derive(Debug, PartialEq, Serialize)]
 pub struct BlockStmt {
-    pub id: SourceID,
+    pub id: Pos,
     pub statements: Vec<Stmt>,
 }
 
@@ -264,7 +264,7 @@ pub struct LetStmt {
 #[derive(Debug, PartialEq, Serialize)]
 pub enum LetExcept {
     Or {
-        id: SourceID,
+        id: Pos,
         binding: Option<StrID>,
         body: BlockStmt,
     },
@@ -302,7 +302,7 @@ pub struct MatchStmt {
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct MatchArm {
-    pub id: SourceID,
+    pub id: Pos,
     pub pattern: Pattern,
     pub body: BlockStmt,
 }
@@ -330,14 +330,14 @@ pub enum Payload {
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct TypeSpecPat {
-    pub id: SourceID,
+    pub id: Pos,
     pub type_spec: TypeSpec,
     pub payload: Payload,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct EnumVariantPat {
-    pub id: SourceID,
+    pub id: Pos,
     pub enum_name: Option<IdentifierExpr>,
     pub variant: StrID,
     pub payload: Payload,
@@ -345,14 +345,14 @@ pub struct EnumVariantPat {
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct ModuleIdentifierPat {
-    pub id: SourceID,
+    pub id: Pos,
     pub module: StrID,
     pub name: StrID,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct IdentifierPat {
-    pub id: SourceID,
+    pub id: Pos,
     pub name: StrID,
 }
 
@@ -397,7 +397,7 @@ pub enum Expr {
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct IdentifierExpr {
-    pub id: SourceID,
+    pub id: Pos,
     pub module: Option<StrID>,
     pub name: StrID,
 }

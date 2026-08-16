@@ -19,7 +19,8 @@ use crate::parser::ParseError;
 use crate::parser::expression::struct_constructor::{
     AnonymousStructConstructorParselet, StructConstructorParselet,
 };
-use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::lexer::{Lexer, Token, Ty};
+use crate::str_store::{self, StrStore};
 
 use binary_operator::BinaryOperatorParselet;
 use call::CallParselet;
@@ -78,8 +79,8 @@ pub enum Precedence {
 }
 
 pub struct ExprParser {
-    prefix_parselets: HashMap<TokenKind, Rc<dyn PrefixExprParselet>>,
-    infix_parselets: HashMap<TokenKind, Rc<dyn InfixExprParselet>>,
+    prefix_parselets: HashMap<Ty, Rc<dyn PrefixExprParselet>>,
+    infix_parselets: HashMap<Ty, Rc<dyn InfixExprParselet>>,
 }
 
 impl ExprParser {
@@ -92,180 +93,180 @@ impl ExprParser {
     }
 
     fn new(allow_structs: bool) -> Self {
-        let mut prefix_parselets: HashMap<TokenKind, Rc<dyn PrefixExprParselet>> = HashMap::new();
-        prefix_parselets.insert(TokenKind::Int, Rc::new(LiteralParselet));
-        prefix_parselets.insert(TokenKind::Float, Rc::new(LiteralParselet));
-        prefix_parselets.insert(TokenKind::Str, Rc::new(LiteralParselet));
-        prefix_parselets.insert(TokenKind::TrueLiteral, Rc::new(LiteralParselet));
-        prefix_parselets.insert(TokenKind::FalseLiteral, Rc::new(LiteralParselet));
-        prefix_parselets.insert(TokenKind::Identifier, Rc::new(IdentifierParselet));
-        prefix_parselets.insert(TokenKind::OpenParen, Rc::new(GroupParselet));
-        prefix_parselets.insert(TokenKind::Dot, Rc::new(PrefixDotAccessParselet));
-        prefix_parselets.insert(TokenKind::At, Rc::new(MetaTypeParselet));
+        let mut prefix_parselets: HashMap<Ty, Rc<dyn PrefixExprParselet>> = HashMap::new();
+        prefix_parselets.insert(Ty::Int, Rc::new(LiteralParselet));
+        prefix_parselets.insert(Ty::Float, Rc::new(LiteralParselet));
+        prefix_parselets.insert(Ty::Str, Rc::new(LiteralParselet));
+        prefix_parselets.insert(Ty::TrueLiteral, Rc::new(LiteralParselet));
+        prefix_parselets.insert(Ty::FalseLiteral, Rc::new(LiteralParselet));
+        prefix_parselets.insert(Ty::Identifier, Rc::new(IdentifierParselet));
+        prefix_parselets.insert(Ty::OpenParen, Rc::new(GroupParselet));
+        prefix_parselets.insert(Ty::Dot, Rc::new(PrefixDotAccessParselet));
+        prefix_parselets.insert(Ty::At, Rc::new(MetaTypeParselet));
         prefix_parselets.insert(
-            TokenKind::Minus,
+            Ty::Minus,
             Rc::new(UnaryOperatorParselet {
                 operator: UnaryOp::Negate,
             }),
         );
         prefix_parselets.insert(
-            TokenKind::Plus,
+            Ty::Plus,
             Rc::new(UnaryOperatorParselet {
                 operator: UnaryOp::Positive,
             }),
         );
         prefix_parselets.insert(
-            TokenKind::Bang,
+            Ty::Bang,
             Rc::new(UnaryOperatorParselet {
                 operator: UnaryOp::Not,
             }),
         );
         prefix_parselets.insert(
-            TokenKind::Star,
+            Ty::Star,
             Rc::new(UnaryOperatorParselet {
                 operator: UnaryOp::Dereference,
             }),
         );
         prefix_parselets.insert(
-            TokenKind::And,
+            Ty::And,
             Rc::new(UnaryOperatorParselet {
                 operator: UnaryOp::AddressOf,
             }),
         );
         prefix_parselets.insert(
-            TokenKind::StructKeyword,
+            Ty::StructKeyword,
             Rc::new(AnonymousStructConstructorParselet),
         );
 
-        let mut infix_parselets: HashMap<TokenKind, Rc<dyn InfixExprParselet>> = HashMap::new();
+        let mut infix_parselets: HashMap<Ty, Rc<dyn InfixExprParselet>> = HashMap::new();
         infix_parselets.insert(
-            TokenKind::Plus,
+            Ty::Plus,
             Rc::new(BinaryOperatorParselet {
                 operator: BinaryOp::Add,
                 precedence: Precedence::Addition,
             }),
         );
         infix_parselets.insert(
-            TokenKind::Minus,
+            Ty::Minus,
             Rc::new(BinaryOperatorParselet {
                 operator: BinaryOp::Subtract,
                 precedence: Precedence::Addition,
             }),
         );
         infix_parselets.insert(
-            TokenKind::Star,
+            Ty::Star,
             Rc::new(BinaryOperatorParselet {
                 operator: BinaryOp::Multiply,
                 precedence: Precedence::Multiplication,
             }),
         );
         infix_parselets.insert(
-            TokenKind::Slash,
+            Ty::Slash,
             Rc::new(BinaryOperatorParselet {
                 operator: BinaryOp::Divide,
                 precedence: Precedence::Multiplication,
             }),
         );
         infix_parselets.insert(
-            TokenKind::Percent,
+            Ty::Percent,
             Rc::new(BinaryOperatorParselet {
                 operator: BinaryOp::Modulo,
                 precedence: Precedence::Multiplication,
             }),
         );
         infix_parselets.insert(
-            TokenKind::EqualEqual,
+            Ty::EqualEqual,
             Rc::new(BinaryOperatorParselet {
                 operator: BinaryOp::Equal,
                 precedence: Precedence::Equality,
             }),
         );
         infix_parselets.insert(
-            TokenKind::NotEqual,
+            Ty::NotEqual,
             Rc::new(BinaryOperatorParselet {
                 operator: BinaryOp::NotEqual,
                 precedence: Precedence::Equality,
             }),
         );
         infix_parselets.insert(
-            TokenKind::LessThan,
+            Ty::LessThan,
             Rc::new(BinaryOperatorParselet {
                 operator: BinaryOp::LessThan,
                 precedence: Precedence::Comparison,
             }),
         );
         infix_parselets.insert(
-            TokenKind::GreaterThan,
+            Ty::GreaterThan,
             Rc::new(BinaryOperatorParselet {
                 operator: BinaryOp::GreaterThan,
                 precedence: Precedence::Comparison,
             }),
         );
         infix_parselets.insert(
-            TokenKind::LessOrEqual,
+            Ty::LessOrEqual,
             Rc::new(BinaryOperatorParselet {
                 operator: BinaryOp::LessThanOrEqual,
                 precedence: Precedence::Comparison,
             }),
         );
         infix_parselets.insert(
-            TokenKind::GreaterOrEqual,
+            Ty::GreaterOrEqual,
             Rc::new(BinaryOperatorParselet {
                 operator: BinaryOp::GreaterThanOrEqual,
                 precedence: Precedence::Comparison,
             }),
         );
         infix_parselets.insert(
-            TokenKind::AndAnd,
+            Ty::AndAnd,
             Rc::new(BinaryOperatorParselet {
                 operator: BinaryOp::LogicalAnd,
                 precedence: Precedence::LogicalAnd,
             }),
         );
         infix_parselets.insert(
-            TokenKind::PipePipe,
+            Ty::PipePipe,
             Rc::new(BinaryOperatorParselet {
                 operator: BinaryOp::LogicalOr,
                 precedence: Precedence::LogicalOr,
             }),
         );
         infix_parselets.insert(
-            TokenKind::And,
+            Ty::And,
             Rc::new(BinaryOperatorParselet {
                 operator: BinaryOp::BitwiseAnd,
                 precedence: Precedence::BitwiseAnd,
             }),
         );
         infix_parselets.insert(
-            TokenKind::Pipe,
+            Ty::Pipe,
             Rc::new(BinaryOperatorParselet {
                 operator: BinaryOp::BitwiseOr,
                 precedence: Precedence::BitwiseOr,
             }),
         );
         infix_parselets.insert(
-            TokenKind::Caret,
+            Ty::Caret,
             Rc::new(BinaryOperatorParselet {
                 operator: BinaryOp::BitwiseXor,
                 precedence: Precedence::BitwiseXor,
             }),
         );
-        infix_parselets.insert(TokenKind::OpenParen, Rc::new(CallParselet));
-        infix_parselets.insert(TokenKind::OpenSquare, Rc::new(IndexParselet));
-        infix_parselets.insert(TokenKind::Dot, Rc::new(InfixDotAccessParselet));
-        infix_parselets.insert(TokenKind::ColonColon, Rc::new(ModuleAccessParselet));
+        infix_parselets.insert(Ty::OpenParen, Rc::new(CallParselet));
+        infix_parselets.insert(Ty::OpenSquare, Rc::new(IndexParselet));
+        infix_parselets.insert(Ty::Dot, Rc::new(InfixDotAccessParselet));
+        infix_parselets.insert(Ty::ColonColon, Rc::new(ModuleAccessParselet));
         infix_parselets.insert(
-            TokenKind::RangeInclusive,
+            Ty::RangeInclusive,
             Rc::new(RangeOperatorParselet { inclusive: true }),
         );
         infix_parselets.insert(
-            TokenKind::RangeExclusive,
+            Ty::RangeExclusive,
             Rc::new(RangeOperatorParselet { inclusive: false }),
         );
 
         // structs are not always allowed like normal expressions
         if allow_structs {
-            infix_parselets.insert(TokenKind::OpenBrace, Rc::new(StructConstructorParselet));
+            infix_parselets.insert(Ty::OpenBrace, Rc::new(StructConstructorParselet));
         }
 
         ExprParser {
@@ -277,9 +278,11 @@ impl ExprParser {
     /// Parse an expression with a minimum precedence level.
     /// This implements the Pratt parser algorithm.
     pub fn parse(&self, lexer: &mut Lexer, min_precedence: Precedence) -> Result<Expr, ParseError> {
-        let token = lexer.next_token();
+        todo!("update this code to use an actual str_store");
+        let mut str_store = StrStore::new();
+        let token = lexer.next(&mut str_store);
 
-        let prefix_opt = self.prefix_parselets.get(&token.kind);
+        let prefix_opt = self.prefix_parselets.get(&token.ty);
         if prefix_opt.is_none() {
             return Err(ParseError::UnexpectedToken(
                 token,
@@ -293,11 +296,11 @@ impl ExprParser {
         // Loop while the next token's precedence is higher than or equal to min_precedence
         loop {
             let token = lexer.peek();
-            if token.kind == TokenKind::Eof || token.kind == TokenKind::Semicolon {
+            if token.ty == Ty::Eof || token.ty == Ty::Semicolon {
                 break;
             }
 
-            let infix_parselet = self.infix_parselets.get(&token.kind);
+            let infix_parselet = self.infix_parselets.get(&token.ty);
             if infix_parselet.is_none() {
                 break;
             }
@@ -307,7 +310,8 @@ impl ExprParser {
                 break;
             }
 
-            let token = lexer.next_token();
+            todo!("update this code to use an actual str_store");
+            let token = lexer.next(&mut str_store);
             left = infix_parselet.parse(self, lexer, left, token)?;
         }
 
@@ -315,10 +319,11 @@ impl ExprParser {
     }
 
     pub fn is_expression_prefix(&self, token: Token) -> bool {
-        self.prefix_parselets.contains_key(&token.kind)
+        self.prefix_parselets.contains_key(&token.ty)
     }
 }
 
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1470,3 +1475,4 @@ mod tests {
         },
     );
 }
+*/

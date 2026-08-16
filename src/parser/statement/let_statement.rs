@@ -1,7 +1,8 @@
 use crate::ast::{LetExcept, LetStmt, Stmt};
 use crate::parser::ParseError;
-use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::lexer::{Lexer, Token, Ty};
 use crate::parser::statement::{PrefixStmtParselet, StmtParser};
+use crate::str_store::StrStore;
 
 /// Parses let expressions
 ///
@@ -21,8 +22,11 @@ impl PrefixStmtParselet for LetParselet {
     ) -> Result<Stmt, ParseError> {
         let pattern = parser.parse_pattern(lexer)?;
 
-        let token = lexer.next_token();
-        if token.kind != TokenKind::Equal {
+        todo!("need to figure this out, how to get the str_store");
+        let mut str_store = StrStore::new();
+
+        let token = lexer.next(&mut str_store);
+        if token.ty != Ty::Equal {
             return Err(ParseError::UnexpectedToken(
                 token,
                 "expected '='".to_string(),
@@ -32,35 +36,35 @@ impl PrefixStmtParselet for LetParselet {
         let value = parser.parse_expression(lexer)?;
 
         let next = lexer.peek();
-        match next.kind {
-            TokenKind::OrKeyword => {
-                let or_token = lexer.next_token();
+        match next.ty {
+            Ty::OrKeyword => {
+                let or_token = lexer.next(&mut str_store);
                 let next = lexer.peek();
-                let binding = if next.kind == TokenKind::OpenParen {
-                    lexer.next_token();
-                    let catch_ident = lexer.next_token();
-                    if catch_ident.kind != TokenKind::Identifier {
+                let binding = if next.ty == Ty::OpenParen {
+                    lexer.next(&mut str_store);
+                    let catch_ident = lexer.next(&mut str_store);
+                    if catch_ident.ty != Ty::Identifier {
                         return Err(ParseError::UnexpectedToken(
                             catch_ident,
                             "catch binding must be an identifier".to_string(),
                         ));
                     }
 
-                    let token = lexer.next_token();
-                    if token.kind != TokenKind::CloseParen {
+                    let token = lexer.next(&mut str_store);
+                    if token.ty != Ty::CloseParen {
                         return Err(ParseError::UnexpectedToken(
                             token,
                             "missing closing paren".to_string(),
                         ));
                     }
 
-                    Some(catch_ident.lexeme_id)
+                    Some(catch_ident.lexeme)
                 } else {
                     None
                 };
 
-                let token = lexer.next_token();
-                if token.kind != TokenKind::OpenBrace {
+                let token = lexer.next(&mut str_store);
+                if token.ty != Ty::OpenBrace {
                     return Err(ParseError::UnexpectedToken(
                         token,
                         "'or' should be followed by a block".to_string(),
@@ -69,7 +73,7 @@ impl PrefixStmtParselet for LetParselet {
 
                 let body = parser.parse_block(lexer, token)?;
                 let except = LetExcept::Or {
-                    id: or_token.source_id,
+                    id: or_token.pos,
                     binding,
                     body,
                 };
@@ -81,8 +85,8 @@ impl PrefixStmtParselet for LetParselet {
                     except,
                 }))
             }
-            TokenKind::WrapKeyword => {
-                lexer.next_token();
+            Ty::WrapKeyword => {
+                lexer.next(&mut str_store);
 
                 let expr = parser.parse_expression(lexer)?;
 
@@ -93,8 +97,8 @@ impl PrefixStmtParselet for LetParselet {
                     except: LetExcept::Wrap(expr),
                 }))
             }
-            TokenKind::Bang => {
-                lexer.next_token();
+            Ty::Bang => {
+                lexer.next(&mut str_store);
 
                 Ok(Stmt::Let(LetStmt {
                     mutable: self.mutable_binding,
@@ -103,14 +107,14 @@ impl PrefixStmtParselet for LetParselet {
                     except: LetExcept::Panic,
                 }))
             }
-            TokenKind::Semicolon => Ok(Stmt::Let(LetStmt {
+            Ty::Semicolon => Ok(Stmt::Let(LetStmt {
                 mutable: self.mutable_binding,
                 pattern,
                 value,
                 except: LetExcept::None,
             })),
             _ => Err(ParseError::UnexpectedToken(
-                next,
+                next.clone(),
                 "invalid token after let expr".to_string(),
             )),
         }

@@ -1,7 +1,8 @@
 use crate::ast::{AllocExpr, CallExpr, Expr, FreeExpr};
 use crate::parser::ParseError;
 use crate::parser::expression::{ExprParser, InfixExprParselet, Precedence};
-use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::lexer::{Lexer, Token, Ty};
+use crate::str_store::StrStore;
 
 /// Parses function call expressions.
 ///
@@ -17,11 +18,13 @@ impl InfixExprParselet for CallParselet {
         _token: Token,
     ) -> Result<Expr, ParseError> {
         let mut arguments = vec![];
+        todo!("need the actual str_store");
+        let str_store = StrStore::new();
 
         // Check for empty argument list
         let token = lexer.peek();
-        if token.kind == TokenKind::CloseParen {
-            lexer.next_token();
+        if token.ty == Ty::CloseParen {
+            lexer.next(&mut str_store);
             return Ok(Expr::Call(CallExpr {
                 func: Box::new(left),
                 args: arguments,
@@ -34,15 +37,15 @@ impl InfixExprParselet for CallParselet {
             arguments.push(arg);
 
             let next = lexer.peek();
-            if next.kind != TokenKind::Comma {
+            if next.ty != Ty::Comma {
                 break;
             }
-            lexer.next_token();
+            lexer.next(&mut str_store);
         }
 
         // Expect a closing ')'
-        let next = lexer.next_token();
-        if next.kind != TokenKind::CloseParen {
+        let next = lexer.next(&mut str_store);
+        if next.ty != Ty::CloseParen {
             return Err(ParseError::UnexpectedToken(
                 next,
                 "expected ')' after function arguments".to_string(),
@@ -51,11 +54,15 @@ impl InfixExprParselet for CallParselet {
 
         match &left {
             Expr::Identifier(ident) => {
-                let fn_name = lexer.lexeme(ident.name);
+                let fn_name = str_store
+                    .get_string(ident.name)
+                    .expect("failed to get function name");
+
+                // TODO: maybe just check against str_id here instead of doing string comparisons
                 if fn_name == "free" {
                     if arguments.len() != 1 {
                         return Err(ParseError::InvalidArguments(
-                            token,
+                            token.clone(),
                             "free() expects exactly one argument".to_string(),
                         ));
                     }
@@ -68,7 +75,7 @@ impl InfixExprParselet for CallParselet {
                 if fn_name == "alloc" {
                     if arguments.is_empty() {
                         return Err(ParseError::InvalidArguments(
-                            token,
+                            token.clone(),
                             "alloc() expects at least on argument".to_string(),
                         ));
                     }

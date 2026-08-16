@@ -16,7 +16,7 @@ impl PrefixStmtParselet for ReturnParselet {
         _token: Token,
     ) -> Result<Stmt, ParseError> {
         let token = lexer.peek();
-        let value = if parser.is_expression_prefix(token) {
+        let value = if parser.is_expression_prefix(token.clone()) {
             Some(parser.parse_expression(lexer)?)
         } else {
             None

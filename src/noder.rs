@@ -1881,7 +1881,7 @@ mod tests {
     use crate::file_set::{File, FileSet};
     use crate::hir::FunctionType;
     use crate::parser::Parser;
-    use crate::parser::lexer::SourceID;
+    use crate::parser::lexer::Pos;
     use crate::parser::module::File as ParserFile;
     use crate::str_store::{self, StrID, StrStore};
 
@@ -2038,7 +2038,7 @@ mod tests {
         node_const_decl_int_literal {
             decl: Decl::Const(ConstDecl {
                 public: false,
-                id: SourceID::from_usize(0),
+                id: Pos::from(0),
                 name: StrID::from_usize(1),
                 value: Expr::IntLiteral(42)
             }),
@@ -2154,7 +2154,7 @@ mod tests {
         node_const_decl_bool_literal {
             decl: Decl::Const(ConstDecl {
                 public: false,
-                id: SourceID::from_usize(0),
+                id: Pos::from(0),
                 name: StrID::from_usize(1),
                 value: Expr::BoolLiteral(true)
             }),
@@ -2224,7 +2224,7 @@ mod tests {
         node_const_decl_float_literal {
             decl: Decl::Const(ConstDecl {
                 public: false,
-                id: SourceID::from_usize(0),
+                id: Pos::from(0),
                 name: StrID::from_usize(1),
                 value: Expr::FloatLiteral(3.45)
             }),
@@ -2294,7 +2294,7 @@ mod tests {
         node_type_decl_int64 {
             decl: Decl::Type(TypeDecl {
                 public: false,
-                id: SourceID::from_usize(0),
+                id: Pos::from(0),
                 name: StrID::from_usize(1),
                 type_spec: ast::TypeSpec::Int64,
             }),
@@ -2357,7 +2357,7 @@ mod tests {
         node_struct_type_decl {
             decl: Decl::Type(TypeDecl {
                 public: false,
-                id: SourceID::from_usize(0),
+                id: Pos::from(0),
                 name: StrID::from_usize(1),
                 type_spec: ast::TypeSpec::Struct(ast::StructType {
                     fields: vec![
@@ -2444,7 +2444,7 @@ mod tests {
         node_var_decl_string_literal {
             decl: Decl::Var(VarDecl {
                 public: false,
-                id: SourceID::from_usize(0),
+                id: Pos::from(0),
                 name: StrID::from_usize(2),
                 value: Expr::StringLiteral(StrID::from_usize(3))
             }),

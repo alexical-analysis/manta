@@ -3,6 +3,7 @@ use crate::parser::ParseError;
 use crate::parser::expression::{ExprParser, PrefixExprParselet};
 use crate::parser::lexer::{Lexer, Token};
 use crate::parser::types;
+use crate::str_store::StrStore;
 
 /// Parses unary negation expressions.
 ///
@@ -19,7 +20,10 @@ impl PrefixExprParselet for MetaTypeParselet {
         lexer: &mut Lexer,
         _token: Token,
     ) -> Result<Expr, ParseError> {
-        let token = lexer.next_token();
+        todo!("need to figure out the str store");
+        let mut str_store = StrStore::new();
+
+        let token = lexer.next(&mut str_store);
         let type_spec = types::parse_type(lexer, token)?;
 
         Ok(Expr::MetaType(MetaTypeExpr { type_spec }))

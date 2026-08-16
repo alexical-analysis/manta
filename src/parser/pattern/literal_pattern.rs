@@ -1,7 +1,8 @@
 use crate::ast::Pattern;
 use crate::parser::ParseError;
-use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::lexer::{Lexer, Token, Ty};
 use crate::parser::pattern::PrefixPatternParselet;
+use crate::str_store::StrStore;
 
 /// Parses literal value patterns
 ///
@@ -13,11 +14,16 @@ pub struct LiteralPatternParselet;
 
 impl PrefixPatternParselet for LiteralPatternParselet {
     fn parse(&self, lexer: &mut Lexer, token: Token) -> Result<Pattern, ParseError> {
-        let lexeme = lexer.lexeme(token.lexeme_id);
-        match token.kind {
-            TokenKind::TrueLiteral => Ok(Pattern::BoolLiteral(true)),
-            TokenKind::FalseLiteral => Ok(Pattern::BoolLiteral(false)),
-            TokenKind::Int => match lexeme.replace("_", "").parse::<i64>() {
+        todo!("need to figure this out");
+        let mut str_store = StrStore::new();
+
+        let lexeme = str_store
+            .get_string(token.lexeme)
+            .expect("need to figure this out");
+        match token.ty {
+            Ty::TrueLiteral => Ok(Pattern::BoolLiteral(true)),
+            Ty::FalseLiteral => Ok(Pattern::BoolLiteral(false)),
+            Ty::Int => match lexeme.replace("_", "").parse::<i64>() {
                 Ok(n) => Ok(Pattern::IntLiteral(n)),
                 Err(_) => match lexeme.replace("_", "").parse::<u64>() {
                     Ok(n) => Ok(Pattern::UIntLiteral(n)),
@@ -27,14 +33,14 @@ impl PrefixPatternParselet for LiteralPatternParselet {
                     )),
                 },
             },
-            TokenKind::Float => match lexeme.replace("_", "").parse() {
+            Ty::Float => match lexeme.replace("_", "").parse() {
                 Ok(f) => Ok(Pattern::FloatLiteral(f)),
                 Err(e) => Err(ParseError::Custom(
                     token,
                     format!("Invalid float pattern {:?}", e),
                 )),
             },
-            TokenKind::Str => Ok(Pattern::StringLiteral(token.lexeme_id)),
+            Ty::Str => Ok(Pattern::StringLiteral(token.lexeme)),
             _ => Err(ParseError::Custom(token, "Invalid bool token".to_string())),
         }
     }

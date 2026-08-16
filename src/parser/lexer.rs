@@ -2,19 +2,10 @@ use crate::str_store::{StrID, StrStore};
 use serde::Serialize;
 use strum_macros::{Display, EnumString};
 
-// SourceID is the uniqe identifier of the token in the source code
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
-pub struct SourceID(usize);
-
-impl SourceID {
-    pub fn from_usize(id: usize) -> Self {
-        SourceID(id)
-    }
-}
-
-/// The kind of Token produced by the lexer.
+/// The type of the Token produced by the lexer.
 #[derive(Debug, Display, EnumString, Copy, Clone, PartialEq, Eq, Hash, Serialize)]
-pub enum TokenKind {
+pub enum Ty {
+    Unknown,
     Identifier,
     Int,
     Float,
@@ -25,6 +16,7 @@ pub enum TokenKind {
     FnKeyword,
     IfKeyword,
     InKeyword,
+    AsKeyword,
     ReturnKeyword,
     ElseKeyword,
     WhileKeyword,
@@ -44,10 +36,8 @@ pub enum TokenKind {
     ModKeyword,
     UseKeyword,
     MutKeyword,
-    VarKeyword,
     OrKeyword,
     WrapKeyword,
-    AsKeyword,
     OpenBrace,
     CloseBrace,
     OpenParen,
@@ -75,6 +65,8 @@ pub enum TokenKind {
     And,
     AndAnd,
     Dot,
+    // Technically '..' is not a valid token in Manta but we lex it to provide better diagnostic errors
+    // since using '..' for a range is a common pattern in other langugaes with range expressions
     DotDot,
     Star,
     Plus,
@@ -90,867 +82,768 @@ pub enum TokenKind {
     Eof,
 }
 
-/// A token produced by the lexer. `lexeme` contains raw text for ids/numbers, or the
-/// processed (escape-resolved) value for strings. Simple punctuation/EOF have no lexeme.
+/// The uniqe identifier of the token in a given FileSet
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+pub struct Pos(u32);
+
+impl From<usize> for Pos {
+    fn from(v: usize) -> Self {
+        Pos(v as u32)
+    }
+}
+
+/// A token produced by the lexer
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize)]
 pub struct Token {
-    pub kind: TokenKind,
-    pub source_id: SourceID,
-    pub lexeme_id: StrID,
+    pub ty: Ty,
+    pub pos: Pos,
+    pub lexeme: StrID,
 }
 
-/// Minimal lexer. Uses a byte cursor but iterates by `char`s for UTF-8 correctness.
-pub struct Lexer<'a> {
-    source: &'a str,
-    pos: usize,
+impl Token {
+    pub fn new_open_paren(str_store: &mut StrStore, pos: Pos) -> Self {
+        Self {
+            ty: Ty::OpenParen,
+            pos,
+            lexeme: str_store.get_id("("),
+        }
+    }
+
+    pub fn new_close_paren(str_store: &mut StrStore, pos: Pos) -> Self {
+        Self {
+            ty: Ty::CloseParen,
+            pos,
+            lexeme: str_store.get_id(")"),
+        }
+    }
+
+    pub fn new_open_brace(str_store: &mut StrStore, pos: Pos) -> Self {
+        Self {
+            ty: Ty::OpenBrace,
+            pos,
+            lexeme: str_store.get_id("{"),
+        }
+    }
+
+    pub fn new_close_brace(str_store: &mut StrStore, pos: Pos) -> Self {
+        Self {
+            ty: Ty::CloseBrace,
+            pos,
+            lexeme: str_store.get_id("}"),
+        }
+    }
+
+    pub fn new_range_inclusive(str_store: &mut StrStore, pos: Pos) -> Self {
+        Self {
+            ty: Ty::RangeInclusive,
+            pos,
+            lexeme: str_store.get_id("..="),
+        }
+    }
+
+    pub fn new_range_exclusive(str_store: &mut StrStore, pos: Pos) -> Self {
+        Self {
+            ty: Ty::RangeExclusive,
+            pos,
+            lexeme: str_store.get_id("..<"),
+        }
+    }
+
+    pub fn new_module(str_store: &mut StrStore, pos: Pos) -> Self {
+        Self {
+            ty: Ty::ColonColon,
+            pos,
+            lexeme: str_store.get_id("::"),
+        }
+    }
+
+    pub fn new_plus(str_store: &mut StrStore, pos: Pos) -> Self {
+        Self {
+            ty: Ty::Plus,
+            pos,
+            lexeme: str_store.get_id("+"),
+        }
+    }
+
+    pub fn new_minus(str_store: &mut StrStore, pos: Pos) -> Self {
+        Self {
+            ty: Ty::Minus,
+            pos,
+            lexeme: str_store.get_id("-"),
+        }
+    }
+
+    pub fn new_multiply(str_store: &mut StrStore, pos: Pos) -> Self {
+        Self {
+            ty: Ty::Star,
+            pos,
+            lexeme: str_store.get_id("*"),
+        }
+    }
+
+    pub fn new_divide(str_store: &mut StrStore, pos: Pos) -> Self {
+        Self {
+            ty: Ty::Slash,
+            pos,
+            lexeme: str_store.get_id("/"),
+        }
+    }
+
+    pub fn new_equal(str_store: &mut StrStore, pos: Pos) -> Self {
+        Self {
+            ty: Ty::Equal,
+            pos,
+            lexeme: str_store.get_id("="),
+        }
+    }
+
+    pub fn new_equal_equal(str_store: &mut StrStore, pos: Pos) -> Self {
+        Self {
+            ty: Ty::EqualEqual,
+            pos,
+            lexeme: str_store.get_id("=="),
+        }
+    }
+
+    pub fn new_less_than(str_store: &mut StrStore, pos: Pos) -> Self {
+        Self {
+            ty: Ty::LessThan,
+            pos,
+            lexeme: str_store.get_id("<"),
+        }
+    }
+
+    pub fn new_semicolon(str_store: &mut StrStore, pos: Pos) -> Self {
+        Self {
+            ty: Ty::Semicolon,
+            pos,
+            lexeme: str_store.get_id(";"),
+        }
+    }
+
+    pub fn new_comma(str_store: &mut StrStore, pos: Pos) -> Self {
+        Self {
+            ty: Ty::Comma,
+            pos,
+            lexeme: str_store.get_id(","),
+        }
+    }
+
+    pub fn new_eof(str_store: &mut StrStore, pos: Pos) -> Self {
+        Self {
+            ty: Ty::Eof,
+            pos,
+            lexeme: str_store.get_id(""),
+        }
+    }
+}
+
+/// Manta lexer for converting source code into a token stream
+pub struct Lexer<'s> {
+    source: &'s str,
     base: usize,
-    prev_kind: TokenKind,
+    pos: usize,
+    is_at_eos: bool,
     next: Token,
-    str_store: &'a mut StrStore,
 }
 
-impl<'a> Lexer<'a> {
-    /// Create a new lexer from source text.
-    /// `base` is the offset of this file in the FileSet's virtual address space;
-    /// all SourceIDs emitted will be relative to that base.
-    pub fn new(source: &'a str, str_store: &'a mut StrStore, base: usize) -> Self {
-        let mut lexer = Lexer {
+impl<'s> Lexer<'s> {
+    pub fn new(str_store: &mut StrStore, source: &'s str, base: usize) -> Self {
+        let mut lexer = Self {
             source,
-            pos: 0,
             base,
-            prev_kind: TokenKind::Identifier,
-            next: Token {
-                kind: TokenKind::Identifier,
-                source_id: SourceID::from_usize(0),
-                lexeme_id: StrID::from_usize(0),
-            },
-            str_store,
+            pos: 0,
+            is_at_eos: false,
+            next: Token::new_eof(str_store, Pos(base as u32)),
         };
-        lexer.next_token();
+
+        // populate the first token so the lexer is ready to go
+        lexer.next(str_store);
 
         lexer
     }
 
-    pub fn lexeme(&self, lexeme_id: StrID) -> String {
-        match self.str_store.get_string(lexeme_id) {
-            Some(s) => s.to_string(),
-            // TODO: should this hand back an option?
-            None => panic!("invalid str id {}", lexeme_id.to_usize()),
-        }
-    }
-
-    /// Non-consuming peek of the next token kind (may return LexError if scanning fails).
-    pub fn peek(&self) -> Token {
-        self.next
-    }
-
-    /// Return the next token in input source
-    pub fn next_token(&mut self) -> Token {
-        let token = self.lex_token();
-        self.prev_kind = token.kind;
-
-        let ret = self.next;
-        self.next = token;
-        ret
-    }
-
-    fn lex_token(&mut self) -> Token {
-        self.skip_whitespace_and_comments();
-
-        // determine by first char
-        let ch = self.current_char();
-        if ch.is_none() {
-            let lexeme_id = self.str_store.get_id(&self.source[self.pos..self.pos]);
-            if self.is_end_of_statement() {
-                return Token {
-                    kind: TokenKind::Semicolon,
-                    source_id: SourceID::from_usize(self.pos + self.base),
-                    lexeme_id,
-                };
-            }
-
-            return Token {
-                kind: TokenKind::Eof,
-                source_id: SourceID::from_usize(self.pos + self.base),
-                lexeme_id,
-            };
-        }
-        let ch = ch.unwrap();
-
-        if ch == '\n' {
-            // if this newline wasn't skipped it's because we need to insert a semicolon
-            let source_id = self.pos;
-            self.bump();
-            let lexeme_id = self.str_store.get_id(&self.source[source_id..self.pos]);
-
-            return Token {
-                kind: TokenKind::Semicolon,
-                source_id: SourceID::from_usize(source_id + self.base),
-                lexeme_id,
-            };
-        }
-
-        if ch == '}' && self.is_end_of_statement() {
-            let lexeme_id = self.str_store.get_id(&self.source[self.pos..self.pos]);
-
-            return Token {
-                kind: TokenKind::Semicolon,
-                source_id: SourceID::from_usize(self.pos + self.base),
-                lexeme_id,
-            };
-        }
-
-        if is_ident_start(ch) {
-            return self.read_ident_or_keyword();
-        }
-
-        if ch.is_ascii_digit() {
-            return self.read_number();
-        }
-
-        if ch == '"' {
-            return self.read_string();
-        }
-
-        // operators and punctuation
-        self.read_operator_or_punct()
-    }
-
-    fn current_char(&self) -> Option<char> {
-        self.source[self.pos..].chars().next()
-    }
-
-    fn peek_char_n(&self, n: usize) -> Option<char> {
-        let mut it = self.source[self.pos..].chars();
-        (0..n).for_each(|_| {
-            let _ = it.next();
-        });
-        it.next()
-    }
-
-    fn bump(&mut self) -> Option<char> {
-        if let Some(ch) = self.current_char() {
-            let adv = ch.len_utf8();
-            self.pos += adv;
-            Some(ch)
-        } else {
-            None
-        }
-    }
-
-    fn eat_while<F>(&mut self, mut cond: F) -> String
-    where
-        F: FnMut(char) -> bool,
-    {
-        let start = self.pos;
-        while let Some(ch) = self.current_char() {
-            if cond(ch) {
-                self.bump();
-            } else {
-                break;
-            }
-        }
-        self.source[start..self.pos].to_string()
-    }
-
-    fn skip_whitespace_and_comments(&mut self) {
+    /// if the lexer is in a bad spot, this will just eat tokens till we find the next decl
+    pub fn recover_until_decl(&mut self, str_store: &mut StrStore) {
         loop {
-            // check if this should be a synthetic semicolon
-            if let Some(ch) = self.current_char()
-                && ch == '\n'
-                && self.is_end_of_statement()
+            let token = self.next(str_store);
+            if [
+                Ty::FnKeyword,
+                Ty::UseKeyword,
+                Ty::ModKeyword,
+                Ty::TypeKeyword,
+            ]
+            .contains(&token.ty)
             {
                 break;
             }
+        }
+    }
 
-            // skip whitespace
-            let mut progressed = false;
-            while let Some(ch) = self.current_char() {
-                if ch.is_whitespace() {
-                    progressed = true;
-                    self.bump();
-                } else {
-                    break;
+    /// if the lexer is in a bad spot, this will just eat tokens till we find the next expression
+    pub fn recover_until_expr(&mut self, str_store: &mut StrStore) {
+        loop {
+            let token = self.next(str_store);
+            if [Ty::Semicolon, Ty::CloseBrace].contains(&token.ty) {
+                self.next(str_store);
+                break;
+            }
+        }
+    }
+
+    pub fn peek(&self) -> &Token {
+        &self.next
+    }
+
+    pub fn next(&mut self, str_store: &mut StrStore) -> Token {
+        self.is_at_eos = false;
+        let token = self.next;
+
+        let next = self.lex_token(str_store);
+        self.next = next;
+
+        if self.can_end_statement(token.ty) {
+            self.is_at_eos = true;
+        }
+
+        token
+    }
+
+    fn set_pos(&self) -> Pos {
+        let pos = self.pos + self.base;
+        Pos(pos as u32)
+    }
+
+    fn lex_token(&mut self, str_store: &mut StrStore) -> Token {
+        // skip whitespace and comments
+        self.skip();
+
+        let ch = match self.next_char() {
+            Some(ch) => ch,
+            None => return Token::new_eof(str_store, self.set_pos()),
+        };
+
+        if self.insert_semicolon(ch) {
+            return Token::new_semicolon(str_store, self.set_pos());
+        }
+
+        match ch {
+            'a'..='z' => self.lex_ident(str_store, ch),
+            'A'..='Z' => self.lex_ident(str_store, ch),
+            '0'..='9' => self.lex_number(str_store, ch),
+            '.' => self.lex_range(str_store, ch),
+            '(' => Token::new_open_paren(str_store, self.bump(ch)),
+            ')' => Token::new_close_paren(str_store, self.bump(ch)),
+            '{' => Token::new_open_brace(str_store, self.bump(ch)),
+            '}' => Token::new_close_brace(str_store, self.bump(ch)),
+            '+' => Token::new_plus(str_store, self.bump(ch)),
+            '-' => Token::new_minus(str_store, self.bump(ch)),
+            '*' => Token::new_multiply(str_store, self.bump(ch)),
+            '/' => Token::new_divide(str_store, self.bump(ch)),
+            '<' => Token::new_less_than(str_store, self.bump(ch)),
+            ';' => Token::new_semicolon(str_store, self.bump(ch)),
+            ',' => Token::new_comma(str_store, self.bump(ch)),
+            '=' => match self.nth_char(1) {
+                Some('=') => {
+                    self.bump('=');
+                    self.bump('=');
+                    Token::new_equal_equal(str_store, self.set_pos())
                 }
+                _ => Token::new_equal(str_store, self.bump(ch)),
+            },
+            ':' => match self.nth_char(1) {
+                Some(':') => {
+                    self.bump(':');
+                    self.bump(':');
+                    Token::new_module(str_store, self.set_pos())
+                }
+                _ => self.lex_unknown(str_store, ch),
+            },
+            _ => self.lex_unknown(str_store, ch),
+        }
+    }
+
+    fn lex_unknown(&mut self, str_store: &mut StrStore, ch: char) -> Token {
+        let start = self.pos;
+        self.bump(ch);
+
+        while let Some(ch) = self.next_char() {
+            // lex untill we find something that could resonably start a new token
+            if ch.is_whitespace() {
+                break;
             }
 
-            // comments
+            if matches!(
+                ch,
+                '(' | ')' | '{' | '}' | '+' | '-' | '*' | '/' | '=' | '<' | ';' | '0'..='9' | 'a'..='z' | 'A'..='Z'
+            ) {
+                break;
+            }
+
+            self.bump(ch);
+        }
+
+        let s = &self.source[start..self.pos];
+        let lexeme = str_store.get_id(s);
+
+        Token {
+            ty: Ty::Unknown,
+            pos: Pos::from(start),
+            lexeme,
+        }
+    }
+
+    /// lexes Manta indentifiers which must start with an alpha or underscore character
+    fn lex_ident(&mut self, str_store: &mut StrStore, ch: char) -> Token {
+        let start = self.pos;
+        self.bump(ch);
+
+        while let Some(ch) = self.next_char() {
+            if !ch.is_alphanumeric() && ch != '_' {
+                break;
+            }
+
+            self.bump(ch);
+        }
+
+        let s = &self.source[start..self.pos];
+        self.ident_to_keyword(Pos::from(start), str_store, s)
+    }
+
+    /// matches indentifers into keywords since all Manta keywords are valid identifier names
+    fn ident_to_keyword(&self, pos: Pos, str_store: &mut StrStore, s: &str) -> Token {
+        let ty = match s {
+            "true" => Ty::TrueLiteral,
+            "false" => Ty::FalseLiteral,
+            "fn" => Ty::FnKeyword,
+            "if" => Ty::IfKeyword,
+            "in" => Ty::InKeyword,
+            "as" => Ty::AsKeyword,
+            "return" => Ty::ReturnKeyword,
+            "else" => Ty::ElseKeyword,
+            "while" => Ty::WhileKeyword,
+            "for" => Ty::ForKeyword,
+            "loop" => Ty::LoopKeyword,
+            "break" => Ty::BreakKeyword,
+            "continue" => Ty::ContinueKey,
+            "defer" => Ty::DeferKeyword,
+            "struct" => Ty::StructKeyword,
+            "enum" => Ty::EnumKeyword,
+            "switch" => Ty::SwitchKeyword,
+            "match" => Ty::MatchKeyword,
+            "let" => Ty::LetKeyword,
+            "const" => Ty::ConstKeyword,
+            "type" => Ty::TypeKeyword,
+            "pub" => Ty::PubKeyword,
+            "mod" => Ty::ModKeyword,
+            "use" => Ty::UseKeyword,
+            "mut" => Ty::MutKeyword,
+            "or" => Ty::MutKeyword,
+            "wrap" => Ty::WrapKeyword,
+            _ => Ty::Identifier,
+        };
+
+        let lexeme = str_store.get_id(s);
+        Token { ty, pos, lexeme }
+    }
+
+    fn lex_number(&mut self, str_store: &mut StrStore, ch: char) -> Token {
+        let start = self.pos;
+        self.bump(ch);
+
+        let mut ty = Ty::Int;
+
+        while let Some(ch) = self.next_char() {
+            if ch == '.' && ty == Ty::Int {
+                // transition to float and consume the '.'
+                ty = Ty::Float;
+                self.bump(ch);
+                continue;
+            }
+
+            if ch == '.' && ty == Ty::Float {
+                // second '.', stop and let the lexer handle it as a range or unknown
+                break;
+            }
+
+            if !ch.is_numeric() && ch != '_' {
+                break;
+            }
+
+            self.bump(ch);
+        }
+
+        let s = &self.source[start..self.pos];
+        let lexeme = str_store.get_id(s);
+
+        Token {
+            ty,
+            pos: Pos::from(start),
+            lexeme,
+        }
+    }
+
+    /// lexes a dot character into either one of the range tokens or into a single dot token or one
+    /// of the range expressions (either inclusive or exclusive)
+    fn lex_range(&mut self, str_store: &mut StrStore, ch: char) -> Token {
+        let start = self.pos;
+        self.bump(ch);
+
+        let next = match self.next_char() {
+            Some(ch) => ch,
+            None => {
+                // this is a trailing '.' at the end of the source
+                return Token {
+                    ty: Ty::Dot,
+                    pos: Pos::from(start),
+                    lexeme: str_store.get_id("."),
+                };
+            }
+        };
+
+        if next != '.' {
+            // this is just a stand alone dot character, not a double dot
+            return Token {
+                ty: Ty::Dot,
+                pos: Pos::from(start),
+                lexeme: str_store.get_id("."),
+            };
+        };
+
+        self.bump(ch);
+        let next = match self.next_char() {
+            Some(ch) => ch,
+            None => {
+                // this is a trailing '..' at the end of the source
+                return Token {
+                    ty: Ty::DotDot,
+                    pos: Pos::from(start),
+                    lexeme: str_store.get_id(".."),
+                };
+            }
+        };
+
+        return match next {
+            '<' => {
+                self.bump('<');
+                Token {
+                    ty: Ty::RangeExclusive,
+                    pos: Pos::from(start),
+                    lexeme: str_store.get_id("..<"),
+                }
+            }
+            '=' => {
+                self.bump('=');
+                Token {
+                    ty: Ty::RangeInclusive,
+                    pos: Pos::from(start),
+                    lexeme: str_store.get_id("..="),
+                }
+            }
+            _ => Token {
+                ty: Ty::DotDot,
+                pos: Pos::from(start),
+                lexeme: str_store.get_id(".."),
+            },
+        };
+    }
+
+    fn insert_semicolon(&mut self, ch: char) -> bool {
+        if !self.is_at_eos {
+            return false;
+        }
+
+        match ch {
+            '\n' => {
+                self.bump(ch);
+                return true;
+            }
+            '}' => return true,
+            _ => return false,
+        }
+    }
+
+    fn skip(&mut self) {
+        loop {
+            // check if we need to skip a comment first
             if self.source[self.pos..].starts_with("//") {
-                progressed = true;
-                // consume until newline or EOF
-                self.pos += 2;
-                while let Some(ch) = self.current_char() {
-                    self.bump();
+                self.skip_comment();
+            }
+
+            match self.next_char() {
+                Some(ch) => {
+                    if ch == '\n' && self.is_at_eos {
+                        break;
+                    }
+
+                    if ch.is_whitespace() {
+                        self.bump(ch);
+                        continue;
+                    }
+                }
+                None => break,
+            }
+
+            break;
+        }
+    }
+
+    fn skip_comment(&mut self) {
+        loop {
+            match self.next_char() {
+                Some(ch) => {
                     if ch == '\n' {
                         break;
                     }
-                }
-            } else if self.source[self.pos..].starts_with("/*") {
-                progressed = true;
-                // consume block comment until */
-                self.pos += 2;
-                loop {
-                    if self.current_char().is_none() {
-                        // technically this is a malformed block comment but it's not really worth
-                        // calling that out as an error. Instead we just consider it succesfully
-                        // closed
-                        return;
-                    }
-                    if self.source[self.pos..].starts_with("*/") {
-                        self.pos += 2;
-                        break;
-                    }
-                    self.bump();
-                }
-            }
 
-            if !progressed {
-                break;
+                    self.bump(ch);
+                }
+                None => break,
             }
         }
     }
 
-    fn is_end_of_statement(&mut self) -> bool {
+    fn bump(&mut self, ch: char) -> Pos {
+        let adv = ch.len_utf8();
+        self.pos += adv;
+        self.set_pos()
+    }
+
+    fn next_char(&self) -> Option<char> {
+        self.source[self.pos..].chars().next()
+    }
+
+    fn nth_char(&self, n: usize) -> Option<char> {
+        self.source[self.pos..].chars().nth(n)
+    }
+
+    fn can_end_statement(&mut self, ty: Ty) -> bool {
         matches!(
-            self.prev_kind,
-            TokenKind::Identifier
-                | TokenKind::Int
-                | TokenKind::Float
-                | TokenKind::Str
-                | TokenKind::TrueLiteral
-                | TokenKind::FalseLiteral
-                | TokenKind::ReturnKeyword
-                | TokenKind::BreakKeyword
-                | TokenKind::ContinueKey
-                | TokenKind::CloseBrace
-                | TokenKind::CloseParen
-                | TokenKind::CloseSquare
-                | TokenKind::Bang
+            ty,
+            Ty::Identifier
+                | Ty::Int
+                | Ty::Float
+                | Ty::TrueLiteral
+                | Ty::FalseLiteral
+                | Ty::BreakKeyword
+                | Ty::CloseBrace
+                | Ty::CloseParen
         )
     }
-
-    fn read_ident_or_keyword(&mut self) -> Token {
-        let start = self.pos;
-        let lex = self.eat_while(is_ident_continue);
-        let end = self.pos;
-
-        let kind = match lex.as_str() {
-            "let" => TokenKind::LetKeyword,
-            "fn" => TokenKind::FnKeyword,
-            "if" => TokenKind::IfKeyword,
-            "in" => TokenKind::InKeyword,
-            "pub" => TokenKind::PubKeyword,
-            "else" => TokenKind::ElseKeyword,
-            "while" => TokenKind::WhileKeyword,
-            "for" => TokenKind::ForKeyword,
-            "loop" => TokenKind::LoopKeyword,
-            "return" => TokenKind::ReturnKeyword,
-            "true" => TokenKind::TrueLiteral,
-            "false" => TokenKind::FalseLiteral,
-            "match" => TokenKind::MatchKeyword,
-            "switch" => TokenKind::SwitchKeyword,
-            "enum" => TokenKind::EnumKeyword,
-            "struct" => TokenKind::StructKeyword,
-            "const" => TokenKind::ConstKeyword,
-            "break" => TokenKind::BreakKeyword,
-            "continue" => TokenKind::ContinueKey,
-            "defer" => TokenKind::DeferKeyword,
-            "type" => TokenKind::TypeKeyword,
-            "mod" => TokenKind::ModKeyword,
-            "use" => TokenKind::UseKeyword,
-            "mut" => TokenKind::MutKeyword,
-            "var" => TokenKind::VarKeyword,
-            "or" => TokenKind::OrKeyword,
-            "wrap" => TokenKind::WrapKeyword,
-            "as" => TokenKind::AsKeyword,
-            _ => TokenKind::Identifier,
-        };
-
-        let lexeme_id = self.str_store.get_id(&self.source[start..end]);
-        Token {
-            kind,
-            source_id: SourceID::from_usize(start + self.base),
-            lexeme_id,
-        }
-    }
-
-    fn read_number(&mut self) -> Token {
-        let start = self.pos;
-        let mut seen_dot = false;
-        let mut seen_exp = false;
-
-        while let Some(ch) = self.current_char() {
-            if ch == '_' {
-                // allow underscores between digits
-                self.bump();
-                continue;
-            }
-            if ch.is_ascii_digit() {
-                self.bump();
-                continue;
-            }
-            if ch == '.' && !seen_dot {
-                // check next char to avoid treating '.' in '..' as float
-                if let Some(nc) = self.peek_char_n(1)
-                    && nc.is_ascii_digit()
-                {
-                    seen_dot = true;
-                    self.bump();
-                    continue;
-                }
-            }
-            break;
-        }
-
-        // exponent part of the float
-        if let Some(ch) = self.current_char()
-            && (ch == 'e' || ch == 'E')
-        {
-            seen_exp = true;
-            self.bump();
-            if let Some(sign) = self.current_char()
-                && (sign == '+' || sign == '-')
-            {
-                self.bump();
-            }
-
-            // digits of the exponent
-            self.eat_while(|c| c.is_ascii_digit() || c == '_');
-        }
-
-        let end = self.pos;
-        let kind = if seen_dot || seen_exp {
-            TokenKind::Float
-        } else {
-            TokenKind::Int
-        };
-        let lexeme_id = self.str_store.get_id(&self.source[start..end]);
-        Token {
-            kind,
-            source_id: SourceID::from_usize(start + self.base),
-            lexeme_id,
-        }
-    }
-
-    fn read_string(&mut self) -> Token {
-        let start = self.pos;
-        // consume the opening quote char
-        let quote = self.bump().unwrap();
-        debug_assert!(quote == '"');
-        let mut buf = String::new();
-
-        while let Some(ch) = self.current_char() {
-            self.bump();
-            if ch == '"' {
-                let lexeme_id = self.str_store.get_id(&buf);
-                return Token {
-                    kind: TokenKind::Str,
-                    source_id: SourceID::from_usize(start + self.base),
-                    lexeme_id,
-                };
-            }
-            if ch == '\\' {
-                match self.current_char() {
-                    Some(esc) => {
-                        self.bump();
-                        buf.push(match esc {
-                            'n' => '\n',
-                            't' => '\t',
-                            'r' => '\r',
-                            '\\' => '\\',
-                            '"' => '"',
-                            '0' => '\0',
-                            _ => esc,
-                        });
-                        continue;
-                    }
-                    None => {
-                        let lexeme_id = self.str_store.get_id(&buf);
-                        return Token {
-                            kind: TokenKind::MalformedStr,
-                            source_id: SourceID::from_usize(self.pos + self.base),
-                            lexeme_id,
-                        };
-                    }
-                }
-            }
-            buf.push(ch);
-        }
-
-        let lexeme_id = self.str_store.get_id(&buf);
-        Token {
-            kind: TokenKind::MalformedStr,
-            source_id: SourceID::from_usize(start + self.base),
-            lexeme_id,
-        }
-    }
-
-    fn read_operator_or_punct(&mut self) -> Token {
-        let start = self.pos;
-        let ch = self.bump().unwrap();
-
-        let kind = match ch {
-            '(' => TokenKind::OpenParen,
-            ')' => TokenKind::CloseParen,
-            '{' => TokenKind::OpenBrace,
-            '}' => TokenKind::CloseBrace,
-            '[' => TokenKind::OpenSquare,
-            ']' => TokenKind::CloseSquare,
-            ',' => TokenKind::Comma,
-            ';' => TokenKind::Semicolon,
-            '*' => TokenKind::Star,
-            '/' => TokenKind::Slash,
-            '%' => TokenKind::Percent,
-            '_' => TokenKind::Underscore,
-            '^' => TokenKind::Caret,
-            '@' => TokenKind::At,
-            '.' => match self.current_char() {
-                Some('.') => {
-                    self.bump().expect("failed to eat next char");
-                    match self.current_char() {
-                        Some('<') => {
-                            self.bump().expect("failed to eat next char");
-                            TokenKind::RangeExclusive
-                        }
-                        Some('=') => {
-                            self.bump().expect("failed to eat next char");
-                            TokenKind::RangeInclusive
-                        }
-                        _ => TokenKind::DotDot,
-                    }
-                }
-                _ => TokenKind::Dot,
-            },
-            ':' => match self.current_char() {
-                Some(':') => {
-                    self.bump().expect("failed to eat next char");
-                    TokenKind::ColonColon
-                }
-                _ => TokenKind::Colon,
-            },
-            '=' => match self.current_char() {
-                Some('=') => {
-                    self.bump().expect("failed to eat next char");
-                    TokenKind::EqualEqual
-                }
-                _ => TokenKind::Equal,
-            },
-            '|' => match self.current_char() {
-                Some('|') => {
-                    self.bump().expect("failed to eat next char");
-                    TokenKind::PipePipe
-                }
-                _ => TokenKind::Pipe,
-            },
-            '&' => match self.current_char() {
-                Some('&') => {
-                    self.bump().expect("failed to eat next char");
-                    TokenKind::AndAnd
-                }
-                _ => TokenKind::And,
-            },
-            '+' => match self.current_char() {
-                Some('=') => {
-                    self.bump().expect("failed to eat next char");
-                    TokenKind::PlusEqual
-                }
-                _ => TokenKind::Plus,
-            },
-            '!' => match self.current_char() {
-                Some('=') => {
-                    self.bump().expect("failed to eat next char");
-                    TokenKind::NotEqual
-                }
-                _ => TokenKind::Bang,
-            },
-            '-' => match self.current_char() {
-                Some('=') => {
-                    self.bump().expect("failed to eat next char");
-                    TokenKind::MinusEqual
-                }
-                _ => TokenKind::Minus,
-            },
-            '<' => match self.current_char() {
-                Some('=') => {
-                    self.bump().expect("failed to eat next char");
-                    TokenKind::LessOrEqual
-                }
-                _ => TokenKind::LessThan,
-            },
-            '>' => match self.current_char() {
-                Some('=') => {
-                    self.bump().expect("failed to eat next char");
-                    TokenKind::GreaterOrEqual
-                }
-                _ => TokenKind::GreaterThan,
-            },
-            _ => panic!("Unknown character for single-char operator: {}", ch),
-        };
-
-        let end = self.pos;
-        let lexeme_id = self.str_store.get_id(&self.source[start..end]);
-        // otherwise treat as operator
-        Token {
-            kind,
-            source_id: SourceID::from_usize(start + self.base),
-            lexeme_id,
-        }
-    }
-}
-
-fn is_ident_start(ch: char) -> bool {
-    ch == '_' || ch.is_alphabetic()
-}
-
-fn is_ident_continue(ch: char) -> bool {
-    ch == '_' || ch.is_alphanumeric()
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::str_store;
+    use std::{env, fs};
 
     use super::*;
-    use pretty_assertions::assert_eq;
-    use std::fs;
-    use std::path::Path;
+    use similar::{ChangeTag, TextDiff};
 
-    fn assert_file_path_eq(path: &Path, lex_dir: &Path) {
-        let ext = path.extension().expect("Failed to get file extension");
-        if ext != "manta" {
-            // Skip over non-manta files
-            return;
-        }
-
-        let file_name = path
-            .file_stem()
-            .and_then(|s| s.to_str())
-            .unwrap_or("unknown");
-
-        let source = match fs::read_to_string(path) {
+    /// reads a source file from "test/src" and lexes it into a json string
+    fn lex_source(name: &str) -> String {
+        let path = format!("tests/src/{}", name);
+        let source = match fs::read_to_string(&path) {
             Ok(s) => s,
-            Err(_) => panic!("Failed to read {}", path.display()),
+            Err(e) => panic!("failed to read source file to lex {}: {}", &path, e),
         };
 
         let mut str_store = StrStore::new();
-        let mut lexer = Lexer::new(&source, &mut str_store, 0);
-        let mut tokens = vec![];
+        let mut lexer = Lexer::new(&mut str_store, &source, 0);
+        let mut tokens = Vec::new();
         loop {
-            let token = lexer.peek();
+            let token = lexer.next(&mut str_store);
             tokens.push(token);
-            if token.kind == TokenKind::Eof {
+
+            if token.ty == Ty::Eof {
                 break;
             }
-            lexer.next_token();
         }
 
-        let json_output =
-            serde_json::to_string_pretty(&tokens).expect("Failed to serialize tokens to JSON");
-
-        let lex_file = lex_dir.join(format!("{}.json", file_name));
-
-        if lex_file.exists() {
-            let expected_json = match fs::read_to_string(&lex_file) {
-                Ok(s) => s,
-                Err(_) => panic!("Failed to read {}", lex_file.display()),
-            };
-
-            assert_eq!(
-                json_output, expected_json,
-                "Lexer output mismatch for {}",
-                file_name
-            );
-        } else {
-            fs::create_dir_all(lex_dir).expect("Failed to create lexer test directory");
-
-            match fs::write(&lex_file, &json_output) {
-                Ok(_) => (),
-                Err(_) => panic!("Failed to write lexer output to {:?}", lex_file),
-            };
-
-            panic!(
-                "Generated new lexer output file: {:?}. Please verify its correctness.",
-                lex_file
-            );
-        }
-    }
-
-    include!(concat!(env!("OUT_DIR"), "/generated_lexer_tests.rs"));
-
-    macro_rules! test_lex_inputs {
-        ( $( $case:ident { input: $input:expr, want: $want:expr,  } ),*, ) => {
-            $(
-                #[test]
-                fn $case() {
-                    let source = $input;
-                    let mut str_store = StrStore::new();
-                    let mut lexer = Lexer::new(source, &mut str_store, 0);
-                    let mut toks = vec![];
-                    loop {
-                        let token = lexer.peek();
-                        toks.push(token);
-                        if token.kind == TokenKind::Eof {
-                            break;
-                        }
-                        lexer.next_token();
-                    }
-                    assert_eq!(toks, $want);
-                }
-            )*
+        let tokens = match serde_json::to_string_pretty(&tokens) {
+            Ok(s) => s,
+            Err(e) => panic!("failed to seralize token stream {}", e),
         };
+
+        let rewrite = env::var("REWRITE").is_ok();
+        if rewrite {
+            // this isn't super robust but given we have a pretty good idea of the shape of the named file
+            let name = name.split(".").next().expect("failed to get file name");
+
+            let path = format!("tests/lexer/{}.json", name);
+            println!("rewriting golden file {}", &path);
+            fs::write(path, &tokens).expect("failed to write updated golden file");
+        }
+
+        tokens
     }
 
-    test_lex_inputs! {
-        lex_input_simple_let{
-            input: "let x = 42",
-            want: vec![
-                Token{
-                    kind: TokenKind::LetKeyword,
-                    source_id: SourceID::from_usize(0),
-                    lexeme_id: StrID::from_usize(0),
-                },
-                Token{kind: TokenKind::Identifier, source_id: SourceID::from_usize(4), lexeme_id: StrID::from_usize(1)},
-                Token{kind: TokenKind::Equal, source_id: SourceID::from_usize(6), lexeme_id: StrID::from_usize(2)},
-                Token{kind: TokenKind::Int, source_id: SourceID::from_usize(8), lexeme_id: StrID::from_usize(3)},
-                Token{kind: TokenKind::Semicolon, source_id: SourceID::from_usize(10), lexeme_id: str_store::EMPTY_STR},
-                Token{kind: TokenKind::Eof, source_id: SourceID::from_usize(10), lexeme_id: str_store::EMPTY_STR},
-            ],
-        },
-        lex_input_assign_with_new_line{
-            input: "x = 5\n",
-            want: vec![
-                Token{kind: TokenKind::Identifier, source_id: SourceID::from_usize(0), lexeme_id: StrID::from_usize(0)},
-                Token{kind: TokenKind::Equal, source_id: SourceID::from_usize(2), lexeme_id: StrID::from_usize(1)},
-                Token{kind: TokenKind::Int, source_id: SourceID::from_usize(4), lexeme_id: StrID::from_usize(2)},
-                Token{kind: TokenKind::Semicolon, source_id: SourceID::from_usize(5), lexeme_id: StrID::from_usize(3)},
-                Token{kind: TokenKind::Eof, source_id: SourceID::from_usize(6), lexeme_id: str_store::EMPTY_STR},
-            ],
-        },
-        lex_input_string_and_escape {
-            input: "\"hello\\n\"",
-            want: vec![
-                Token{kind: TokenKind::Str, source_id: SourceID::from_usize(0), lexeme_id: StrID::from_usize(0)},
-                Token{kind: TokenKind::Semicolon, source_id: SourceID::from_usize(9), lexeme_id: str_store::EMPTY_STR},
-                Token{kind: TokenKind::Eof, source_id: SourceID::from_usize(9), lexeme_id: str_store::EMPTY_STR},
-            ],
-        },
-        lex_input_int_with_semicolon {
-            input: "20;",
-            want: vec![
-                Token{kind: TokenKind::Int, source_id: SourceID::from_usize(0), lexeme_id: StrID::from_usize(0)},
-                Token{kind: TokenKind::Semicolon, source_id: SourceID::from_usize(2), lexeme_id: StrID::from_usize(1)},
-                Token{kind: TokenKind::Eof, source_id: SourceID::from_usize(3), lexeme_id: str_store::EMPTY_STR},
-            ],
-        },
-        lex_input_comments_and_whitespace {
-            input: "  // top comment\nlet/*block*/ x = 1 // end\n",
-            want: vec![
-                Token{
-                    kind: TokenKind::LetKeyword,
-                    source_id: SourceID::from_usize(17),
-                    lexeme_id: StrID::from_usize(0),
-                },
-                Token{kind: TokenKind::Identifier, source_id: SourceID::from_usize(30), lexeme_id: StrID::from_usize(1)},
-                Token{kind: TokenKind::Equal, source_id: SourceID::from_usize(32), lexeme_id: StrID::from_usize(2)},
-                Token{kind: TokenKind::Int, source_id: SourceID::from_usize(34), lexeme_id: StrID::from_usize(3)},
-                Token{kind: TokenKind::Semicolon, source_id: SourceID::from_usize(43), lexeme_id: str_store::EMPTY_STR},
-                Token{kind: TokenKind::Eof, source_id: SourceID::from_usize(43), lexeme_id: str_store::EMPTY_STR},
-            ],
-        },
-        lex_input_inclusive_range {
-            input: "0..=10",
-            want: vec![
-                Token{kind: TokenKind::Int, source_id: SourceID::from_usize(0), lexeme_id: StrID::from_usize(0)},
-                Token{kind: TokenKind::RangeInclusive, source_id: SourceID::from_usize(1), lexeme_id: StrID::from_usize(1)},
-                Token{kind: TokenKind::Int, source_id: SourceID::from_usize(4), lexeme_id: StrID::from_usize(2)},
-                Token{kind: TokenKind::Semicolon, source_id: SourceID::from_usize(6), lexeme_id: str_store::EMPTY_STR},
-                Token{kind: TokenKind::Eof, source_id: SourceID::from_usize(6), lexeme_id: str_store::EMPTY_STR},
-            ],
-        },
-        lex_input_exclusive_range {
-            input: "9..<20",
-            want: vec![
-                Token{kind: TokenKind::Int, source_id: SourceID::from_usize(0), lexeme_id: StrID::from_usize(0)},
-                Token{kind: TokenKind::RangeExclusive, source_id: SourceID::from_usize(1), lexeme_id: StrID::from_usize(1)},
-                Token{kind: TokenKind::Int, source_id: SourceID::from_usize(4), lexeme_id: StrID::from_usize(2)},
-                Token{kind: TokenKind::Semicolon, source_id: SourceID::from_usize(6), lexeme_id: str_store::EMPTY_STR},
-                Token{kind: TokenKind::Eof, source_id: SourceID::from_usize(6), lexeme_id: str_store::EMPTY_STR},
-            ],
-        },
-        lex_input_ints_and_floats {
-            input: "3.14 1e10 2.5e-3 1_000",
-            want: vec![
-                Token{kind: TokenKind::Float, source_id: SourceID::from_usize(0), lexeme_id: StrID::from_usize(0)},
-                Token{kind: TokenKind::Float, source_id: SourceID::from_usize(5), lexeme_id: StrID::from_usize(1)},
-                Token{
-                    kind: TokenKind::Float,
-                    source_id: SourceID::from_usize(10),
-                    lexeme_id: StrID::from_usize(2),
-                },
-                Token{kind: TokenKind::Int, source_id: SourceID::from_usize(17), lexeme_id: StrID::from_usize(3)},
-                Token{kind: TokenKind::Semicolon, source_id: SourceID::from_usize(22), lexeme_id: str_store::EMPTY_STR},
-                Token{kind: TokenKind::Eof, source_id: SourceID::from_usize(22), lexeme_id: str_store::EMPTY_STR},
-            ],
-        },
-        lex_input_multi_char_operations {
-            input: "a == b && c != d <= e >= f  = += *",
-            want: vec![
-                Token{kind: TokenKind::Identifier, source_id: SourceID::from_usize(0), lexeme_id: StrID::from_usize(0)},
-                Token{
-                    kind: TokenKind::EqualEqual,
-                    source_id: SourceID::from_usize(2),
-                    lexeme_id: StrID::from_usize(1),
-                },
-                Token{kind: TokenKind::Identifier, source_id: SourceID::from_usize(5), lexeme_id: StrID::from_usize(2)},
-                Token{kind: TokenKind::AndAnd, source_id: SourceID::from_usize(7), lexeme_id: StrID::from_usize(3)},
-                Token{kind: TokenKind::Identifier, source_id: SourceID::from_usize(10), lexeme_id: StrID::from_usize(4)},
-                Token{
-                    kind: TokenKind::NotEqual,
-                    source_id: SourceID::from_usize(12),
-                    lexeme_id: StrID::from_usize(5),
-                },
-                Token{kind: TokenKind::Identifier, source_id: SourceID::from_usize(15), lexeme_id: StrID::from_usize(6)},
-                Token{
-                    kind: TokenKind::LessOrEqual,
-                    source_id: SourceID::from_usize(17),
-                    lexeme_id: StrID::from_usize(7),
-                },
-                Token{kind: TokenKind::Identifier, source_id: SourceID::from_usize(20), lexeme_id: StrID::from_usize(8)},
-                Token{
-                    kind: TokenKind::GreaterOrEqual,
-                    source_id: SourceID::from_usize(22),
-                    lexeme_id: StrID::from_usize(9),
-                },
-                Token{kind: TokenKind::Identifier, source_id: SourceID::from_usize(25), lexeme_id: StrID::from_usize(10)},
-                Token{
-                    kind: TokenKind::Equal,
-                    source_id: SourceID::from_usize(28),
-                    lexeme_id: StrID::from_usize(11),
-                },
-                Token{
-                    kind: TokenKind::PlusEqual,
-                    source_id: SourceID::from_usize(30),
-                    lexeme_id: StrID::from_usize(12),
-                },
-                Token{
-                    kind: TokenKind::Star,
-                    source_id: SourceID::from_usize(33),
-                    lexeme_id: StrID::from_usize(13),
-                },
-                Token{kind: TokenKind::Eof, source_id: SourceID::from_usize(34), lexeme_id: str_store::EMPTY_STR},
-            ],
-        },
-        lex_input_variants_and_assignemnt {
-            input: ".Ok x = 1",
-            want: vec![
-                Token { kind: TokenKind::Dot, source_id: SourceID::from_usize(0), lexeme_id: StrID::from_usize(0 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(1), lexeme_id: StrID::from_usize(1 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(4), lexeme_id: StrID::from_usize(2 )},
-                Token { kind: TokenKind::Equal, source_id: SourceID::from_usize(6), lexeme_id: StrID::from_usize(3 )},
-                Token { kind: TokenKind::Int, source_id: SourceID::from_usize(8), lexeme_id: StrID::from_usize(4 )},
-                Token { kind: TokenKind::Semicolon, source_id: SourceID::from_usize(9), lexeme_id: str_store::EMPTY_STR},
-                Token { kind: TokenKind::Eof, source_id: SourceID::from_usize(9), lexeme_id: str_store::EMPTY_STR},
-            ],
-        },
-        lex_input_type_enum_tokens {
-            input: "type ErrWrite enum { Ok; IOError }",
-            want: vec![
-                Token { kind: TokenKind::TypeKeyword, source_id: SourceID::from_usize(0), lexeme_id: StrID::from_usize(0 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(5), lexeme_id: StrID::from_usize(1 )},
-                Token { kind: TokenKind::EnumKeyword, source_id: SourceID::from_usize(14), lexeme_id: StrID::from_usize(2 )},
-                Token { kind: TokenKind::OpenBrace, source_id: SourceID::from_usize(19), lexeme_id: StrID::from_usize(3 )},
+    /// reads a golden file from "test/lexer" and returns it as an owned string
+    fn read_golden(name: &str) -> String {
+        let path = format!("tests/lexer/{}", name);
+        match fs::read_to_string(&path) {
+            Ok(s) => s,
+            Err(e) => panic!("failed to read golden file {}: {}", &path, e),
+        }
+    }
 
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(21), lexeme_id: StrID::from_usize(4 )},
-                Token { kind: TokenKind::Semicolon, source_id: SourceID::from_usize(23), lexeme_id: StrID::from_usize(5 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(25), lexeme_id: StrID::from_usize(6 )},
-                Token { kind: TokenKind::Semicolon, source_id: SourceID::from_usize(33), lexeme_id: str_store::EMPTY_STR},
-                Token { kind: TokenKind::CloseBrace, source_id: SourceID::from_usize(33), lexeme_id: StrID::from_usize(7 )},
-                Token { kind: TokenKind::Semicolon, source_id: SourceID::from_usize(34), lexeme_id: str_store::EMPTY_STR},
-                Token { kind: TokenKind::Eof, source_id: SourceID::from_usize(34), lexeme_id: str_store::EMPTY_STR},
-            ],
-        },
-        lex_input_fn_decl {
-            input: "fn write_and_cleanup(path str) WriteAndCleanup { }",
-            want: vec![
-                Token { kind: TokenKind::FnKeyword, source_id: SourceID::from_usize(0), lexeme_id: StrID::from_usize(0 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(3), lexeme_id: StrID::from_usize(1 )},
-                Token { kind: TokenKind::OpenParen, source_id: SourceID::from_usize(20), lexeme_id: StrID::from_usize(2 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(21), lexeme_id: StrID::from_usize(3 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(26), lexeme_id: str_store::STR},
-                Token { kind: TokenKind::CloseParen, source_id: SourceID::from_usize(29), lexeme_id: StrID::from_usize(4 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(31), lexeme_id: StrID::from_usize(5 )},
-                Token { kind: TokenKind::OpenBrace, source_id: SourceID::from_usize(47), lexeme_id: StrID::from_usize(6 )},
-                Token { kind: TokenKind::CloseBrace, source_id: SourceID::from_usize(49), lexeme_id: StrID::from_usize(7 )},
-                Token { kind: TokenKind::Semicolon, source_id: SourceID::from_usize(50), lexeme_id: str_store::EMPTY_STR},
-                Token { kind: TokenKind::Eof, source_id: SourceID::from_usize(50), lexeme_id: str_store::EMPTY_STR},
-            ],
-        },
-        lex_input_let_or {
-            input: "let .Ok(f) = os::open(path) or { return .IOError }",
-            want: vec![
-                Token { kind: TokenKind::LetKeyword, source_id: SourceID::from_usize(0), lexeme_id: StrID::from_usize(0 )},
-                Token { kind: TokenKind::Dot, source_id: SourceID::from_usize(4), lexeme_id: StrID::from_usize(1 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(5), lexeme_id: StrID::from_usize(2 )},
-                Token { kind: TokenKind::OpenParen, source_id: SourceID::from_usize(7), lexeme_id: StrID::from_usize(3 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(8), lexeme_id: StrID::from_usize(4 )},
-                Token { kind: TokenKind::CloseParen, source_id: SourceID::from_usize(9), lexeme_id: StrID::from_usize(5 )},
-                Token { kind: TokenKind::Equal, source_id: SourceID::from_usize(11), lexeme_id: StrID::from_usize(6 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(13), lexeme_id: StrID::from_usize(7 )},
-                Token { kind: TokenKind::ColonColon, source_id: SourceID::from_usize(15), lexeme_id: StrID::from_usize(8 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(17), lexeme_id: StrID::from_usize(9 )},
-                Token { kind: TokenKind::OpenParen, source_id: SourceID::from_usize(21), lexeme_id: StrID::from_usize(3 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(22), lexeme_id: StrID::from_usize(10 )},
-                Token { kind: TokenKind::CloseParen, source_id: SourceID::from_usize(26), lexeme_id: StrID::from_usize(5 )},
-                Token { kind: TokenKind::OrKeyword, source_id: SourceID::from_usize(28), lexeme_id: StrID::from_usize(11 )},
-                Token { kind: TokenKind::OpenBrace, source_id: SourceID::from_usize(31), lexeme_id: StrID::from_usize(12 )},
-                Token { kind: TokenKind::ReturnKeyword, source_id: SourceID::from_usize(33), lexeme_id: StrID::from_usize(13 )},
-                Token { kind: TokenKind::Dot, source_id: SourceID::from_usize(40), lexeme_id: StrID::from_usize(1 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(41), lexeme_id: StrID::from_usize(14 )},
-                Token { kind: TokenKind::Semicolon, source_id: SourceID::from_usize(49), lexeme_id: str_store::EMPTY_STR},
-                Token { kind: TokenKind::CloseBrace, source_id: SourceID::from_usize(49), lexeme_id: StrID::from_usize(15 )},
-                Token { kind: TokenKind::Semicolon, source_id: SourceID::from_usize(50), lexeme_id: str_store::EMPTY_STR},
-                Token { kind: TokenKind::Eof, source_id: SourceID::from_usize(50), lexeme_id: str_store::EMPTY_STR},
-            ],
-        },
-        lex_input_pointer {
-            input: "let .Ok(p) = maybe_alloc(false) !
-println(*p)
-free(p)
-",
-            want: vec![
-                Token { kind: TokenKind::LetKeyword, source_id: SourceID::from_usize(0), lexeme_id: StrID::from_usize(0 )},
-                Token { kind: TokenKind::Dot, source_id: SourceID::from_usize(4), lexeme_id: StrID::from_usize(1 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(5), lexeme_id: StrID::from_usize(2 )},
-                Token { kind: TokenKind::OpenParen, source_id: SourceID::from_usize(7), lexeme_id: StrID::from_usize(3 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(8), lexeme_id: StrID::from_usize(4 )},
-                Token { kind: TokenKind::CloseParen, source_id: SourceID::from_usize(9), lexeme_id: StrID::from_usize(5 )},
-                Token { kind: TokenKind::Equal, source_id: SourceID::from_usize(11), lexeme_id: StrID::from_usize(6 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(13), lexeme_id: StrID::from_usize(7 )},
-                Token { kind: TokenKind::OpenParen, source_id: SourceID::from_usize(24), lexeme_id: StrID::from_usize(3 )},
-                Token { kind: TokenKind::FalseLiteral, source_id: SourceID::from_usize(25), lexeme_id: StrID::from_usize(8 )},
-                Token { kind: TokenKind::CloseParen, source_id: SourceID::from_usize(30), lexeme_id: StrID::from_usize(5 )},
-                Token { kind: TokenKind::Bang, source_id: SourceID::from_usize(32), lexeme_id: StrID::from_usize(9 )},
-                Token { kind: TokenKind::Semicolon, source_id: SourceID::from_usize(33), lexeme_id: StrID::from_usize(10 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(34), lexeme_id: StrID::from_usize(11 )},
-                Token { kind: TokenKind::OpenParen, source_id: SourceID::from_usize(41), lexeme_id: StrID::from_usize(3 )},
-                Token { kind: TokenKind::Star, source_id: SourceID::from_usize(42), lexeme_id: StrID::from_usize(12 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(43), lexeme_id: StrID::from_usize(4 )},
-                Token { kind: TokenKind::CloseParen, source_id: SourceID::from_usize(44), lexeme_id: StrID::from_usize(5 )},
-                Token { kind: TokenKind::Semicolon, source_id: SourceID::from_usize(45), lexeme_id: StrID::from_usize(10 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(46), lexeme_id: str_store::FREE },
-                Token { kind: TokenKind::OpenParen, source_id: SourceID::from_usize(50), lexeme_id: StrID::from_usize(3 )},
-                Token { kind: TokenKind::Identifier, source_id: SourceID::from_usize(51), lexeme_id: StrID::from_usize(4 )},
-                Token { kind: TokenKind::CloseParen, source_id: SourceID::from_usize(52), lexeme_id: StrID::from_usize(5 )},
-                Token { kind: TokenKind::Semicolon, source_id: SourceID::from_usize(53), lexeme_id: StrID::from_usize(10 )},
-                Token { kind: TokenKind::Eof, source_id: SourceID::from_usize(54), lexeme_id: str_store::EMPTY_STR},
-            ],
-        },
-        lex_unterminated_string {
-            input: r#""no end"#,
-            want: vec![
-                Token { kind: TokenKind::MalformedStr, source_id: SourceID::from_usize(0), lexeme_id: StrID::from_usize(0 )},
-                Token { kind: TokenKind::Eof, source_id: SourceID::from_usize(7), lexeme_id: str_store::EMPTY_STR},
-            ],
-        },
+    /// prints the diff between got and want if any diffs exists, returns the number of lines that differ
+    /// between the two strings.
+    fn print_diff(got: String, want: String) -> u32 {
+        let diff = TextDiff::from_lines(got, want);
+
+        let mut count = 0;
+        let mut str_diff = String::new();
+        for change in diff.iter_all_changes() {
+            let sign = match change.tag() {
+                ChangeTag::Delete => "-",
+                ChangeTag::Insert => "+",
+                ChangeTag::Equal => " ",
+            };
+
+            if change.tag() != ChangeTag::Equal {
+                count += 1;
+            }
+
+            let line = format!("{}{}", sign, change);
+            str_diff.push_str(&line);
+        }
+
+        if count > 0 {
+            println!("Diffs:\n{}", str_diff);
+        }
+
+        return count;
+    }
+
+    #[test]
+    fn test_lexer_defer_free() {
+        let got = lex_source("defer_free.manta");
+        let want = read_golden("defer_free.json");
+
+        let diffs = print_diff(got, want);
+        if diffs > 0 {
+            panic!("token stream does not match what was expected")
+        }
+    }
+
+    #[test]
+    fn test_lexer_enum_polymorphism() {
+        let got = lex_source("enum_polymorphism.manta");
+        let want = read_golden("enum_polymorphism.json");
+
+        let diffs = print_diff(got, want);
+        if diffs > 0 {
+            panic!("token stream does not match what was expected")
+        }
+    }
+
+    #[test]
+    fn test_lexer_if_else() {
+        let got = lex_source("if_else.manta");
+        let want = read_golden("if_else.json");
+
+        let diffs = print_diff(got, want);
+        if diffs > 0 {
+            panic!("token stream does not match what was expected")
+        }
+    }
+
+    #[test]
+    fn test_lexer_let_or() {
+        let got = lex_source("let_or.manta");
+        let want = read_golden("let_or.json");
+
+        let diffs = print_diff(got, want);
+        if diffs > 0 {
+            panic!("token stream does not match what was expected")
+        }
+    }
+
+    #[test]
+    fn test_lexer_loops() {
+        let got = lex_source("loops.manta");
+        let want = read_golden("loops.json");
+
+        let diffs = print_diff(got, want);
+        if diffs > 0 {
+            panic!("token stream does not match what was expected")
+        }
+    }
+
+    #[test]
+    fn test_lexer_missing_module() {
+        let got = lex_source("missing_module.manta");
+        let want = read_golden("missing_module.json");
+
+        let diffs = print_diff(got, want);
+        if diffs > 0 {
+            panic!("token stream does not match what was expected")
+        }
+    }
+
+    #[test]
+    fn test_lexer_multiple_use_sections() {
+        let got = lex_source("multiple_use_sections.manta");
+        let want = read_golden("multiple_use_sections.json");
+
+        let diffs = print_diff(got, want);
+        if diffs > 0 {
+            panic!("token stream does not match what was expected")
+        }
+    }
+
+    #[test]
+    fn text_lexer_none() {
+        let got = lex_source("none.manta");
+        let want = read_golden("none.json");
+
+        let diffs = print_diff(got, want);
+        if diffs > 0 {
+            panic!("token stream does not match what was expected")
+        }
+    }
+
+    #[test]
+    fn text_lexer_option_match() {
+        let got = lex_source("option_match.manta");
+        let want = read_golden("option_match.json");
+
+        let diffs = print_diff(got, want);
+        if diffs > 0 {
+            panic!("token stream does not match what was expected")
+        }
+    }
+
+    #[test]
+    fn text_lexer_pointers() {
+        let got = lex_source("pointers.manta");
+        let want = read_golden("pointers.json");
+
+        let diffs = print_diff(got, want);
+        if diffs > 0 {
+            panic!("token stream does not match what was expected")
+        }
+    }
+
+    #[test]
+    fn text_lexer_simple_add() {
+        let got = lex_source("simple_add.manta");
+        let want = read_golden("simple_add.json");
+
+        let diffs = print_diff(got, want);
+        if diffs > 0 {
+            panic!("token stream does not match what was expected")
+        }
+    }
+
+    #[test]
+    fn text_lexer_structs() {
+        let got = lex_source("structs.manta");
+        let want = read_golden("structs.json");
+
+        let diffs = print_diff(got, want);
+        if diffs > 0 {
+            panic!("token stream does not match what was expected")
+        }
     }
 }

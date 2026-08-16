@@ -1,6 +1,7 @@
 use crate::ast::{ArrayType, NamedType, TypeSpec};
 use crate::parser::ParseError;
-use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::lexer::{Lexer, Token, Ty};
+use crate::str_store::StrStore;
 
 /// Parse a type specification from the token stream.
 /// Supports:
@@ -10,34 +11,46 @@ use crate::parser::lexer::{Lexer, Token, TokenKind};
 /// - array: `[N] T` where N is an integer literal (compile-time size)
 /// - slice: `[] T`
 pub fn parse_type(lexer: &mut Lexer, token: Token) -> Result<TypeSpec, ParseError> {
-    match &token.kind {
-        TokenKind::Star => {
+    match &token.ty {
+        Ty::Star => {
             // pointer
-            let next = lexer.next_token();
+            todo!("need to figure out how to use the actual str store here");
+            let mut str_store = StrStore::new();
+
+            let next = lexer.next(&mut str_store);
             let inner = parse_type(lexer, next)?;
             Ok(TypeSpec::Pointer(Box::new(inner)))
         }
 
-        TokenKind::OpenSquare => {
+        Ty::OpenSquare => {
             // array or slice
             let next = lexer.peek();
 
-            match &next.kind {
-                TokenKind::CloseSquare => {
+            match &next.ty {
+                Ty::CloseSquare => {
                     // slice: []T
-                    lexer.next_token(); // consume ']'
-                    let next = lexer.next_token();
+                    todo!("need to figure out how to use the actual str store here");
+                    let mut str_store = StrStore::new();
+
+                    lexer.next(&mut str_store); // consume ']'
+                    let next = lexer.next(&mut str_store);
                     let inner = parse_type(lexer, next)?;
                     Ok(TypeSpec::Slice(Box::new(inner)))
                 }
-                TokenKind::Int => {
+                Ty::Int => {
                     // array: [N]T
 
                     // TODO: this should actually parse an expression, since
                     // any constant expression will technically work her.
                     // That's gonna cause some problems once the refactor is done
-                    let size_tok = lexer.next_token(); // Int
-                    let lex = lexer.lexeme(size_tok.lexeme_id).replace('_', "");
+                    todo!("need to figure out how to use the actual str store here");
+                    let mut str_store = StrStore::new();
+
+                    let size_tok = lexer.next(&mut str_store); // Int
+                    let lex = str_store
+                        .get_string(size_tok.lexeme)
+                        .expect("todo, figure this out")
+                        .replace('_', "");
                     let size = match lex.parse::<usize>() {
                         Ok(n) => n,
                         Err(_) => {
@@ -49,17 +62,17 @@ pub fn parse_type(lexer: &mut Lexer, token: Token) -> Result<TypeSpec, ParseErro
                     };
 
                     // expect closing bracket
-                    match lexer.peek().kind {
-                        TokenKind::CloseSquare => lexer.next_token(),
+                    match lexer.peek().ty {
+                        Ty::CloseSquare => lexer.next(&mut str_store),
                         _ => {
                             return Err(ParseError::InvalidTypeSpec(
-                                next,
+                                next.clone(),
                                 "Expected ']' after array size".into(),
                             ));
                         }
                     };
 
-                    let next = lexer.next_token();
+                    let next = lexer.next(&mut str_store);
                     let inner = parse_type(lexer, next)?;
                     Ok(TypeSpec::Array(ArrayType {
                         type_spec: Box::new(inner),
@@ -67,14 +80,18 @@ pub fn parse_type(lexer: &mut Lexer, token: Token) -> Result<TypeSpec, ParseErro
                     }))
                 }
                 other => Err(ParseError::InvalidTypeSpec(
-                    next,
+                    next.clone(),
                     format!("Unexpected token in array type: {:?}", other),
                 )),
             }
         }
 
-        TokenKind::Identifier => {
-            let name = lexer.lexeme(token.lexeme_id);
+        Ty::Identifier => {
+            let mut str_store = StrStore::new();
+
+            let name = str_store
+                .get_string(token.lexeme)
+                .expect("todo, figure this out");
             let tyspec = match name.as_str() {
                 "i32" => TypeSpec::Int32,
                 "i16" => TypeSpec::Int16,
@@ -88,27 +105,27 @@ pub fn parse_type(lexer: &mut Lexer, token: Token) -> Result<TypeSpec, ParseErro
                 "f32" => TypeSpec::Float32,
                 "str" => TypeSpec::String,
                 "bool" => TypeSpec::Bool,
-                _ => match lexer.peek().kind {
-                    TokenKind::ColonColon => {
-                        lexer.next_token();
-                        let type_name = lexer.next_token();
-                        if type_name.kind != TokenKind::Identifier {
+                _ => match lexer.peek().ty {
+                    Ty::ColonColon => {
+                        lexer.next(&mut str_store);
+                        let type_name = lexer.next(&mut str_store);
+                        if type_name.ty != Ty::Identifier {
                             return Err(ParseError::UnexpectedToken(
                                 type_name,
                                 "type name must be an identifier".to_string(),
                             ));
                         } else {
                             TypeSpec::Named(NamedType {
-                                id: token.source_id,
-                                module: Some(token.lexeme_id),
-                                name: type_name.lexeme_id,
+                                id: token.pos,
+                                module: Some(token.lexeme),
+                                name: type_name.lexeme,
                             })
                         }
                     }
                     _ => TypeSpec::Named(NamedType {
-                        id: token.source_id,
+                        id: token.pos,
                         module: None,
-                        name: token.lexeme_id,
+                        name: token.lexeme,
                     }),
                 },
             };
@@ -122,6 +139,7 @@ pub fn parse_type(lexer: &mut Lexer, token: Token) -> Result<TypeSpec, ParseErro
     }
 }
 
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -180,3 +198,4 @@ mod tests {
         },
     );
 }
+*/

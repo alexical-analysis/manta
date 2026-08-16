@@ -1,7 +1,8 @@
 use crate::ast::{DotAccessExpr, Expr};
 use crate::parser::ParseError;
 use crate::parser::expression::{ExprParser, InfixExprParselet, Precedence, PrefixExprParselet};
-use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::lexer::{Lexer, Token, Ty};
+use crate::str_store::StrStore;
 
 /// Parses dot access expressions.
 ///
@@ -16,9 +17,12 @@ impl InfixExprParselet for InfixDotAccessParselet {
         left: Expr,
         _token: Token,
     ) -> Result<Expr, ParseError> {
-        let token = lexer.next_token();
-        let name = match token.kind {
-            TokenKind::Identifier => token.lexeme_id,
+        todo!("need to figure out how to get the actual str_store");
+        let mut str_store = StrStore::new();
+
+        let token = lexer.next(&mut str_store);
+        let name = match token.ty {
+            Ty::Identifier => token.lexeme,
             _ => {
                 return Err(ParseError::UnexpectedToken(
                     token,
@@ -50,9 +54,12 @@ impl PrefixExprParselet for PrefixDotAccessParselet {
         lexer: &mut Lexer,
         _token: Token,
     ) -> Result<Expr, ParseError> {
-        let token = lexer.next_token();
-        let name = match token.kind {
-            TokenKind::Identifier => token.lexeme_id,
+        todo!("need to figure out how to get the actual str_store");
+        let mut str_store = StrStore::new();
+
+        let token = lexer.next(&mut str_store);
+        let name = match token.ty {
+            Ty::Identifier => token.lexeme,
             _ => {
                 return Err(ParseError::UnexpectedToken(
                     token,

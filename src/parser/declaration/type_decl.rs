@@ -1,8 +1,9 @@
 use crate::ast::{Decl, EnumType, EnumVariant, StructType, StructTypeField, TypeDecl, TypeSpec};
 use crate::parser::ParseError;
 use crate::parser::declaration::{DeclParselet, DeclParser};
-use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::lexer::{Lexer, Token, Ty};
 use crate::parser::types;
+use crate::str_store::StrStore;
 
 /// Dispatcher for type declarations - routes to struct or enum parselets
 pub struct TypeDeclParselet {
@@ -16,24 +17,27 @@ impl DeclParselet for TypeDeclParselet {
         lexer: &mut Lexer,
         token: Token,
     ) -> Result<Decl, ParseError> {
-        let name = lexer.next_token();
-        if name.kind != TokenKind::Identifier {
+        todo!("need to figure this out");
+        let mut str_store = StrStore::new();
+
+        let name = lexer.next(&mut str_store);
+        if name.ty != Ty::Identifier {
             return Err(ParseError::UnexpectedToken(
                 token,
                 "Expected type name after 'type'".to_string(),
             ));
         }
 
-        let token = lexer.next_token();
-        match token.kind {
-            TokenKind::StructKeyword => parse_struct(lexer, name, self.public),
-            TokenKind::EnumKeyword => parse_enum(lexer, name, self.public),
+        let token = lexer.next(&mut str_store);
+        match token.ty {
+            Ty::StructKeyword => parse_struct(lexer, name, self.public),
+            Ty::EnumKeyword => parse_enum(lexer, name, self.public),
             _ => {
                 let type_spec = types::parse_type(lexer, token)?;
                 Ok(Decl::Type(TypeDecl {
                     public: self.public,
-                    id: name.source_id,
-                    name: name.lexeme_id,
+                    id: name.pos,
+                    name: name.lexeme,
                     type_spec,
                 }))
             }
@@ -42,8 +46,11 @@ impl DeclParselet for TypeDeclParselet {
 }
 
 fn parse_enum(lexer: &mut Lexer, token: Token, public: bool) -> Result<Decl, ParseError> {
-    let open = lexer.next_token();
-    if open.kind != TokenKind::OpenBrace {
+    todo!("need to figure this out");
+    let mut str_store = StrStore::new();
+
+    let open = lexer.next(&mut str_store);
+    if open.ty != Ty::OpenBrace {
         return Err(ParseError::UnexpectedToken(
             open,
             "Expected '{' before enum body".to_string(),
@@ -53,8 +60,8 @@ fn parse_enum(lexer: &mut Lexer, token: Token, public: bool) -> Result<Decl, Par
     // Parse enum variants
     let variants = parse_enum_variants(lexer)?;
 
-    let close = lexer.next_token();
-    if close.kind != TokenKind::CloseBrace {
+    let close = lexer.next(&mut str_store);
+    if close.ty != Ty::CloseBrace {
         return Err(ParseError::UnexpectedToken(
             close,
             "Expected '}' after enum body".to_string(),
@@ -63,8 +70,8 @@ fn parse_enum(lexer: &mut Lexer, token: Token, public: bool) -> Result<Decl, Par
 
     Ok(Decl::Type(TypeDecl {
         public,
-        id: token.source_id,
-        name: token.lexeme_id,
+        id: token.pos,
+        name: token.lexeme,
         type_spec: TypeSpec::Enum(EnumType { variants }),
     }))
 }
@@ -74,33 +81,36 @@ fn parse_enum(lexer: &mut Lexer, token: Token, public: bool) -> Result<Decl, Par
 fn parse_enum_variants(lexer: &mut Lexer) -> Result<Vec<EnumVariant>, ParseError> {
     let mut variants = vec![];
 
+    todo!("need to figure this out");
+    let mut str_store = StrStore::new();
+
     // Check for empty variant list
-    if lexer.peek().kind == TokenKind::CloseBrace {
+    if lexer.peek().ty == Ty::CloseBrace {
         return Ok(variants);
     }
 
     loop {
         // Get variant name
-        let token = lexer.next_token();
-        if token.kind != TokenKind::Identifier {
+        let token = lexer.next(&mut str_store);
+        if token.ty != Ty::Identifier {
             return Err(ParseError::UnexpectedToken(
                 token,
                 "Expected variant name".to_string(),
             ));
         }
-        let variant_name = token.lexeme_id;
+        let variant_name = token.lexeme;
 
         // Check for optional payload
-        let payload = if lexer.peek().kind == TokenKind::OpenParen {
-            lexer.next_token();
+        let payload = if lexer.peek().ty == Ty::OpenParen {
+            lexer.next(&mut str_store);
 
             // Parse the payload type
-            let token = lexer.next_token();
+            let token = lexer.next(&mut str_store);
             let payload_type = types::parse_type(lexer, token)?;
 
             // Expect closing paren
-            let token = lexer.next_token();
-            if token.kind != TokenKind::CloseParen {
+            let token = lexer.next(&mut str_store);
+            if token.ty != Ty::CloseParen {
                 return Err(ParseError::UnexpectedToken(
                     token,
                     "Expected ')' after variant payload".to_string(),
@@ -118,8 +128,8 @@ fn parse_enum_variants(lexer: &mut Lexer) -> Result<Vec<EnumVariant>, ParseError
         });
 
         // Expect semicolon after variant
-        let token = lexer.next_token();
-        if token.kind != TokenKind::Semicolon {
+        let token = lexer.next(&mut str_store);
+        if token.ty != Ty::Semicolon {
             return Err(ParseError::UnexpectedToken(
                 token,
                 "Expected ';' after enum variant".to_string(),
@@ -127,12 +137,12 @@ fn parse_enum_variants(lexer: &mut Lexer) -> Result<Vec<EnumVariant>, ParseError
         }
 
         // Check if there are more variants
-        match lexer.peek().kind {
-            TokenKind::CloseBrace => break,
-            TokenKind::Identifier => continue,
+        match lexer.peek().ty {
+            Ty::CloseBrace => break,
+            Ty::Identifier => continue,
             _ => {
                 return Err(ParseError::UnexpectedToken(
-                    lexer.peek(),
+                    lexer.peek().clone(),
                     "Expected variant name or '}' in enum body".to_string(),
                 ));
             }
@@ -144,9 +154,12 @@ fn parse_enum_variants(lexer: &mut Lexer) -> Result<Vec<EnumVariant>, ParseError
 
 /// Parse struct declaration after 'type' keyword has been consumed
 fn parse_struct(lexer: &mut Lexer, token: Token, public: bool) -> Result<Decl, ParseError> {
+    todo!("need to figure this out");
+    let mut str_store = StrStore::new();
+
     // Expect opening brace
-    let open = lexer.next_token();
-    if open.kind != TokenKind::OpenBrace {
+    let open = lexer.next(&mut str_store);
+    if open.ty != Ty::OpenBrace {
         return Err(ParseError::UnexpectedToken(
             open,
             "Expected '{' before struct body".to_string(),
@@ -155,8 +168,8 @@ fn parse_struct(lexer: &mut Lexer, token: Token, public: bool) -> Result<Decl, P
 
     let fields = parse_struct_fields(lexer)?;
 
-    let close = lexer.next_token();
-    if close.kind != TokenKind::CloseBrace {
+    let close = lexer.next(&mut str_store);
+    if close.ty != Ty::CloseBrace {
         return Err(ParseError::UnexpectedToken(
             close,
             "Expected '}' after struct body".to_string(),
@@ -165,8 +178,8 @@ fn parse_struct(lexer: &mut Lexer, token: Token, public: bool) -> Result<Decl, P
 
     Ok(Decl::Type(TypeDecl {
         public,
-        id: token.source_id,
-        name: token.lexeme_id,
+        id: token.pos,
+        name: token.lexeme,
         type_spec: TypeSpec::Struct(StructType { fields }),
     }))
 }
@@ -176,9 +189,11 @@ fn parse_struct(lexer: &mut Lexer, token: Token, public: bool) -> Result<Decl, P
 /// field_decl: identifier type_spec
 fn parse_struct_fields(lexer: &mut Lexer) -> Result<Vec<StructTypeField>, ParseError> {
     let mut fields = vec![];
+    todo!("need to figure this out");
+    let mut str_store = StrStore::new();
 
     // Check for empty field list
-    if lexer.peek().kind == TokenKind::CloseBrace {
+    if lexer.peek().ty == Ty::CloseBrace {
         return Ok(fields);
     }
 
@@ -186,21 +201,21 @@ fn parse_struct_fields(lexer: &mut Lexer) -> Result<Vec<StructTypeField>, ParseE
         // check for a leading 'pub' keyword
         let mut public = false;
         let pub_token = lexer.peek();
-        if pub_token.kind == TokenKind::PubKeyword {
-            lexer.next_token();
+        if pub_token.ty == Ty::PubKeyword {
+            lexer.next(&mut str_store);
             public = true;
         }
 
-        let token = lexer.next_token();
-        if token.kind != TokenKind::Identifier {
+        let token = lexer.next(&mut str_store);
+        if token.ty != Ty::Identifier {
             return Err(ParseError::UnexpectedToken(
                 token,
                 "Expected field name".to_string(),
             ));
         }
-        let name = token.lexeme_id;
+        let name = token.lexeme;
 
-        let token = lexer.next_token();
+        let token = lexer.next(&mut str_store);
         let type_spec = types::parse_type(lexer, token)?;
 
         fields.push(StructTypeField {
@@ -209,8 +224,8 @@ fn parse_struct_fields(lexer: &mut Lexer) -> Result<Vec<StructTypeField>, ParseE
             type_spec,
         });
 
-        let token = lexer.next_token();
-        if token.kind != TokenKind::Semicolon {
+        let token = lexer.next(&mut str_store);
+        if token.ty != Ty::Semicolon {
             return Err(ParseError::UnexpectedToken(
                 token,
                 "Expected ';' after enum variant".to_string(),
@@ -218,13 +233,13 @@ fn parse_struct_fields(lexer: &mut Lexer) -> Result<Vec<StructTypeField>, ParseE
         }
 
         // Check if there are more fields
-        match lexer.peek().kind {
-            TokenKind::CloseBrace => break,
-            TokenKind::Identifier => continue,
-            TokenKind::PubKeyword => continue,
+        match lexer.peek().ty {
+            Ty::CloseBrace => break,
+            Ty::Identifier => continue,
+            Ty::PubKeyword => continue,
             _ => {
                 return Err(ParseError::UnexpectedToken(
-                    lexer.peek(),
+                    lexer.peek().clone(),
                     "Expected field name or '}' in struct body".to_string(),
                 ));
             }

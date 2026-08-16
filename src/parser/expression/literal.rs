@@ -1,7 +1,8 @@
 use crate::ast::Expr;
 use crate::parser::ParseError;
 use crate::parser::expression::{ExprParser, PrefixExprParselet};
-use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::lexer::{Lexer, Token, Ty};
+use crate::str_store::StrStore;
 
 /// Parses literal expressions.
 ///
@@ -17,12 +18,12 @@ impl PrefixExprParselet for LiteralParselet {
         lexer: &mut Lexer,
         token: Token,
     ) -> Result<Expr, ParseError> {
-        match token.kind {
-            TokenKind::Int => parse_int(lexer, token),
-            TokenKind::Float => parse_float(lexer, token),
-            TokenKind::TrueLiteral => Ok(Expr::BoolLiteral(true)),
-            TokenKind::FalseLiteral => Ok(Expr::BoolLiteral(false)),
-            TokenKind::Str => Ok(Expr::StringLiteral(token.lexeme_id)),
+        match token.ty {
+            Ty::Int => parse_int(lexer, token),
+            Ty::Float => parse_float(lexer, token),
+            Ty::TrueLiteral => Ok(Expr::BoolLiteral(true)),
+            Ty::FalseLiteral => Ok(Expr::BoolLiteral(false)),
+            Ty::Str => Ok(Expr::StringLiteral(token.lexeme)),
             e => Err(ParseError::Custom(
                 token,
                 format!("invalid integer {:?}", e),
@@ -32,7 +33,12 @@ impl PrefixExprParselet for LiteralParselet {
 }
 
 fn parse_int(lexer: &mut Lexer, token: Token) -> Result<Expr, ParseError> {
-    let integer_str = lexer.lexeme(token.lexeme_id);
+    todo!("need the actual str_store");
+    let mut str_store = StrStore::new();
+
+    let integer_str = str_store
+        .get_string(token.lexeme)
+        .expect("failed to get lexeme");
     let integer_str = integer_str.replace("_", "");
 
     // try to parse as an i64 first and then fall back to a u64 after
@@ -49,7 +55,14 @@ fn parse_int(lexer: &mut Lexer, token: Token) -> Result<Expr, ParseError> {
 }
 
 fn parse_float(lexer: &mut Lexer, token: Token) -> Result<Expr, ParseError> {
-    match lexer.lexeme(token.lexeme_id).parse() {
+    todo!("need the actual str_store");
+    let mut str_store = StrStore::new();
+
+    match str_store
+        .get_string(token.lexeme)
+        .expect("failed to get token string")
+        .parse()
+    {
         Ok(f) => Ok(Expr::FloatLiteral(f)),
         Err(e) => Err(ParseError::Custom(token, format!("invalid float {:?}", e))),
     }

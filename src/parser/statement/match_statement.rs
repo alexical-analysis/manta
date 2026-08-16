@@ -1,7 +1,8 @@
 use crate::ast::{MatchArm, MatchStmt, Stmt};
 use crate::parser::ParseError;
-use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::lexer::{Lexer, Token, Ty};
 use crate::parser::statement::{PrefixStmtParselet, StmtParser};
+use crate::str_store::StrStore;
 
 /// Parses match statements
 ///
@@ -16,9 +17,11 @@ impl PrefixStmtParselet for MatchParselet {
         _token: Token,
     ) -> Result<Stmt, ParseError> {
         let target = parser.parse_no_struct_expression(lexer)?;
+        todo!("need to figure this out");
+        let mut str_store = StrStore::new();
 
-        let token = lexer.next_token();
-        if token.kind != TokenKind::OpenBrace {
+        let token = lexer.next(&mut str_store);
+        if token.ty != Ty::OpenBrace {
             return Err(ParseError::UnexpectedToken(
                 token,
                 "Expected '{' after match expression".to_string(),
@@ -29,21 +32,21 @@ impl PrefixStmtParselet for MatchParselet {
 
         loop {
             let token = lexer.peek();
-            if token.kind == TokenKind::CloseBrace {
-                lexer.next_token();
+            if token.ty == Ty::CloseBrace {
+                lexer.next(&mut str_store);
                 break;
             }
-            if token.kind == TokenKind::Eof {
+            if token.ty == Ty::Eof {
                 return Err(ParseError::UnexpectedToken(
-                    token,
+                    token.clone(),
                     "missing closing '}' in match block".to_string(),
                 ));
             }
 
             let pattern = parser.parse_pattern(lexer)?;
 
-            let next = lexer.next_token();
-            if next.kind != TokenKind::OpenBrace {
+            let next = lexer.next(&mut str_store);
+            if next.ty != Ty::OpenBrace {
                 return Err(ParseError::UnexpectedToken(
                     next,
                     "Expected '{' after pattern in match arm".to_string(),
@@ -52,16 +55,16 @@ impl PrefixStmtParselet for MatchParselet {
 
             let body = parser.parse_block(lexer, next)?;
 
-            let next = lexer.next_token();
-            if next.kind != TokenKind::Semicolon {
+            let next = lexer.next(&mut str_store);
+            if next.ty != Ty::Semicolon {
                 return Err(ParseError::UnexpectedToken(
-                    token,
+                    token.clone(),
                     "Expected ';' after body in match arm".to_string(),
                 ));
             }
 
             arms.push(MatchArm {
-                id: token.source_id,
+                id: token.pos,
                 pattern,
                 body,
             });
@@ -69,7 +72,7 @@ impl PrefixStmtParselet for MatchParselet {
 
         if arms.is_empty() {
             return Err(ParseError::UnexpectedToken(
-                lexer.peek(),
+                lexer.peek().clone(),
                 "match statement must have at least one arm".to_string(),
             ));
         }

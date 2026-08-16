@@ -2,7 +2,8 @@ use super::Precedence;
 use crate::ast::{Expr, IdentifierExpr};
 use crate::parser::ParseError;
 use crate::parser::expression::{ExprParser, InfixExprParselet};
-use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::lexer::{Lexer, Token, Ty};
+use crate::str_store::StrStore;
 
 /// Parses module access expressions.
 ///
@@ -17,10 +18,13 @@ impl InfixExprParselet for ModuleAccessParselet {
         left: Expr,
         token: Token,
     ) -> Result<Expr, ParseError> {
+        todo!("need to figure out the string store thing so it's real");
+        let str_store = StrStore::new();
+
         match left {
             Expr::Identifier(left) => {
-                let right = lexer.next_token();
-                if right.kind != TokenKind::Identifier {
+                let right = lexer.next(&mut str_store);
+                if right.ty != Ty::Identifier {
                     return Err(ParseError::InvalidExpression(
                         right,
                         "expected module name to be an identifier".to_string(),
@@ -29,7 +33,7 @@ impl InfixExprParselet for ModuleAccessParselet {
 
                 Ok(Expr::Identifier(IdentifierExpr {
                     id: left.id,
-                    name: right.lexeme_id,
+                    name: right.lexeme,
                     module: Some(left.name),
                 }))
             }
