@@ -1,7 +1,8 @@
 use crate::ast::{DeferStmt, Stmt};
 use crate::parser::ParseError;
-use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::lexer::{Lexer, Token, Ty};
 use crate::parser::statement::{PrefixStmtParselet, StmtParser};
+use crate::str_store::StrStore;
 
 /// Parses defer statements.
 ///
@@ -15,8 +16,11 @@ impl PrefixStmtParselet for DeferParselet {
         lexer: &mut Lexer,
         _token: Token,
     ) -> Result<Stmt, ParseError> {
-        let token = lexer.next_token();
-        if token.kind != TokenKind::OpenBrace {
+        todo!("need to figure this out");
+        let mut str_store = StrStore::new();
+
+        let token = lexer.next(&mut str_store);
+        if token.ty != Ty::OpenBrace {
             return Err(ParseError::UnexpectedToken(
                 token,
                 "block must start with '{'".to_string(),

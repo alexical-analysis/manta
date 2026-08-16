@@ -1,7 +1,8 @@
 use crate::ast::Expr;
 use crate::parser::ParseError;
 use crate::parser::expression::{ExprParser, Precedence, PrefixExprParselet};
-use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::lexer::{Lexer, Token, Ty};
+use crate::str_store::StrStore;
 
 /// Parses grouped expressions enclosed in parentheses.
 ///
@@ -26,9 +27,12 @@ impl PrefixExprParselet for GroupParselet {
             }
         };
 
+        todo!("need to figure out how to get the actual str_store");
+        let mut str_store = StrStore::new();
+
         // Expect a closing ')'
-        let close = lexer.next_token();
-        if close.kind != TokenKind::CloseParen {
+        let close = lexer.next(&mut str_store);
+        if close.ty != Ty::CloseParen {
             return Err(ParseError::UnexpectedToken(
                 close,
                 "expected ')'".to_string(),

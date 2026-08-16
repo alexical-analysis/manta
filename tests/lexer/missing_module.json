@@ -1,142 +1,152 @@
 [
   {
-    "kind": "UseKeyword",
-    "source_id": 0,
-    "lexeme_id": 0
+    "ty": "UseKeyword",
+    "pos": 0,
+    "lexeme": 0
   },
   {
-    "kind": "OpenParen",
-    "source_id": 4,
-    "lexeme_id": 1
+    "ty": "OpenParen",
+    "pos": 5,
+    "lexeme": 1
   },
   {
-    "kind": "Str",
-    "source_id": 10,
-    "lexeme_id": 2
+    "ty": "Unknown",
+    "pos": 10,
+    "lexeme": 2
   },
   {
-    "kind": "Semicolon",
-    "source_id": 15,
-    "lexeme_id": 3
+    "ty": "Identifier",
+    "pos": 11,
+    "lexeme": 3
   },
   {
-    "kind": "CloseParen",
-    "source_id": 16,
-    "lexeme_id": 4
+    "ty": "Unknown",
+    "pos": 14,
+    "lexeme": 2
   },
   {
-    "kind": "Semicolon",
-    "source_id": 17,
-    "lexeme_id": 3
+    "ty": "CloseParen",
+    "pos": 17,
+    "lexeme": 4
   },
   {
-    "kind": "FnKeyword",
-    "source_id": 87,
-    "lexeme_id": 5
+    "ty": "FnKeyword",
+    "pos": 87,
+    "lexeme": 5
   },
   {
-    "kind": "Identifier",
-    "source_id": 90,
-    "lexeme_id": 6
+    "ty": "Identifier",
+    "pos": 90,
+    "lexeme": 6
   },
   {
-    "kind": "OpenParen",
-    "source_id": 101,
-    "lexeme_id": 1
+    "ty": "OpenParen",
+    "pos": 102,
+    "lexeme": 1
   },
   {
-    "kind": "Identifier",
-    "source_id": 102,
-    "lexeme_id": 7
+    "ty": "Identifier",
+    "pos": 102,
+    "lexeme": 7
   },
   {
-    "kind": "Identifier",
-    "source_id": 104,
-    "lexeme_id": 18446744073709551604
+    "ty": "Identifier",
+    "pos": 104,
+    "lexeme": 18446744073709551604
   },
   {
-    "kind": "CloseParen",
-    "source_id": 107,
-    "lexeme_id": 4
+    "ty": "CloseParen",
+    "pos": 108,
+    "lexeme": 4
   },
   {
-    "kind": "OpenBrace",
-    "source_id": 109,
-    "lexeme_id": 8
+    "ty": "OpenBrace",
+    "pos": 110,
+    "lexeme": 8
   },
   {
-    "kind": "CloseBrace",
-    "source_id": 110,
-    "lexeme_id": 9
+    "ty": "CloseBrace",
+    "pos": 111,
+    "lexeme": 9
   },
   {
-    "kind": "Semicolon",
-    "source_id": 111,
-    "lexeme_id": 3
+    "ty": "FnKeyword",
+    "pos": 113,
+    "lexeme": 5
   },
   {
-    "kind": "FnKeyword",
-    "source_id": 113,
-    "lexeme_id": 5
+    "ty": "Identifier",
+    "pos": 116,
+    "lexeme": 18446744073709551588
   },
   {
-    "kind": "Identifier",
-    "source_id": 116,
-    "lexeme_id": 18446744073709551588
+    "ty": "OpenParen",
+    "pos": 121,
+    "lexeme": 1
   },
   {
-    "kind": "OpenParen",
-    "source_id": 120,
-    "lexeme_id": 1
+    "ty": "CloseParen",
+    "pos": 122,
+    "lexeme": 4
   },
   {
-    "kind": "CloseParen",
-    "source_id": 121,
-    "lexeme_id": 4
+    "ty": "OpenBrace",
+    "pos": 124,
+    "lexeme": 8
   },
   {
-    "kind": "OpenBrace",
-    "source_id": 123,
-    "lexeme_id": 8
+    "ty": "Identifier",
+    "pos": 129,
+    "lexeme": 6
   },
   {
-    "kind": "Identifier",
-    "source_id": 129,
-    "lexeme_id": 6
+    "ty": "OpenParen",
+    "pos": 141,
+    "lexeme": 1
   },
   {
-    "kind": "OpenParen",
-    "source_id": 140,
-    "lexeme_id": 1
+    "ty": "Unknown",
+    "pos": 141,
+    "lexeme": 2
   },
   {
-    "kind": "Str",
-    "source_id": 141,
-    "lexeme_id": 10
+    "ty": "Identifier",
+    "pos": 142,
+    "lexeme": 10
   },
   {
-    "kind": "CloseParen",
-    "source_id": 164,
-    "lexeme_id": 4
+    "ty": "Identifier",
+    "pos": 147,
+    "lexeme": 11
   },
   {
-    "kind": "Semicolon",
-    "source_id": 165,
-    "lexeme_id": 3
+    "ty": "Identifier",
+    "pos": 152,
+    "lexeme": 12
   },
   {
-    "kind": "CloseBrace",
-    "source_id": 166,
-    "lexeme_id": 9
+    "ty": "Identifier",
+    "pos": 157,
+    "lexeme": 13
   },
   {
-    "kind": "Semicolon",
-    "source_id": 167,
-    "lexeme_id": 3
+    "ty": "Unknown",
+    "pos": 163,
+    "lexeme": 2
   },
   {
-    "kind": "Eof",
-    "source_id": 168,
-    "lexeme_id": 18446744073709551586
+    "ty": "CloseParen",
+    "pos": 165,
+    "lexeme": 4
+  },
+  {
+    "ty": "CloseBrace",
+    "pos": 167,
+    "lexeme": 9
+  },
+  {
+    "ty": "Eof",
+    "pos": 168,
+    "lexeme": 18446744073709551586
   }
 ]

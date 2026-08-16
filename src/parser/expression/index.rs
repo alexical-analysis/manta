@@ -2,7 +2,8 @@ use super::Precedence;
 use crate::ast::{Expr, IndexExpr};
 use crate::parser::ParseError;
 use crate::parser::expression::{ExprParser, InfixExprParselet};
-use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::lexer::{Lexer, Token, Ty};
+use crate::str_store::StrStore;
 
 /// Parses index access expressions.
 ///
@@ -19,9 +20,11 @@ impl InfixExprParselet for IndexParselet {
         _token: Token,
     ) -> Result<Expr, ParseError> {
         let index_expr = parser.parse(lexer, Precedence::Base)?;
+        todo!("need to get the actual str store here");
+        let str_store = StrStore::new();
 
-        let next = lexer.next_token();
-        if next.kind != TokenKind::CloseSquare {
+        let next = lexer.next(&mut str_store);
+        if next.ty != Ty::CloseSquare {
             return Err(ParseError::MissingExpression(
                 next,
                 "missing index expression".to_string(),

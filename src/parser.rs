@@ -11,7 +11,7 @@ use crate::file_set::FileSet;
 use crate::str_store::StrStore;
 
 use declaration::DeclParser;
-use lexer::{Lexer, Token, TokenKind};
+use lexer::{Lexer, Token, Ty};
 use module::{File, Module};
 use serde::Serialize;
 
@@ -54,14 +54,14 @@ impl<'fs> Parser<'fs> {
     }
 
     fn parse_file(&self, str_store: &mut StrStore, source: &String, base: usize) -> File {
-        let mut lexer = Lexer::new(source, str_store, base);
+        let mut lexer = Lexer::new(str_store, source, base);
 
         let mut declarations = vec![];
 
         let mut errors = vec![];
         loop {
-            let token_kind = lexer.peek().kind;
-            if token_kind == TokenKind::Eof {
+            let token_kind = lexer.peek().ty;
+            if token_kind == Ty::Eof {
                 break;
             }
 

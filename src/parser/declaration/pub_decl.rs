@@ -5,7 +5,8 @@ use crate::parser::declaration::function_declaration::FunctionDeclParselet;
 use crate::parser::declaration::type_decl::TypeDeclParselet;
 use crate::parser::declaration::var_decl::VarDeclParselet;
 use crate::parser::declaration::{DeclParselet, DeclParser};
-use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::lexer::{Lexer, Token, Ty};
+use crate::str_store::StrStore;
 
 /// Parses top-level `pub` declarations
 ///
@@ -36,12 +37,15 @@ impl DeclParselet for PubParselet {
         lexer: &mut Lexer,
         _token: Token,
     ) -> Result<Decl, ParseError> {
-        let token = lexer.next_token();
-        match token.kind {
-            TokenKind::FnKeyword => self.fn_parselet.parse(parser, lexer, token),
-            TokenKind::TypeKeyword => self.type_parselet.parse(parser, lexer, token),
-            TokenKind::ConstKeyword => self.const_parselet.parse(parser, lexer, token),
-            TokenKind::VarKeyword => self.var_parselet.parse(parser, lexer, token),
+        todo!("need to figure this out");
+        let mut str_store = StrStore::new();
+
+        let token = lexer.next(&mut str_store);
+        match token.ty {
+            Ty::FnKeyword => self.fn_parselet.parse(parser, lexer, token),
+            Ty::TypeKeyword => self.type_parselet.parse(parser, lexer, token),
+            Ty::ConstKeyword => self.const_parselet.parse(parser, lexer, token),
+            // Ty::VarKeyword => self.var_parselet.parse(parser, lexer, token),
             _ => Err(ParseError::UnexpectedToken(
                 token,
                 "pub keyword can only appear in specific places".to_string(),

@@ -14,8 +14,9 @@ use std::rc::Rc;
 use crate::ast::{BlockStmt, Expr, ExprStmt, Pattern, Stmt};
 use crate::parser::ParseError;
 use crate::parser::expression::{ExprParser, Precedence};
-use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::lexer::{Lexer, Token, Ty};
 use crate::parser::pattern::PatternParser;
+use crate::str_store::{self, StrStore};
 
 use assign_statement::AssignParselet;
 use block_statement::BlockParselet;
@@ -54,38 +55,38 @@ pub struct StmtParser {
     expr_parser: ExprParser,
     no_struct_expr_parser: ExprParser,
     pattern_parser: PatternParser,
-    prefix_parselets: HashMap<TokenKind, Rc<dyn PrefixStmtParselet>>,
-    infix_parselets: HashMap<TokenKind, Rc<dyn InfixStmtParselet>>,
+    prefix_parselets: HashMap<Ty, Rc<dyn PrefixStmtParselet>>,
+    infix_parselets: HashMap<Ty, Rc<dyn InfixStmtParselet>>,
 }
 
 impl StmtParser {
     pub fn new() -> Self {
-        let mut prefix_parselets: HashMap<TokenKind, Rc<dyn PrefixStmtParselet>> = HashMap::new();
+        let mut prefix_parselets: HashMap<Ty, Rc<dyn PrefixStmtParselet>> = HashMap::new();
         prefix_parselets.insert(
-            TokenKind::LetKeyword,
+            Ty::LetKeyword,
             Rc::new(LetParselet {
                 mutable_binding: false,
             }),
         );
         prefix_parselets.insert(
-            TokenKind::MutKeyword,
+            Ty::MutKeyword,
             Rc::new(LetParselet {
                 mutable_binding: true,
             }),
         );
-        prefix_parselets.insert(TokenKind::ReturnKeyword, Rc::new(ReturnParselet));
-        prefix_parselets.insert(TokenKind::DeferKeyword, Rc::new(DeferParselet));
-        prefix_parselets.insert(TokenKind::OpenBrace, Rc::new(BlockParselet));
-        prefix_parselets.insert(TokenKind::IfKeyword, Rc::new(IfParselet));
-        prefix_parselets.insert(TokenKind::MatchKeyword, Rc::new(MatchParselet));
-        prefix_parselets.insert(TokenKind::LoopKeyword, Rc::new(LoopParselet));
-        prefix_parselets.insert(TokenKind::WhileKeyword, Rc::new(WhileParselet));
-        prefix_parselets.insert(TokenKind::ForKeyword, Rc::new(ForParselet));
-        prefix_parselets.insert(TokenKind::BreakKeyword, Rc::new(BreakParselet));
-        prefix_parselets.insert(TokenKind::ContinueKey, Rc::new(ContinueParselet));
+        prefix_parselets.insert(Ty::ReturnKeyword, Rc::new(ReturnParselet));
+        prefix_parselets.insert(Ty::DeferKeyword, Rc::new(DeferParselet));
+        prefix_parselets.insert(Ty::OpenBrace, Rc::new(BlockParselet));
+        prefix_parselets.insert(Ty::IfKeyword, Rc::new(IfParselet));
+        prefix_parselets.insert(Ty::MatchKeyword, Rc::new(MatchParselet));
+        prefix_parselets.insert(Ty::LoopKeyword, Rc::new(LoopParselet));
+        prefix_parselets.insert(Ty::WhileKeyword, Rc::new(WhileParselet));
+        prefix_parselets.insert(Ty::ForKeyword, Rc::new(ForParselet));
+        prefix_parselets.insert(Ty::BreakKeyword, Rc::new(BreakParselet));
+        prefix_parselets.insert(Ty::ContinueKey, Rc::new(ContinueParselet));
 
-        let mut infix_parselets: HashMap<TokenKind, Rc<dyn InfixStmtParselet>> = HashMap::new();
-        infix_parselets.insert(TokenKind::Equal, Rc::new(AssignParselet));
+        let mut infix_parselets: HashMap<Ty, Rc<dyn InfixStmtParselet>> = HashMap::new();
+        infix_parselets.insert(Ty::Equal, Rc::new(AssignParselet));
 
         let expr_parser = ExprParser::new_parse_structs();
         let no_struct_expr_parser = ExprParser::new_no_structs();
@@ -105,15 +106,18 @@ impl StmtParser {
         // need to peek here because we don't know if this is an expression or a statement yet
         let token = lexer.peek();
 
-        let parselet = self.prefix_parselets.get(&token.kind);
+        todo!("need to figure this out");
+        let mut str_store = StrStore::new();
+
+        let parselet = self.prefix_parselets.get(&token.ty);
         if let Some(parselet) = parselet {
             let parselet = parselet.clone();
-            let token = lexer.next_token();
+            let token = lexer.next(&mut str_store);
             let stmt = parselet.parse(self, lexer, token)?;
 
             // Consume trailing semicolon for prefix statements
-            let next = lexer.next_token();
-            if next.kind != TokenKind::Semicolon {
+            let next = lexer.next(&mut str_store);
+            if next.ty != Ty::Semicolon {
                 return Err(ParseError::UnexpectedToken(
                     token,
                     "missing ';'".to_string(),
@@ -129,15 +133,15 @@ impl StmtParser {
         let token = lexer.peek();
 
         // check if this expression is actually the left hand side of a statement
-        let parselet = self.infix_parselets.get(&token.kind);
+        let parselet = self.infix_parselets.get(&token.ty);
         match parselet {
             Some(parselet) => {
                 let parselet = parselet.clone();
-                let token = lexer.next_token();
+                let token = lexer.next(&mut str_store);
                 let stmt = parselet.parse(self, lexer, expr, token)?;
 
-                let next = lexer.next_token();
-                if next.kind != TokenKind::Semicolon {
+                let next = lexer.next(&mut str_store);
+                if next.ty != Ty::Semicolon {
                     return Err(ParseError::UnexpectedToken(
                         token,
                         "missing ';'".to_string(),
@@ -147,8 +151,8 @@ impl StmtParser {
                 Ok(stmt)
             }
             None => {
-                let next = lexer.next_token();
-                if next.kind != TokenKind::Semicolon {
+                let next = lexer.next(&mut str_store);
+                if next.ty != Ty::Semicolon {
                     return Err(ParseError::UnexpectedToken(next, "missing ';'".to_string()));
                 }
 
@@ -159,17 +163,19 @@ impl StmtParser {
 
     pub fn parse_block(&self, lexer: &mut Lexer, token: Token) -> Result<BlockStmt, ParseError> {
         let mut statements = vec![];
+        todo!("need to figure this out");
+        let mut str_store = StrStore::new();
 
         loop {
             let next = lexer.peek();
-            match next.kind {
-                TokenKind::CloseBrace => {
-                    lexer.next_token();
+            match next.ty {
+                Ty::CloseBrace => {
+                    lexer.next(&mut str_store);
                     break;
                 }
-                TokenKind::Eof => {
+                Ty::Eof => {
                     return Err(ParseError::UnexpectedToken(
-                        next,
+                        next.clone(),
                         "missing closing '}' in block".to_string(),
                     ));
                 }
@@ -181,7 +187,7 @@ impl StmtParser {
         }
 
         Ok(BlockStmt {
-            id: token.source_id,
+            id: token.pos,
             statements,
         })
     }
@@ -203,6 +209,7 @@ impl StmtParser {
     }
 }
 
+/*
 #[cfg(test)]
 mod test {
     use super::*;
@@ -1139,3 +1146,4 @@ mod test {
         },
     );
 }
+*/

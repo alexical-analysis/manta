@@ -1,7 +1,8 @@
 use crate::ast::{IfStmt, Stmt};
 use crate::parser::ParseError;
-use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::lexer::{Lexer, Token, Ty};
 use crate::parser::statement::{PrefixStmtParselet, StmtParser};
+use crate::str_store::StrStore;
 
 /// Parses if statements
 ///
@@ -18,8 +19,11 @@ impl PrefixStmtParselet for IfParselet {
         let check = parser.parse_no_struct_expression(lexer)?;
         let check = Box::new(check);
 
-        let token = lexer.next_token();
-        if token.kind != TokenKind::OpenBrace {
+        todo!("need to figure this out");
+        let mut str_store = StrStore::new();
+
+        let token = lexer.next(&mut str_store);
+        if token.ty != Ty::OpenBrace {
             return Err(ParseError::UnexpectedToken(
                 token,
                 "Expected '{' after if check".to_string(),
@@ -29,12 +33,12 @@ impl PrefixStmtParselet for IfParselet {
         let success = parser.parse_block(lexer, token)?;
 
         let next = lexer.peek();
-        let fail = if next.kind == TokenKind::ElseKeyword {
-            lexer.next_token();
-            let open = lexer.next_token();
-            if open.kind != TokenKind::OpenBrace {
+        let fail = if next.ty == Ty::ElseKeyword {
+            lexer.next(&mut str_store);
+            let open = lexer.next(&mut str_store);
+            if open.ty != Ty::OpenBrace {
                 return Err(ParseError::UnexpectedToken(
-                    next,
+                    next.clone(),
                     "Expected '{' after else keyword".to_string(),
                 ));
             }

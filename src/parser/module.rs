@@ -6,10 +6,10 @@ use crate::ast::{
     TypeSpec,
 };
 use crate::parser::ParseError;
-use crate::parser::lexer::{Token, TokenKind};
+use crate::parser::lexer::{Token, Ty};
 use crate::str_store::{self, StrID};
 
-use super::lexer::SourceID;
+use super::lexer::Pos;
 
 #[derive(Debug, Serialize)]
 struct IDTracker {
@@ -132,7 +132,7 @@ impl Scope {
 struct SymTable {
     scopes: Vec<Scope>,
     current_scope: ScopeID,
-    scope_map: BTreeMap<SourceID, ScopePos>,
+    scope_map: BTreeMap<Pos, ScopePos>,
     id_tracker: IDTracker,
 }
 
@@ -161,7 +161,7 @@ impl SymTable {
         }
     }
 
-    fn open_scope(&mut self, source_id: SourceID) {
+    fn open_scope(&mut self, source_id: Pos) {
         let new_scope = Scope::new(self.current_scope);
         let new_scope_id = self.scopes.len();
 
@@ -170,7 +170,7 @@ impl SymTable {
         self.add_scope_pos(source_id);
     }
 
-    fn add_scope_pos(&mut self, source_id: SourceID) {
+    fn add_scope_pos(&mut self, source_id: Pos) {
         let scope_depth = self.get_current_scope().bindings.len();
         self.scope_map.insert(
             source_id,
@@ -192,7 +192,7 @@ impl SymTable {
     fn add_binding(
         &mut self,
         name: StrID,
-        source_id: SourceID,
+        source_id: Pos,
         binding_type: BindingType,
         mutable: bool,
     ) {
@@ -310,9 +310,9 @@ impl Module {
                         errors.push(ParseError::Custom(
                             // TODO: need to get the actual tokens here
                             Token {
-                                kind: TokenKind::Identifier,
-                                source_id: SourceID::from_usize(0),
-                                lexeme_id: StrID::from_usize(0),
+                                ty: Ty::Identifier,
+                                pos: Pos::from(0),
+                                lexeme: StrID::from_usize(0),
                             },
                             "multiple modules names in a single dir is not allowed".to_string(),
                         ))
@@ -340,9 +340,9 @@ impl Module {
                     if f.name == str_store::MAIN {
                         errors.push(ParseError::Custom(
                             Token {
-                                kind: TokenKind::Identifier,
-                                source_id: SourceID::from_usize(0),
-                                lexeme_id: StrID::from_usize(0),
+                                ty: Ty::Identifier,
+                                pos: Pos::from(0),
+                                lexeme: StrID::from_usize(0),
                             },
                             "only the root module may define a main function".to_string(),
                         ));
@@ -366,7 +366,7 @@ impl Module {
         self.name
     }
 
-    pub fn get_scope_pos(&self, source_id: SourceID) -> Option<ScopePos> {
+    pub fn get_scope_pos(&self, source_id: Pos) -> Option<ScopePos> {
         self.sym_table.scope_map.get(&source_id).copied()
     }
 
@@ -405,9 +405,9 @@ impl Module {
                     errors.push(ParseError::Custom(
                         // TODO: need to get the actual tokens here
                         Token {
-                            kind: TokenKind::Identifier,
-                            source_id: SourceID::from_usize(0),
-                            lexeme_id: StrID::from_usize(0),
+                            ty: Ty::Identifier,
+                            pos: Pos::from(0),
+                            lexeme: StrID::from_usize(0),
                         },
                         "only a single module name is allowed per file".to_string(),
                     ));
@@ -419,9 +419,9 @@ impl Module {
             errors.push(ParseError::Custom(
                 // TODO: need to get the actual tokens here
                 Token {
-                    kind: TokenKind::Identifier,
-                    source_id: SourceID::from_usize(9999999),
-                    lexeme_id: StrID::from_usize(9999999),
+                    ty: Ty::Identifier,
+                    pos: Pos::from(9999999),
+                    lexeme: StrID::from_usize(9999999),
                 },
                 "file is missing module name".to_string(),
             ));
@@ -441,9 +441,9 @@ impl Module {
                         errors.push(ParseError::Custom(
                             // TODO: get the real token for this
                             Token {
-                                kind: TokenKind::Identifier,
-                                source_id: SourceID::from_usize(0),
-                                lexeme_id: StrID::from_usize(0),
+                                ty: Ty::Identifier,
+                                pos: Pos::from(0),
+                                lexeme: StrID::from_usize(0),
                             },
                             "first declaration in a file must be the module name".to_string(),
                         ));
@@ -452,9 +452,9 @@ impl Module {
                         errors.push(ParseError::Custom(
                         // TODO: get the real token for this
                         Token {
-                            kind: TokenKind::Identifier,
-                            source_id: SourceID::from_usize(0),
-                            lexeme_id: StrID::from_usize(0),
+                            ty: Ty::Identifier,
+                            pos: Pos::from(0),
+                            lexeme: StrID::from_usize(0),
                         },
                         "only a single import section allowed per file, and it must be right below the module name".to_string(),
                     ));
@@ -711,9 +711,9 @@ impl Module {
                     None => errors.push(ParseError::Custom(
                         // TODO: need the acutal token here, not just this placeholder
                         Token {
-                            kind: TokenKind::Identifier,
-                            source_id: SourceID::from_usize(0),
-                            lexeme_id: StrID::from_usize(0),
+                            ty: Ty::Identifier,
+                            pos: Pos::from(0),
+                            lexeme: StrID::from_usize(0),
                         },
                         format!("use of unknown identifier {:?}", expr).to_string(),
                     )),
@@ -782,9 +782,9 @@ impl Module {
                     Some(b) => b.used = true,
                     None => errors.push(ParseError::Custom(
                         Token {
-                            kind: TokenKind::Identifier,
-                            source_id: SourceID::from_usize(0),
-                            lexeme_id: StrID::from_usize(0),
+                            ty: Ty::Identifier,
+                            pos: Pos::from(0),
+                            lexeme: StrID::from_usize(0),
                         },
                         "use of unknown type".to_string(),
                     )),

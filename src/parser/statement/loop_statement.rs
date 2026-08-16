@@ -1,7 +1,8 @@
 use crate::ast::{Expr, ForStmt, LoopStmt, Stmt, WhileStmt};
 use crate::parser::ParseError;
-use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::lexer::{Lexer, Token, Ty};
 use crate::parser::statement::{PrefixStmtParselet, StmtParser};
+use crate::str_store::StrStore;
 
 /// Parses a loop statement
 ///
@@ -16,8 +17,11 @@ impl PrefixStmtParselet for LoopParselet {
         token: Token,
     ) -> Result<Stmt, ParseError> {
         // parse_block expects the first opening brace to already be consumed
-        let open = lexer.next_token();
-        if open.kind != TokenKind::OpenBrace {
+        todo!("need to figure this out");
+        let mut str_store = StrStore::new();
+
+        let open = lexer.next(&mut str_store);
+        if open.ty != Ty::OpenBrace {
             return Err(ParseError::Custom(
                 open,
                 "the loop keyword must be followed by a block".to_string(),
@@ -43,10 +47,12 @@ impl PrefixStmtParselet for WhileParselet {
         token: Token,
     ) -> Result<Stmt, ParseError> {
         let check = parser.parse_no_struct_expression(lexer)?;
+        todo!("need to figure this out");
+        let mut str_store = StrStore::new();
 
         // parse_block expects the first opening brace to already be consumed
-        let open = lexer.next_token();
-        if open.kind != TokenKind::OpenBrace {
+        let open = lexer.next(&mut str_store);
+        if open.ty != Ty::OpenBrace {
             return Err(ParseError::Custom(
                 open,
                 "the loop keyword must be followed by a block".to_string(),
@@ -75,20 +81,23 @@ impl PrefixStmtParselet for ForParselet {
         lexer: &mut Lexer,
         _token: Token,
     ) -> Result<Stmt, ParseError> {
-        let token = lexer.peek();
+        let token = lexer.peek().clone();
         let binding = parser.parse_expression(lexer)?;
         let binding = match binding {
             Expr::Identifier(ident) => ident,
             _ => {
                 return Err(ParseError::InvalidExpression(
-                    token,
+                    token.clone(),
                     "for look requires a simple binding identifier".to_string(),
                 ));
             }
         };
 
-        let in_keyword = lexer.next_token();
-        if in_keyword.kind != TokenKind::InKeyword {
+        todo!("need to figure this out");
+        let mut str_store = StrStore::new();
+
+        let in_keyword = lexer.next(&mut str_store);
+        if in_keyword.ty != Ty::InKeyword {
             return Err(ParseError::UnexpectedToken(
                 in_keyword,
                 "missing in keyword in for loop".to_string(),
@@ -102,22 +111,22 @@ impl PrefixStmtParselet for ForParselet {
             Expr::Range(range) => range,
             _ => {
                 return Err(ParseError::InvalidExpression(
-                    token,
+                    token.clone(),
                     "for loops require range expressions".to_string(),
                 ));
             }
         };
 
         // parse_block expects the first opening brace to already be consumed
-        let open = lexer.next_token();
-        if open.kind != TokenKind::OpenBrace {
+        let open = lexer.next(&mut str_store);
+        if open.ty != Ty::OpenBrace {
             return Err(ParseError::Custom(
                 open,
                 "the loop keyword must be followed by a block".to_string(),
             ));
         }
 
-        let body = parser.parse_block(lexer, token)?;
+        let body = parser.parse_block(lexer, token.clone())?;
 
         Ok(Stmt::For(ForStmt {
             binding,

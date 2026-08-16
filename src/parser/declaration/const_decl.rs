@@ -1,7 +1,8 @@
 use crate::ast::{ConstDecl, Decl};
 use crate::parser::ParseError;
 use crate::parser::declaration::{DeclParselet, DeclParser};
-use crate::parser::lexer::{Lexer, Token, TokenKind};
+use crate::parser::lexer::{Lexer, Token, Ty};
+use crate::str_store::{self, StrStore};
 
 /// Parses top-level const declarations
 ///
@@ -17,19 +18,22 @@ impl DeclParselet for ConstDeclParselet {
         lexer: &mut Lexer,
         _token: Token,
     ) -> Result<Decl, ParseError> {
-        let ident = lexer.next_token();
-        if ident.kind != TokenKind::Identifier {
+        todo!("need to figure this out");
+        let mut str_store = StrStore::new();
+
+        let ident = lexer.next(&mut str_store);
+        if ident.ty != Ty::Identifier {
             return Err(ParseError::UnexpectedToken(
                 ident,
                 "Expected const name".to_string(),
             ));
         }
 
-        let name = ident.lexeme_id;
+        let name = ident.lexeme;
 
         // Expect '='
-        let equal = lexer.next_token();
-        if equal.kind != TokenKind::Equal {
+        let equal = lexer.next(&mut str_store);
+        if equal.ty != Ty::Equal {
             return Err(ParseError::UnexpectedToken(
                 equal,
                 "Expected '=' after const name".to_string(),
@@ -40,7 +44,7 @@ impl DeclParselet for ConstDeclParselet {
 
         Ok(Decl::Const(ConstDecl {
             public: self.public,
-            id: ident.source_id,
+            id: ident.pos,
             name,
             value,
         }))

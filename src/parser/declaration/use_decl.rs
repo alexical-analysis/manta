@@ -1,8 +1,8 @@
 use crate::ast::{Decl, ImportStatement, UseDecl};
 use crate::parser::ParseError;
 use crate::parser::declaration::{DeclParselet, DeclParser};
-use crate::parser::lexer::{Lexer, Token, TokenKind};
-use crate::str_store::StrID;
+use crate::parser::lexer::{Lexer, Token, Ty};
+use crate::str_store::{StrID, StrStore};
 
 /// Parses top-level import declarations
 ///
@@ -16,8 +16,11 @@ impl DeclParselet for UseDeclParselet {
         lexer: &mut Lexer,
         _token: Token,
     ) -> Result<Decl, ParseError> {
-        let token = lexer.next_token();
-        if token.kind != TokenKind::OpenParen {
+        todo!("need to figure this out");
+        let mut str_store = StrStore::new();
+
+        let token = lexer.next(&mut str_store);
+        if token.ty != Ty::OpenParen {
             return Err(ParseError::UnexpectedToken(
                 token,
                 "Expected '(' after import keyword".to_string(),
@@ -26,8 +29,8 @@ impl DeclParselet for UseDeclParselet {
 
         let modules = parse_import_modules(lexer)?;
 
-        let token = lexer.next_token();
-        if token.kind != TokenKind::CloseParen {
+        let token = lexer.next(&mut str_store);
+        if token.ty != Ty::CloseParen {
             return Err(ParseError::UnexpectedToken(
                 token,
                 "Expected ')' after import modules".to_string(),
@@ -43,33 +46,35 @@ impl DeclParselet for UseDeclParselet {
 /// Similar to Go imports, no commas needed
 fn parse_import_modules(lexer: &mut Lexer) -> Result<Vec<ImportStatement>, ParseError> {
     let mut modules = vec![];
+    todo!("need to figure this out");
+    let mut str_store = StrStore::new();
 
     // Parse module names until closing paren
     loop {
-        if lexer.peek().kind != TokenKind::Str {
+        if lexer.peek().ty != Ty::Str {
             break;
         }
 
-        let token = lexer.next_token();
-        let import_path = token.lexeme_id;
+        let token = lexer.next(&mut str_store);
+        let import_path = token.lexeme;
 
         // check if this import is aliased
         let mut alias = None;
-        if lexer.peek().kind == TokenKind::AsKeyword {
-            lexer.next_token();
-            let alias_token = lexer.next_token();
-            if alias_token.kind != TokenKind::Identifier {
+        if lexer.peek().ty == Ty::AsKeyword {
+            lexer.next(&mut str_store);
+            let alias_token = lexer.next(&mut str_store);
+            if alias_token.ty != Ty::Identifier {
                 return Err(ParseError::UnexpectedToken(
                     alias_token,
                     "Expected identifer as package alias".to_string(),
                 ));
             }
 
-            alias = Some(alias_token.lexeme_id);
+            alias = Some(alias_token.lexeme);
         }
 
-        let token = lexer.next_token();
-        if token.kind != TokenKind::Semicolon {
+        let token = lexer.next(&mut str_store);
+        if token.ty != Ty::Semicolon {
             return Err(ParseError::UnexpectedToken(
                 token,
                 "Expected ';'".to_string(),
@@ -84,7 +89,7 @@ fn parse_import_modules(lexer: &mut Lexer) -> Result<Vec<ImportStatement>, Parse
 
     if modules.is_empty() {
         return Err(ParseError::UnexpectedToken(
-            lexer.peek(),
+            lexer.peek().clone(),
             "Expected at least one module name string in import".to_string(),
         ));
     }
