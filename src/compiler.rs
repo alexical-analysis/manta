@@ -1,3 +1,13 @@
+pub mod ast_store;
+pub mod builder;
+pub mod context;
+pub mod gen_store;
+pub mod hir_store;
+pub mod mir_store;
+pub mod module;
+pub mod str_store;
+pub mod ty_store;
+
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fs::{self, File};

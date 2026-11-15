@@ -1,3 +1,7 @@
+pub mod ast;
+pub mod lexer;
+pub mod parser;
+
 use serde::Serialize;
 
 use crate::parser::lexer::Pos;

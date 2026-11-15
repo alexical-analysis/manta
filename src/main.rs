@@ -4,12 +4,14 @@ mod codegen;
 mod compiler;
 mod file_set;
 mod hir;
+mod index_vec;
 mod manta_mod;
 mod mir;
 mod noder;
 mod parser;
 mod pub_mod;
 mod str_store;
+mod types;
 
 use std::error::Error;
 use std::fs::{self, File};
