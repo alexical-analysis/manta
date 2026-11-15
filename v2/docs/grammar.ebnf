@@ -1,0 +1,69 @@
+# Manta grammar (EBNF - draft)
+
+; This is the official EBNF for the Manta programming language.
+; For more detail on any construct see the `docs/spec.md` file.
+
+; file of declarations, must contain at least a mod_decl
+program := { top_level_decl+ }
+
+top_level_decl := mod_decl | use_decl | type_decl | bind_decl | function_decl
+
+mod_decl          := 'mod' IDENT
+use_decl          := 'use' use_block
+use_block         := '(' (STRING ';')+ ')' ';'
+
+type_decl         := 'type' IDENT (struct_type | enum_type)
+
+bind_decl         := 'mut' IDENT type_spec '=' expression
+
+function_decl     :=  'fn' IDENT '(' param_list* ')' type_spec block
+param_list        := IDENT type_spec (',' IDENT type_spec)*
+block             := '{' statement* '}'
+
+statement         := bind_stmt | return_stmt | break_stmt | continue_stmt | loop_stmt | if_stmt | expr_stmt | block
+bind_stmt         := 'mut' IDENT type_spec '=' expression ';'
+return_stmt       := 'return' expression ';'
+break_stmt        := 'break' ';'
+continue_stmt     := 'continue' ';'
+loop_stmt         := 'loop' block ';'
+if_stmt           := 'if' expression block ';'
+expr_stmt         := expression ';'
+
+expression        := assign_expr | binary_expr | unary_expr | primary_expr
+assign_expr       := expression '=' expression
+binary_expr       := expression binary_op expression
+binary_op         := '*' | '/' | '%' | '+' | '-'
+                   | '<' | '>' | '<=' | '>=' | '==' | '!=' | '&&' | '||'
+                   | '&' | '|'
+
+unary_expr        := unary_op primary_expr
+unary_op          := '-' | '!' | '&' | '*' | '@'
+
+primary_expr      := literal | '(' expression ')' | call_expr | (IDENT '::' )? IDENT
+literal           := INTEGER | FLOAT | STRING | BOOL | array_literal | struct_literal | enum_literal
+array_literal     := '[' INTEGER ']' IDENT '{' expr_list '}'
+
+struct_literal    := IDENT '{' struct_field_list? '}'
+sturct_field_list := struct_field (',' struct_field)*
+struct_field      := IDENT ':' expression
+
+enum_literal      := IDENT '.' IDENT
+
+call_expr         := expression '(' expr_list? ')'
+expr_list         := expression (',' expression)*
+
+type_spec         := basic_type | pointer_type | array_type | struct_type | (IDENT '::')? IDENT
+basic_type        := 'i64' | 'u64' | 'u8' | 'f64' | 'str' | 'bool' | 'ptr'
+pointer_type      := '*' type_spec
+array_type        := '[' INTEGER ']' type_spec
+struct_type       := 'struct' '{' field_decl* '}'
+field_decl        := IDENT type_spec ';'
+enum_type         := 'enum' '{' variant_decl+ '}'
+variant_decl      := IDENT '=' literal
+
+
+; IDENT is a Manta identifier which follows the form `[a-zA-Z][a-zA-Z0-9_]*`
+; INTEGER is a simple integer literal
+; FLOAT is a simple float literal, scientific notation is not supported
+; STRING is a Manta string literal contained inside double quotes
+; BOOL is a Manta boolean literal ('true'/'false)
