@@ -1,0 +1,6 @@
+# rust artifact directories
+debug
+target
+
+# local only files
+.local
